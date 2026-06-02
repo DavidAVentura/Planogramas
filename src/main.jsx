@@ -814,8 +814,16 @@ function PhotoQualityCard({ quality }) {
 function ReviewShelf({ rows, photo, openProduct }) {
   return (
     <div className="review-shelf-stage">
-      {photo && <img src={photo} alt="Foto del levantamiento" />}
-      <div className={`review-realogram ${photo ? "over-photo" : ""}`}>
+      {photo && (
+        <div className="captured-photo-strip">
+          <img src={photo} alt="Foto del levantamiento" />
+          <div>
+            <strong>Foto capturada</strong>
+            <span>Imagen original usada como referencia; el realogram se muestra separado abajo.</span>
+          </div>
+        </div>
+      )}
+      <div className="review-realogram">
         <div className="review-realogram-header">
           <strong>Realogram detectado</strong>
           <span>Productos ubicados por nivel antes de correccion</span>
