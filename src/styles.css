@@ -35,6 +35,16 @@ select {
 
 button {
   cursor: pointer;
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease,
+    box-shadow 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:active {
+  transform: scale(0.98);
 }
 
 main {
@@ -151,6 +161,7 @@ h3 {
   color: #071039;
   background: var(--lime);
   border-color: var(--lime);
+  box-shadow: 0 10px 26px rgba(155, 224, 0, 0.22);
 }
 
 .workspace {
@@ -177,6 +188,51 @@ h3 {
 .main-panel {
   min-height: 680px;
   padding: 18px;
+  overflow: hidden;
+}
+
+.screen-head {
+  display: none;
+  margin-bottom: 14px;
+  padding: 13px;
+  border: 1px solid rgba(155, 224, 0, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.screen-head span {
+  color: var(--lime);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 1.3px;
+  font-weight: 850;
+}
+
+.screen-head strong {
+  display: block;
+  font-size: 1.08rem;
+  margin-top: 3px;
+}
+
+.screen-head p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.screen-shell {
+  animation: screen-in 260ms ease both;
+}
+
+@keyframes screen-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .panel-title {
@@ -367,6 +423,7 @@ input:focus {
   color: #071039;
   font-weight: 850;
   padding: 0 16px;
+  box-shadow: 0 10px 24px rgba(155, 224, 0, 0.18);
 }
 
 .primary.small {
@@ -384,6 +441,12 @@ input:focus {
   border-color: var(--white-line);
   width: 100%;
   margin-top: 10px;
+}
+
+.primary:active,
+.secondary:active,
+.icon-btn:active {
+  box-shadow: 0 0 0 4px rgba(155, 224, 0, 0.16);
 }
 
 .capture-actions .primary {
@@ -892,6 +955,33 @@ input:focus {
   color: var(--lime);
 }
 
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 30;
+  transform: translateX(-50%);
+  width: min(420px, calc(100vw - 28px));
+  padding: 12px 14px;
+  border: 1px solid rgba(155, 224, 0, 0.48);
+  border-radius: 8px;
+  background: rgba(7, 16, 57, 0.96);
+  color: #f8f9ff;
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.42);
+  animation: toast-in 180ms ease both;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
 .performance-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;
@@ -1280,7 +1370,63 @@ input:focus {
 @media (max-width: 680px) {
   main {
     width: min(100vw - 20px, 1480px);
-    padding-top: 16px;
+    padding-top: 14px;
+    padding-bottom: 96px;
+  }
+
+  .app-header {
+    margin-bottom: 12px;
+  }
+
+  .app-header h1 {
+    font-size: 2rem;
+  }
+
+  .intro {
+    font-size: 0.92rem;
+  }
+
+  .status-strip {
+    gap: 7px;
+  }
+
+  .status-strip span {
+    padding: 8px 9px;
+    font-size: 0.75rem;
+  }
+
+  .workflow {
+    position: fixed;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    z-index: 18;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    margin: 0;
+    padding: 7px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    background: rgba(7, 16, 57, 0.94);
+    box-shadow: 0 20px 70px rgba(0, 0, 0, 0.44);
+    backdrop-filter: blur(12px);
+  }
+
+  .step {
+    min-height: 58px;
+    justify-content: center;
+    padding: 8px 4px;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 0.68rem;
+    border-radius: 8px;
+  }
+
+  .step span {
+    width: 20px;
+    height: 20px;
+    font-size: 0.72rem;
   }
 
   .control-panel {
@@ -1292,6 +1438,10 @@ input:focus {
   .planogram-surface,
   .catalog-panel {
     padding: 12px;
+  }
+
+  .screen-head {
+    display: block;
   }
 
   .camera-stage,
@@ -1313,10 +1463,20 @@ input:focus {
 
   .toolbar-actions {
     width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
   }
 
   .toolbar-actions .primary {
-    flex: 1;
+    grid-column: 1 / -1;
+  }
+
+  .icon-btn {
+    width: 100%;
+  }
+
+  .toast {
+    bottom: 88px;
   }
 
   .performance-kpis {

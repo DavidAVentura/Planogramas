@@ -33,6 +33,28 @@ import { categories, dataStats, fixtureTypes, products, starterPlanogram } from 
 import "./styles.css";
 
 const stores = ["Cemaco Pradera", "Cemaco Zona 10", "Cemaco Peri-Roosevelt", "Cemaco Cayala", "Piloto Automotriz"];
+const screenMeta = {
+  capture: {
+    label: "Captura",
+    title: "Toma o sube la foto",
+    description: "Primero valida que la imagen sirva para reconocimiento.",
+  },
+  review: {
+    label: "Revision",
+    title: "Revisa detecciones",
+    description: "La IA propone productos, facings y confianza por nivel.",
+  },
+  editor: {
+    label: "Editor",
+    title: "Corrige el planograma",
+    description: "Ajusta sku, facings y posiciones antes de guardar.",
+  },
+  performance: {
+    label: "Performance",
+    title: "Evalua el surtido",
+    description: "Cruza el mueble con ventas, ecommerce e inventario.",
+  },
+};
 const fixtureOptions = Object.values(
   fixtureTypes.reduce((groups, fixture) => {
     const key = `${fixture.name}-${fixture.category}`;
@@ -281,7 +303,9 @@ function App() {
   const [query, setQuery] = useState("");
   const [savedAt, setSavedAt] = useState(null);
   const [previewProduct, setPreviewProduct] = useState(null);
+  const [toast, setToast] = useState(null);
   const fileRef = useRef(null);
+  const toastTimerRef = useRef(null);
 
   const fixture = useMemo(() => fixtureOptions.find((item) => item.id === fixtureId), [fixtureId]);
   const allItems = rows.flatMap((row) => row.items);
@@ -313,17 +337,32 @@ function App() {
       .find((row) => row.id === selectedCell.rowId)
       ?.items.find((item) => item.id === selectedCell.itemId);
 
+  function notify(message, type = "success") {
+    setToast({ message, type });
+    window.clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = window.setTimeout(() => setToast(null), 2200);
+  }
+
+  function goToView(nextView) {
+    setActiveView(nextView);
+    window.setTimeout(() => {
+      document.querySelector(".main-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
+  }
+
   function onFixtureChange(nextFixtureId) {
     const nextFixture = fixtureOptions.find((item) => item.id === nextFixtureId);
     setFixtureId(nextFixtureId);
     setRows(makeDetectionRows(nextFixture, selectedCategory));
     setSelectedCell(null);
+    notify(`Mueble cambiado a ${nextFixture.name}`);
   }
 
   function onCategoryChange(nextCategory) {
     setSelectedCategory(nextCategory);
     setRows(makeDetectionRows(fixture, nextCategory));
     setSelectedCell(null);
+    notify(`Categoria: ${nextCategory}`);
   }
 
   function onPhotoPicked(event) {
@@ -342,16 +381,18 @@ function App() {
       const quality = await analyzeCapturedPhoto(dataUrl);
       setPhotoQuality(quality);
       runPipeline();
+      notify("Foto cargada y validada");
     };
     reader.readAsDataURL(file);
   }
 
   function runPipeline() {
     setProcessing(true);
-    setActiveView("review");
+    goToView("review");
     window.setTimeout(() => {
       setRows(makeDetectionRows(fixture, selectedCategory));
       setProcessing(false);
+      notify("Realogram demo generado");
     }, 950);
   }
 
@@ -375,6 +416,7 @@ function App() {
       source: "Corregido por usuario",
       confidence: 99,
     });
+    notify("Facing agregado");
   }
 
   function removeFacing() {
@@ -384,6 +426,7 @@ function App() {
       source: "Corregido por usuario",
       confidence: 99,
     });
+    notify("Facing ajustado");
   }
 
   function assignProduct(sku) {
@@ -393,6 +436,7 @@ function App() {
       confidence: 99,
       source: "Asignado manualmente",
     });
+    notify(`${sku} asignado`);
   }
 
   function duplicateSelected() {
@@ -407,6 +451,7 @@ function App() {
         return { ...row, items: next };
       }),
     );
+    notify("Producto duplicado");
   }
 
   function exportJson() {
@@ -480,6 +525,7 @@ function App() {
 
   function savePlanogram() {
     setSavedAt(new Date().toLocaleString("es-GT"));
+    notify("Planograma guardado");
   }
 
   return (
@@ -516,7 +562,7 @@ function App() {
           <button
             key={id}
             className={`step ${activeView === id ? "active" : ""}`}
-            onClick={() => setActiveView(id)}
+            onClick={() => goToView(id)}
             type="button"
           >
             <span>{index + 1}</span>
@@ -579,56 +625,64 @@ function App() {
         </aside>
 
         <section className="main-panel">
-          {activeView === "capture" && (
-            <CaptureView
-              photo={photo}
-              photoQuality={photoQuality}
-              processing={processing}
-              fileRef={fileRef}
-              onPhotoPicked={onPhotoPicked}
-              runPipeline={runPipeline}
-            />
-          )}
-          {activeView === "review" && (
-            <ReviewView
-              rows={rows}
-              photo={photo}
-              photoQuality={photoQuality}
-              processing={processing}
-              avgConfidence={avgConfidence}
-              matchedItems={matchedItems.length}
-              totalItems={allItems.length}
-              openProduct={setPreviewProduct}
-              onContinue={() => setActiveView("editor")}
-            />
-          )}
-          {activeView === "editor" && (
-            <EditorView
-              rows={rows}
-              selectedCell={selectedCell}
-              setSelectedCell={setSelectedCell}
-              assignProduct={assignProduct}
-              addFacing={addFacing}
-              removeFacing={removeFacing}
-              duplicateSelected={duplicateSelected}
-              activeSelection={activeSelection}
-              query={query}
-              setQuery={setQuery}
-              filteredProducts={visibleProducts}
-              totalFilteredProducts={filteredProducts.length}
-              savePlanogram={savePlanogram}
-              exportJson={exportJson}
-              exportCsv={exportCsv}
-              savedAt={savedAt}
-              openProduct={setPreviewProduct}
-            />
-          )}
-          {activeView === "performance" && (
-            <PerformanceView rows={rows} selectedStore={selectedStore} selectedCategory={selectedCategory} fixture={fixture} />
-          )}
+          <div className="screen-head">
+            <span>{screenMeta[activeView].label}</span>
+            <strong>{screenMeta[activeView].title}</strong>
+            <p>{screenMeta[activeView].description}</p>
+          </div>
+          <div key={activeView} className="screen-shell">
+            {activeView === "capture" && (
+              <CaptureView
+                photo={photo}
+                photoQuality={photoQuality}
+                processing={processing}
+                fileRef={fileRef}
+                onPhotoPicked={onPhotoPicked}
+                runPipeline={runPipeline}
+              />
+            )}
+            {activeView === "review" && (
+              <ReviewView
+                rows={rows}
+                photo={photo}
+                photoQuality={photoQuality}
+                processing={processing}
+                avgConfidence={avgConfidence}
+                matchedItems={matchedItems.length}
+                totalItems={allItems.length}
+                openProduct={setPreviewProduct}
+                onContinue={() => goToView("editor")}
+              />
+            )}
+            {activeView === "editor" && (
+              <EditorView
+                rows={rows}
+                selectedCell={selectedCell}
+                setSelectedCell={setSelectedCell}
+                assignProduct={assignProduct}
+                addFacing={addFacing}
+                removeFacing={removeFacing}
+                duplicateSelected={duplicateSelected}
+                activeSelection={activeSelection}
+                query={query}
+                setQuery={setQuery}
+                filteredProducts={visibleProducts}
+                totalFilteredProducts={filteredProducts.length}
+                savePlanogram={savePlanogram}
+                exportJson={exportJson}
+                exportCsv={exportCsv}
+                savedAt={savedAt}
+                openProduct={setPreviewProduct}
+              />
+            )}
+            {activeView === "performance" && (
+              <PerformanceView rows={rows} selectedStore={selectedStore} selectedCategory={selectedCategory} fixture={fixture} />
+            )}
+          </div>
         </section>
       </section>
       {previewProduct && <ProductPreview product={previewProduct} onClose={() => setPreviewProduct(null)} />}
+      {toast && <div className={`toast ${toast.type}`}>{toast.message}</div>}
     </main>
   );
 }
