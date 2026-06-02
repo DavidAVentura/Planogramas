@@ -994,7 +994,7 @@ function PerformanceView({ rows, selectedStore, selectedCategory, fixture }) {
                         style={{ "--heat": intensity }}
                       >
                         <ProductPack product={product} compact />
-                        <small>{perf ? `${perf.salesPerFacing}/f` : "sin dato"}</small>
+                        <small>{perf ? `${perf.salesPerFacing} u/facing` : "sin dato"}</small>
                       </div>
                     );
                   })}
@@ -1062,6 +1062,10 @@ function Metric({ icon: Icon, label, value }) {
 }
 
 function ProductPreview({ product, onClose }) {
+  const performance = getProductPerformance(product);
+  const bestStoreIndex = (skuSeed(product) % 4);
+  const bestStores = ["Cemaco Pradera", "Cemaco Zona 10", "Cemaco Cayala", "Cemaco Peri-Roosevelt"];
+  const bestStore = bestStores[bestStoreIndex];
   return (
     <div className="preview-backdrop" role="dialog" aria-modal="true" aria-label={`Detalle de ${product.name}`}>
       <button className="preview-scrim" onClick={onClose} type="button" aria-label="Cerrar detalle" />
@@ -1106,6 +1110,53 @@ function ProductPreview({ product, onClose }) {
             </div>
           </dl>
           {product.details && <p>{product.details}</p>}
+          {performance && (
+            <div className="preview-performance">
+              <div className="preview-performance-title">
+                <TrendingUp size={18} />
+                <strong>Performance del sku</strong>
+                <span>Datos demo 30 dias</span>
+              </div>
+              <div className="preview-perf-grid">
+                <div>
+                  <dt>Ventas tienda</dt>
+                  <dd>{performance.storeUnits} unidades</dd>
+                </div>
+                <div>
+                  <dt>Ventas online</dt>
+                  <dd>{performance.ecommerceUnits} unidades</dd>
+                </div>
+                <div>
+                  <dt>Visitas ecommerce</dt>
+                  <dd>{performance.ecommerceVisits.toLocaleString("es-GT")}</dd>
+                </div>
+                <div>
+                  <dt>Conversion online</dt>
+                  <dd>{performance.conversion}%</dd>
+                </div>
+                <div>
+                  <dt>Inventario actual</dt>
+                  <dd>{performance.inventory} unidades</dd>
+                </div>
+                <div>
+                  <dt>Dias inventario</dt>
+                  <dd>{performance.daysInventory} dias</dd>
+                </div>
+                <div>
+                  <dt>Venta por facing</dt>
+                  <dd>{performance.salesPerFacing} u/facing</dd>
+                </div>
+                <div>
+                  <dt>Mejor tienda</dt>
+                  <dd>{bestStore}</dd>
+                </div>
+              </div>
+              <div className={`preview-alert ${performance.alert === "Riesgo de quiebre" ? "danger" : ""}`}>
+                <AlertTriangle size={17} />
+                <span>{performance.alert}</span>
+              </div>
+            </div>
+          )}
         </div>
       </section>
     </div>
