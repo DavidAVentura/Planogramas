@@ -1371,6 +1371,33 @@ input:focus {
   color: #cbd3ff;
 }
 
+.preview-construction-note {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid rgba(155, 224, 0, 0.42);
+  border-radius: 8px;
+  background: rgba(155, 224, 0, 0.09);
+}
+
+.preview-construction-note svg {
+  color: var(--lime);
+}
+
+.preview-construction-note strong,
+.preview-construction-note span {
+  display: block;
+}
+
+.preview-construction-note span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
 .preview-performance {
   margin-top: 16px;
   padding-top: 14px;

@@ -332,6 +332,7 @@ function App() {
   const [query, setQuery] = useState("");
   const [savedAt, setSavedAt] = useState(null);
   const [previewProduct, setPreviewProduct] = useState(null);
+  const [previewMode, setPreviewMode] = useState("construction");
   const [toast, setToast] = useState(null);
   const fileRef = useRef(null);
   const toastTimerRef = useRef(null);
@@ -377,6 +378,11 @@ function App() {
     window.setTimeout(() => {
       document.querySelector(".main-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 60);
+  }
+
+  function openProductPreview(product, mode = "construction") {
+    setPreviewMode(mode);
+    setPreviewProduct(product);
   }
 
   function onFixtureChange(nextFixtureId) {
@@ -695,7 +701,7 @@ function App() {
                 avgConfidence={avgConfidence}
                 matchedItems={matchedItems.length}
                 totalItems={allItems.length}
-                openProduct={setPreviewProduct}
+                openProduct={(product) => openProductPreview(product, "construction")}
                 onRetake={() => fileRef.current?.click()}
                 onDemo={() => runPipeline({ forceDemo: true })}
                 onContinue={() => goToView("editor")}
@@ -719,7 +725,7 @@ function App() {
                 exportJson={exportJson}
                 exportCsv={exportCsv}
                 savedAt={savedAt}
-                openProduct={setPreviewProduct}
+                openProduct={(product) => openProductPreview(product, "construction")}
               />
             )}
           {activeView === "performance" && (
@@ -728,13 +734,19 @@ function App() {
               selectedStore={selectedStore}
               selectedCategory={selectedCategory}
               fixture={fixture}
-              openProduct={setPreviewProduct}
+              openProduct={(product) => openProductPreview(product, "performance")}
             />
           )}
           </div>
         </section>
       </section>
-      {previewProduct && <ProductPreview product={previewProduct} onClose={() => setPreviewProduct(null)} />}
+      {previewProduct && (
+        <ProductPreview
+          product={previewProduct}
+          mode={previewMode}
+          onClose={() => setPreviewProduct(null)}
+        />
+      )}
       {toast && <div className={`toast ${toast.type}`}>{toast.message}</div>}
     </main>
   );
@@ -1261,7 +1273,8 @@ function Metric({ icon: Icon, label, value }) {
   );
 }
 
-function ProductPreview({ product, onClose }) {
+function ProductPreview({ product, mode = "construction", onClose }) {
+  const showPerformance = mode === "performance";
   const performance = getProductPerformance(product);
   const bestStoreIndex = (skuSeed(product) % 4);
   const bestStores = ["Cemaco Pradera", "Cemaco Zona 10", "Cemaco Cayala", "Cemaco Peri-Roosevelt"];
@@ -1310,7 +1323,19 @@ function ProductPreview({ product, onClose }) {
             </div>
           </dl>
           {product.details && <p>{product.details}</p>}
-          {performance && (
+          {!showPerformance && (
+            <div className="preview-construction-note">
+              <Layers3 size={18} />
+              <div>
+                <strong>Datos para construir planograma</strong>
+                <span>
+                  Esta vista se limita a catalogo, imagen oficial, identificadores y dimensiones. Las ventas estan en
+                  el tab Performance.
+                </span>
+              </div>
+            </div>
+          )}
+          {showPerformance && performance && (
             <div className="preview-performance">
               <div className="preview-performance-title">
                 <TrendingUp size={18} />
