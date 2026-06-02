@@ -181,6 +181,59 @@ function makeDetectionRows(selectedFixture, selectedCategory) {
   return rows;
 }
 
+function analyzeCapturedPhoto(dataUrl) {
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      const sampleWidth = 160;
+      const sampleHeight = Math.max(1, Math.round((image.height / image.width) * sampleWidth));
+      canvas.width = sampleWidth;
+      canvas.height = sampleHeight;
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+      context.drawImage(image, 0, 0, sampleWidth, sampleHeight);
+      const { data } = context.getImageData(0, 0, sampleWidth, sampleHeight);
+      let totalBrightness = 0;
+      let highContrastPixels = 0;
+      for (let index = 0; index < data.length; index += 4) {
+        const brightness = (data[index] + data[index + 1] + data[index + 2]) / 3;
+        totalBrightness += brightness;
+        if (brightness > 35 && brightness < 225) highContrastPixels += 1;
+      }
+      const pixelCount = data.length / 4;
+      const brightness = Math.round(totalBrightness / pixelCount);
+      const usableResolution = Math.max(image.width, image.height) >= 900;
+      const usableLight = brightness >= 45 && brightness <= 215;
+      const usableContrast = highContrastPixels / pixelCount > 0.45;
+      const ok = usableResolution && usableLight && usableContrast;
+      resolve({
+        status: ok ? "ok" : "warning",
+        title: ok ? "Foto apta para prueba" : "Revisar foto antes de confiar",
+        message: ok
+          ? "La imagen tiene resolucion y luz suficientes para enviarse a reconocimiento."
+          : "Para mejor resultado, toma la foto mas frontal, con buena luz y etiquetas visibles.",
+        width: image.width,
+        height: image.height,
+        brightness,
+        checks: [
+          { label: "Resolucion", ok: usableResolution, value: `${image.width}x${image.height}` },
+          { label: "Luminosidad", ok: usableLight, value: `${brightness}/255` },
+          { label: "Contraste", ok: usableContrast, value: usableContrast ? "usable" : "bajo" },
+        ],
+      });
+    };
+    image.onerror = () => {
+      resolve({
+        status: "warning",
+        title: "No se pudo validar la foto",
+        message: "La imagen se cargo, pero no pudimos medir calidad en el navegador.",
+        checks: [],
+      });
+    };
+    image.src = dataUrl;
+  });
+}
+
 function ProductPack({ product, compact = false }) {
   if (!product) {
     return (
@@ -221,6 +274,7 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState(categories[0]);
   const [fixtureId, setFixtureId] = useState(fixtureOptions[0].id);
   const [photo, setPhoto] = useState(null);
+  const [photoQuality, setPhotoQuality] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [rows, setRows] = useState(makeDetectionRows(fixtureOptions[0], categories[0]));
   const [selectedCell, setSelectedCell] = useState(null);
@@ -276,8 +330,17 @@ function App() {
     const file = event.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => {
-      setPhoto(reader.result);
+    reader.onload = async () => {
+      const dataUrl = reader.result;
+      setPhoto(dataUrl);
+      setPhotoQuality({
+        status: "checking",
+        title: "Validando foto...",
+        message: "Revisando resolucion, luz y contraste antes de procesar.",
+        checks: [],
+      });
+      const quality = await analyzeCapturedPhoto(dataUrl);
+      setPhotoQuality(quality);
       runPipeline();
     };
     reader.readAsDataURL(file);
@@ -519,6 +582,7 @@ function App() {
           {activeView === "capture" && (
             <CaptureView
               photo={photo}
+              photoQuality={photoQuality}
               processing={processing}
               fileRef={fileRef}
               onPhotoPicked={onPhotoPicked}
@@ -529,6 +593,7 @@ function App() {
             <ReviewView
               rows={rows}
               photo={photo}
+              photoQuality={photoQuality}
               processing={processing}
               avgConfidence={avgConfidence}
               matchedItems={matchedItems.length}
@@ -568,7 +633,7 @@ function App() {
   );
 }
 
-function CaptureView({ photo, processing, fileRef, onPhotoPicked, runPipeline }) {
+function CaptureView({ photo, photoQuality, processing, fileRef, onPhotoPicked, runPipeline }) {
   return (
     <div className="capture-grid">
       <div className="camera-stage">
@@ -611,6 +676,7 @@ function CaptureView({ photo, processing, fileRef, onPhotoPicked, runPipeline })
           Procesar demo con IA
         </button>
         <div className="checklist">
+          {photoQuality && <PhotoQualityCard quality={photoQuality} />}
           <span>
             <CheckCircle2 size={16} /> Calidad minima de imagen
           </span>
@@ -626,7 +692,7 @@ function CaptureView({ photo, processing, fileRef, onPhotoPicked, runPipeline })
   );
 }
 
-function ReviewView({ rows, photo, processing, avgConfidence, matchedItems, totalItems, openProduct, onContinue }) {
+function ReviewView({ rows, photo, photoQuality, processing, avgConfidence, matchedItems, totalItems, openProduct, onContinue }) {
   return (
     <div className="review-layout">
       <div className="review-preview">
@@ -639,6 +705,7 @@ function ReviewView({ rows, photo, processing, avgConfidence, matchedItems, tota
         )}
       </div>
       <div className="review-results">
+        {photoQuality && <PhotoQualityCard quality={photoQuality} />}
         <div className="metric-row">
           <Metric icon={Gauge} label="Confianza promedio" value={`${avgConfidence}%`} />
           <Metric icon={PackageCheck} label="sku con match" value={`${matchedItems}/${totalItems}`} />
@@ -663,6 +730,28 @@ function ReviewView({ rows, photo, processing, avgConfidence, matchedItems, tota
           Abrir editor
           <ChevronRight size={18} />
         </button>
+      </div>
+    </div>
+  );
+}
+
+function PhotoQualityCard({ quality }) {
+  const Icon = quality.status === "ok" ? CheckCircle2 : AlertTriangle;
+  return (
+    <div className={`photo-quality ${quality.status}`}>
+      <Icon size={18} />
+      <div>
+        <strong>{quality.title}</strong>
+        <span>{quality.message}</span>
+        {quality.checks?.length > 0 && (
+          <div className="quality-checks">
+            {quality.checks.map((check) => (
+              <small key={check.label} className={check.ok ? "pass" : "fail"}>
+                {check.label}: {check.value}
+              </small>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
