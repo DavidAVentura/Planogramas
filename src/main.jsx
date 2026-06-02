@@ -675,9 +675,15 @@ function App() {
                 openProduct={setPreviewProduct}
               />
             )}
-            {activeView === "performance" && (
-              <PerformanceView rows={rows} selectedStore={selectedStore} selectedCategory={selectedCategory} fixture={fixture} />
-            )}
+          {activeView === "performance" && (
+            <PerformanceView
+              rows={rows}
+              selectedStore={selectedStore}
+              selectedCategory={selectedCategory}
+              fixture={fixture}
+              openProduct={setPreviewProduct}
+            />
+          )}
           </div>
         </section>
       </section>
@@ -990,7 +996,7 @@ function EditorView({
   );
 }
 
-function PerformanceView({ rows, selectedStore, selectedCategory, fixture }) {
+function PerformanceView({ rows, selectedStore, selectedCategory, fixture, openProduct }) {
   const performance = getPlanogramPerformance(rows);
   const { items, totals, alerts } = performance;
   const topProducts = [...items].sort((a, b) => b.performance.salesAmount - a.performance.salesAmount).slice(0, 8);
@@ -1050,14 +1056,17 @@ function PerformanceView({ rows, selectedStore, selectedCategory, fixture }) {
                     const perf = getProductPerformance(product, item.facings, rowIndex * 10 + itemIndex);
                     const intensity = perf ? Math.min(1, perf.salesPerFacing / 44) : 0;
                     return (
-                      <div
+                      <button
                         key={item.id}
                         className={`performance-cell ${perf?.alert === "Riesgo de quiebre" ? "danger" : ""}`}
                         style={{ "--heat": intensity }}
+                        onClick={() => product && openProduct(product)}
+                        disabled={!product}
+                        type="button"
                       >
                         <ProductPack product={product} compact />
                         <small>{perf ? `${perf.salesPerFacing} u/facing` : "sin dato"}</small>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>

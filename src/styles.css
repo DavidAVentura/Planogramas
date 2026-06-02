@@ -1093,6 +1093,8 @@ input:focus {
   background:
     linear-gradient(rgba(155, 224, 0, calc(var(--heat) * 0.28)), rgba(155, 224, 0, calc(var(--heat) * 0.12))),
     rgba(255, 255, 255, 0.06);
+  color: inherit;
+  cursor: pointer;
 }
 
 .performance-cell.danger {
@@ -1100,6 +1102,16 @@ input:focus {
   background:
     linear-gradient(rgba(255, 112, 91, 0.28), rgba(255, 112, 91, 0.1)),
     rgba(255, 255, 255, 0.06);
+}
+
+.performance-cell:hover {
+  border-color: var(--lime);
+  box-shadow: 0 0 0 3px rgba(155, 224, 0, 0.14);
+}
+
+.performance-cell:disabled {
+  cursor: default;
+  opacity: 0.72;
 }
 
 .performance-cell small {
