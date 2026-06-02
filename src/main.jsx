@@ -42,7 +42,7 @@ const screenMeta = {
   review: {
     label: "Revision",
     title: "Revisa detecciones",
-    description: "La IA propone productos, facings y confianza por nivel.",
+    description: "La propuesta aparece solo si la foto parece un mueble valido.",
   },
   editor: {
     label: "Editor",
@@ -217,30 +217,57 @@ function analyzeCapturedPhoto(dataUrl) {
       const { data } = context.getImageData(0, 0, sampleWidth, sampleHeight);
       let totalBrightness = 0;
       let highContrastPixels = 0;
+      let horizontalEdges = 0;
+      let verticalEdges = 0;
+      const luminance = new Array(sampleWidth * sampleHeight);
       for (let index = 0; index < data.length; index += 4) {
         const brightness = (data[index] + data[index + 1] + data[index + 2]) / 3;
+        luminance[index / 4] = brightness;
         totalBrightness += brightness;
         if (brightness > 35 && brightness < 225) highContrastPixels += 1;
+      }
+      for (let y = 1; y < sampleHeight; y += 1) {
+        for (let x = 1; x < sampleWidth; x += 1) {
+          const current = luminance[y * sampleWidth + x];
+          const left = luminance[y * sampleWidth + x - 1];
+          const top = luminance[(y - 1) * sampleWidth + x];
+          if (Math.abs(current - top) > 24) horizontalEdges += 1;
+          if (Math.abs(current - left) > 24) verticalEdges += 1;
+        }
       }
       const pixelCount = data.length / 4;
       const brightness = Math.round(totalBrightness / pixelCount);
       const usableResolution = Math.max(image.width, image.height) >= 900;
       const usableLight = brightness >= 45 && brightness <= 215;
       const usableContrast = highContrastPixels / pixelCount > 0.45;
-      const ok = usableResolution && usableLight && usableContrast;
+      const horizontalScore = horizontalEdges / Math.max((sampleHeight - 1) * (sampleWidth - 1), 1);
+      const verticalScore = verticalEdges / Math.max((sampleHeight - 1) * (sampleWidth - 1), 1);
+      const structureScore = Math.round((horizontalScore + verticalScore) * 100);
+      const structureBalance = horizontalScore / Math.max(verticalScore, 0.001);
+      const shelfStructure =
+        horizontalScore > 0.035 &&
+        verticalScore > 0.035 &&
+        structureScore >= 10 &&
+        structureBalance > 0.35 &&
+        structureBalance < 2.9;
+      const planogramReady = usableResolution && usableLight && usableContrast && shelfStructure;
+      const ok = planogramReady;
       resolve({
         status: ok ? "ok" : "warning",
-        title: ok ? "Foto apta para prueba" : "Revisar foto antes de confiar",
+        title: ok ? "Foto apta para planograma" : "Foto no apta para planograma",
         message: ok
-          ? "La imagen tiene resolucion y luz suficientes para enviarse a reconocimiento."
-          : "Para mejor resultado, toma la foto mas frontal, con buena luz y etiquetas visibles.",
+          ? "La imagen parece mostrar estructura de mueble, niveles y contraste suficientes para una propuesta."
+          : "La foto debe mostrar el rack o gondola completo por modulo; una foto de producto individual no sirve para detectar surtido.",
+        planogramReady,
         width: image.width,
         height: image.height,
         brightness,
+        structureScore,
         checks: [
           { label: "Resolucion", ok: usableResolution, value: `${image.width}x${image.height}` },
           { label: "Luminosidad", ok: usableLight, value: `${brightness}/255` },
           { label: "Contraste", ok: usableContrast, value: usableContrast ? "usable" : "bajo" },
+          { label: "Estructura de mueble", ok: shelfStructure, value: `${structureScore}/100` },
         ],
       });
     };
@@ -249,6 +276,7 @@ function analyzeCapturedPhoto(dataUrl) {
         status: "warning",
         title: "No se pudo validar la foto",
         message: "La imagen se cargo, pero no pudimos medir calidad en el navegador.",
+        planogramReady: false,
         checks: [],
       });
     };
@@ -298,6 +326,7 @@ function App() {
   const [photo, setPhoto] = useState(null);
   const [photoQuality, setPhotoQuality] = useState(null);
   const [processing, setProcessing] = useState(false);
+  const [demoMode, setDemoMode] = useState(false);
   const [rows, setRows] = useState(makeDetectionRows(fixtureOptions[0], categories[0]));
   const [selectedCell, setSelectedCell] = useState(null);
   const [query, setQuery] = useState("");
@@ -355,6 +384,7 @@ function App() {
     setFixtureId(nextFixtureId);
     setRows(makeDetectionRows(nextFixture, selectedCategory));
     setSelectedCell(null);
+    setDemoMode(false);
     notify(`Mueble cambiado a ${nextFixture.name}`);
   }
 
@@ -362,6 +392,7 @@ function App() {
     setSelectedCategory(nextCategory);
     setRows(makeDetectionRows(fixture, nextCategory));
     setSelectedCell(null);
+    setDemoMode(false);
     notify(`Categoria: ${nextCategory}`);
   }
 
@@ -372,27 +403,40 @@ function App() {
     reader.onload = async () => {
       const dataUrl = reader.result;
       setPhoto(dataUrl);
+      setDemoMode(false);
       setPhotoQuality({
         status: "checking",
         title: "Validando foto...",
-        message: "Revisando resolucion, luz y contraste antes de procesar.",
+        message: "Revisando resolucion, luz, contraste y estructura de mueble antes de procesar.",
         checks: [],
       });
       const quality = await analyzeCapturedPhoto(dataUrl);
       setPhotoQuality(quality);
-      runPipeline();
-      notify("Foto cargada y validada");
+      if (quality.planogramReady) {
+        runPipeline({ quality, hasPhoto: true });
+        notify("Foto apta, generando propuesta demo");
+        return;
+      }
+      goToView("review");
+      notify("La foto no parece un mueble de planograma", "warning");
     };
     reader.readAsDataURL(file);
+    event.target.value = "";
   }
 
-  function runPipeline() {
+  function runPipeline({ forceDemo = false, quality = photoQuality, hasPhoto = Boolean(photo) } = {}) {
+    if (!forceDemo && quality?.planogramReady === false) {
+      goToView("review");
+      notify("Toma otra foto del rack o usa modo demo", "warning");
+      return;
+    }
+    setDemoMode(forceDemo || !hasPhoto);
     setProcessing(true);
     goToView("review");
     window.setTimeout(() => {
       setRows(makeDetectionRows(fixture, selectedCategory));
       setProcessing(false);
-      notify("Realogram demo generado");
+      notify(forceDemo ? "Modo demo generado sin reconocimiento real" : "Propuesta demo generada");
     }, 950);
   }
 
@@ -647,10 +691,13 @@ function App() {
                 photo={photo}
                 photoQuality={photoQuality}
                 processing={processing}
+                demoMode={demoMode}
                 avgConfidence={avgConfidence}
                 matchedItems={matchedItems.length}
                 totalItems={allItems.length}
                 openProduct={setPreviewProduct}
+                onRetake={() => fileRef.current?.click()}
+                onDemo={() => runPipeline({ forceDemo: true })}
                 onContinue={() => goToView("editor")}
               />
             )}
@@ -731,9 +778,9 @@ function CaptureView({ photo, photoQuality, processing, fileRef, onPhotoPicked, 
           <ImagePlus size={18} />
           Tomar o subir foto
         </button>
-        <button className="secondary" onClick={runPipeline} disabled={processing} type="button">
+        <button className="secondary" onClick={() => runPipeline({ forceDemo: true })} disabled={processing} type="button">
           <Sparkles size={18} />
-          Procesar demo con IA
+          Usar modo demo
         </button>
         <div className="checklist">
           {photoQuality && <PhotoQualityCard quality={photoQuality} />}
@@ -752,11 +799,33 @@ function CaptureView({ photo, photoQuality, processing, fileRef, onPhotoPicked, 
   );
 }
 
-function ReviewView({ rows, photo, photoQuality, processing, avgConfidence, matchedItems, totalItems, openProduct, onContinue }) {
+function ReviewView({
+  rows,
+  photo,
+  photoQuality,
+  processing,
+  demoMode,
+  avgConfidence,
+  matchedItems,
+  totalItems,
+  openProduct,
+  onRetake,
+  onDemo,
+  onContinue,
+}) {
+  const blockedByPhoto = photoQuality?.planogramReady === false && !demoMode && !processing;
   return (
     <div className="review-layout">
       <div className="review-preview">
-        <ReviewShelf rows={rows} photo={photo} openProduct={openProduct} />
+        <ReviewShelf
+          rows={rows}
+          photo={photo}
+          blockedByPhoto={blockedByPhoto}
+          demoMode={demoMode}
+          openProduct={openProduct}
+          onRetake={onRetake}
+          onDemo={onDemo}
+        />
         {processing && (
           <div className="processing">
             <Sparkles size={24} />
@@ -766,30 +835,59 @@ function ReviewView({ rows, photo, photoQuality, processing, avgConfidence, matc
       </div>
       <div className="review-results">
         {photoQuality && <PhotoQualityCard quality={photoQuality} />}
-        <div className="metric-row">
-          <Metric icon={Gauge} label="Confianza promedio" value={`${avgConfidence}%`} />
-          <Metric icon={PackageCheck} label="sku con match" value={`${matchedItems}/${totalItems}`} />
-          <Metric icon={AlertTriangle} label="Revision humana" value={totalItems - matchedItems} />
-        </div>
-        <div className="detected-list">
-          {rows.map((row) => (
-            <div key={row.id} className="detected-row">
-              <div>
-                <strong>{row.name}</strong>
-                <span>{row.confidence}% nivel</span>
-              </div>
-              <div className="mini-products">
-                {row.items.map((item) => (
-                  <ProductPack key={item.id} product={item.sku ? findProduct(item.sku) : null} compact />
-                ))}
-              </div>
+        {demoMode && (
+          <div className="demo-disclaimer">
+            <Sparkles size={18} />
+            <span>Modo demo: los productos vienen del catalogo Autos.xlsx; no fueron reconocidos por la foto.</span>
+          </div>
+        )}
+        {!blockedByPhoto && (
+          <>
+            <div className="metric-row">
+              <Metric icon={Gauge} label="Confianza promedio" value={`${avgConfidence}%`} />
+              <Metric icon={PackageCheck} label="sku con match" value={`${matchedItems}/${totalItems}`} />
+              <Metric icon={AlertTriangle} label="Revision humana" value={totalItems - matchedItems} />
             </div>
-          ))}
-        </div>
-        <button className="primary wide" onClick={onContinue} type="button">
-          Abrir editor
-          <ChevronRight size={18} />
-        </button>
+            <div className="detected-list">
+              {rows.map((row) => (
+                <div key={row.id} className="detected-row">
+                  <div>
+                    <strong>{row.name}</strong>
+                    <span>{row.confidence}% nivel</span>
+                  </div>
+                  <div className="mini-products">
+                    {row.items.map((item) => (
+                      <ProductPack key={item.id} product={item.sku ? findProduct(item.sku) : null} compact />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button className="primary wide" onClick={onContinue} type="button">
+              Abrir editor
+              <ChevronRight size={18} />
+            </button>
+          </>
+        )}
+        {blockedByPhoto && (
+          <div className="review-results-empty">
+            <strong>No hay detecciones que revisar</strong>
+            <span>
+              Esta foto no muestra suficiente contexto de rack, niveles o surtido. Para probar captura real, toma el
+              mueble de frente; para ensenar el flujo, usa modo demo.
+            </span>
+            <div className="review-actions">
+              <button className="primary" onClick={onRetake} type="button">
+                <Camera size={18} />
+                Tomar otra foto
+              </button>
+              <button className="secondary" onClick={onDemo} type="button">
+                <Sparkles size={18} />
+                Usar modo demo
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -817,7 +915,7 @@ function PhotoQualityCard({ quality }) {
   );
 }
 
-function ReviewShelf({ rows, photo, openProduct }) {
+function ReviewShelf({ rows, photo, blockedByPhoto, demoMode, openProduct, onRetake, onDemo }) {
   return (
     <div className="review-shelf-stage">
       {photo && (
@@ -825,43 +923,74 @@ function ReviewShelf({ rows, photo, openProduct }) {
           <img src={photo} alt="Foto del levantamiento" />
           <div>
             <strong>Foto capturada</strong>
-            <span>Imagen original usada como referencia; el realogram se muestra separado abajo.</span>
+            <span>
+              {blockedByPhoto
+                ? "Esta imagen queda como referencia, pero no genera detecciones."
+                : "Imagen original usada como referencia; el realogram se muestra separado abajo."}
+            </span>
           </div>
         </div>
       )}
-      <div className="review-realogram">
-        <div className="review-realogram-header">
-          <strong>Realogram detectado</strong>
-          <span>Productos ubicados por nivel antes de correccion</span>
+      {blockedByPhoto ? (
+        <div className="review-blocker">
+          <AlertTriangle size={34} />
+          <div>
+            <strong>Necesitamos una foto del mueble, no de un producto aislado</strong>
+            <span>
+              Para que el sistema pueda proponer un planograma debe ver niveles, separaciones, productos repetidos y
+              ubicacion relativa. Si la foto es de un solo articulo, no hay informacion suficiente para saber donde va.
+            </span>
+          </div>
+          <div className="review-actions">
+            <button className="primary" onClick={onRetake} type="button">
+              <Camera size={18} />
+              Tomar otra foto
+            </button>
+            <button className="secondary" onClick={onDemo} type="button">
+              <Sparkles size={18} />
+              Usar modo demo
+            </button>
+          </div>
         </div>
-        <div className="review-shelf">
-          {rows.map((row) => (
-            <div key={row.id} className="review-shelf-row">
-              <span>{row.name}</span>
-              <div className="review-shelf-products">
-                {row.items.map((item) => {
-                  const product = item.sku ? findProduct(item.sku) : null;
-                  return (
-                    <button
-                      key={item.id}
-                      className="review-product-group"
-                      style={{ "--facings": item.facings }}
-                      onClick={() => product && openProduct(product)}
-                      disabled={!product}
-                      type="button"
-                    >
-                      {Array.from({ length: item.facings }).map((_, index) => (
-                        <ProductPack key={index} product={product} compact />
-                      ))}
-                      <small>{item.confidence}%</small>
-                    </button>
-                  );
-                })}
+      ) : (
+        <div className="review-realogram">
+          <div className="review-realogram-header">
+            <strong>{demoMode ? "Realogram demo" : "Realogram detectado"}</strong>
+            <span>
+              {demoMode
+                ? "Simulado con catalogo para ensenar el flujo"
+                : "Productos ubicados por nivel antes de correccion"}
+            </span>
+          </div>
+          <div className="review-shelf">
+            {rows.map((row) => (
+              <div key={row.id} className="review-shelf-row">
+                <span>{row.name}</span>
+                <div className="review-shelf-products">
+                  {row.items.map((item) => {
+                    const product = item.sku ? findProduct(item.sku) : null;
+                    return (
+                      <button
+                        key={item.id}
+                        className="review-product-group"
+                        style={{ "--facings": item.facings }}
+                        onClick={() => product && openProduct(product)}
+                        disabled={!product}
+                        type="button"
+                      >
+                        {Array.from({ length: item.facings }).map((_, index) => (
+                          <ProductPack key={index} product={product} compact />
+                        ))}
+                        <small>{item.confidence}%</small>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
