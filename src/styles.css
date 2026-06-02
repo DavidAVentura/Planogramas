@@ -589,7 +589,7 @@ input:focus {
 
 .captured-photo-strip {
   display: grid;
-  grid-template-columns: 120px 1fr;
+  grid-template-columns: 120px 1fr auto;
   gap: 12px;
   align-items: center;
   padding: 10px;
@@ -613,6 +613,14 @@ input:focus {
 .captured-photo-strip span {
   color: var(--muted);
   font-size: 0.82rem;
+}
+
+.small-retake {
+  width: auto;
+  min-height: 38px;
+  margin-top: 0;
+  padding: 0 12px;
+  white-space: nowrap;
 }
 
 .review-realogram {
@@ -1578,6 +1586,15 @@ input:focus {
   .review-preview img,
   .mock-shelf {
     min-height: 420px;
+  }
+
+  .captured-photo-strip {
+    grid-template-columns: 86px 1fr;
+  }
+
+  .captured-photo-strip .small-retake {
+    grid-column: 1 / -1;
+    width: 100%;
   }
 
   .detected-row,

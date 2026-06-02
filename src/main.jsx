@@ -430,6 +430,18 @@ function App() {
     event.target.value = "";
   }
 
+  function requestPhoto({ reset = false } = {}) {
+    if (reset) {
+      setPhoto(null);
+      setPhotoQuality(null);
+      setDemoMode(false);
+      setProcessing(false);
+      goToView("capture");
+      notify("Listo para tomar otra foto");
+    }
+    window.setTimeout(() => fileRef.current?.click(), 40);
+  }
+
   function runPipeline({ forceDemo = false, quality = photoQuality, hasPhoto = Boolean(photo) } = {}) {
     if (!forceDemo && quality?.planogramReady === false) {
       goToView("review");
@@ -580,6 +592,14 @@ function App() {
 
   return (
     <main>
+      <input
+        ref={fileRef}
+        className="hidden-input"
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={onPhotoPicked}
+      />
       <header className="app-header">
         <div>
           <p className="eyebrow">App · Prototipo · Planogramas con fotografias</p>
@@ -686,8 +706,8 @@ function App() {
                 photo={photo}
                 photoQuality={photoQuality}
                 processing={processing}
-                fileRef={fileRef}
-                onPhotoPicked={onPhotoPicked}
+                onTakePhoto={() => requestPhoto({ reset: false })}
+                onRetake={() => requestPhoto({ reset: true })}
                 runPipeline={runPipeline}
               />
             )}
@@ -702,7 +722,7 @@ function App() {
                 matchedItems={matchedItems.length}
                 totalItems={allItems.length}
                 openProduct={(product) => openProductPreview(product, "construction")}
-                onRetake={() => fileRef.current?.click()}
+                onRetake={() => requestPhoto({ reset: true })}
                 onDemo={() => runPipeline({ forceDemo: true })}
                 onContinue={() => goToView("editor")}
               />
@@ -752,7 +772,7 @@ function App() {
   );
 }
 
-function CaptureView({ photo, photoQuality, processing, fileRef, onPhotoPicked, runPipeline }) {
+function CaptureView({ photo, photoQuality, processing, onTakePhoto, onRetake, runPipeline }) {
   return (
     <div className="capture-grid">
       <div className="camera-stage">
@@ -778,17 +798,9 @@ function CaptureView({ photo, photoQuality, processing, fileRef, onPhotoPicked, 
           Usa el input de camara del navegador o sube una foto existente. En produccion, este paso enviaria la
           imagen al backend para leer niveles, facings, etiquetas frontales y productos colgados.
         </p>
-        <input
-          ref={fileRef}
-          className="hidden-input"
-          type="file"
-          accept="image/*"
-          capture="environment"
-          onChange={onPhotoPicked}
-        />
-        <button className="primary" onClick={() => fileRef.current?.click()} type="button">
+        <button className="primary" onClick={photo ? onRetake : onTakePhoto} type="button">
           <ImagePlus size={18} />
-          Tomar o subir foto
+          {photo ? "Tomar otra foto" : "Tomar o subir foto"}
         </button>
         <button className="secondary" onClick={() => runPipeline({ forceDemo: true })} disabled={processing} type="button">
           <Sparkles size={18} />
@@ -941,6 +953,10 @@ function ReviewShelf({ rows, photo, blockedByPhoto, demoMode, openProduct, onRet
                 : "Imagen original usada como referencia; el realogram se muestra separado abajo."}
             </span>
           </div>
+          <button className="secondary small-retake" onClick={onRetake} type="button">
+            <Camera size={16} />
+            Tomar otra
+          </button>
         </div>
       )}
       {blockedByPhoto ? (
