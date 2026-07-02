@@ -28,6 +28,7 @@ import {
   Sparkles,
   Store,
   TrendingUp,
+  Wand2,
 } from "lucide-react";
 import { categories, dataStats, fixtureTypes, products, starterPlanogram } from "./data/realData";
 import "./styles.css";
@@ -74,6 +75,42 @@ const fixtureOptions = Object.values(
   }, {}),
 );
 const productsBySku = new Map(products.map((product) => [product.sku, product]));
+
+function getFixtureCapturePlan(fixture) {
+  const isLongRack = Number(fixture?.width || 0) >= 180;
+  const slots = isLongRack
+    ? [
+        {
+          id: "left",
+          label: "Modulo izquierdo",
+          shortLabel: "Izquierda",
+          instruction: "Captura el lado izquierdo del rack, con todos los niveles visibles.",
+        },
+        {
+          id: "right",
+          label: "Modulo derecho",
+          shortLabel: "Derecha",
+          instruction: "Captura el lado derecho o centro/derecha, alineado con el primer modulo.",
+        },
+      ]
+    : [
+        {
+          id: "front",
+          label: "Foto frontal",
+          shortLabel: "Frontal",
+          instruction: "Captura el mueble completo de frente, incluyendo todos los niveles.",
+        },
+      ];
+
+  return {
+    isLongRack,
+    slots,
+    requiredPhotos: slots.length,
+    summary: isLongRack
+      ? "Rack largo: toma 2 fotos por modulo para cubrir todo el mueble."
+      : "Rack compacto: toma 1 foto frontal del mueble completo.",
+  };
+}
 
 function findProduct(sku) {
   return productsBySku.get(sku);
@@ -179,25 +216,59 @@ function buildPlanogramSkus(selectedFixture, selectedCategory) {
   return rows;
 }
 
-function makeDetectionRows(selectedFixture, selectedCategory) {
+function getAgentCandidates(product, selectedCategory, limit = 3) {
+  if (!product) return [];
+  const pool = products.filter((candidate) => candidate.sku !== product.sku && productMatchesCategory(candidate, selectedCategory));
+  const seed = skuSeed(product);
+  return pool
+    .map((candidate) => ({
+      product: candidate,
+      score:
+        (candidate.level2 === product.level2 ? 28 : 0) +
+        (candidate.level3 === product.level3 ? 22 : 0) +
+        (candidate.brand === product.brand ? 12 : 0) +
+        ((seed + skuSeed(candidate)) % 17),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(({ product: candidate }, index) => ({
+      sku: candidate.sku,
+      name: candidate.name,
+      confidence: Math.max(45, 72 - index * 9),
+    }));
+}
+
+function makeDetectionRows(selectedFixture, selectedCategory, capturePlan = getFixtureCapturePlan(selectedFixture), capturePhotos = []) {
   const planogramSkus = buildPlanogramSkus(selectedFixture, selectedCategory);
+  const readyPhotos = capturePhotos.filter((capture) => capture?.quality?.planogramReady);
+  const photoBoost = Math.min(8, readyPhotos.length * 4);
   const rows = planogramSkus.slice(0, selectedFixture.levels).map((skus, rowIndex) => ({
     id: crypto.randomUUID(),
     name: `Nivel ${rowIndex + 1}`,
-    confidence: Math.max(72, 96 - rowIndex * 4),
+    confidence: Math.max(68, 90 + photoBoost - rowIndex * 4),
     items: skus.slice(0, selectedFixture.levels <= 4 ? 4 : 5).map((sku, itemIndex) => ({
       id: crypto.randomUUID(),
       sku,
       facings: itemIndex % 2 === 0 ? 2 : 1,
-      confidence: Math.max(64, 94 - rowIndex * 5 - itemIndex * 3),
-      source: "IA + Autos.xlsx",
+      confidence: Math.max(48, 88 + photoBoost - rowIndex * 5 - itemIndex * 4),
+      source: capturePhotos.length ? "Agente catalogo + VTEX" : "Demo catalogo Autos.xlsx",
+      moduleId: capturePlan.slots[itemIndex % capturePlan.slots.length]?.id || "front",
+      alternatives: getAgentCandidates(findProduct(sku), selectedCategory),
     })),
   }));
 
   if (rows[2]?.items[3] && /gancho|barra|peg|hidrolavadora/i.test(`${selectedFixture.description} ${selectedFixture.category}`)) {
     rows[2].items[3].sku = null;
     rows[2].items[3].confidence = 41;
-    rows[2].items[3].source = "Requiere revision";
+    rows[2].items[3].source = "Requiere revision manual";
+    rows[2].items[3].alternatives = planogramSkus
+      .flat()
+      .slice(0, 3)
+      .map((candidateSku, index) => ({
+        sku: candidateSku,
+        name: findProduct(candidateSku)?.name || candidateSku,
+        confidence: 58 - index * 6,
+      }));
   }
 
   return rows;
@@ -324,6 +395,8 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState(categories[0]);
   const [fixtureId, setFixtureId] = useState(fixtureOptions[0].id);
   const [photo, setPhoto] = useState(null);
+  const [capturePhotos, setCapturePhotos] = useState([]);
+  const [activeCaptureIndex, setActiveCaptureIndex] = useState(0);
   const [photoQuality, setPhotoQuality] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
@@ -338,6 +411,11 @@ function App() {
   const toastTimerRef = useRef(null);
 
   const fixture = useMemo(() => fixtureOptions.find((item) => item.id === fixtureId), [fixtureId]);
+  const capturePlan = useMemo(() => getFixtureCapturePlan(fixture), [fixture]);
+  const activeCaptureSlot = capturePlan.slots[Math.min(activeCaptureIndex, capturePlan.slots.length - 1)];
+  const capturedReadyCount = capturePhotos.filter((capture) => capture?.quality?.planogramReady).length;
+  const captureReady = capturedReadyCount >= capturePlan.requiredPhotos;
+  const activeCapturePhoto = capturePhotos[activeCaptureIndex]?.dataUrl || photo;
   const allItems = rows.flatMap((row) => row.items);
   const matchedItems = allItems.filter((item) => item.sku);
   const avgConfidence = Math.round(
@@ -391,6 +469,10 @@ function App() {
     setRows(makeDetectionRows(nextFixture, selectedCategory));
     setSelectedCell(null);
     setDemoMode(false);
+    setPhoto(null);
+    setCapturePhotos([]);
+    setActiveCaptureIndex(0);
+    setPhotoQuality(null);
     notify(`Mueble cambiado a ${nextFixture.name}`);
   }
 
@@ -399,6 +481,10 @@ function App() {
     setRows(makeDetectionRows(fixture, nextCategory));
     setSelectedCell(null);
     setDemoMode(false);
+    setPhoto(null);
+    setCapturePhotos([]);
+    setActiveCaptureIndex(0);
+    setPhotoQuality(null);
     notify(`Categoria: ${nextCategory}`);
   }
 
@@ -418,13 +504,26 @@ function App() {
       });
       const quality = await analyzeCapturedPhoto(dataUrl);
       setPhotoQuality(quality);
-      if (quality.planogramReady) {
-        runPipeline({ quality, hasPhoto: true });
-        notify("Foto apta, generando propuesta demo");
+      setCapturePhotos((currentPhotos) => {
+        const nextPhotos = [...currentPhotos];
+        nextPhotos[activeCaptureIndex] = {
+          id: activeCaptureSlot.id,
+          label: activeCaptureSlot.label,
+          dataUrl,
+          quality,
+          capturedAt: new Date().toISOString(),
+        };
+        return nextPhotos;
+      });
+      if (!quality.planogramReady) {
+        notify("Esta foto no sirve para planograma; toma el mueble completo o el modulo indicado", "warning");
         return;
       }
-      goToView("review");
-      notify("La foto no parece un mueble de planograma", "warning");
+      if (activeCaptureIndex < capturePlan.requiredPhotos - 1) {
+        notify(`${activeCaptureSlot.shortLabel} listo. Falta la siguiente foto.`);
+        return;
+      }
+      notify("Fotos listas para usar");
     };
     reader.readAsDataURL(file);
     event.target.value = "";
@@ -433,6 +532,8 @@ function App() {
   function requestPhoto({ reset = false } = {}) {
     if (reset) {
       setPhoto(null);
+      setCapturePhotos([]);
+      setActiveCaptureIndex(0);
       setPhotoQuality(null);
       setDemoMode(false);
       setProcessing(false);
@@ -442,19 +543,51 @@ function App() {
     window.setTimeout(() => fileRef.current?.click(), 40);
   }
 
+  function retakeActiveCapture() {
+    setCapturePhotos((currentPhotos) => {
+      const nextPhotos = [...currentPhotos];
+      nextPhotos[activeCaptureIndex] = undefined;
+      return nextPhotos;
+    });
+    setPhoto(null);
+    setPhotoQuality(null);
+    setDemoMode(false);
+    notify(`Repite ${activeCaptureSlot.shortLabel}`);
+    window.setTimeout(() => fileRef.current?.click(), 40);
+  }
+
+  function moveToNextCapture() {
+    const nextIndex = Math.min(activeCaptureIndex + 1, capturePlan.requiredPhotos - 1);
+    setActiveCaptureIndex(nextIndex);
+    setPhoto(capturePhotos[nextIndex]?.dataUrl || null);
+    setPhotoQuality(capturePhotos[nextIndex]?.quality || null);
+    notify(`Listo para ${capturePlan.slots[nextIndex].shortLabel}`);
+  }
+
+  function selectCaptureSlot(index) {
+    setActiveCaptureIndex(index);
+    setPhoto(capturePhotos[index]?.dataUrl || null);
+    setPhotoQuality(capturePhotos[index]?.quality || null);
+  }
+
   function runPipeline({ forceDemo = false, quality = photoQuality, hasPhoto = Boolean(photo) } = {}) {
+    if (!forceDemo && !captureReady) {
+      goToView("capture");
+      notify(`Faltan ${capturePlan.requiredPhotos - capturedReadyCount} foto(s) del mueble antes de procesar`, "warning");
+      return;
+    }
     if (!forceDemo && quality?.planogramReady === false) {
-      goToView("review");
-      notify("Toma otra foto del rack o usa modo demo", "warning");
+      goToView("capture");
+      notify("Esta foto no sirve para planograma; toma el mueble completo o el modulo indicado", "warning");
       return;
     }
     setDemoMode(forceDemo || !hasPhoto);
     setProcessing(true);
     goToView("review");
     window.setTimeout(() => {
-      setRows(makeDetectionRows(fixture, selectedCategory));
+      setRows(makeDetectionRows(fixture, selectedCategory, capturePlan, capturePhotos));
       setProcessing(false);
-      notify(forceDemo ? "Modo demo generado sin reconocimiento real" : "Propuesta demo generada");
+      notify(forceDemo ? "Modo demo generado sin reconocimiento real" : "Agente genero propuesta contra catalogo");
     }, 950);
   }
 
@@ -688,8 +821,9 @@ function App() {
           </div>
           <div className="quality-list">
             <strong>Guia de captura</strong>
-            <span>Frente al rack o gondola, sin inclinacion fuerte</span>
-            <span>Una foto por modulo si supera 1.8m</span>
+            <span>{capturePlan.summary}</span>
+            <span>{fixture.levels} niveles esperados · {fixture.width}cm ancho</span>
+            <span>Frente al rack, sin inclinacion fuerte</span>
             <span>Evitar reflejos en galones, latas y empaques brillantes</span>
           </div>
         </aside>
@@ -703,18 +837,27 @@ function App() {
           <div key={activeView} className="screen-shell">
             {activeView === "capture" && (
               <CaptureView
-                photo={photo}
+                photo={activeCapturePhoto}
+                capturePlan={capturePlan}
+                capturePhotos={capturePhotos}
+                activeCaptureIndex={activeCaptureIndex}
+                selectedFixture={fixture}
+                captureReady={captureReady}
+                capturedReadyCount={capturedReadyCount}
                 photoQuality={photoQuality}
                 processing={processing}
                 onTakePhoto={() => requestPhoto({ reset: false })}
-                onRetake={() => requestPhoto({ reset: true })}
+                onRetake={retakeActiveCapture}
+                onNextCapture={moveToNextCapture}
+                onSelectCapture={selectCaptureSlot}
                 runPipeline={runPipeline}
               />
             )}
             {activeView === "review" && (
               <ReviewView
                 rows={rows}
-                photo={photo}
+                photo={activeCapturePhoto}
+                capturePhotos={capturePhotos}
                 photoQuality={photoQuality}
                 processing={processing}
                 demoMode={demoMode}
@@ -764,6 +907,7 @@ function App() {
         <ProductPreview
           product={previewProduct}
           mode={previewMode}
+          selectedCategory={selectedCategory}
           onClose={() => setPreviewProduct(null)}
         />
       )}
@@ -772,7 +916,25 @@ function App() {
   );
 }
 
-function CaptureView({ photo, photoQuality, processing, onTakePhoto, onRetake, runPipeline }) {
+function CaptureView({
+  photo,
+  capturePlan,
+  capturePhotos,
+  activeCaptureIndex,
+  selectedFixture,
+  captureReady,
+  capturedReadyCount,
+  photoQuality,
+  processing,
+  onTakePhoto,
+  onRetake,
+  onNextCapture,
+  onSelectCapture,
+  runPipeline,
+}) {
+  const activeSlot = capturePlan.slots[activeCaptureIndex];
+  const activeCapture = capturePhotos[activeCaptureIndex];
+  const canMoveNext = Boolean(activeCapture?.quality?.planogramReady) && activeCaptureIndex < capturePlan.requiredPhotos - 1;
   return (
     <div className="capture-grid">
       <div className="camera-stage">
@@ -785,6 +947,19 @@ function CaptureView({ photo, photoQuality, processing, onTakePhoto, onRetake, r
             <span>La app valida encuadre, luminosidad, etiquetas visibles y distancia antes de enviar a IA.</span>
           </div>
         )}
+        <div className="capture-overlay">
+          <strong>{activeSlot.label}</strong>
+          <span>{activeSlot.instruction}</span>
+          <small>
+            {selectedFixture.width}cm ancho · {selectedFixture.levels} niveles · {selectedFixture.depth}cm profundidad
+          </small>
+        </div>
+        <div className="capture-rules">
+          <span>Incluye todos los niveles</span>
+          <span>Manten el telefono frontal</span>
+          <span>Evita inclinacion</span>
+          <span>No tomes producto individual</span>
+        </div>
         <div className="frame-guide">
           <span />
           <span />
@@ -795,12 +970,44 @@ function CaptureView({ photo, photoQuality, processing, onTakePhoto, onRetake, r
       <div className="capture-actions">
         <h2>Captura guiada</h2>
         <p>
-          Usa el input de camara del navegador o sube una foto existente. En produccion, este paso enviaria la
-          imagen al backend para leer niveles, facings, etiquetas frontales y productos colgados.
+          {capturePlan.summary} El agente usara estas fotos contra el catalogo Autos/VTEX para proponer sku,
+          facings y alternativas.
         </p>
+        <div className="capture-modules">
+          {capturePlan.slots.map((slot, index) => {
+            const captured = capturePhotos[index];
+            const ready = captured?.quality?.planogramReady;
+            return (
+              <button
+                key={slot.id}
+                className={`module-chip ${index === activeCaptureIndex ? "active" : ""} ${ready ? "ready" : ""}`}
+                onClick={() => onSelectCapture(index)}
+                type="button"
+              >
+                <span>{index + 1}</span>
+                {slot.shortLabel}
+              </button>
+            );
+          })}
+        </div>
         <button className="primary" onClick={photo ? onRetake : onTakePhoto} type="button">
           <ImagePlus size={18} />
-          {photo ? "Tomar otra foto" : "Tomar o subir foto"}
+          {photo ? "Tomar otra" : "Tomar foto"}
+        </button>
+        {canMoveNext && (
+          <button className="secondary" onClick={onNextCapture} type="button">
+            <ChevronRight size={18} />
+            Foto siguiente modulo
+          </button>
+        )}
+        <button
+          className="secondary"
+          onClick={() => runPipeline({ hasPhoto: captureReady })}
+          disabled={processing || !captureReady}
+          type="button"
+        >
+          <Wand2 size={18} />
+          Usar esta foto
         </button>
         <button className="secondary" onClick={() => runPipeline({ forceDemo: true })} disabled={processing} type="button">
           <Sparkles size={18} />
@@ -812,10 +1019,10 @@ function CaptureView({ photo, photoQuality, processing, onTakePhoto, onRetake, r
             <CheckCircle2 size={16} /> Calidad minima de imagen
           </span>
           <span>
-            <CheckCircle2 size={16} /> Mueble automotriz y categoria definidos
+            <CheckCircle2 size={16} /> {capturedReadyCount}/{capturePlan.requiredPhotos} foto(s) requeridas
           </span>
           <span>
-            <CheckCircle2 size={16} /> Catalogo Autos.xlsx / VTEX sincronizado
+            <CheckCircle2 size={16} /> Agente compara contra imagen VTEX, texto visible y categoria
           </span>
         </div>
       </div>
@@ -826,6 +1033,7 @@ function CaptureView({ photo, photoQuality, processing, onTakePhoto, onRetake, r
 function ReviewView({
   rows,
   photo,
+  capturePhotos,
   photoQuality,
   processing,
   demoMode,
@@ -844,6 +1052,7 @@ function ReviewView({
         <ReviewShelf
           rows={rows}
           photo={photo}
+          capturePhotos={capturePhotos}
           blockedByPhoto={blockedByPhoto}
           demoMode={demoMode}
           openProduct={openProduct}
@@ -865,6 +1074,15 @@ function ReviewView({
             <span>Modo demo: los productos vienen del catalogo Autos.xlsx; no fueron reconocidos por la foto.</span>
           </div>
         )}
+        {!demoMode && !blockedByPhoto && (
+          <div className="agent-disclaimer">
+            <Wand2 size={18} />
+            <span>
+              Agente de reconocimiento: compara imagen del empaque, texto visible y categoria contra catalogo Autos/VTEX.
+              La etiqueta de precio solo apoya cuando se alcanza a leer.
+            </span>
+          </div>
+        )}
         {!blockedByPhoto && (
           <>
             <div className="metric-row">
@@ -881,7 +1099,10 @@ function ReviewView({
                   </div>
                   <div className="mini-products">
                     {row.items.map((item) => (
-                      <ProductPack key={item.id} product={item.sku ? findProduct(item.sku) : null} compact />
+                      <div key={item.id} className={`mini-match ${item.confidence < 70 ? "needs-review" : ""}`}>
+                        <ProductPack product={item.sku ? findProduct(item.sku) : null} compact />
+                        <small>{item.confidence < 70 ? "Revisar" : `${item.confidence}%`}</small>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -939,10 +1160,27 @@ function PhotoQualityCard({ quality }) {
   );
 }
 
-function ReviewShelf({ rows, photo, blockedByPhoto, demoMode, openProduct, onRetake, onDemo }) {
+function ReviewShelf({ rows, photo, capturePhotos = [], blockedByPhoto, demoMode, openProduct, onRetake, onDemo }) {
+  const visibleCaptures = capturePhotos.filter(Boolean);
   return (
     <div className="review-shelf-stage">
-      {photo && (
+      {visibleCaptures.length > 0 ? (
+        <div className="captured-modules">
+          {visibleCaptures.map((capture) => (
+            <div key={capture.id} className="captured-module">
+              <img src={capture.dataUrl} alt={capture.label} />
+              <div>
+                <strong>{capture.label}</strong>
+                <span>{capture.quality?.planogramReady ? "Apta para agente" : "Revisar foto"}</span>
+              </div>
+            </div>
+          ))}
+          <button className="secondary small-retake" onClick={onRetake} type="button">
+            <Camera size={16} />
+            Tomar otra
+          </button>
+        </div>
+      ) : photo ? (
         <div className="captured-photo-strip">
           <img src={photo} alt="Foto del levantamiento" />
           <div>
@@ -958,7 +1196,7 @@ function ReviewShelf({ rows, photo, blockedByPhoto, demoMode, openProduct, onRet
             Tomar otra
           </button>
         </div>
-      )}
+      ) : null}
       {blockedByPhoto ? (
         <div className="review-blocker">
           <AlertTriangle size={34} />
@@ -1010,6 +1248,7 @@ function ReviewShelf({ rows, photo, blockedByPhoto, demoMode, openProduct, onRet
                           <ProductPack key={index} product={product} compact />
                         ))}
                         <small>{item.confidence}%</small>
+                        {item.confidence < 70 && <em>Revisar</em>}
                       </button>
                     );
                   })}
@@ -1289,9 +1528,10 @@ function Metric({ icon: Icon, label, value }) {
   );
 }
 
-function ProductPreview({ product, mode = "construction", onClose }) {
+function ProductPreview({ product, mode = "construction", selectedCategory, onClose }) {
   const showPerformance = mode === "performance";
   const performance = getProductPerformance(product);
+  const alternatives = getAgentCandidates(product, selectedCategory);
   const bestStoreIndex = (skuSeed(product) % 4);
   const bestStores = ["Cemaco Pradera", "Cemaco Zona 10", "Cemaco Cayala", "Cemaco Peri-Roosevelt"];
   const bestStore = bestStores[bestStoreIndex];
@@ -1349,6 +1589,27 @@ function ProductPreview({ product, mode = "construction", onClose }) {
                   el tab Performance.
                 </span>
               </div>
+            </div>
+          )}
+          {!showPerformance && alternatives.length > 0 && (
+            <div className="preview-alternatives">
+              <div className="preview-performance-title">
+                <Wand2 size={18} />
+                <strong>Candidatos alternos del agente</strong>
+                <span>Match asistido</span>
+              </div>
+              {alternatives.map((candidate) => {
+                const candidateProduct = findProduct(candidate.sku);
+                return (
+                  <div key={candidate.sku} className="alternative-item">
+                    <ProductPack product={candidateProduct} compact />
+                    <div>
+                      <strong>{candidateProduct?.name || candidate.name}</strong>
+                      <span>{candidate.sku} · {candidate.confidence}% confianza</span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
           {showPerformance && performance && (
