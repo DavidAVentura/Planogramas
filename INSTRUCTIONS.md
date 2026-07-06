@@ -57,6 +57,9 @@ El zip NO incluye `node_modules/`, `dist/` ni el historial `.git` (el historial 
 │   └── data/
 │       └── realData.js      Catalogo generado desde Autos.xlsx + muebles del consolidado.
 │                            NO editar a mano; se regenera desde los Excel fuente.
+├── data-fuente/
+│   ├── Autos.xlsx           Excel fuente de productos (base de realData.js)
+│   └── Consolidado accesorios de merchandising.xlsx   Excel fuente de muebles
 ├── ALCANCE_PROYECTO.md      Alcance funcional del MVP
 ├── MEMORIA_PROYECTO.md      Contexto, decisiones tomadas y estado
 ├── PENDIENTES_PROYECTO.md   Backlog priorizado y criterios de salida
@@ -91,10 +94,10 @@ persistencia, e integraciones de solo lectura con VTEX, Microsoft Fabric y Stibo
 
 ## 7. Regenerar el catalogo
 
-`src/data/realData.js` se genero desde `Autos.xlsx` (productos, con imagenes VTEX) y el
-consolidado de accesorios/merchandising (muebles). Los Excel fuente NO estan en el repo.
-El plan es reemplazar esta generacion estatica por un batch nocturno de n8n contra
-VTEX/Stibo que produzca un JSON consumido por la app.
+`src/data/realData.js` se genero desde los Excel fuente incluidos en `data-fuente/`:
+`Autos.xlsx` (productos, con imagenes VTEX) y `Consolidado accesorios de merchandising.xlsx`
+(muebles). El plan es reemplazar esta generacion estatica por un batch nocturno de n8n
+contra VTEX/Stibo que produzca un JSON consumido por la app.
 
 ## 8. Principios del proyecto (no negociables)
 
