@@ -11,13 +11,10 @@
             "id": "7a5912fe6ac89b40",
             "type": "leaf",
             "state": {
-              "type": "bases",
-              "state": {
-                "file": "Sin título.base",
-                "viewName": "Tabla"
-              },
-              "icon": "lucide-table",
-              "title": "Sin título"
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Vista gráfica"
             }
           }
         ]
@@ -93,7 +90,6 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Sin título.base",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -103,7 +99,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Enlaces entrantes de Sin título"
+              "title": "Enlaces entrantes"
             }
           },
           {
@@ -112,12 +108,11 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Sin título.base",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Enlaces salientes de Sin título"
+              "title": "Enlaces salientes"
             }
           },
           {
@@ -155,13 +150,12 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Sin título.base",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Esquema de Sin título"
+              "title": "Esquema"
             }
           }
         ]
@@ -184,22 +178,42 @@
   },
   "active": "7a5912fe6ac89b40",
   "lastOpenFiles": [
-    "SEQ_CU-05_sustitucion_skus.md",
-    "SEQ_CU-05_sustitucion_skus.md.tmp.564.7dac866c3554",
-    "SEQ_CU-04_posiciones_productos.md",
-    "SEQ_CU-04_posiciones_productos.md.tmp.564.8e9c43793825",
-    "SEQ_CU-03_gondolas_niveles.md",
-    "SEQ_CU-03_gondolas_niveles.md.tmp.564.6708de6a4fe1",
-    "SEQ_CU-02_versiones_ciclo_vida.md",
-    "SEQ_CU-02_versiones_ciclo_vida.md.tmp.564.9be852fad346",
-    "SEQ_CU-01_gestion_planogramas.md",
-    "SEQ_CU-01_gestion_planogramas.md.tmp.564.3ac03980e1dc",
-    "2026-07-10.md",
-    "Sin título.base",
+    "Contratos/README.md",
+    "Contratos/12_sesiones_captura/NOTA_FUERA_DE_MVP.md",
+    "Contratos/02_versiones/GET_versiones_estructura.md",
+    "Contratos/05_posiciones/GET_posiciones_detalle_implementador.md",
+    "Contratos/11_jerarquia/GET_jerarquia_departamentos.md",
+    "Contratos/11_jerarquia/GET_jerarquia_areas.md",
+    "Contratos/10_tiendas/GET_tiendas_planogramas.md",
+    "Contratos/10_tiendas/GET_tiendas_lista.md",
+    "Contratos/09_accesorios/GET_accesorios_detalle.md",
+    "Contratos/09_accesorios/GET_accesorios_lista.md",
+    "Contratos/08_catalogo/GET_productos_detalle.md",
+    "Contratos/08_catalogo/GET_productos_buscar.md",
+    "Contratos/07_exportacion/GET_validar_publicacion.md",
+    "Contratos/07_exportacion/GET_exportar_csv.md",
+    "Contratos/07_exportacion/GET_exportar_json.md",
+    "Contratos/06_sustituciones/GET_posiciones_por_sku.md",
+    "Contratos/06_sustituciones/POST_sustituciones_ejecutar.md",
+    "Contratos/06_sustituciones/GET_sustituciones_historial.md",
+    "Contratos/05_posiciones/GET_posiciones_capacidad.md",
+    "Contratos/05_posiciones/DELETE_posiciones_accesorios_eliminar.md",
+    "Contratos/05_posiciones/POST_posiciones_accesorios_agregar.md",
+    "Contratos/05_posiciones/GET_posiciones_accesorios.md",
+    "Contratos/05_posiciones/DELETE_posiciones_eliminar.md",
+    "Contratos/05_posiciones/POST_posiciones_copiar.md",
+    "Contratos/05_posiciones/POST_posiciones_mover.md",
+    "Contratos/05_posiciones/PATCH_posiciones_editar.md",
     "Sin título.canvas",
-    "FEATURE_captura_foto_planograma.md",
-    "FEATURE_editar_planograma.md",
-    "CASOS_DE_USO.md",
-    "ENDPOINTS.md"
+    "Contratos/12_sesiones_captura",
+    "Contratos/11_jerarquia",
+    "Contratos/10_tiendas",
+    "Contratos/09_accesorios",
+    "Contratos/08_catalogo",
+    "Contratos/07_exportacion",
+    "Contratos/06_sustituciones",
+    "Contratos/05_posiciones",
+    "Contratos/04_niveles",
+    "Contratos/03_gondolas"
   ]
 }
