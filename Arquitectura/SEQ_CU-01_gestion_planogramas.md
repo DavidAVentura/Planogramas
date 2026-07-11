@@ -12,8 +12,26 @@ sequenceDiagram
 
     %% ─── NOTA DE ARQUITECTURA ──────────────────────────────────────────────────
     %% Backend Node.js tiene dos responsabilidades:
-    %%   1. Proxy/middleware hacia CATI  →  auth interna via POST /api/Auth/exchange
-    %%      { tokenCemacoAllInOne } → JWT Bearer. El frontend nunca llama CATI directo.
+    %%   1. Proxy/middleware hacia CATI — autenticación en dos saltos (todo interno,
+    %%      el frontend nunca llama a CAO ni a CATI directamente):
+    %%
+    %%      Salto 1 — CAO (CemacoAllInOne):
+    %%        POST https://cemacoallinone.azurewebsites.net/api/auth
+    %%        Body: { user, password }  (credenciales de servicio en .env)
+    %%        Respuesta: { data: { token } }  → tokenCAO
+    %%
+    %%      Salto 2 — CATI exchange:
+    %%        POST http://10.20.12.9:8881/api/Auth/exchange
+    %%        Body: { tokenCemacoAllInOne: tokenCAO }
+    %%        Respuesta: { data: { accessToken, accessTokenExpiresAt,
+    %%                             refreshToken, refreshTokenExpiresAt } }
+    %%
+    %%      Todas las llamadas a CATI envían ambas credenciales:
+    %%        Authorization: Bearer {accessToken}  (JWT — para endpoints que lo requieren)
+    %%        x-api-key: {CATI_API_KEY}            (para endpoints que lo requieren)
+    %%      El tokenManager cachea el accessToken en memoria, verifica expiración
+    %%      antes de cada llamada y refresca o re-autentica según corresponda.
+    %%
     %%      Endpoints de jerarquía usados en este CU:
     %%        GET /api/Jerarquia/Area
     %%        GET /api/Jerarquia/Departamento?area={id}&profile=CEMACO

@@ -10,7 +10,30 @@ sequenceDiagram
     participant CATI as CATI (API.Catalogo)
     participant DB as SQL Server
 
-
+    %% ─── NOTA DE ARQUITECTURA ──────────────────────────────────────────────────
+    %% Las llamadas a CATI usan un Bearer JWT obtenido en dos saltos internos:
+    %%
+    %%   Salto 1 — CAO (CemacoAllInOne):
+    %%     POST https://cemacoallinone.azurewebsites.net/api/auth
+    %%     Body: { user, password }  (credenciales de servicio en .env)
+    %%     Respuesta: { data: { token } }  → tokenCAO
+    %%
+    %%   Salto 2 — CATI exchange:
+    %%     POST http://10.20.12.9:8881/api/Auth/exchange
+    %%     Body: { tokenCemacoAllInOne: tokenCAO }
+    %%     Respuesta: { data: { accessToken, accessTokenExpiresAt,
+    %%                          refreshToken, refreshTokenExpiresAt } }
+    %%
+    %%   Todas las llamadas a CATI envían ambas credenciales:
+    %%     Authorization: Bearer {accessToken}  (JWT — para endpoints que lo requieren)
+    %%     x-api-key: {CATI_API_KEY}            (para endpoints que lo requieren)
+    %%   El tokenManager cachea el accessToken en memoria y lo refresca antes de expirar.
+    %%   El frontend nunca llama a CAO ni a CATI directamente.
+    %%
+    %%   Endpoints de catálogo usados en este CU:
+    %%     GET /api/Product/search  (búsqueda de SKUs)
+    %%     GET /api/Product/{sku}   (detalle de producto)
+    %% ────────────────────────────────────────────────────────────────────────────
 
     rect rgba(89, 89, 89, 1)
         Note over Analista,DB: CU-04-01 — Agregar posición

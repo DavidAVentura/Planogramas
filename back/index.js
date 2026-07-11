@@ -1,13 +1,15 @@
-const express = require('express');
-const app = express();
-const PORT = 3000;
+/**
+ * index.js — entry point del backend.
+ * Solo responsable de arrancar el servidor HTTP.
+ * La configuración de Express vive en src/infrastructure/http/app.js.
+ */
 
-app.use(express.json()); // Parses incoming JSON requests
+const env = require('./src/config/env');
+const app = require('./src/infrastructure/http/app');
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'API is running successfully' });
-});
+const PORT = env.PORT;
 
 app.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
+  console.log(`[server] escuchando en http://localhost:${PORT}`);
+  console.log(`[server] entorno: ${env.NODE_ENV}`);
 });

@@ -14,8 +14,19 @@ sequenceDiagram
     %% La sustitución es un flujo explícito — distinto de editar el campo SKU.
     %% Genera registro en HistorialSustitucion con posiciones_afectadas (JSON).
     %% CATI se usa para: buscar SKU sustituto y obtener dimensiones del sustituto.
-    %% Auth CATI: POST /api/Auth/exchange { tokenCemacoAllInOne } → Bearer JWT.
     %% Producto.sku_sustituto en SQL es la recomendación del catálogo (FK self).
+    %%
+    %% Auth CATI — dos saltos internos (el frontend nunca llama a CAO ni CATI):
+    %%   Salto 1 — CAO: POST https://cemacoallinone.azurewebsites.net/api/auth
+    %%             Body: { user, password } → { data: { token } }  (tokenCAO)
+    %%   Salto 2 — CATI exchange: POST http://10.20.12.9:8881/api/Auth/exchange
+    %%             Body: { tokenCemacoAllInOne: tokenCAO }
+    %%             → { data: { accessToken, accessTokenExpiresAt,
+    %%                         refreshToken, refreshTokenExpiresAt } }
+    %%   Todas las llamadas a CATI envían ambas credenciales:
+    %%     Authorization: Bearer {accessToken}  (JWT — para endpoints que lo requieren)
+    %%     x-api-key: {CATI_API_KEY}            (para endpoints que lo requieren)
+    %%   El tokenManager cachea el accessToken en memoria y lo refresca antes de expirar.
     %% ────────────────────────────────────────────────────────────────────────────
 
     %% ════════════════════════════════════════════════════════
