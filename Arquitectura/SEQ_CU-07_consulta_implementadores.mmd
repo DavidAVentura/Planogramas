@@ -1,0 +1,83 @@
+sequenceDiagram
+    actor Implementador
+    participant FE as Frontend (React)
+    participant API as Backend (Node.js)
+    participant CATI as CATI (API.Catalogo)
+    participant DB as SQL Server
+
+    %% ─── NOTA ──────────────────────────────────────────────────────────────────
+    %% Actor: Implementador (personal de tienda) — solo lectura, sin edición.
+    %% El implementador elige la tienda desde un selector al abrir la app.
+    %% No se extrae tienda_id del JWT — el usuario selecciona explícitamente la tienda.
+    %% CATI se usa en CU-07-02 para obtener imagen y atributos del producto.
+    %% Auth CATI: POST /api/Auth/exchange { tokenCemacoAllInOne } → Bearer JWT.
+    %% ────────────────────────────────────────────────────────────────────────────
+
+    %% ════════════════════════════════════════════════════════
+    %% CU-07-01 — Ver planograma asignado a tienda
+    %% ════════════════════════════════════════════════════════
+
+    rect rgba(89, 89, 89, 1)
+        Note over Implementador,DB: CU-07-01 — Ver planograma asignado a tienda
+
+        Implementador->>FE: Abre la app
+
+        FE->>API: GET /api/tiendas<br/>Query: ?estado=activo
+
+        API->>DB: SELECT id, codigo, nombre, region<br/>FROM Tienda WHERE estado = 'activo'<br/>ORDER BY nombre
+        DB-->>API: tiendas[]
+        API-->>FE: 200 OK [ { id, codigo, nombre, region }, ... ]
+
+        FE-->>Implementador: Muestra selector de tienda
+
+        Implementador->>FE: Selecciona una tienda y opcionalmente filtra por departamento
+
+        FE->>API: GET /api/tiendas/{tiendaId}/planogramas<br/>Query: ?departamento={dep?}&estado=publicado
+
+        API->>DB: SELECT pv.id, pv.tipo, pv.codigo, pv.estado,<br/>p.nombre AS planograma_nombre, p.departamento,<br/>ps.subcategoria<br/>FROM VersionTienda vt<br/>JOIN PlanogramaVersion pv ON pv.id = vt.planograma_version_id<br/>JOIN Planograma p ON p.id = pv.planograma_id<br/>LEFT JOIN PlanogramaSubcategoria ps ON ps.planograma_id = p.id<br/>WHERE vt.tienda_id = @tiendaId<br/>AND pv.estado = 'publicado'<br/>AND (@departamento IS NULL OR p.departamento = @departamento)<br/>ORDER BY p.departamento, pv.tipo
+        DB-->>API: versiones publicadas[]
+
+        alt No hay planogramas publicados para la tienda
+            API-->>FE: 200 OK { data: [], mensaje: "No hay planogramas publicados asignados a tu tienda" }
+            FE-->>Implementador: Muestra mensaje informativo
+        else
+            API-->>FE: 200 OK<br/>{ tienda: { id, codigo, nombre },<br/>planogramas: [{ versionId, codigo, tipo,<br/>planogramaId, nombre, departamento,<br/>subcategorias[] }] }
+            FE-->>Implementador: Muestra listado de planogramas disponibles para su tienda
+
+            Implementador->>FE: Selecciona un planograma
+
+            FE->>API: GET /api/versiones/{versionId}/estructura<br/>Query: ?vistaImplementador=true
+
+            API->>DB: SELECT g.id, g.nombre, g.ancho_cm, g.alto_cm,<br/>g.profundidad_cm, g.posicion_en_tienda, g.orden,<br/>n.id AS nivel_id, n.orden AS nivel_orden,<br/>n.altura_desde_piso_cm, n.tipo_accesorio,<br/>a.codigo AS acc_codigo, a.nombre AS acc_nombre,<br/>n.tamano_accesorio_pulgadas,<br/>p.id AS pos_id, p.orden_horizontal, p.sku,<br/>p.facings_horizontal, p.cantidad_apilable,<br/>p.modo, p.decision, p.montar_en_display,<br/>p.desborda_gondola, p.nota_desborde, p.observaciones<br/>FROM Gondola g<br/>JOIN Nivel n ON n.gondola_id = g.id<br/>LEFT JOIN Accesorio a ON a.id = n.codigo_accesorio_id<br/>LEFT JOIN Posicion p ON p.nivel_id = n.id<br/>WHERE g.planograma_version_id = @versionId<br/>AND (p.decision = 'ACTIVO' OR p.id IS NULL)<br/>ORDER BY g.orden, n.orden, p.orden_horizontal
+            DB-->>API: estructura completa (solo posiciones ACTIVO)
+
+            API-->>FE: 200 OK<br/>{ versionId, codigo, tipo,<br/>gondolas: [{ nombre, medidas, posicion_en_tienda,<br/>  niveles: [{ orden, altura_piso_cm, tipo_accesorio, accesorio,<br/>    posiciones: [{ id, sku, facings_h, cantidad_apilable,<br/>      modo, montar_en_display, desborda_gondola,<br/>      nota_desborde, observaciones }] }] }] }
+
+            FE-->>Implementador: Renderiza vista de solo lectura del planograma:<br/>góndolas, niveles y posiciones activas con imagen de SKU
+        end
+    end
+
+    %% ════════════════════════════════════════════════════════
+    %% CU-07-02 — Ver detalle de posición
+    %% ════════════════════════════════════════════════════════
+
+    rect rgba(89, 89, 89, 1)
+        Note over Implementador,DB: CU-07-02 — Ver detalle de posición
+
+        Implementador->>FE: Selecciona una posición en el planograma
+
+        FE->>API: GET /api/posiciones/{id}/detalle
+
+        API->>DB: SELECT p.*, pa.accesorio_id, pa.nota_libre, pa.orden AS acc_orden,<br/>a.codigo AS acc_codigo, a.nombre AS acc_nombre, a.tipo AS acc_tipo,<br/>a.longitud_cm AS acc_longitud<br/>FROM Posicion p<br/>LEFT JOIN PosicionAccesorio pa ON pa.posicion_id = p.id<br/>LEFT JOIN Accesorio a ON a.id = pa.accesorio_id<br/>WHERE p.id = @id<br/>ORDER BY pa.orden
+        DB-->>API: posicion + accesorios[]
+
+        Note over API,CATI: Enriquece con datos del producto desde CATI
+        API->>CATI: GET /api/Product/{sku}?profile=CEMACO  [Bearer]
+        CATI-->>API: Product { id, name, regularPrice,<br/>erpInformation: { marca, modelo, categoria, subCategoria },<br/>assets: [{ id, destinoImagen, azurePath_XL }] }
+
+        API->>API: Selecciona imagen principal del asset<br/>(destinoImagen = 'PRINCIPAL' o primer asset disponible)
+
+        API-->>FE: 200 OK<br/>{ posicion: {<br/>    id, sku, nombre_producto, marca, precio,<br/>    facings_horizontal, cantidad_apilable, unidades_por_facing,<br/>    capacidad_maxima, min_final, max_final,<br/>    perfil_redondeo, modo, cross_externo,<br/>    montar_en_display, desborda_gondola, nota_desborde,<br/>    decision, observaciones,<br/>    imagen_url,<br/>    accesorios: [{ codigo, nombre, tipo, longitud_cm, nota_libre }]<br/>  }<br/>}
+
+        FE-->>Implementador: Muestra ficha completa de la posición:<br/>· Imagen del producto<br/>· SKU, nombre, marca, precio<br/>· Facings, capacidad máxima, mínimos<br/>· Instrucciones de montaje:<br/>    - Accesorios con nota libre ("a la derecha", "colocar frontal")<br/>    - Montar en display (si aplica)<br/>    - Nota de desborde (si aplica)<br/>· Observaciones del analista
+    end
