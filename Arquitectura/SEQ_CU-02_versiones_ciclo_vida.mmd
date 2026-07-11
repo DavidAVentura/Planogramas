@@ -63,7 +63,7 @@ sequenceDiagram
         FE-->>Analista: Muestra modal: seleccionar tienda y agregar notas
 
         Analista->>FE: Selecciona tienda y confirma
-        FE->>API: POST /api/planogramas/{planogramaId}/versiones/especial<br/>Body: { version_base_id, tienda_id, notas? }
+        FE->>API: POST /api/planogramas/{planogramaId}/versiones<br/>Body: { tipo, version_base_id, tienda_id, notas? }
 
         API->>DB: SELECT pv.*, g.*, n.*, p.*, pa.*<br/>FROM PlanogramaVersion pv<br/>JOIN Gondola g ON g.planograma_version_id = pv.id<br/>JOIN Nivel n ON n.gondola_id = g.id<br/>JOIN Posicion p ON p.nivel_id = n.id<br/>LEFT JOIN PosicionAccesorio pa ON pa.posicion_id = p.id<br/>WHERE pv.id = @versionBaseId
         DB-->>API: estructura completa de la versión base
@@ -101,7 +101,7 @@ sequenceDiagram
         Analista->>FE: Selecciona tiendas piloto y confirma
         FE->>FE: Validación local: al menos 1 tienda piloto requerida
 
-        FE->>API: PATCH /api/versiones/{id}/promover-piloto<br/>Body: { tienda_ids: [int, ...] }
+        FE->>API: POST /api/versiones/{id}/promover<br/>Body: { estado: "piloto", tiendas_piloto: [int, ...] }
 
         API->>DB: SELECT estado FROM PlanogramaVersion WHERE id = @id
         DB-->>API: estado
@@ -132,7 +132,7 @@ sequenceDiagram
         FE-->>Analista: Muestra resumen y solicita confirmación
 
         Analista->>FE: Confirma publicación
-        FE->>API: PATCH /api/versiones/{id}/publicar
+        FE->>API: POST /api/versiones/{id}/promover<br/>Body: { estado: "publicado" }
 
         API->>DB: SELECT pv.estado, pv.tipo, pv.planograma_id<br/>FROM PlanogramaVersion pv WHERE pv.id = @id
         DB-->>API: { estado, tipo, planogramaId }

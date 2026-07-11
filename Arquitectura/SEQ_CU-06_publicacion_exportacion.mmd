@@ -77,7 +77,7 @@ sequenceDiagram
 
             Analista->>FE: Confirma publicación
 
-            FE->>API: PATCH /api/versiones/{id}/publicar
+            FE->>API: POST /api/versiones/{id}/promover<br/>Body: { estado: "publicado" }
 
             API->>DB: SELECT estado, tipo, planograma_id<br/>FROM PlanogramaVersion WHERE id = @id
             DB-->>API: { estado, tipo, planogramaId }

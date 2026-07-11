@@ -61,6 +61,7 @@ Actores:
 | CU-04-08 | Aceptar alerta de desborde | Analista | El analista reconoce explícitamente que un producto cruza el límite físico de la góndola y agrega una nota de desborde. |
 | CU-04-09 | Agregar accesorio de montaje a posición | Analista | Agrega uno o más accesorios con nota libre a una posición (ej. "a la derecha"). |
 | CU-04-10 | Deshacer / Rehacer acción | Analista | Revierte o repite la última acción de edición con Ctrl+Z / Ctrl+Y. |
+| CU-04-11 | Eliminar accesorio de montaje de posición | Analista | Quita un accesorio de montaje previamente asignado a una posición. |
 
 ---
 

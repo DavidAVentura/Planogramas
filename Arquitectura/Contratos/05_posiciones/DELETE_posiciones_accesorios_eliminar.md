@@ -3,6 +3,7 @@
 **Método:** `DELETE`  
 **Ruta:** `/api/v1/posiciones/{posicionId}/accesorios/{accesorioId}`  
 **Actor:** Analista  
+**Caso de uso:** CU-04-11  
 
 ---
 

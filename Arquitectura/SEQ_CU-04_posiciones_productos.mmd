@@ -64,7 +64,7 @@ sequenceDiagram
         FE->>FE: Recalcula en tiempo real:<br/>· ancho_asignado_cm ↔ facings_horizontal (bidireccional)<br/>· capacidad_maxima, min_estetico<br/>· Valida min_final <= max_final (bloqueante si no)
 
         Analista->>FE: Guarda cambios
-        FE->>API: PUT /api/posiciones/{id}<br/>Body: { facings_horizontal, ancho_asignado_cm, cantidad_apilable,<br/>unidades_por_facing, capacidad_maxima, min_estetico,<br/>min_final, max_final, perfil_redondeo, modo, cross_externo,<br/>montar_en_display, desborda_gondola, nota_desborde,<br/>decision, observaciones }
+        FE->>API: PATCH /api/posiciones/{id}<br/>Body: { facings_horizontal, ancho_asignado_cm, cantidad_apilable,<br/>unidades_por_facing, capacidad_maxima, min_estetico,<br/>min_final, max_final, perfil_redondeo, modo, cross_externo,<br/>montar_en_display, desborda_gondola, nota_desborde,<br/>decision, observaciones }
 
         API->>DB: UPDATE Posicion SET ... WHERE id = @id
         DB-->>API: OK
@@ -108,7 +108,7 @@ sequenceDiagram
         Note over Analista,DB: CU-04-04 — Copiar posición (Ctrl+C)
 
         Analista->>FE: Selecciona posición y presiona Ctrl+C
-        FE->>FE: Guarda copia completa de la posición en memoria de la app<br/>{ sku, todos los atributos, accesorios[] }<br/>No se realiza llamada HTTP — solo estado del cliente
+        FE->>FE: Guarda el ID de la posición en el portapapeles de la app<br/>{ posicionId }<br/>No se realiza llamada HTTP — solo estado del cliente
         FE-->>Analista: Muestra indicador visual de "posición copiada"
     end
 
@@ -126,8 +126,10 @@ sequenceDiagram
             FE-->>Analista: Muestra advertencia "SKU ya existe en el nivel destino"<br/>(no bloquea — facing vertical intencional es válido)
         end
 
-        FE->>API: POST /api/niveles/{nivelDestinoId}/posiciones<br/>Body: { ...atributos_copiados, orden_horizontal: ultimo+1,<br/>accesorios: [...] }
+        FE->>API: POST /api/posiciones/{posicionId}/copiar<br/>Body: { nivel_id: nivelDestinoId, orden_horizontal: ultimo+1 }
 
+        API->>DB: SELECT * FROM Posicion WHERE id = @posicionId
+        DB-->>API: posicion origen + accesorios[]
         API->>DB: INSERT INTO Posicion (todos los atributos copiados, nivel_id=@nivelDestino)
         DB-->>API: { id: nuevaId }
         API->>DB: INSERT INTO PosicionAccesorio<br/>(posicion_id=nuevaId, accesorio_id, nota_libre, orden)<br/>— por cada accesorio de la posición original
@@ -244,7 +246,7 @@ sequenceDiagram
 
         Analista->>FE: Presiona Ctrl+Z (deshacer)
         FE->>FE: Extrae último delta del undo-stack<br/>Construye la operación inversa (ej si fue POST → DELETE, si fue PUT → PUT con valores anteriores)
-        FE->>API: Llamada inversa según el tipo de operación<br/>Ej. DELETE /api/posiciones/{id} si la acción fue crear<br/>    PUT /api/posiciones/{id} con valores anteriores si fue editar<br/>    PATCH /api/posiciones/{id}/mover con nivel/orden previo si fue mover
+        FE->>API: Llamada inversa según el tipo de operación<br/>Ej. DELETE /api/posiciones/{id} si la acción fue crear o copiar<br/>    PATCH /api/posiciones/{id} con valores anteriores si fue editar<br/>    PATCH /api/posiciones/{id}/mover con nivel/orden previo si fue mover
 
         API->>DB: Ejecuta la operación inversa correspondiente
         DB-->>API: OK
@@ -254,10 +256,32 @@ sequenceDiagram
 
         Analista->>FE: Presiona Ctrl+Y (rehacer)
         FE->>FE: Extrae último delta del redo-stack<br/>Re-ejecuta la operación original
-        FE->>API: Llamada original restaurada<br/>Ej. POST /api/niveles/{id}/posiciones, PUT /api/posiciones/{id}, etc.
+        FE->>API: Llamada original restaurada<br/>Ej. POST /api/niveles/{id}/posiciones, PATCH /api/posiciones/{id},<br/>    POST /api/posiciones/{id}/copiar, etc.
         API->>DB: Ejecuta la operación
         DB-->>API: OK
         API-->>FE: 200/201
         FE->>FE: Devuelve delta al undo-stack
         FE-->>Analista: Muestra estado rehecho en el editor
+    end
+
+    %% ════════════════════════════════════════════════════════
+    %% CU-04-11 — Eliminar accesorio de montaje de posición
+    %% ════════════════════════════════════════════════════════
+
+    rect rgba(89, 89, 89, 1)
+        Note over Analista,DB: CU-04-11 — Eliminar accesorio de montaje de posición
+
+        Analista->>FE: Selecciona accesorio en la lista de accesorios de la posición
+        Analista->>FE: Pulsa "Eliminar" en el accesorio
+
+        FE->>API: DELETE /api/posiciones/{posicionId}/accesorios/{accesorioId}
+        API->>API: Verifica token de sesión
+        API->>DB: SELECT posicion WHERE id = @posicionId — valida que la versión es editable
+        DB-->>API: posicion
+        API->>DB: DELETE FROM PosicionAccesorio<br/>WHERE posicion_id = @posicionId AND accesorio_id = @accesorioId
+        DB-->>API: OK
+        API-->>FE: 204 No Content
+
+        FE->>FE: Elimina el accesorio de la lista en UI
+        FE-->>Analista: Lista de accesorios actualizada
     end

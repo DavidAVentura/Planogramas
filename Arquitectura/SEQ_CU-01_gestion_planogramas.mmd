@@ -103,7 +103,7 @@ sequenceDiagram
         alt Validación local fallida
             FE-->>Analista: Muestra errores en campos
         else Validación exitosa
-            FE->>API: PUT /api/planogramas/{id}<br/>Body: { nombre, area, departamento, subcategorias: string[] }
+            FE->>API: PATCH /api/planogramas/{id}<br/>Body: { nombre, area, departamento, subcategorias: string[] }
 
             API->>API: Verifica token de sesión
             API->>DB: SELECT estado FROM Planograma WHERE id = @id
@@ -138,7 +138,7 @@ sequenceDiagram
         alt Analista cancela
             FE-->>Analista: Cierra diálogo sin cambios
         else Analista confirma
-            FE->>API: PATCH /api/planogramas/{id}/archivar
+            FE->>API: POST /api/planogramas/{id}/archivar
 
             API->>DB: SELECT estado FROM Planograma WHERE id = @id
             DB-->>API: estado

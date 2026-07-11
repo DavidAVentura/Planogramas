@@ -1,6 +1,6 @@
 # Contrato: Mover Posición
 
-**Método:** `POST`  
+**Método:** `PATCH`  
 **Ruta:** `/api/v1/posiciones/{id}/mover`  
 **Actor:** Analista  
 **Caso de uso:** CU-04-03  

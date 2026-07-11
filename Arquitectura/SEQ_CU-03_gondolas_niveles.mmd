@@ -59,7 +59,7 @@ sequenceDiagram
         Analista->>FE: Modifica medidas y guarda
         FE->>FE: Validación local (ancho, alto, profundidad > 0)
 
-        FE->>API: PUT /api/gondolas/{id}<br/>Body: { nombre, ancho_cm, alto_cm, profundidad_cm, posicion_en_tienda }
+        FE->>API: PATCH /api/gondolas/{id}<br/>Body: { nombre, ancho_cm, alto_cm, profundidad_cm, posicion_en_tienda }
 
         API->>DB: UPDATE Gondola<br/>SET nombre=@nombre, ancho_cm=@ancho_cm, alto_cm=@alto_cm,<br/>profundidad_cm=@profundidad_cm, posicion_en_tienda=@posicion_en_tienda<br/>WHERE id=@id
         DB-->>API: OK
@@ -179,7 +179,7 @@ sequenceDiagram
         FE-->>Analista: Muestra formulario con valores actuales
 
         Analista->>FE: Modifica campos y guarda
-        FE->>API: PUT /api/niveles/{id}<br/>Body: { altura_desde_piso_cm, tipo_accesorio,<br/>codigo_accesorio_id?, tamano_accesorio_pulgadas?,<br/>ancho_disponible_cm, notas? }
+        FE->>API: PATCH /api/niveles/{id}<br/>Body: { altura_desde_piso_cm, tipo_accesorio,<br/>codigo_accesorio_id?, tamano_accesorio_pulgadas?,<br/>ancho_disponible_cm, notas? }
 
         API->>DB: UPDATE Nivel<br/>SET altura_desde_piso_cm=@altura, tipo_accesorio=@tipo,<br/>codigo_accesorio_id=@accId, tamano_accesorio_pulgadas=@tamano,<br/>ancho_disponible_cm=@ancho, notas=@notas<br/>WHERE id=@id
         DB-->>API: OK
