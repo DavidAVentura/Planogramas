@@ -76,3 +76,55 @@ momento se agregan rutas, se necesita un catchall a `index.html`. La alternativa
   (segun `MEMORIA_PROYECTO.md`) — estos archivos `.md` en espanol se usan activamente como memoria
   del proyecto entre sesiones/agentes.
 - Toda comunicacion, documentacion y contenido relacionado a este proyecto se lleva en espanol.
+
+---
+
+## Backend (`back/`)
+
+### Stack
+
+- **Runtime**: Node.js (CommonJS)
+- **Framework**: Express 5
+- **Base de datos**: SQL Server
+- **Query builder**: Knex (con driver `tedious`)
+- **Variables de entorno**: cargadas exclusivamente en `back/src/config/env.js`; ese archivo es el
+  unico punto de acceso a `process.env`. El resto del codigo importa las variables desde ahi, nunca
+  lee `process.env` directamente.
+
+### Principios de diseño
+
+- **Arquitectura hexagonal**: el dominio (entidades, casos de uso) no depende de Express ni de MySQL.
+  Los adaptadores (HTTP, base de datos) dependen del dominio, nunca al reves.
+- **SOLID**: cada modulo tiene una responsabilidad unica; se prefiere composicion sobre herencia.
+- **Clean Code**: funciones cortas y con nombre descriptivo; sin logica compleja inline en rutas.
+- **Patron Repository**: toda consulta a la BD pasa por un repositorio; los casos de uso reciben
+  el repositorio por inyeccion de dependencia.
+- **Simplicidad sobre ingenieria de mas**: preferir la solucion directa antes que la rebuscada.
+  Agregar abstracciones solo cuando el problema real las justifica.
+
+### Comandos del backend
+
+```bash
+cd back
+npm install
+npm run dev      # nodemon index.js — recarga en caliente
+npm start        # node index.js — produccion
+```
+
+### Convencion de carpetas del backend
+
+Ver la propuesta aprobada de estructura de carpetas en `Arquitectura/ESTRUCTURA_BACKEND.md`.
+Los modulos siguen la nomenclatura en espanol para mantener coherencia con el dominio del proyecto
+(planogramas, gondolas, niveles, posiciones, etc.).
+
+### Convencion de errores HTTP
+
+- `400` validacion de request
+- `401` no autenticado
+- `403` sin permiso
+- `404` recurso no encontrado
+- `409` conflicto de estado (ej. gondola con posiciones al intentar eliminar)
+- `422` entidad no procesable (ej. desborde de nivel sin flag de confirmacion)
+
+Toda respuesta de error usa la forma `{ error: { code, message, details? } }`.
+Toda respuesta paginada usa `{ data: [], total, page, pageSize }`.

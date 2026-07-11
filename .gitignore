@@ -6,3 +6,4 @@ dist/
 npm-debug.log*
 planograma-*.png
 revision-*.png
+.env
