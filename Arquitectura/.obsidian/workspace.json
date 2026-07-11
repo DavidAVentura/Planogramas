@@ -1,0 +1,205 @@
+{
+  "main": {
+    "id": "ef14576717859b3d",
+    "type": "split",
+    "children": [
+      {
+        "id": "67644264926dc9f8",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "7a5912fe6ac89b40",
+            "type": "leaf",
+            "state": {
+              "type": "bases",
+              "state": {
+                "file": "Sin título.base",
+                "viewName": "Tabla"
+              },
+              "icon": "lucide-table",
+              "title": "Sin título"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "286a46c13e085e32",
+    "type": "split",
+    "children": [
+      {
+        "id": "d4e01e746ced9366",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "e1b62c76909080d3",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Explorador de archivos"
+            }
+          },
+          {
+            "id": "4b41e30452cbbdb9",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Buscar"
+            }
+          },
+          {
+            "id": "24b6d8f3ea99ec13",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Marcadores"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "f1f62b579db12c80",
+    "type": "split",
+    "children": [
+      {
+        "id": "12d7e2b767ec3519",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "36fa2626f37bfe10",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Sin título.base",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Enlaces entrantes de Sin título"
+            }
+          },
+          {
+            "id": "a7deb1b8ce98946a",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Sin título.base",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Enlaces salientes de Sin título"
+            }
+          },
+          {
+            "id": "e6014e50e2f19704",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Etiquetas"
+            }
+          },
+          {
+            "id": "9914502fb31e2252",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "Todas las propiedades"
+            }
+          },
+          {
+            "id": "fff219233be8c813",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Sin título.base",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Esquema de Sin título"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Abrir selector rápido": false,
+      "graph:Abrir vista gráfica": false,
+      "canvas:Crear nuevo lienzo": false,
+      "daily-notes:Abrir la nota de hoy": false,
+      "templates:Insertar plantilla": false,
+      "command-palette:Abrir paleta de comandos": false,
+      "bases:Crear nueva base": false
+    }
+  },
+  "active": "7a5912fe6ac89b40",
+  "lastOpenFiles": [
+    "SEQ_CU-05_sustitucion_skus.md",
+    "SEQ_CU-05_sustitucion_skus.md.tmp.564.7dac866c3554",
+    "SEQ_CU-04_posiciones_productos.md",
+    "SEQ_CU-04_posiciones_productos.md.tmp.564.8e9c43793825",
+    "SEQ_CU-03_gondolas_niveles.md",
+    "SEQ_CU-03_gondolas_niveles.md.tmp.564.6708de6a4fe1",
+    "SEQ_CU-02_versiones_ciclo_vida.md",
+    "SEQ_CU-02_versiones_ciclo_vida.md.tmp.564.9be852fad346",
+    "SEQ_CU-01_gestion_planogramas.md",
+    "SEQ_CU-01_gestion_planogramas.md.tmp.564.3ac03980e1dc",
+    "2026-07-10.md",
+    "Sin título.base",
+    "Sin título.canvas",
+    "FEATURE_captura_foto_planograma.md",
+    "FEATURE_editar_planograma.md",
+    "CASOS_DE_USO.md",
+    "ENDPOINTS.md"
+  ]
+}
