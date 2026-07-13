@@ -15,16 +15,16 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "helmet": "^8.2.0",
-    "joi": "^18.2.3",
-    "knex": "^3.3.0",
-    "tedious": "^20.0.0"
+    "cors": "*",
+    "dotenv": "*",
+    "express": "*",
+    "helmet": "*",
+    "joi": "*",
+    "jsonwebtoken": "*",
+    "knex": "*",
+    "tedious": "*"
   },
   "devDependencies": {
-    "knex-cli": "^1.0.1",
-    "nodemon": "^3.1.14"
+    "nodemon": "*"
   }
 }

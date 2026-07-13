@@ -1,0 +1,15 @@
+$kind: http-request
+description: "Detalle completo: metadatos + subcategorias + versiones."
+url: "{{HOST}}/api/v1/planogramas/{{planogramaId}}"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200', () => pm.response.to.have.status(200));
+      pm.test('Incluye subcategorias y versiones', () => {
+        const body = pm.response.json();
+        pm.expect(body).to.have.property('subcategorias');
+        pm.expect(body).to.have.property('versiones');
+      });
+    language: text/javascript
+order: 1000

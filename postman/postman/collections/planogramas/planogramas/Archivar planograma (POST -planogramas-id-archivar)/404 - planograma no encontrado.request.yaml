@@ -1,0 +1,13 @@
+$kind: http-request
+description: Id numéricamente válido pero inexistente en la BD.
+url: "{{HOST}}/api/v1/planogramas/{{planogramaIdInexistente}}/archivar"
+method: POST
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 404', () => pm.response.to.have.status(404));
+      pm.test('Code NOT_FOUND', () => {
+        pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');
+      });
+    language: text/javascript
+order: 2000

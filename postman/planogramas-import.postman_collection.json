@@ -1,0 +1,645 @@
+{
+  "info": {
+    "_postman_id": "b6f2e6a0-1e3d-4c9a-9f2b-0a8f6d3c7e11",
+    "name": "planogramas",
+    "description": "Casos de éxito y de error para los 5 endpoints del módulo Planogramas (back/src/infrastructure/http/routes/planogramas.routes.js).\n\nUsa la variable de entorno {{HOST}} como base (ej. http://localhost:3000 o el host de staging) — configúrala en el entorno de Postman antes de ejecutar, no está definida en esta colección.\n\nLas variables de colección planogramaId / planogramaIdArchivado / planogramaIdConVersionesPublicadas / planogramaIdInexistente son ids de prueba: ajústalas a ids reales de tu base de datos según el escenario (uno en estado borrador/activo, uno ya archivado, uno con versiones publicadas asignadas a tiendas, y uno que no exista).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "planogramaId", "value": "1", "type": "string", "description": "Id de un planograma existente en estado borrador o activo" },
+    { "key": "planogramaIdArchivado", "value": "2", "type": "string", "description": "Id de un planograma que ya está en estado archivado" },
+    { "key": "planogramaIdConVersionesPublicadas", "value": "3", "type": "string", "description": "Id de un planograma con versiones publicadas asignadas a tiendas (no archivable)" },
+    { "key": "planogramaIdInexistente", "value": "999999", "type": "string", "description": "Id que no existe en la base de datos" },
+    { "key": "nombreExistente", "value": "Planograma Existente", "type": "string", "description": "Nombre + departamento que ya existen juntos en la BD, para forzar 409 por duplicado" },
+    { "key": "departamentoExistente", "value": "Autos", "type": "string", "description": "Departamento asociado a nombreExistente" }
+  ],
+  "item": [
+    {
+      "name": "planogramas",
+      "item": [
+        {
+          "name": "Listar planogramas (GET /planogramas)",
+          "item": [
+            {
+              "name": "200 - Listar sin filtros",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": ["{{HOST}}"],
+                  "path": ["api", "v1", "planogramas"]
+                },
+                "description": "Lista paginada con los valores default (page=1, pageSize=20)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Estructura paginada', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.have.property('data').that.is.an('array');",
+                      "  pm.expect(body).to.have.property('total').that.is.a('number');",
+                      "  pm.expect(body.page).to.eql(1);",
+                      "  pm.expect(body.pageSize).to.eql(20);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Listar con filtros (departamento, estado, search, paginacion)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas?departamento=Autos&estado=activo&search=rack&page=1&pageSize=10",
+                  "host": ["{{HOST}}"],
+                  "path": ["api", "v1", "planogramas"],
+                  "query": [
+                    { "key": "departamento", "value": "Autos" },
+                    { "key": "estado", "value": "activo" },
+                    { "key": "search", "value": "rack" },
+                    { "key": "page", "value": "1" },
+                    { "key": "pageSize", "value": "10" }
+                  ]
+                },
+                "description": "Filtra por departamento, estado y texto de búsqueda con paginación explícita."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Respeta pageSize solicitado', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.pageSize).to.eql(10);",
+                      "  pm.expect(body.data.length).to.be.at.most(10);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - estado invalido (fuera del enum)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas?estado=invalido",
+                  "host": ["{{HOST}}"],
+                  "path": ["api", "v1", "planogramas"],
+                  "query": [{ "key": "estado", "value": "invalido" }]
+                },
+                "description": "'estado' solo admite borrador | activo | archivado."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - pageSize fuera de rango",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas?page=0&pageSize=500",
+                  "host": ["{{HOST}}"],
+                  "path": ["api", "v1", "planogramas"],
+                  "query": [
+                    { "key": "page", "value": "0" },
+                    { "key": "pageSize", "value": "500" }
+                  ]
+                },
+                "description": "page debe ser >= 1 y pageSize <= 100."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Crear planograma (POST /planogramas)",
+          "item": [
+            {
+              "name": "201 - Crear planograma valido",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": ["{{HOST}}"],
+                  "path": ["api", "v1", "planogramas"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Autos - Rack Frontal A\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\"Aceites\", \"Filtros\"]\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "description": "Crea un planograma nuevo en estado borrador."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.test('Retorna planograma con estado borrador', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.have.property('id');",
+                      "  pm.expect(body.estado).to.eql('borrador');",
+                      "  pm.expect(body.subcategorias).to.be.an('array').with.lengthOf(2);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - campos requeridos faltantes/invalidos",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": ["{{HOST}}"],
+                  "path": ["api", "v1", "planogramas"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"\",\n  \"subcategorias\": []\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "description": "nombre vacío, departamento ausente y subcategorias vacío — dispara los 3 errores de Joi a la vez."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR con detalles', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.error.code).to.eql('VALIDATION_ERROR');",
+                      "  pm.expect(body.error.details).to.be.an('array').that.is.not.empty;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "409 - nombre duplicado en el mismo departamento",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": ["{{HOST}}"],
+                  "path": ["api", "v1", "planogramas"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"{{nombreExistente}}\",\n  \"departamento\": \"{{departamentoExistente}}\",\n  \"subcategorias\": [\"Aceites\"]\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "description": "Requiere que ya exista un planograma con ese mismo nombre + departamento (ajustar variables nombreExistente/departamentoExistente)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 409', () => pm.response.to.have.status(409));",
+                      "pm.test('Code CONFLICT', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('CONFLICT');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Obtener planograma (GET /planogramas/:id)",
+          "item": [
+            {
+              "name": "200 - Obtener detalle completo",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaId}}",
+                  "host": ["{{HOST}}"],
+                  "path": ["api", "v1", "planogramas", "{{planogramaId}}"]
+                },
+                "description": "Detalle completo: metadatos + subcategorias + versiones."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Incluye subcategorias y versiones', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.have.property('subcategorias');",
+                      "  pm.expect(body).to.have.property('versiones');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - id no es un entero positivo",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/abc",
+                  "host": ["{{HOST}}"],
+                  "path": ["api", "v1", "planogramas", "abc"]
+                },
+                "description": "El id debe parsear como entero >= 1."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - planograma no encontrado",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdInexistente}}",
+                  "host": ["{{HOST}}"],
+                  "path": ["api", "v1", "planogramas", "{{planogramaIdInexistente}}"]
+                },
+                "description": "Id numéricamente válido pero inexistente en la BD."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Code NOT_FOUND', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Editar planograma (PATCH /planogramas/:id)",
+          "item": [
+            {
+              "name": "200 - Editar nombre y subcategorias",
+              "request": {
+                "method": "PATCH",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaId}}",
+                  "host": ["{{HOST}}"],
+                  "path": ["api", "v1", "planogramas", "{{planogramaId}}"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Autos - Rack Frontal A (actualizado)\",\n  \"subcategorias\": [\"Aceites\", \"Filtros\", \"Bujias\"]\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "description": "Partial update — requiere que el planograma esté en estado borrador o activo."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Nombre actualizado', () => {",
+                      "  pm.expect(pm.response.json().nombre).to.include('actualizado');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - body vacio (sin campos)",
+              "request": {
+                "method": "PATCH",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaId}}",
+                  "host": ["{{HOST}}"],
+                  "path": ["api", "v1", "planogramas", "{{planogramaId}}"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "description": "El schema exige al menos un campo (nombre, departamento o subcategorias)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - planograma no encontrado",
+              "request": {
+                "method": "PATCH",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdInexistente}}",
+                  "host": ["{{HOST}}"],
+                  "path": ["api", "v1", "planogramas", "{{planogramaIdInexistente}}"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"No existe\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "description": "Id numéricamente válido pero inexistente en la BD."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Code NOT_FOUND', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "409 - nuevo nombre ya existe en el departamento",
+              "request": {
+                "method": "PATCH",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaId}}",
+                  "host": ["{{HOST}}"],
+                  "path": ["api", "v1", "planogramas", "{{planogramaId}}"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"{{nombreExistente}}\",\n  \"departamento\": \"{{departamentoExistente}}\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "description": "El nombre/departamento resultante colisiona con otro planograma existente."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 409', () => pm.response.to.have.status(409));",
+                      "pm.test('Code CONFLICT', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('CONFLICT');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - planograma en estado no editable (archivado)",
+              "request": {
+                "method": "PATCH",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdArchivado}}",
+                  "host": ["{{HOST}}"],
+                  "path": ["api", "v1", "planogramas", "{{planogramaIdArchivado}}"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Intento de editar archivado\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "description": "Solo se puede editar en estado borrador o activo; un planograma archivado responde 422."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.test('Code UNPROCESSABLE', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Archivar planograma (POST /planogramas/:id/archivar)",
+          "item": [
+            {
+              "name": "200 - Archivar planograma",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaId}}/archivar",
+                  "host": ["{{HOST}}"],
+                  "path": ["api", "v1", "planogramas", "{{planogramaId}}", "archivar"]
+                },
+                "description": "Requiere un planograma que no esté ya archivado ni tenga versiones publicadas asignadas a tiendas."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Queda en estado archivado', () => {",
+                      "  pm.expect(pm.response.json().estado).to.eql('archivado');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - planograma no encontrado",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdInexistente}}/archivar",
+                  "host": ["{{HOST}}"],
+                  "path": ["api", "v1", "planogramas", "{{planogramaIdInexistente}}", "archivar"]
+                },
+                "description": "Id numéricamente válido pero inexistente en la BD."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Code NOT_FOUND', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "409 - ya esta archivado",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdArchivado}}/archivar",
+                  "host": ["{{HOST}}"],
+                  "path": ["api", "v1", "planogramas", "{{planogramaIdArchivado}}", "archivar"]
+                },
+                "description": "El planograma referenciado ya se encuentra en estado archivado."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 409', () => pm.response.to.have.status(409));",
+                      "pm.test('Code CONFLICT', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('CONFLICT');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - tiene versiones publicadas asignadas a tiendas",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdConVersionesPublicadas}}/archivar",
+                  "host": ["{{HOST}}"],
+                  "path": ["api", "v1", "planogramas", "{{planogramaIdConVersionesPublicadas}}", "archivar"]
+                },
+                "description": "El planograma referenciado tiene versiones publicadas asignadas a tiendas y no puede archivarse."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.test('Code UNPROCESSABLE', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

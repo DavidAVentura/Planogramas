@@ -1,0 +1,26 @@
+$kind: http-request
+description: Crea un planograma nuevo en estado borrador.
+url: "{{HOST}}/api/v1/planogramas"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombre": "Autos - Rack Frontal A",
+      "departamento": "Autos",
+      "subcategorias": ["Aceites", "Filtros"]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 201', () => pm.response.to.have.status(201));
+      pm.test('Retorna planograma con estado borrador', () => {
+        const body = pm.response.json();
+        pm.expect(body).to.have.property('id');
+        pm.expect(body.estado).to.eql('borrador');
+        pm.expect(body.subcategorias).to.be.an('array').with.lengthOf(2);
+      });
+    language: text/javascript
+order: 1000

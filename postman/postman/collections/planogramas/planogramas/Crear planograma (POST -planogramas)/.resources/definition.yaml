@@ -1,0 +1,3 @@
+$kind: collection
+name: Crear planograma (POST /planogramas)
+order: 2000

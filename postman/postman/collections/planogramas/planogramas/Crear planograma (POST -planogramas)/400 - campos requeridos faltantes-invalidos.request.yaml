@@ -1,0 +1,25 @@
+$kind: http-request
+name: 400 - campos requeridos faltantes/invalidos
+description: nombre vacío, departamento ausente y subcategorias vacío — dispara los 3 errores de Joi a la vez.
+url: "{{HOST}}/api/v1/planogramas"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombre": "",
+      "subcategorias": []
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 400', () => pm.response.to.have.status(400));
+      pm.test('Code VALIDATION_ERROR con detalles', () => {
+        const body = pm.response.json();
+        pm.expect(body.error.code).to.eql('VALIDATION_ERROR');
+        pm.expect(body.error.details).to.be.an('array').that.is.not.empty;
+      });
+    language: text/javascript
+order: 2000

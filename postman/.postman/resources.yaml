@@ -1,0 +1,13 @@
+# Use this workspace to collaborate
+workspace:
+  id: 363fa043-567b-411b-bfb4-a1e30797b8df
+
+localResources:
+  collections:
+    - ../planogramas.collection.json
+
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+
+cloudResources:
+  collections:
+    ../postman/collections/planogramas: 1bee16b8-0e91-48fc-84f4-ca0e40e1f436

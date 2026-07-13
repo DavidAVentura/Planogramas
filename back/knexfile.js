@@ -1,25 +1,25 @@
 /**
  * knexfile.js — configuración del CLI de Knex para migraciones.
  * Uso:
- *   npx knex migrate:latest    → aplica migraciones pendientes
- *   npx knex migrate:rollback  → revierte la última migración
- *   npx knex migrate:status    → muestra el estado de cada migración
+ *   npm run migrate           → aplica migraciones pendientes
+ *   npm run migrate:rollback  → revierte la última migración
+ *   npm run migrate:status    → muestra el estado de cada migración
  */
 
-require('dotenv').config();
+const env = require('./src/config/env');
 
 /** @type {import('knex').Knex.Config} */
 module.exports = {
   client: 'mssql',
   connection: {
-    host:     process.env.DB_HOST,
-    port:     Number(process.env.DB_PORT) || 1433,
-    database: process.env.DB_NAME,
-    user:     process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
+    host:     env.db.host,
+    port:     env.db.port,
+    database: env.db.name,
+    user:     env.db.user,
+    password: env.db.password,
     options: {
-      encrypt:                process.env.DB_ENCRYPT                === 'true',
-      trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true',
+      encrypt:                env.db.encrypt,
+      trustServerCertificate: env.db.trustServerCertificate,
     },
   },
   migrations: {

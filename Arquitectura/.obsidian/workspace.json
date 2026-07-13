@@ -178,6 +178,8 @@
   },
   "active": "7a5912fe6ac89b40",
   "lastOpenFiles": [
+    "ESTRUCTURA_BACKEND.md",
+    "ESTRUCTURA_BACKEND.md.tmp.31480.0e6d0c1b17de",
     "SEQ_CU-05_sustitucion_skus.md.tmp.20272.38bc2726de3f",
     "SEQ_CU-04_posiciones_productos.md.tmp.20272.beb5215dc5ac",
     "SEQ_CU-01_gestion_planogramas.md.tmp.20272.6d163dbc7679",
@@ -192,8 +194,6 @@
     "Contratos/04_niveles/GET_niveles_detalle.md",
     "Contratos/03_gondolas/GET_gondolas_detalle.md",
     "Contratos/05_posiciones/PATCH_posiciones_mover.md",
-    "Contratos/05_posiciones/sedMJeQMM",
-    "Contratos/05_posiciones/sedO0EIcK",
     "Contratos/README.md",
     "Contratos/12_sesiones_captura/NOTA_FUERA_DE_MVP.md",
     "Contratos/02_versiones/GET_versiones_estructura.md",

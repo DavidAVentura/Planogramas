@@ -14,7 +14,7 @@ router.get('/health', (req, res) => {
 });
 
 // ─── Módulos de negocio (se irán montando aquí) ───────────────────────────────
-// router.use('/planogramas',    require('./planogramas.routes'));
+router.use('/planogramas',    require('./planogramas.routes'));
 // router.use('/versiones',      require('./versiones.routes'));
 // router.use('/gondolas',       require('./gondolas.routes'));
 // router.use('/niveles',        require('./niveles.routes'));
