@@ -43,7 +43,10 @@ La idea surgio como "foto a planograma con IA", pero se ha ido aterrizando a un 
   - Editor.
   - Performance.
 - Performance ya muestra data demo de ventas/ecommerce/inventario.
-- Hay cambios en desarrollo para captura guiada por rack y agente simulado contra catalogo.
+- Captura guiada por rack y agente simulado ya commiteados y desplegados.
+- Agente real de vision implementado: workflow n8n (`n8n/planograma-vision-workflow.json`) + integracion frontend via `VITE_AGENT_WEBHOOK_URL`; falta importarlo en n8n y configurar la variable.
+- Revision etiqueta honestamente: "Propuesta simulada" cuando no hay agente, "Realogram detectado" solo con respuesta real del agente.
+- Probado en tienda (julio 2026): validacion de fotos funciono en condiciones reales; hallazgos en PENDIENTES_PROYECTO.md.
 
 ## Archivos Importantes
 
