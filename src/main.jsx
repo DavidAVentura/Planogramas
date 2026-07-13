@@ -33,6 +33,8 @@ import {
 import { categories, dataStats, fixtureTypes, products, starterPlanogram } from "./data/realData";
 import "./styles.css";
 
+const AGENT_WEBHOOK_URL = import.meta.env.VITE_AGENT_WEBHOOK_URL || "";
+
 const stores = ["Cemaco Pradera", "Cemaco Zona 10", "Cemaco Peri-Roosevelt", "Cemaco Cayala", "Piloto Automotriz"];
 const screenMeta = {
   capture: {
@@ -251,7 +253,7 @@ function makeDetectionRows(selectedFixture, selectedCategory, capturePlan = getF
       sku,
       facings: itemIndex % 2 === 0 ? 2 : 1,
       confidence: Math.max(48, 88 + photoBoost - rowIndex * 5 - itemIndex * 4),
-      source: capturePhotos.length ? "Agente catalogo + VTEX" : "Demo catalogo Autos.xlsx",
+      source: capturePhotos.length ? "Simulado contra catalogo" : "Demo catalogo Autos.xlsx",
       moduleId: capturePlan.slots[itemIndex % capturePlan.slots.length]?.id || "front",
       alternatives: getAgentCandidates(findProduct(sku), selectedCategory),
     })),
@@ -274,85 +276,160 @@ function makeDetectionRows(selectedFixture, selectedCategory, capturePlan = getF
   return rows;
 }
 
+function measureCapturedImage(image) {
+  const canvas = document.createElement("canvas");
+  const sampleWidth = 160;
+  const sampleHeight = Math.max(1, Math.round((image.height / image.width) * sampleWidth));
+  canvas.width = sampleWidth;
+  canvas.height = sampleHeight;
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  context.drawImage(image, 0, 0, sampleWidth, sampleHeight);
+  const { data } = context.getImageData(0, 0, sampleWidth, sampleHeight);
+  let totalBrightness = 0;
+  let highContrastPixels = 0;
+  let horizontalEdges = 0;
+  let verticalEdges = 0;
+  const luminance = new Array(sampleWidth * sampleHeight);
+  for (let index = 0; index < data.length; index += 4) {
+    const brightness = (data[index] + data[index + 1] + data[index + 2]) / 3;
+    luminance[index / 4] = brightness;
+    totalBrightness += brightness;
+    if (brightness > 35 && brightness < 225) highContrastPixels += 1;
+  }
+  // iOS Safari puede dibujar fotos grandes como canvas en blanco sin lanzar error;
+  // un cero absoluto en todo es fallo de lectura, no una medicion.
+  if (totalBrightness === 0 && highContrastPixels === 0) return null;
+  for (let y = 1; y < sampleHeight; y += 1) {
+    for (let x = 1; x < sampleWidth; x += 1) {
+      const current = luminance[y * sampleWidth + x];
+      const left = luminance[y * sampleWidth + x - 1];
+      const top = luminance[(y - 1) * sampleWidth + x];
+      if (Math.abs(current - top) > 24) horizontalEdges += 1;
+      if (Math.abs(current - left) > 24) verticalEdges += 1;
+    }
+  }
+  const pixelCount = data.length / 4;
+  const brightness = Math.round(totalBrightness / pixelCount);
+  const usableResolution = Math.max(image.width, image.height) >= 900;
+  const usableLight = brightness >= 45 && brightness <= 215;
+  const usableContrast = highContrastPixels / pixelCount > 0.45;
+  const horizontalScore = horizontalEdges / Math.max((sampleHeight - 1) * (sampleWidth - 1), 1);
+  const verticalScore = verticalEdges / Math.max((sampleHeight - 1) * (sampleWidth - 1), 1);
+  const structureScore = Math.round((horizontalScore + verticalScore) * 100);
+  const structureBalance = horizontalScore / Math.max(verticalScore, 0.001);
+  const shelfStructure =
+    horizontalScore > 0.035 &&
+    verticalScore > 0.035 &&
+    structureScore >= 10 &&
+    structureBalance > 0.35 &&
+    structureBalance < 2.9;
+  const planogramReady = usableResolution && usableLight && usableContrast && shelfStructure;
+  const ok = planogramReady;
+  return {
+    status: ok ? "ok" : "warning",
+    title: ok ? "Foto apta para planograma" : "Foto no apta para planograma",
+    message: ok
+      ? "La imagen parece mostrar estructura de mueble, niveles y contraste suficientes para una propuesta."
+      : "La foto debe mostrar el rack o gondola completo por modulo; una foto de producto individual no sirve para detectar surtido.",
+    planogramReady,
+    width: image.width,
+    height: image.height,
+    brightness,
+    structureScore,
+    checks: [
+      { label: "Resolucion", ok: usableResolution, value: `${image.width}x${image.height}` },
+      { label: "Luminosidad", ok: usableLight, value: `${brightness}/255` },
+      { label: "Contraste", ok: usableContrast, value: usableContrast ? "usable" : "bajo" },
+      { label: "Estructura de mueble", ok: shelfStructure, value: `${structureScore}/100` },
+    ],
+  };
+}
+
+function failedPhotoAnalysis(message) {
+  return {
+    status: "warning",
+    title: "No se pudo medir la foto",
+    message,
+    planogramReady: false,
+    analysisFailed: true,
+    checks: [],
+  };
+}
+
 function analyzeCapturedPhoto(dataUrl) {
   return new Promise((resolve) => {
     const image = new Image();
     image.onload = () => {
-      const canvas = document.createElement("canvas");
-      const sampleWidth = 160;
-      const sampleHeight = Math.max(1, Math.round((image.height / image.width) * sampleWidth));
-      canvas.width = sampleWidth;
-      canvas.height = sampleHeight;
-      const context = canvas.getContext("2d", { willReadFrequently: true });
-      context.drawImage(image, 0, 0, sampleWidth, sampleHeight);
-      const { data } = context.getImageData(0, 0, sampleWidth, sampleHeight);
-      let totalBrightness = 0;
-      let highContrastPixels = 0;
-      let horizontalEdges = 0;
-      let verticalEdges = 0;
-      const luminance = new Array(sampleWidth * sampleHeight);
-      for (let index = 0; index < data.length; index += 4) {
-        const brightness = (data[index] + data[index + 1] + data[index + 2]) / 3;
-        luminance[index / 4] = brightness;
-        totalBrightness += brightness;
-        if (brightness > 35 && brightness < 225) highContrastPixels += 1;
+      const quality = measureCapturedImage(image);
+      if (quality) {
+        resolve(quality);
+        return;
       }
-      for (let y = 1; y < sampleHeight; y += 1) {
-        for (let x = 1; x < sampleWidth; x += 1) {
-          const current = luminance[y * sampleWidth + x];
-          const left = luminance[y * sampleWidth + x - 1];
-          const top = luminance[(y - 1) * sampleWidth + x];
-          if (Math.abs(current - top) > 24) horizontalEdges += 1;
-          if (Math.abs(current - left) > 24) verticalEdges += 1;
-        }
-      }
-      const pixelCount = data.length / 4;
-      const brightness = Math.round(totalBrightness / pixelCount);
-      const usableResolution = Math.max(image.width, image.height) >= 900;
-      const usableLight = brightness >= 45 && brightness <= 215;
-      const usableContrast = highContrastPixels / pixelCount > 0.45;
-      const horizontalScore = horizontalEdges / Math.max((sampleHeight - 1) * (sampleWidth - 1), 1);
-      const verticalScore = verticalEdges / Math.max((sampleHeight - 1) * (sampleWidth - 1), 1);
-      const structureScore = Math.round((horizontalScore + verticalScore) * 100);
-      const structureBalance = horizontalScore / Math.max(verticalScore, 0.001);
-      const shelfStructure =
-        horizontalScore > 0.035 &&
-        verticalScore > 0.035 &&
-        structureScore >= 10 &&
-        structureBalance > 0.35 &&
-        structureBalance < 2.9;
-      const planogramReady = usableResolution && usableLight && usableContrast && shelfStructure;
-      const ok = planogramReady;
-      resolve({
-        status: ok ? "ok" : "warning",
-        title: ok ? "Foto apta para planograma" : "Foto no apta para planograma",
-        message: ok
-          ? "La imagen parece mostrar estructura de mueble, niveles y contraste suficientes para una propuesta."
-          : "La foto debe mostrar el rack o gondola completo por modulo; una foto de producto individual no sirve para detectar surtido.",
-        planogramReady,
-        width: image.width,
-        height: image.height,
-        brightness,
-        structureScore,
-        checks: [
-          { label: "Resolucion", ok: usableResolution, value: `${image.width}x${image.height}` },
-          { label: "Luminosidad", ok: usableLight, value: `${brightness}/255` },
-          { label: "Contraste", ok: usableContrast, value: usableContrast ? "usable" : "bajo" },
-          { label: "Estructura de mueble", ok: shelfStructure, value: `${structureScore}/100` },
-        ],
-      });
+      window.setTimeout(() => {
+        const retried = measureCapturedImage(image);
+        resolve(
+          retried ||
+            failedPhotoAnalysis(
+              "El navegador no dejo leer los pixeles de esta imagen. Toma la foto de nuevo; si sigue pasando, cierra otras pestanas y reintenta.",
+            ),
+        );
+      }, 300);
     };
     image.onerror = () => {
-      resolve({
-        status: "warning",
-        title: "No se pudo validar la foto",
-        message: "La imagen se cargo, pero no pudimos medir calidad en el navegador.",
-        planogramReady: false,
-        checks: [],
-      });
+      resolve(failedPhotoAnalysis("La imagen se cargo, pero no pudimos medir calidad en el navegador."));
     };
     image.src = dataUrl;
   });
+}
+
+function downscaleDataUrl(dataUrl, maxEdge = 1568) {
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => {
+      const scale = Math.min(1, maxEdge / Math.max(image.width, image.height, 1));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(image.width * scale));
+      canvas.height = Math.max(1, Math.round(image.height * scale));
+      canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL("image/jpeg", 0.85));
+    };
+    image.onerror = () => resolve(dataUrl);
+    image.src = dataUrl;
+  });
+}
+
+function mapAgentRows(payload) {
+  if (!Array.isArray(payload?.rows)) return [];
+  return payload.rows
+    .map((row, rowIndex) => ({
+      id: crypto.randomUUID(),
+      name: row.name || `Nivel ${rowIndex + 1}`,
+      confidence: Math.min(Math.max(Math.round(Number(row.confidence) || 0), 0), 100),
+      items: (Array.isArray(row.items) ? row.items : []).map((item) => {
+        const sku = item.sku && productsBySku.has(item.sku) ? item.sku : null;
+        return {
+          id: crypto.randomUUID(),
+          sku,
+          facings: Math.min(Math.max(Math.round(Number(item.facings) || 1), 1), 8),
+          confidence: Math.min(Math.max(Math.round(Number(item.confidence) || 0), 0), 100),
+          source: sku
+            ? "Agente de vision"
+            : item.detectedName
+              ? `Sin match: ${item.detectedName}`
+              : "Requiere revision manual",
+          moduleId: item.moduleId || "front",
+          alternatives: (Array.isArray(item.alternatives) ? item.alternatives : [])
+            .filter((candidate) => productsBySku.has(candidate.sku))
+            .slice(0, 3)
+            .map((candidate) => ({
+              sku: candidate.sku,
+              name: findProduct(candidate.sku)?.name || candidate.name || candidate.sku,
+              confidence: Math.min(Math.max(Math.round(Number(candidate.confidence) || 0), 0), 100),
+            })),
+        };
+      }),
+    }))
+    .filter((row) => row.items.length > 0);
 }
 
 function ProductPack({ product, compact = false }) {
@@ -400,6 +477,7 @@ function App() {
   const [photoQuality, setPhotoQuality] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
+  const [agentMode, setAgentMode] = useState(false);
   const [rows, setRows] = useState(makeDetectionRows(fixtureOptions[0], categories[0]));
   const [selectedCell, setSelectedCell] = useState(null);
   const [query, setQuery] = useState("");
@@ -469,6 +547,7 @@ function App() {
     setRows(makeDetectionRows(nextFixture, selectedCategory));
     setSelectedCell(null);
     setDemoMode(false);
+    setAgentMode(false);
     setPhoto(null);
     setCapturePhotos([]);
     setActiveCaptureIndex(0);
@@ -481,6 +560,7 @@ function App() {
     setRows(makeDetectionRows(fixture, nextCategory));
     setSelectedCell(null);
     setDemoMode(false);
+    setAgentMode(false);
     setPhoto(null);
     setCapturePhotos([]);
     setActiveCaptureIndex(0);
@@ -536,6 +616,7 @@ function App() {
       setActiveCaptureIndex(0);
       setPhotoQuality(null);
       setDemoMode(false);
+      setAgentMode(false);
       setProcessing(false);
       goToView("capture");
       notify("Listo para tomar otra foto");
@@ -570,7 +651,7 @@ function App() {
     setPhotoQuality(capturePhotos[index]?.quality || null);
   }
 
-  function runPipeline({ forceDemo = false, quality = photoQuality, hasPhoto = Boolean(photo) } = {}) {
+  async function runPipeline({ forceDemo = false, quality = photoQuality, hasPhoto = Boolean(photo) } = {}) {
     if (!forceDemo && !captureReady) {
       goToView("capture");
       notify(`Faltan ${capturePlan.requiredPhotos - capturedReadyCount} foto(s) del mueble antes de procesar`, "warning");
@@ -582,12 +663,68 @@ function App() {
       return;
     }
     setDemoMode(forceDemo || !hasPhoto);
+    setAgentMode(false);
     setProcessing(true);
     goToView("review");
+    if (!forceDemo && AGENT_WEBHOOK_URL && captureReady) {
+      try {
+        const readyCaptures = capturePhotos.filter((capture) => capture?.quality?.planogramReady);
+        const photosPayload = await Promise.all(
+          readyCaptures.map(async (capture) => ({
+            id: capture.id,
+            label: capture.label,
+            dataUrl: await downscaleDataUrl(capture.dataUrl),
+          })),
+        );
+        const catalogPayload = products
+          .filter((product) => productMatchesCategory(product, selectedCategory))
+          .slice(0, 400)
+          .map((product) => ({
+            sku: product.sku,
+            name: product.name,
+            brand: product.brand,
+            category: product.level3 || product.erpSubcategory || product.category,
+            price: product.price,
+          }));
+        const response = await fetch(AGENT_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            store: selectedStore,
+            category: selectedCategory,
+            fixture: {
+              name: fixture.name,
+              width: fixture.width,
+              depth: fixture.depth,
+              levels: fixture.levels,
+              category: fixture.category,
+            },
+            photos: photosPayload,
+            catalog: catalogPayload,
+          }),
+        });
+        if (!response.ok) throw new Error(`El agente respondio ${response.status}`);
+        const payload = await response.json();
+        const agentRows = mapAgentRows(payload);
+        if (!agentRows.length) throw new Error("El agente no devolvio detecciones");
+        setRows(agentRows);
+        setAgentMode(true);
+        setProcessing(false);
+        notify("Agente de vision genero la propuesta desde tus fotos");
+        return;
+      } catch (error) {
+        console.error("Fallo el agente de vision", error);
+        notify("Agente de vision no disponible; mostrando propuesta simulada", "warning");
+      }
+    }
     window.setTimeout(() => {
       setRows(makeDetectionRows(fixture, selectedCategory, capturePlan, capturePhotos));
       setProcessing(false);
-      notify(forceDemo ? "Modo demo generado sin reconocimiento real" : "Agente genero propuesta contra catalogo");
+      notify(
+        forceDemo
+          ? "Modo demo generado sin reconocimiento real"
+          : "Propuesta simulada contra catalogo; el agente de vision aun no esta conectado",
+      );
     }, 950);
   }
 
@@ -861,6 +998,7 @@ function App() {
                 photoQuality={photoQuality}
                 processing={processing}
                 demoMode={demoMode}
+                agentMode={agentMode}
                 avgConfidence={avgConfidence}
                 matchedItems={matchedItems.length}
                 totalItems={allItems.length}
@@ -1022,7 +1160,10 @@ function CaptureView({
             <CheckCircle2 size={16} /> {capturedReadyCount}/{capturePlan.requiredPhotos} foto(s) requeridas
           </span>
           <span>
-            <CheckCircle2 size={16} /> Agente compara contra imagen VTEX, texto visible y categoria
+            <CheckCircle2 size={16} />{" "}
+            {AGENT_WEBHOOK_URL
+              ? "Agente de vision conectado: compara empaque y texto visible contra catalogo"
+              : "Agente de vision en construccion: la propuesta actual es simulada"}
           </span>
         </div>
       </div>
@@ -1037,6 +1178,7 @@ function ReviewView({
   photoQuality,
   processing,
   demoMode,
+  agentMode,
   avgConfidence,
   matchedItems,
   totalItems,
@@ -1055,6 +1197,7 @@ function ReviewView({
           capturePhotos={capturePhotos}
           blockedByPhoto={blockedByPhoto}
           demoMode={demoMode}
+          agentMode={agentMode}
           openProduct={openProduct}
           onRetake={onRetake}
           onDemo={onDemo}
@@ -1075,11 +1218,12 @@ function ReviewView({
           </div>
         )}
         {!demoMode && !blockedByPhoto && (
-          <div className="agent-disclaimer">
+          <div className={agentMode ? "agent-disclaimer" : "demo-disclaimer"}>
             <Wand2 size={18} />
             <span>
-              Agente de reconocimiento: compara imagen del empaque, texto visible y categoria contra catalogo Autos/VTEX.
-              La etiqueta de precio solo apoya cuando se alcanza a leer.
+              {agentMode
+                ? "Agente de vision: analizo tus fotos contra el catalogo filtrado y propuso sku, facings y candidatos alternos. Revisa y corrige antes de guardar."
+                : "Propuesta simulada: estos productos salen del catalogo filtrado, NO fueron reconocidos en tu foto. El agente real de vision esta en construccion."}
             </span>
           </div>
         )}
@@ -1160,7 +1304,7 @@ function PhotoQualityCard({ quality }) {
   );
 }
 
-function ReviewShelf({ rows, photo, capturePhotos = [], blockedByPhoto, demoMode, openProduct, onRetake, onDemo }) {
+function ReviewShelf({ rows, photo, capturePhotos = [], blockedByPhoto, demoMode, agentMode, openProduct, onRetake, onDemo }) {
   const visibleCaptures = capturePhotos.filter(Boolean);
   return (
     <div className="review-shelf-stage">
@@ -1221,11 +1365,13 @@ function ReviewShelf({ rows, photo, capturePhotos = [], blockedByPhoto, demoMode
       ) : (
         <div className="review-realogram">
           <div className="review-realogram-header">
-            <strong>{demoMode ? "Realogram demo" : "Realogram detectado"}</strong>
+            <strong>{demoMode ? "Realogram demo" : agentMode ? "Realogram detectado" : "Propuesta simulada"}</strong>
             <span>
               {demoMode
                 ? "Simulado con catalogo para ensenar el flujo"
-                : "Productos ubicados por nivel antes de correccion"}
+                : agentMode
+                  ? "Detectado por el agente de vision; revisa y corrige por nivel"
+                  : "Generada del catalogo, sin reconocimiento real de la foto"}
             </span>
           </div>
           <div className="review-shelf">
