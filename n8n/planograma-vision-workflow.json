@@ -1,0 +1,108 @@
+{
+  "name": "Planograma Vision Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "planograma-vision",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "a1000000-0000-4000-8000-000000000001",
+      "name": "Webhook Planograma",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "planograma-vision"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Construye el request para el API de Anthropic (Claude vision + structured outputs)\nconst incoming = $input.first().json;\nconst body = incoming.body || incoming;\nconst photos = (body.photos || []).slice(0, 4);\nconst catalog = (body.catalog || []).slice(0, 400);\nconst fixture = body.fixture || {};\n\nif (!photos.length) {\n  throw new Error('El payload no trae fotos');\n}\n\nconst catalogText = catalog\n  .map((p) => `${p.sku} | ${p.name} | ${p.brand} | ${p.category} | Q${p.price}`)\n  .join('\\n');\n\nconst content = [];\nfor (const photo of photos) {\n  const match = String(photo.dataUrl || '').match(/^data:(image\\/[a-z.+-]+);base64,(.+)$/s);\n  if (!match) continue;\n  content.push({ type: 'text', text: `Foto del modulo \"${photo.id}\": ${photo.label}` });\n  content.push({ type: 'image', source: { type: 'base64', media_type: match[1], data: match[2] } });\n}\n\nconst moduleIds = photos.map((p) => p.id).join(', ');\n\ncontent.push({\n  type: 'text',\n  text: [\n    'Eres un agente de reconocimiento de planogramas para Cemaco (retail de hogar en Guatemala).',\n    `Contexto: tienda ${body.store}, categoria ${body.category}, mueble \"${fixture.name}\" de ${fixture.width}cm de ancho, ${fixture.levels} niveles y ${fixture.depth}cm de profundidad.`,\n    '',\n    'Analiza las fotos del mueble y construye el realogram: por cada nivel visible (de arriba hacia abajo), lista los productos de izquierda a derecha con sus facings (repeticiones contiguas del mismo producto).',\n    'Intenta hacer match de cada producto contra el catalogo usando marca, texto visible del empaque, forma y color. La etiqueta de precio solo apoya cuando se alcanza a leer.',\n    '',\n    'Reglas:',\n    '- Usa el sku EXACTO del catalogo (formato \"sku ########\") solo cuando el match sea razonable; si no hay match, deja sku como cadena vacia y describe el producto en detectedName.',\n    '- confidence de 0 a 100, honesto: 80+ match claro, 50-79 probable, menos de 50 dudoso.',\n    '- NO inventes productos que no se ven en la foto. Si un nivel esta vacio o no se distingue, no lo incluyas.',\n    `- moduleId de cada item: el id de la foto donde aparece (valores validos: ${moduleIds}).`,\n    '- alternatives: hasta 3 candidatos alternos del catalogo por item, con su confidence.',\n    '- reason: una frase corta con el motivo del match (ej. \"marca Truper legible en empaque\").',\n    '- fixtureSummary: una frase describiendo el mueble y su estado general (denso, semivacio, etc).',\n    '',\n    'Catalogo disponible (sku | nombre | marca | categoria | precio):',\n    catalogText,\n  ].join('\\n'),\n});\n\nconst itemSchema = {\n  type: 'object',\n  properties: {\n    sku: { type: 'string', description: 'sku exacto del catalogo, o cadena vacia si no hay match' },\n    detectedName: { type: 'string' },\n    facings: { type: 'integer' },\n    confidence: { type: 'integer' },\n    moduleId: { type: 'string' },\n    reason: { type: 'string' },\n    alternatives: {\n      type: 'array',\n      items: {\n        type: 'object',\n        properties: {\n          sku: { type: 'string' },\n          name: { type: 'string' },\n          confidence: { type: 'integer' }\n        },\n        required: ['sku', 'name', 'confidence'],\n        additionalProperties: false\n      }\n    }\n  },\n  required: ['sku', 'detectedName', 'facings', 'confidence', 'moduleId', 'reason', 'alternatives'],\n  additionalProperties: false\n};\n\nconst schema = {\n  type: 'object',\n  properties: {\n    fixtureSummary: { type: 'string' },\n    rows: {\n      type: 'array',\n      items: {\n        type: 'object',\n        properties: {\n          name: { type: 'string' },\n          confidence: { type: 'integer' },\n          items: { type: 'array', items: itemSchema }\n        },\n        required: ['name', 'confidence', 'items'],\n        additionalProperties: false\n      }\n    }\n  },\n  required: ['fixtureSummary', 'rows'],\n  additionalProperties: false\n};\n\nreturn [{\n  json: {\n    anthropicBody: {\n      model: 'claude-opus-4-8',\n      max_tokens: 16000,\n      thinking: { type: 'adaptive' },\n      output_config: { format: { type: 'json_schema', schema } },\n      messages: [{ role: 'user', content }]\n    }\n  }\n}];"
+      },
+      "id": "a1000000-0000-4000-8000-000000000002",
+      "name": "Construir request Claude",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.anthropicBody) }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "a1000000-0000-4000-8000-000000000003",
+      "name": "Claude Vision API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 0],
+      "credentials": {
+        "httpHeaderAuth": {
+          "name": "Anthropic API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Convierte la respuesta de Claude al formato que espera la app\nconst response = $input.first().json;\n\nif (response.stop_reason === 'refusal') {\n  return [{ json: { rows: [], fixtureSummary: '', error: 'El modelo declino la solicitud' } }];\n}\n\nconst text = (response.content || [])\n  .filter((block) => block.type === 'text')\n  .map((block) => block.text)\n  .join('');\n\nlet parsed = { rows: [], fixtureSummary: '' };\ntry {\n  parsed = JSON.parse(text);\n} catch (error) {\n  return [{ json: { rows: [], fixtureSummary: '', error: 'Respuesta no parseable', raw: text.slice(0, 500) } }];\n}\n\nconst rows = (parsed.rows || []).map((row) => ({\n  name: row.name,\n  confidence: row.confidence,\n  items: (row.items || []).map((item) => ({\n    sku: item.sku && item.sku.trim() ? item.sku.trim() : null,\n    detectedName: item.detectedName || '',\n    facings: item.facings || 1,\n    confidence: item.confidence || 0,\n    moduleId: item.moduleId || 'front',\n    reason: item.reason || '',\n    alternatives: item.alternatives || []\n  }))\n}));\n\nreturn [{ json: { rows, fixtureSummary: parsed.fixtureSummary || '' } }];"
+      },
+      "id": "a1000000-0000-4000-8000-000000000004",
+      "name": "Formatear respuesta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              { "name": "Access-Control-Allow-Origin", "value": "*" }
+            ]
+          }
+        }
+      },
+      "id": "a1000000-0000-4000-8000-000000000005",
+      "name": "Responder a la app",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [880, 0]
+    }
+  ],
+  "connections": {
+    "Webhook Planograma": {
+      "main": [[{ "node": "Construir request Claude", "type": "main", "index": 0 }]]
+    },
+    "Construir request Claude": {
+      "main": [[{ "node": "Claude Vision API", "type": "main", "index": 0 }]]
+    },
+    "Claude Vision API": {
+      "main": [[{ "node": "Formatear respuesta", "type": "main", "index": 0 }]]
+    },
+    "Formatear respuesta": {
+      "main": [[{ "node": "Responder a la app", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
