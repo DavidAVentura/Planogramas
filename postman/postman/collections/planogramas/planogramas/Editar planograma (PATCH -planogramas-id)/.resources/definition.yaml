@@ -1,3 +1,3 @@
 $kind: collection
 name: Editar planograma (PATCH /planogramas/:id)
-order: 4000
+order: 5000

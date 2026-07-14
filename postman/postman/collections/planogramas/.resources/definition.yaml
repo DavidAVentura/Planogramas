@@ -7,8 +7,8 @@ description: |-
   Las variables de colección planogramaId / planogramaIdArchivado / planogramaIdConVersionesPublicadas / planogramaIdInexistente son ids de prueba: ajústalas a ids reales de tu base de datos según el escenario (uno en estado borrador/activo, uno ya archivado, uno con versiones publicadas asignadas a tiendas, y uno que no exista).
 variables:
   planogramaId: "1"
-  planogramaIdArchivado: "2"
-  planogramaIdConVersionesPublicadas: "3"
+  planogramaIdArchivado: "3"
+  planogramaIdConVersionesPublicadas: "5"
   planogramaIdInexistente: "999999"
   nombreExistente: Planograma Existente
   departamentoExistente: Autos

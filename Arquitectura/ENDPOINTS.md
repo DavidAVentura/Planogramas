@@ -189,3 +189,4 @@ Quedan listados como referencia para el diseño; no se desarrollarán en la iter
 - **Errores estándar**: `400` validación, `401` no autenticado, `403` sin permiso, `404` recurso no encontrado, `409` conflicto de estado, `422` entidad no procesable (ej. desborde sin confirmación).
 - **Paginación**: los endpoints de listado retornan `{ data: [], total, page, pageSize }`.
 - **Partial update**: todos los `PATCH` aceptan solo los campos enviados; los omitidos no se modifican.
+- **Pruebas**: cada módulo listado aquí debe tener su carpeta equivalente en la colección Postman — ver [[ESTANDAR_PRUEBAS_POSTMAN]].

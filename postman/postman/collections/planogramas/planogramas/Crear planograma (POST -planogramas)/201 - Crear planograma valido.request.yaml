@@ -1,5 +1,5 @@
 $kind: http-request
-description: Crea un planograma nuevo en estado borrador.
+description: Crea un planograma nuevo en estado borrador. El nombre incluye {{$timestamp}} (variable dinámica de Postman) para que nunca choque con nombres de corridas anteriores y el 201 sea repetible.
 url: "{{HOST}}/api/v1/planogramas"
 method: POST
 headers:
@@ -8,7 +8,7 @@ body:
   type: json
   content: |-
     {
-      "nombre": "Autos - Rack Frontal A",
+      "nombre": "Autos - Rack Frontal A {{$timestamp}}",
       "departamento": "Autos",
       "subcategorias": ["Aceites", "Filtros"]
     }

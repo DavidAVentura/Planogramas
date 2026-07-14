@@ -128,3 +128,11 @@ Los modulos siguen la nomenclatura en espanol para mantener coherencia con el do
 
 Toda respuesta de error usa la forma `{ error: { code, message, details? } }`.
 Toda respuesta paginada usa `{ data: [], total, page, pageSize }`.
+
+### Pruebas Postman
+
+Cada módulo del backend debe tener su carpeta equivalente de pruebas manuales en
+`postman/planogramas-import.postman_collection.json` (único archivo editable a mano — el resto de
+`postman/` es un espejo auto-generado por Postman Cloud, no tocar). Reglas de estructura, cobertura
+mínima y repetibilidad de estas pruebas: ver
+[Arquitectura/ESTANDAR_PRUEBAS_POSTMAN.md](Arquitectura/ESTANDAR_PRUEBAS_POSTMAN.md).

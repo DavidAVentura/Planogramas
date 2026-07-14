@@ -2,6 +2,8 @@
 
 Directorio de contratos detallados por endpoint. Cada archivo describe: parámetros de entrada, reglas de negocio, comportamiento esperado, esquemas JSON de request/response, ejemplos y códigos de error.
 
+Cada contrato aquí define la cobertura mínima que debe tener su carpeta correspondiente en la colección Postman — ver [[ESTANDAR_PRUEBAS_POSTMAN]].
+
 Los contratos están organizados por recurso e incluyen anotaciones de arquitectura con guías de **Clean Code**, **Arquitectura Hexagonal** y **principios SOLID** para orientar la implementación.
 
 ---

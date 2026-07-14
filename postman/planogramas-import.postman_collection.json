@@ -6,9 +6,9 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "planogramaId", "value": "1", "type": "string", "description": "Id de un planograma existente en estado borrador o activo" },
-    { "key": "planogramaIdArchivado", "value": "2", "type": "string", "description": "Id de un planograma que ya está en estado archivado" },
-    { "key": "planogramaIdConVersionesPublicadas", "value": "3", "type": "string", "description": "Id de un planograma con versiones publicadas asignadas a tiendas (no archivable)" },
+    { "key": "planogramaId", "value": "1", "type": "string", "description": "Id de un planograma en estado borrador o activo. Se sobrescribe automaticamente al correr la colección/carpeta completa (ver request 'Setup - datos de prueba'); el valor '1' es solo un fallback si ejecutas un request suelto sin correr el setup antes." },
+    { "key": "planogramaIdArchivado", "value": "3", "type": "string", "description": "Id de un planograma que ya está en estado archivado" },
+    { "key": "planogramaIdConVersionesPublicadas", "value": "5", "type": "string", "description": "Id de un planograma con versiones publicadas asignadas a tiendas (no archivable). Sembrado a mano vía SQL en PlanogramaVersion/VersionTienda porque el módulo de versiones/tiendas todavía no tiene endpoints." },
     { "key": "planogramaIdInexistente", "value": "999999", "type": "string", "description": "Id que no existe en la base de datos" },
     { "key": "nombreExistente", "value": "Planograma Existente", "type": "string", "description": "Nombre + departamento que ya existen juntos en la BD, para forzar 409 por duplicado" },
     { "key": "departamentoExistente", "value": "Autos", "type": "string", "description": "Departamento asociado a nombreExistente" }
@@ -17,6 +17,42 @@
     {
       "name": "planogramas",
       "item": [
+        {
+          "name": "Setup - datos de prueba",
+          "item": [
+            {
+              "name": "201 - Crear planograma temporal para flujo feliz (setup)",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": ["{{HOST}}"],
+                  "path": ["api", "v1", "planogramas"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Autos - Rack Setup {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\"Aceites\"]\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "description": "Corre primero en cada ejecución de la colección: crea un planograma nuevo en borrador y guarda su id en la variable de colección planogramaId, para que 'Obtener/Editar/Archivar' (escenarios 200) siempre operen sobre un registro fresco y no sobre uno ya archivado/editado en una corrida anterior."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('planogramaId', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
         {
           "name": "Listar planogramas (GET /planogramas)",
           "item": [
@@ -167,10 +203,10 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"nombre\": \"Autos - Rack Frontal A\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\"Aceites\", \"Filtros\"]\n}",
+                  "raw": "{\n  \"nombre\": \"Autos - Rack Frontal A {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\"Aceites\", \"Filtros\"]\n}",
                   "options": { "raw": { "language": "json" } }
                 },
-                "description": "Crea un planograma nuevo en estado borrador."
+                "description": "Crea un planograma nuevo en estado borrador. El nombre incluye {{$timestamp}} (variable dinámica de Postman) para que nunca choque con nombres de corridas anteriores y el 201 sea repetible."
               },
               "event": [
                 {

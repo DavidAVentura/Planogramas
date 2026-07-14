@@ -1,7 +1,8 @@
 # Estructura de carpetas — Backend (`back/`)
 
 Estructura aprobada. Todo código nuevo debe respetar esta organización.
-Ver `CLAUDE.md` sección "Backend" para los principios de diseño que la sustentan.
+Ver `CLAUDE.md` sección "Backend" para los principios de diseño que la sustentan, y
+[[ESTANDAR_PRUEBAS_POSTMAN]] para el estándar de pruebas Postman que debe acompañar cada módulo.
 
 ## Árbol de carpetas
 

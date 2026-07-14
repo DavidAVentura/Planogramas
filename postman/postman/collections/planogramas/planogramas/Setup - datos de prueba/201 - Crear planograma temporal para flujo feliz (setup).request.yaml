@@ -1,0 +1,21 @@
+$kind: http-request
+description: "Corre primero en cada ejecución de la colección: crea un planograma nuevo en borrador y guarda su id en la variable de colección planogramaId, para que 'Obtener/Editar/Archivar' (escenarios 200) siempre operen sobre un registro fresco y no sobre uno ya archivado/editado en una corrida anterior."
+url: "{{HOST}}/api/v1/planogramas"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombre": "Autos - Rack Setup {{$timestamp}}",
+      "departamento": "Autos",
+      "subcategorias": ["Aceites"]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 201', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('planogramaId', pm.response.json().id);
+    language: text/javascript
+order: 1000

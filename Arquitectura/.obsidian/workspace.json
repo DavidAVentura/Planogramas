@@ -176,8 +176,11 @@
       "bases:Crear nueva base": false
     }
   },
-  "active": "7a5912fe6ac89b40",
+  "active": "e1b62c76909080d3",
   "lastOpenFiles": [
+    "ENDPOINTS.md.tmp.13820.1ab35ef28c0e",
+    "ESTRUCTURA_BACKEND.md.tmp.13820.6b0f567c15fa",
+    "ESTANDAR_PRUEBAS_POSTMAN.md.tmp.13820.d561c904b885",
     "ESTRUCTURA_BACKEND.md",
     "ESTRUCTURA_BACKEND.md.tmp.31480.0e6d0c1b17de",
     "SEQ_CU-05_sustitucion_skus.md.tmp.20272.38bc2726de3f",
@@ -187,9 +190,7 @@
     "SEQ_CU-04_posiciones_productos.md.tmp.13020.1b3cffc2f19e",
     "SEQ_CU-01_gestion_planogramas.md.tmp.13020.a58c30f16778",
     "SEQ_CU-04_posiciones_productos.mmd.tmp.35832.947b302ceddf",
-    "SEQ_CU-04_posiciones_productos.mmd.tmp.35832.e476a737746e",
     "Contratos/05_posiciones/DELETE_posiciones_eliminar.md",
-    "SEQ_CU-04_posiciones_productos.mmd.tmp.35832.a9efe601f94d",
     "Contratos/05_posiciones/GET_posiciones_detalle_analista.md",
     "Contratos/04_niveles/GET_niveles_detalle.md",
     "Contratos/03_gondolas/GET_gondolas_detalle.md",
@@ -213,7 +214,6 @@
     "Contratos/06_sustituciones/POST_sustituciones_ejecutar.md",
     "Contratos/06_sustituciones/GET_sustituciones_historial.md",
     "Contratos/05_posiciones/GET_posiciones_capacidad.md",
-    "Contratos/05_posiciones/DELETE_posiciones_accesorios_eliminar.md",
     "Sin título.canvas"
   ]
 }
