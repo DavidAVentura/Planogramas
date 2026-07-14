@@ -10,4 +10,4 @@ localResources:
 
 cloudResources:
   collections:
-    ../postman/collections/planogramas: db4a3ac8-0934-4575-8397-92038e6bbe25
+    ../postman/collections/planogramas: 1b8b75a5-7d5e-4c84-bd80-be4f1962027f

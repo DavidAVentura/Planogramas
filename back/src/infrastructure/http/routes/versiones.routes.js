@@ -4,13 +4,23 @@
  * El listado y la creación cuelgan de /planogramas/:id/versiones — ver planogramas.routes.js.
  */
 
-const { Router } = require('express');
-const controller = require('../../../application/versiones/versiones.controller');
+const { Router }         = require('express');
+const controller         = require('../../../application/versiones/versiones.controller');
+const gondolasController = require('../../../application/gondolas/gondolas.controller');
 
 const router = Router();
 
 // GET   /versiones/:id                — detalle completo (góndolas → niveles → posiciones)
 router.get('/:id',                  controller.obtener);
+
+// GET   /versiones/:id/gondolas       — lista las góndolas de la versión (módulo góndolas)
+router.get('/:id/gondolas',         gondolasController.listar);
+
+// POST  /versiones/:id/gondolas       — agrega una góndola a la versión (módulo góndolas)
+router.post('/:id/gondolas',        gondolasController.agregar);
+
+// PATCH /versiones/:id/gondolas/orden — reordena las góndolas de la versión (módulo góndolas)
+router.patch('/:id/gondolas/orden', gondolasController.reordenar);
 
 // PATCH /versiones/:id                — partial update de notas y/o código
 router.patch('/:id',                controller.editar);
