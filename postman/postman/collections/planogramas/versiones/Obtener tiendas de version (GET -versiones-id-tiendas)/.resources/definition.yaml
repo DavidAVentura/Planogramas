@@ -1,0 +1,3 @@
+$kind: collection
+name: Obtener tiendas de version (GET /versiones/:id/tiendas)
+order: 7000

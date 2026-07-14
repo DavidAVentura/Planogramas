@@ -1,0 +1,23 @@
+$kind: http-request
+description: Planograma dedicado a producir, via el ciclo real de negocio, una version publicada y una version archivada (publicar una segunda version del mismo tipo archiva automaticamente a la primera).
+url: "{{HOST}}/api/v1/planogramas"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombre": "Autos - Rack Publicar {{$timestamp}}",
+      "departamento": "Autos",
+      "subcategorias": [
+        "Aceites"
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 201', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('planogramaIdPublicar', pm.response.json().id);
+    language: text/javascript
+order: 6000

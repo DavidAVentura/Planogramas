@@ -1,0 +1,19 @@
+$kind: http-request
+description: Reutiliza planogramaIdArchivado (fixture del modulo planogramas).
+url: "{{HOST}}/api/v1/planogramas/{{planogramaIdArchivado}}/versiones"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "tipo": "GRANDE"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 422', () => pm.response.to.have.status(422));
+      pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');
+    language: text/javascript
+order: 9000

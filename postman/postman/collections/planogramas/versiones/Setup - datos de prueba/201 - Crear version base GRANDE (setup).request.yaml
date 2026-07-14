@@ -1,0 +1,22 @@
+$kind: http-request
+description: Version principal (queda en borrador) usada por detalle, metadatos, tiendas (GET/PUT), promover (casos 400/422) y guardar.
+url: "{{HOST}}/api/v1/planogramas/{{planogramaIdVersiones}}/versiones"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "tipo": "GRANDE",
+      "notas": "Version base para pruebas"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 201', () => pm.response.to.have.status(201));
+      const body = pm.response.json();
+      pm.collectionVariables.set('versionId', body.id);
+      pm.collectionVariables.set('versionCodigo', body.codigo);
+    language: text/javascript
+order: 2000

@@ -1,4 +1,5 @@
 $kind: collection
+name: planogramas
 description: |-
   Casos de éxito y de error para los 5 endpoints del módulo Planogramas (back/src/infrastructure/http/routes/planogramas.routes.js).
 
@@ -12,3 +13,16 @@ variables:
   planogramaIdInexistente: "999999"
   nombreExistente: Planograma Existente
   departamentoExistente: Autos
+  versionIdInexistente: "999999"
+  versionIdConErroresBloqueantes: "1"
+  planogramaIdVersiones: ""
+  versionId: ""
+  versionCodigo: ""
+  planogramaIdPromover: ""
+  versionIdPromover: ""
+  planogramaIdPublicar: ""
+  versionIdArchivada: ""
+  versionIdPublicada: ""
+  planogramaIdClonar: ""
+  versionIdBaseClonar: ""
+  versionIdSecundariaMismoPlanograma: ""

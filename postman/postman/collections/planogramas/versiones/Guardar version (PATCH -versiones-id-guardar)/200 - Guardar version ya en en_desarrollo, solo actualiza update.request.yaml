@@ -1,0 +1,11 @@
+$kind: http-request
+name: 200 - Guardar version ya en en_desarrollo, solo actualiza updatedAt
+url: "{{HOST}}/api/v1/versiones/{{versionId}}/guardar"
+method: PATCH
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200', () => pm.response.to.have.status(200));
+      pm.expect(pm.response.json().estado).to.eql('en_desarrollo');
+    language: text/javascript
+order: 2000

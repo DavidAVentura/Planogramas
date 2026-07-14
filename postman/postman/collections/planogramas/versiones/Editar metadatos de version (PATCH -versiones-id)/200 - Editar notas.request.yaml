@@ -1,0 +1,18 @@
+$kind: http-request
+url: "{{HOST}}/api/v1/versiones/{{versionId}}"
+method: PATCH
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "notas": "Ajustado para inauguracion Majadas"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200', () => pm.response.to.have.status(200));
+      pm.expect(pm.response.json().notas).to.eql('Ajustado para inauguracion Majadas');
+    language: text/javascript
+order: 1000

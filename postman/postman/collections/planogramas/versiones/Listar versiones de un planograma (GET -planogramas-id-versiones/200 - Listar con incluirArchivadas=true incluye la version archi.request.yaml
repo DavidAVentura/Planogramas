@@ -1,0 +1,16 @@
+$kind: http-request
+name: 200 - Listar con incluirArchivadas=true incluye la version archivada
+url: "{{HOST}}/api/v1/planogramas/{{planogramaIdPublicar}}/versiones?incluirArchivadas=true"
+method: GET
+queryParams:
+  incluirArchivadas: "true"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200', () => pm.response.to.have.status(200));
+      pm.test('Incluye la version archivada', () => {
+        const ids = pm.response.json().versiones.map((v) => v.id);
+        pm.expect(ids).to.include(Number(pm.collectionVariables.get('versionIdArchivada')));
+      });
+    language: text/javascript
+order: 3000

@@ -1,0 +1,24 @@
+$kind: http-request
+name: 422 - errores bloqueantes al publicar (min_final > max_final)
+description: Requiere que versionIdConErroresBloqueantes este en estado piloto y tenga una Posicion con min_final > max_final (ver descripcion de la variable de coleccion -- sembrado manual via SQL porque el modulo de posiciones aun no tiene endpoints).
+url: "{{HOST}}/api/v1/versiones/{{versionIdConErroresBloqueantes}}/promover"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "estadoDestino": "publicado"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 422', () => pm.response.to.have.status(422));
+      pm.test('Code UNPROCESSABLE con detalle de errores bloqueantes', () => {
+        const body = pm.response.json();
+        pm.expect(body.error.code).to.eql('UNPROCESSABLE');
+        pm.expect(body.error.details).to.be.an('array').that.is.not.empty;
+      });
+    language: text/javascript
+order: 7000

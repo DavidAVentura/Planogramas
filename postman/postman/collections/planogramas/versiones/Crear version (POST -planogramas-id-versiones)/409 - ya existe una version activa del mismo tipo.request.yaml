@@ -1,0 +1,22 @@
+$kind: http-request
+url: "{{HOST}}/api/v1/planogramas/{{planogramaIdVersiones}}/versiones"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "tipo": "GRANDE"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 409', () => pm.response.to.have.status(409));
+      pm.test('Code CONFLICT con detalle de la version activa', () => {
+        const body = pm.response.json();
+        pm.expect(body.error.code).to.eql('CONFLICT');
+        pm.expect(body.error.details.versionActiva).to.have.property('id');
+      });
+    language: text/javascript
+order: 7000

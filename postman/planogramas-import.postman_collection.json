@@ -6,12 +6,54 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "planogramaId", "value": "1", "type": "string", "description": "Id de un planograma en estado borrador o activo. Se sobrescribe automaticamente al correr la colección/carpeta completa (ver request 'Setup - datos de prueba'); el valor '1' es solo un fallback si ejecutas un request suelto sin correr el setup antes." },
-    { "key": "planogramaIdArchivado", "value": "3", "type": "string", "description": "Id de un planograma que ya está en estado archivado" },
-    { "key": "planogramaIdConVersionesPublicadas", "value": "5", "type": "string", "description": "Id de un planograma con versiones publicadas asignadas a tiendas (no archivable). Sembrado a mano vía SQL en PlanogramaVersion/VersionTienda porque el módulo de versiones/tiendas todavía no tiene endpoints." },
-    { "key": "planogramaIdInexistente", "value": "999999", "type": "string", "description": "Id que no existe en la base de datos" },
-    { "key": "nombreExistente", "value": "Planograma Existente", "type": "string", "description": "Nombre + departamento que ya existen juntos en la BD, para forzar 409 por duplicado" },
-    { "key": "departamentoExistente", "value": "Autos", "type": "string", "description": "Departamento asociado a nombreExistente" }
+    {
+      "key": "planogramaId",
+      "value": "1",
+      "type": "string",
+      "description": "Id de un planograma en estado borrador o activo. Se sobrescribe automaticamente al correr la colección/carpeta completa (ver request 'Setup - datos de prueba'); el valor '1' es solo un fallback si ejecutas un request suelto sin correr el setup antes."
+    },
+    {
+      "key": "planogramaIdArchivado",
+      "value": "3",
+      "type": "string",
+      "description": "Id de un planograma que ya está en estado archivado"
+    },
+    {
+      "key": "planogramaIdConVersionesPublicadas",
+      "value": "5",
+      "type": "string",
+      "description": "Id de un planograma con versiones publicadas asignadas a tiendas (no archivable). Sembrado a mano vía SQL en PlanogramaVersion/VersionTienda porque el módulo de versiones/tiendas todavía no tiene endpoints."
+    },
+    {
+      "key": "planogramaIdInexistente",
+      "value": "999999",
+      "type": "string",
+      "description": "Id que no existe en la base de datos"
+    },
+    {
+      "key": "nombreExistente",
+      "value": "Planograma Existente",
+      "type": "string",
+      "description": "Nombre + departamento que ya existen juntos en la BD, para forzar 409 por duplicado"
+    },
+    {
+      "key": "departamentoExistente",
+      "value": "Autos",
+      "type": "string",
+      "description": "Departamento asociado a nombreExistente"
+    },
+    {
+      "key": "versionIdInexistente",
+      "value": "999999",
+      "type": "string",
+      "description": "Id de version que no existe en la base de datos"
+    },
+    {
+      "key": "versionIdConErroresBloqueantes",
+      "value": "1",
+      "type": "string",
+      "description": "Id de una version en estado piloto que tiene al menos una Posicion con min_final > max_final. No se puede generar via Setup porque el modulo de posiciones (min_final/max_final) todavia no tiene endpoints. Script SQL minimo para recrearlo si la BD se limpia: crear una version en estado piloto, agregarle una Gondola/Nivel, e insertar una Posicion con min_final=5, max_final=4 -- ej. INSERT INTO Posicion (nivel_id, orden_horizontal, sku, ancho_asignado_cm, min_final, max_final) VALUES (<nivel_id>, 1, '<sku_existente>', 10, 5, 4)."
+    }
   ],
   "item": [
     {
@@ -24,16 +66,31 @@
               "name": "201 - Crear planograma temporal para flujo feliz (setup)",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "url": {
                   "raw": "{{HOST}}/api/v1/planogramas",
-                  "host": ["{{HOST}}"],
-                  "path": ["api", "v1", "planogramas"]
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
                 },
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"nombre\": \"Autos - Rack Setup {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\"Aceites\"]\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "description": "Corre primero en cada ejecución de la colección: crea un planograma nuevo en borrador y guarda su id en la variable de colección planogramaId, para que 'Obtener/Editar/Archivar' (escenarios 200) siempre operen sobre un registro fresco y no sobre uno ya archivado/editado en una corrida anterior."
               },
@@ -63,8 +120,14 @@
                 "header": [],
                 "url": {
                   "raw": "{{HOST}}/api/v1/planogramas",
-                  "host": ["{{HOST}}"],
-                  "path": ["api", "v1", "planogramas"]
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
                 },
                 "description": "Lista paginada con los valores default (page=1, pageSize=20)."
               },
@@ -95,14 +158,35 @@
                 "header": [],
                 "url": {
                   "raw": "{{HOST}}/api/v1/planogramas?departamento=Autos&estado=activo&search=rack&page=1&pageSize=10",
-                  "host": ["{{HOST}}"],
-                  "path": ["api", "v1", "planogramas"],
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ],
                   "query": [
-                    { "key": "departamento", "value": "Autos" },
-                    { "key": "estado", "value": "activo" },
-                    { "key": "search", "value": "rack" },
-                    { "key": "page", "value": "1" },
-                    { "key": "pageSize", "value": "10" }
+                    {
+                      "key": "departamento",
+                      "value": "Autos"
+                    },
+                    {
+                      "key": "estado",
+                      "value": "activo"
+                    },
+                    {
+                      "key": "search",
+                      "value": "rack"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "10"
+                    }
                   ]
                 },
                 "description": "Filtra por departamento, estado y texto de búsqueda con paginación explícita."
@@ -132,9 +216,20 @@
                 "header": [],
                 "url": {
                   "raw": "{{HOST}}/api/v1/planogramas?estado=invalido",
-                  "host": ["{{HOST}}"],
-                  "path": ["api", "v1", "planogramas"],
-                  "query": [{ "key": "estado", "value": "invalido" }]
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ],
+                  "query": [
+                    {
+                      "key": "estado",
+                      "value": "invalido"
+                    }
+                  ]
                 },
                 "description": "'estado' solo admite borrador | activo | archivado."
               },
@@ -161,11 +256,23 @@
                 "header": [],
                 "url": {
                   "raw": "{{HOST}}/api/v1/planogramas?page=0&pageSize=500",
-                  "host": ["{{HOST}}"],
-                  "path": ["api", "v1", "planogramas"],
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ],
                   "query": [
-                    { "key": "page", "value": "0" },
-                    { "key": "pageSize", "value": "500" }
+                    {
+                      "key": "page",
+                      "value": "0"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "500"
+                    }
                   ]
                 },
                 "description": "page debe ser >= 1 y pageSize <= 100."
@@ -195,16 +302,31 @@
               "name": "201 - Crear planograma valido",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "url": {
                   "raw": "{{HOST}}/api/v1/planogramas",
-                  "host": ["{{HOST}}"],
-                  "path": ["api", "v1", "planogramas"]
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
                 },
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"nombre\": \"Autos - Rack Frontal A {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\"Aceites\", \"Filtros\"]\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "description": "Crea un planograma nuevo en estado borrador. El nombre incluye {{$timestamp}} (variable dinámica de Postman) para que nunca choque con nombres de corridas anteriores y el 201 sea repetible."
               },
@@ -231,16 +353,31 @@
               "name": "400 - campos requeridos faltantes/invalidos",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "url": {
                   "raw": "{{HOST}}/api/v1/planogramas",
-                  "host": ["{{HOST}}"],
-                  "path": ["api", "v1", "planogramas"]
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
                 },
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"nombre\": \"\",\n  \"subcategorias\": []\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "description": "nombre vacío, departamento ausente y subcategorias vacío — dispara los 3 errores de Joi a la vez."
               },
@@ -266,16 +403,31 @@
               "name": "409 - nombre duplicado en el mismo departamento",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "url": {
                   "raw": "{{HOST}}/api/v1/planogramas",
-                  "host": ["{{HOST}}"],
-                  "path": ["api", "v1", "planogramas"]
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
                 },
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"nombre\": \"{{nombreExistente}}\",\n  \"departamento\": \"{{departamentoExistente}}\",\n  \"subcategorias\": [\"Aceites\"]\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "description": "Requiere que ya exista un planograma con ese mismo nombre + departamento (ajustar variables nombreExistente/departamentoExistente)."
               },
@@ -307,8 +459,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{HOST}}/api/v1/planogramas/{{planogramaId}}",
-                  "host": ["{{HOST}}"],
-                  "path": ["api", "v1", "planogramas", "{{planogramaId}}"]
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaId}}"
+                  ]
                 },
                 "description": "Detalle completo: metadatos + subcategorias + versiones."
               },
@@ -337,8 +496,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{HOST}}/api/v1/planogramas/abc",
-                  "host": ["{{HOST}}"],
-                  "path": ["api", "v1", "planogramas", "abc"]
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "abc"
+                  ]
                 },
                 "description": "El id debe parsear como entero >= 1."
               },
@@ -365,8 +531,15 @@
                 "header": [],
                 "url": {
                   "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdInexistente}}",
-                  "host": ["{{HOST}}"],
-                  "path": ["api", "v1", "planogramas", "{{planogramaIdInexistente}}"]
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdInexistente}}"
+                  ]
                 },
                 "description": "Id numéricamente válido pero inexistente en la BD."
               },
@@ -395,16 +568,32 @@
               "name": "200 - Editar nombre y subcategorias",
               "request": {
                 "method": "PATCH",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "url": {
                   "raw": "{{HOST}}/api/v1/planogramas/{{planogramaId}}",
-                  "host": ["{{HOST}}"],
-                  "path": ["api", "v1", "planogramas", "{{planogramaId}}"]
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaId}}"
+                  ]
                 },
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"nombre\": \"Autos - Rack Frontal A (actualizado)\",\n  \"subcategorias\": [\"Aceites\", \"Filtros\", \"Bujias\"]\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "description": "Partial update — requiere que el planograma esté en estado borrador o activo."
               },
@@ -428,16 +617,32 @@
               "name": "400 - body vacio (sin campos)",
               "request": {
                 "method": "PATCH",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "url": {
                   "raw": "{{HOST}}/api/v1/planogramas/{{planogramaId}}",
-                  "host": ["{{HOST}}"],
-                  "path": ["api", "v1", "planogramas", "{{planogramaId}}"]
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaId}}"
+                  ]
                 },
                 "body": {
                   "mode": "raw",
                   "raw": "{}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "description": "El schema exige al menos un campo (nombre, departamento o subcategorias)."
               },
@@ -461,16 +666,32 @@
               "name": "404 - planograma no encontrado",
               "request": {
                 "method": "PATCH",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "url": {
                   "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdInexistente}}",
-                  "host": ["{{HOST}}"],
-                  "path": ["api", "v1", "planogramas", "{{planogramaIdInexistente}}"]
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdInexistente}}"
+                  ]
                 },
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"nombre\": \"No existe\"\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "description": "Id numéricamente válido pero inexistente en la BD."
               },
@@ -494,16 +715,32 @@
               "name": "409 - nuevo nombre ya existe en el departamento",
               "request": {
                 "method": "PATCH",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "url": {
                   "raw": "{{HOST}}/api/v1/planogramas/{{planogramaId}}",
-                  "host": ["{{HOST}}"],
-                  "path": ["api", "v1", "planogramas", "{{planogramaId}}"]
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaId}}"
+                  ]
                 },
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"nombre\": \"{{nombreExistente}}\",\n  \"departamento\": \"{{departamentoExistente}}\"\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "description": "El nombre/departamento resultante colisiona con otro planograma existente."
               },
@@ -527,16 +764,32 @@
               "name": "422 - planograma en estado no editable (archivado)",
               "request": {
                 "method": "PATCH",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
                 "url": {
                   "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdArchivado}}",
-                  "host": ["{{HOST}}"],
-                  "path": ["api", "v1", "planogramas", "{{planogramaIdArchivado}}"]
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdArchivado}}"
+                  ]
                 },
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"nombre\": \"Intento de editar archivado\"\n}",
-                  "options": { "raw": { "language": "json" } }
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
                 },
                 "description": "Solo se puede editar en estado borrador o activo; un planograma archivado responde 422."
               },
@@ -568,8 +821,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{HOST}}/api/v1/planogramas/{{planogramaId}}/archivar",
-                  "host": ["{{HOST}}"],
-                  "path": ["api", "v1", "planogramas", "{{planogramaId}}", "archivar"]
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaId}}",
+                    "archivar"
+                  ]
                 },
                 "description": "Requiere un planograma que no esté ya archivado ni tenga versiones publicadas asignadas a tiendas."
               },
@@ -596,8 +857,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdInexistente}}/archivar",
-                  "host": ["{{HOST}}"],
-                  "path": ["api", "v1", "planogramas", "{{planogramaIdInexistente}}", "archivar"]
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdInexistente}}",
+                    "archivar"
+                  ]
                 },
                 "description": "Id numéricamente válido pero inexistente en la BD."
               },
@@ -624,8 +893,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdArchivado}}/archivar",
-                  "host": ["{{HOST}}"],
-                  "path": ["api", "v1", "planogramas", "{{planogramaIdArchivado}}", "archivar"]
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdArchivado}}",
+                    "archivar"
+                  ]
                 },
                 "description": "El planograma referenciado ya se encuentra en estado archivado."
               },
@@ -652,8 +929,16 @@
                 "header": [],
                 "url": {
                   "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdConVersionesPublicadas}}/archivar",
-                  "host": ["{{HOST}}"],
-                  "path": ["api", "v1", "planogramas", "{{planogramaIdConVersionesPublicadas}}", "archivar"]
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdConVersionesPublicadas}}",
+                    "archivar"
+                  ]
                 },
                 "description": "El planograma referenciado tiene versiones publicadas asignadas a tiendas y no puede archivarse."
               },
@@ -667,6 +952,2679 @@
                       "pm.test('Code UNPROCESSABLE', () => {",
                       "  pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');",
                       "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "versiones",
+      "item": [
+        {
+          "name": "Setup - datos de prueba",
+          "item": [
+            {
+              "name": "201 - Crear planograma para pruebas de versiones (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Autos - Rack Versiones {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\n    \"Aceites\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Planograma base para los escenarios de listar/crear/detalle/metadatos/tiendas/guardar que no requieren estados especiales (publicado/archivado)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('planogramaIdVersiones', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear version base GRANDE (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdVersiones}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdVersiones}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\",\n  \"notas\": \"Version base para pruebas\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Version principal (queda en borrador) usada por detalle, metadatos, tiendas (GET/PUT), promover (casos 400/422) y guardar."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "const body = pm.response.json();",
+                      "pm.collectionVariables.set('versionId', body.id);",
+                      "pm.collectionVariables.set('versionCodigo', body.codigo);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear planograma para ciclo promover (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Autos - Rack Promover {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\n    \"Aceites\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Planograma dedicado al ciclo de promoción (en_desarrollo -> piloto -> publicado) para no chocar con la regla de version activa unica por tipo del planograma de setup principal."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('planogramaIdPromover', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear version para promover (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdPromover}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdPromover}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Version que se avanza a en_desarrollo en el siguiente request de setup, lista para el escenario \"200 - Promover a piloto\"."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdPromover', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Guardar version para promover, avanza a en_desarrollo (setup)",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdPromover}}/guardar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdPromover}}",
+                    "guardar"
+                  ]
+                },
+                "description": "Avanza versionIdPromover de borrador a en_desarrollo -- precondicion de la transicion promover(en_desarrollo -> piloto)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.expect(pm.response.json().estado).to.eql('en_desarrollo');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear planograma para publicar y archivar (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Autos - Rack Publicar {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\n    \"Aceites\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Planograma dedicado a producir, via el ciclo real de negocio, una version publicada y una version archivada (publicar una segunda version del mismo tipo archiva automaticamente a la primera)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('planogramaIdPublicar', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear version A, sera archivada al publicar la version B (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdPublicar}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdPublicar}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdArchivada', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Guardar version A, avanza a en_desarrollo (setup)",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdArchivada}}/guardar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdArchivada}}",
+                    "guardar"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Promover version A a piloto (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdArchivada}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdArchivada}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Promover version A a publicado (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdArchivada}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdArchivada}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"publicado\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear version B, quedara publicada (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdPublicar}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdPublicar}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Se puede crear porque la version A ya esta en estado publicado (no cuenta como \"activa\" para la regla de unicidad por tipo)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdPublicada', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Guardar version B, avanza a en_desarrollo (setup)",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdPublicada}}/guardar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdPublicada}}",
+                    "guardar"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Promover version B a piloto (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdPublicada}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdPublicada}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Promover version B a publicado, archiva version A automaticamente (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdPublicada}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdPublicada}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"publicado\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Al publicar la version B, el backend archiva automaticamente la version A (publicada anterior del mismo planograma+tipo). Deja versionIdArchivada en estado archivado, listo para los escenarios 422 de editar/tiendas/guardar."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.expect(pm.response.json().versionAnteriorArchivada).to.not.be.null;"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear planograma para clonar version especial (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Autos - Rack Clonar {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\n    \"Aceites\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('planogramaIdClonar', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear version base para clonar (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdClonar}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdClonar}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Version base que se clonara como version especial por tienda en la carpeta \"Crear version\"."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdBaseClonar', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Listar versiones de un planograma (GET /planogramas/:id/versiones)",
+          "item": [
+            {
+              "name": "200 - Listar sin filtros",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdVersiones}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdVersiones}}",
+                    "versiones"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Incluye la version creada en el setup', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.versiones).to.be.an('array');",
+                      "  const ids = body.versiones.map((v) => v.id);",
+                      "  pm.expect(ids).to.include(Number(pm.collectionVariables.get('versionId')));",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Listar sin incluirArchivadas excluye la version archivada",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdPublicar}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdPublicar}}",
+                    "versiones"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('No incluye la version archivada', () => {",
+                      "  const ids = pm.response.json().versiones.map((v) => v.id);",
+                      "  pm.expect(ids).to.not.include(Number(pm.collectionVariables.get('versionIdArchivada')));",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Listar con incluirArchivadas=true incluye la version archivada",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdPublicar}}/versiones?incluirArchivadas=true",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdPublicar}}",
+                    "versiones"
+                  ],
+                  "query": [
+                    {
+                      "key": "incluirArchivadas",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Incluye la version archivada', () => {",
+                      "  const ids = pm.response.json().versiones.map((v) => v.id);",
+                      "  pm.expect(ids).to.include(Number(pm.collectionVariables.get('versionIdArchivada')));",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - incluirArchivadas no es booleano",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdVersiones}}/versiones?incluirArchivadas=noesbooleano",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdVersiones}}",
+                    "versiones"
+                  ],
+                  "query": [
+                    {
+                      "key": "incluirArchivadas",
+                      "value": "noesbooleano"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - planograma no encontrado",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdInexistente}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdInexistente}}",
+                    "versiones"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Crear version (POST /planogramas/:id/versiones)",
+          "item": [
+            {
+              "name": "201 - Crear version vacia",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdVersiones}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdVersiones}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"MEDIANA\",\n  \"notas\": \"Version vacia de prueba\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Usa tipo MEDIANA (distinto al GRANDE del setup) para no chocar con la regla de version activa unica por tipo."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.test('Version nueva en borrador con version_base_id null', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.estado).to.eql('borrador');",
+                      "  pm.expect(body.versionBaseId).to.be.null;",
+                      "});",
+                      "pm.collectionVariables.set('versionIdSecundariaMismoPlanograma', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear version especial por tienda (clona estructura)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdClonar}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdClonar}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\",\n  \"versionBaseId\": \"{{versionIdBaseClonar}}\",\n  \"tiendaId\": 1,\n  \"notas\": \"Version especial Cemaco Pradera\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.test('Version especial referencia la base', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.versionBaseId).to.eql(Number(pm.collectionVariables.get('versionIdBaseClonar')));",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - tipo invalido",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdVersiones}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdVersiones}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"CHIQUITA\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - tiendaId ausente cuando se envia versionBaseId",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdClonar}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdClonar}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\",\n  \"versionBaseId\": \"{{versionIdBaseClonar}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - planograma no encontrado",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdInexistente}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdInexistente}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - version base no encontrada",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdVersiones}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdVersiones}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\",\n  \"versionBaseId\": 999999,\n  \"tiendaId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "409 - ya existe una version activa del mismo tipo",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdVersiones}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdVersiones}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 409', () => pm.response.to.have.status(409));",
+                      "pm.test('Code CONFLICT con detalle de la version activa', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.error.code).to.eql('CONFLICT');",
+                      "  pm.expect(body.error.details.versionActiva).to.have.property('id');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "409 - la tienda ya tiene una version especial derivada de esa base",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdClonar}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdClonar}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\",\n  \"versionBaseId\": \"{{versionIdBaseClonar}}\",\n  \"tiendaId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Repite la combinacion versionBaseId+tiendaId del escenario 201 de clonacion, que ya corrio antes en esta misma carpeta."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 409', () => pm.response.to.have.status(409));",
+                      "pm.expect(pm.response.json().error.code).to.eql('CONFLICT');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - planograma archivado",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdArchivado}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdArchivado}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Reutiliza planogramaIdArchivado (fixture del modulo planogramas)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Obtener detalle de version (GET /versiones/:id)",
+          "item": [
+            {
+              "name": "200 - Obtener detalle completo",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Retorna gondolas como array', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.have.property('id');",
+                      "  pm.expect(body.gondolas).to.be.an('array');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - id no es un entero positivo",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/abc",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "abc"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - version no encontrada",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdInexistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdInexistente}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Editar metadatos de version (PATCH /versiones/:id)",
+          "item": [
+            {
+              "name": "200 - Editar notas",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"notas\": \"Ajustado para inauguracion Majadas\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.expect(pm.response.json().notas).to.eql('Ajustado para inauguracion Majadas');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - body vacio",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - version no encontrada",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdInexistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdInexistente}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"notas\": \"x\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "409 - el codigo ya existe en otra version del mismo planograma",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdSecundariaMismoPlanograma}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdSecundariaMismoPlanograma}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"codigo\": \"{{versionCodigo}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "versionCodigo es el codigo de versionId (misma planograma que versionIdSecundariaMismoPlanograma)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 409', () => pm.response.to.have.status(409));",
+                      "pm.expect(pm.response.json().error.code).to.eql('CONFLICT');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - version archivada",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdArchivada}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdArchivada}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"notas\": \"no deberia aplicar\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Promover version (POST /versiones/:id/promover)",
+          "item": [
+            {
+              "name": "200 - Promover a piloto",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdPromover}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdPromover}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Estado piloto con tienda asignada', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.estado).to.eql('piloto');",
+                      "  pm.expect(body.tiendas).to.be.an('array').with.lengthOf(1);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Promover a publicado",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdPromover}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdPromover}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"publicado\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Corre justo despues del escenario anterior, cuando versionIdPromover ya esta en piloto."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Estado publicado, sin version anterior que archivar', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.estado).to.eql('publicado');",
+                      "  pm.expect(body.versionAnteriorArchivada).to.be.null;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - estadoDestino invalido",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionId}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionId}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"lanzado\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - tiendaIds vacio para piloto",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionId}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionId}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - version no encontrada",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdInexistente}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdInexistente}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"publicado\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - transicion de estado invalida",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionId}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionId}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "versionId todavia esta en borrador en este punto de la coleccion (el folder de \"Guardar\" corre despues) -- borrador no puede promoverse directo a piloto."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - errores bloqueantes al publicar (min_final > max_final)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdConErroresBloqueantes}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdConErroresBloqueantes}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"publicado\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Requiere que versionIdConErroresBloqueantes este en estado piloto y tenga una Posicion con min_final > max_final (ver descripcion de la variable de coleccion -- sembrado manual via SQL porque el modulo de posiciones aun no tiene endpoints)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.test('Code UNPROCESSABLE con detalle de errores bloqueantes', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.error.code).to.eql('UNPROCESSABLE');",
+                      "  pm.expect(body.error.details).to.be.an('array').that.is.not.empty;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Obtener tiendas de version (GET /versiones/:id/tiendas)",
+          "item": [
+            {
+              "name": "200 - Obtener tiendas asignadas y disponibles",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionId}}/tiendas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionId}}",
+                    "tiendas"
+                  ]
+                },
+                "description": "versionId todavia no tiene tiendas asignadas en este punto de la coleccion."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Sin asignadas, con disponibles del mismo tipo', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.asignadas).to.be.an('array').that.is.empty;",
+                      "  pm.expect(body.disponibles).to.be.an('array').that.is.not.empty;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - id no es un entero positivo",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/abc/tiendas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "abc",
+                    "tiendas"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - version no encontrada",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdInexistente}}/tiendas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdInexistente}}",
+                    "tiendas"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Reemplazar tiendas de version (PUT /versiones/:id/tiendas)",
+          "item": [
+            {
+              "name": "200 - Asignar tienda a la version",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionId}}/tiendas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionId}}",
+                    "tiendas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.expect(pm.response.json().tiendas).to.be.an('array').with.lengthOf(1);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Desasignar todas las tiendas (array vacio)",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionId}}/tiendas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionId}}",
+                    "tiendas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tiendaIds\": []\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Corre despues del escenario anterior -- confirma que enviar un array vacio desasigna todas las tiendas."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.expect(pm.response.json().tiendas).to.be.an('array').that.is.empty;"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - tiendaIds no es un array",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionId}}/tiendas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionId}}",
+                    "tiendas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tiendaIds\": \"no-es-array\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - version no encontrada",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdInexistente}}/tiendas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdInexistente}}",
+                    "tiendas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - version archivada",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdArchivada}}/tiendas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdArchivada}}",
+                    "tiendas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Guardar version (PATCH /versiones/:id/guardar)",
+          "item": [
+            {
+              "name": "200 - Guardar version en borrador, avanza a en_desarrollo",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionId}}/guardar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionId}}",
+                    "guardar"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.expect(pm.response.json().estado).to.eql('en_desarrollo');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Guardar version ya en en_desarrollo, solo actualiza updatedAt",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionId}}/guardar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionId}}",
+                    "guardar"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.expect(pm.response.json().estado).to.eql('en_desarrollo');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - version no encontrada",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdInexistente}}/guardar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdInexistente}}",
+                    "guardar"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - version publicada",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdPublicada}}/guardar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdPublicada}}",
+                    "guardar"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Obtener estructura de version (GET /versiones/:id/estructura)",
+          "item": [
+            {
+              "name": "200 - Obtener estructura de version publicada",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdPublicada}}/estructura",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdPublicada}}",
+                    "estructura"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Forma reducida sin campos de inventario', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.have.property('versionId');",
+                      "  pm.expect(body.gondolas).to.be.an('array');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - id no es un entero positivo",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/abc/estructura",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "abc",
+                    "estructura"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "403 - version no publicada",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionId}}/estructura",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionId}}",
+                    "estructura"
+                  ]
+                },
+                "description": "versionId esta en en_desarrollo en este punto de la coleccion (el folder de \"Guardar\" ya corrio antes)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 403', () => pm.response.to.have.status(403));",
+                      "pm.expect(pm.response.json().error.code).to.eql('FORBIDDEN');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - version no encontrada",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdInexistente}}/estructura",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdInexistente}}",
+                    "estructura"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
                     ]
                   }
                 }

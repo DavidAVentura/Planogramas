@@ -1,0 +1,20 @@
+$kind: http-request
+name: 200 - Promover version B a publicado, archiva version A automaticamente (setup)
+description: Al publicar la version B, el backend archiva automaticamente la version A (publicada anterior del mismo planograma+tipo). Deja versionIdArchivada en estado archivado, listo para los escenarios 422 de editar/tiendas/guardar.
+url: "{{HOST}}/api/v1/versiones/{{versionIdPublicada}}/promover"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "estadoDestino": "publicado"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200', () => pm.response.to.have.status(200));
+      pm.expect(pm.response.json().versionAnteriorArchivada).to.not.be.null;
+    language: text/javascript
+order: 14000
