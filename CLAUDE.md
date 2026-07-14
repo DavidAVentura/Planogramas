@@ -142,16 +142,17 @@ mínima y repetibilidad de estas pruebas: ver
 El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
 `Arquitectura/Contratos/{NN}_{modulo}/` (01 a 11; el 12, sesiones de captura, queda fuera del MVP).
 
-- **Implementado end-to-end (código + pruebas Postman)**: `planogramas` (01) — las 5 rutas de
-  [back/src/infrastructure/http/routes/planogramas.routes.js](back/src/infrastructure/http/routes/planogramas.routes.js),
-  su capa de dominio en `back/src/domain/planograma/` y su repositorio en
-  `back/src/infrastructure/repositories/planograma.repository.js`. Úsalo como referencia de patrón
-  para cualquier módulo nuevo — es el ejemplo más completo y actualizado del método descrito abajo.
+- **Implementado end-to-end (código + pruebas Postman)**: `planogramas` (01), `versiones` (02),
+  `gondolas` (03) y `niveles` (04). Cada uno sigue el mismo patrón de 4 capas descrito abajo:
+  `back/src/domain/{entidad}/`, `back/src/infrastructure/repositories/{entidad}.repository.js`,
+  `back/src/application/{modulo}/{modulo}.controller.js` y
+  `back/src/infrastructure/http/routes/{modulo}.routes.js`. `planogramas` sigue siendo la
+  referencia más simple; `gondolas`/`niveles` muestran el patrón de entidad hija (listar/crear/
+  reordenar cuelgan de la ruta del padre, ver comentarios en `gondolas.routes.js`).
 - **Pendiente**: el resto de módulos de `back/src/infrastructure/http/routes/index.js` están
-  comentados (`versiones`, `gondolas`, `niveles`, `posiciones`, `accesorios`, `tiendas`,
-  `jerarquia`, `catalog`, `sustituciones`, `exportacion`). El contrato de cada uno ya existe en
-  `Arquitectura/Contratos/`; falta implementar código y pruebas. Siguiente en el orden: `versiones`
-  (02).
+  comentados (`posiciones`, `accesorios`, `tiendas`, `jerarquia`, `catalog`, `sustituciones`,
+  `exportacion`). El contrato de cada uno ya existe en `Arquitectura/Contratos/`; falta implementar
+  código y pruebas. Siguiente en el orden: `posiciones` (05).
 - Solo hay una migración (`001_esquema_inicial.js`) — antes de implementar un módulo nuevo, revisa
   si el esquema de esa migración ya cubre las tablas que necesita o si hace falta una migración
   adicional (`002_...`, ver convención de nombres en `ESTRUCTURA_BACKEND.md`).

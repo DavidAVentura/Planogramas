@@ -65,6 +65,18 @@
       "value": "1",
       "type": "string",
       "description": "Id de una góndola que tiene al menos un Nivel con una Posicion asignada, para forzar 409 en DELETE sin forzar=true. No se puede generar via Setup porque los modulos de niveles y posiciones todavia no tienen endpoints. Debe pertenecer a una version en estado editable (borrador/en_desarrollo/piloto) para que el chequeo de 422 no se dispare antes. Script SQL minimo para recrearlo si la BD se limpia: crear un Planograma y una PlanogramaVersion (estado por defecto 'borrador'), una Gondola, un Nivel (INSERT INTO Nivel (gondola_id, orden, altura_desde_piso_cm, ancho_disponible_cm) VALUES (<gondola_id>, 1, 0, 100)), un Producto dummy (INSERT INTO Producto (sku, nombre) VALUES ('SKU-FIXTURE-GONDOLA', 'Producto fixture')) y una Posicion (INSERT INTO Posicion (nivel_id, orden_horizontal, sku, ancho_asignado_cm) VALUES (<nivel_id>, 1, 'SKU-FIXTURE-GONDOLA', 10))."
+    },
+    {
+      "key": "nivelIdInexistente",
+      "value": "999999",
+      "type": "string",
+      "description": "Id de nivel que no existe en la base de datos"
+    },
+    {
+      "key": "nivelIdConPosiciones",
+      "value": "",
+      "type": "string",
+      "description": "Id de un nivel que tiene al menos una Posicion asignada. Se obtiene automáticamente en el Setup del módulo niveles a partir del fixture SQL de gondolaIdConPosiciones (ver esa variable), ya que el módulo de posiciones todavía no tiene endpoints para crearlo vía API."
     }
   ],
   "item": [
@@ -5258,6 +5270,1988 @@
         }
       ],
       "description": "Casos de éxito y de error para los endpoints del módulo Góndolas (back/src/infrastructure/http/routes/gondolas.routes.js y las rutas anidadas en versiones.routes.js)."
+    },
+    {
+      "name": "niveles",
+      "item": [
+        {
+          "name": "Setup - datos de prueba",
+          "item": [
+            {
+              "name": "201 - Crear planograma para pruebas de niveles (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Autos - Rack Niveles {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\n    \"Aceites\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('planogramaIdNiveles', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear version base GRANDE para niveles (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdNiveles}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdNiveles}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdNiveles', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear gondola para niveles (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdNiveles}}/gondolas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdNiveles}}",
+                    "gondolas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Góndola Niveles Setup\",\n  \"ancho_cm\": 120,\n  \"alto_cm\": 180,\n  \"profundidad_cm\": 40\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('gondolaIdNiveles', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear nivel principal (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdNiveles}}/niveles",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdNiveles}}",
+                    "niveles"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orden\": 1,\n  \"altura_desde_piso_cm\": 30,\n  \"tipo_accesorio\": \"BANDEJA\",\n  \"ancho_disponible_cm\": 120,\n  \"notas\": \"Nivel setup A\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('nivelId', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear segundo nivel para reordenar (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdNiveles}}/niveles",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdNiveles}}",
+                    "niveles"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orden\": 2,\n  \"altura_desde_piso_cm\": 60,\n  \"tipo_accesorio\": \"GANCHO\",\n  \"ancho_disponible_cm\": 120\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('nivelIdSecundario', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear planograma para version publicada (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Autos - Rack Niveles Publicada {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\n    \"Aceites\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('planogramaIdNivelesPublicada', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear version que sera publicada (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdNivelesPublicada}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdNivelesPublicada}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdNivelesPublicada', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear gondola en version que sera publicada (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdNivelesPublicada}}/gondolas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdNivelesPublicada}}",
+                    "gondolas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Góndola Niveles Publicada\",\n  \"ancho_cm\": 100,\n  \"alto_cm\": 180,\n  \"profundidad_cm\": 40\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('gondolaIdNivelesPublicada', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear nivel en version que sera publicada (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdNivelesPublicada}}/niveles",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdNivelesPublicada}}",
+                    "niveles"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orden\": 1,\n  \"altura_desde_piso_cm\": 30,\n  \"tipo_accesorio\": \"BANDEJA\",\n  \"ancho_disponible_cm\": 100\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('nivelIdPublicado', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Guardar version que sera publicada, avanza a en_desarrollo (setup)",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdNivelesPublicada}}/guardar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdNivelesPublicada}}",
+                    "guardar"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Promover version a piloto (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdNivelesPublicada}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdNivelesPublicada}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Promover version a publicado (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdNivelesPublicada}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdNivelesPublicada}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"publicado\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Obtener nivel con posiciones desde gondola fixture (setup)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdConPosiciones}}/niveles",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdConPosiciones}}",
+                    "niveles"
+                  ]
+                },
+                "description": "Depende del fixture SQL estático descrito en la variable gondolaIdConPosiciones (ver Setup del módulo gondolas). Toma el primer nivel de esa góndola, que ya tiene una posición asignada."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Existe al menos un nivel en la gondola fixture', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.length).to.be.above(0);",
+                      "  pm.collectionVariables.set('nivelIdConPosiciones', body[0].id);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Listar niveles de una gondola (GET /gondolas/:id/niveles)",
+          "item": [
+            {
+              "name": "200 - Listar niveles de la gondola ordenados por orden",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdNiveles}}/niveles",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdNiveles}}",
+                    "niveles"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Retorna un array con los niveles creados', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  pm.expect(body.length).to.be.at.least(2);",
+                      "  const propio = body.find((n) => n.id === Number(pm.collectionVariables.get('nivelId')));",
+                      "  pm.expect(propio).to.exist;",
+                      "  pm.expect(propio.orden).to.eql(1);",
+                      "  pm.expect(propio.tipo_accesorio).to.eql('BANDEJA');",
+                      "  pm.expect(propio.ancho_disponible_cm).to.eql(120);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - gondola no encontrada",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdInexistente}}/niveles",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdInexistente}}",
+                    "niveles"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Obtener detalle de nivel (GET /niveles/:id)",
+          "item": [
+            {
+              "name": "200 - Obtener detalle completo",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Retorna los campos del nivel', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.gondolaId).to.eql(Number(pm.collectionVariables.get('gondolaIdNiveles')));",
+                      "  pm.expect(body.orden).to.eql(1);",
+                      "  pm.expect(body.tipo_accesorio).to.eql('BANDEJA');",
+                      "  pm.expect(body.ancho_disponible_cm).to.eql(120);",
+                      "  pm.expect(body.accesorio).to.be.null;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - id no es un entero positivo",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/abc",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "abc"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - nivel no encontrado",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdInexistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdInexistente}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Obtener resumen de nivel (GET /niveles/:id/resumen)",
+          "item": [
+            {
+              "name": "200 - Obtener resumen sin posiciones",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelId}}/resumen",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelId}}",
+                    "resumen"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Conteo en cero y datos del nivel', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.orden).to.eql(1);",
+                      "  pm.expect(body.totalPosiciones).to.eql(0);",
+                      "  pm.expect(body.gondolaNombre).to.eql('Góndola Niveles Setup');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - id no es un entero positivo",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/abc/resumen",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "abc",
+                    "resumen"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - nivel no encontrado",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdInexistente}}/resumen",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdInexistente}}",
+                    "resumen"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Agregar nivel (POST /gondolas/:id/niveles)",
+          "item": [
+            {
+              "name": "201 - Crear nivel nuevo",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdNiveles}}/niveles",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdNiveles}}",
+                    "niveles"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orden\": 5,\n  \"altura_desde_piso_cm\": 90,\n  \"tipo_accesorio\": \"GANCHO\",\n  \"tamano_accesorio_pulgadas\": 12,\n  \"ancho_disponible_cm\": 120,\n  \"notas\": \"Nivel para aceites largos\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.test('Nivel creado con los datos enviados', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.gondolaId).to.eql(Number(pm.collectionVariables.get('gondolaIdNiveles')));",
+                      "  pm.expect(body.orden).to.eql(5);",
+                      "  pm.expect(body.tipo_accesorio).to.eql('GANCHO');",
+                      "  pm.expect(body.tamano_accesorio_pulgadas).to.eql(12);",
+                      "  pm.expect(body.accesorio).to.be.null;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear nivel en orden ocupado, desplaza los siguientes",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdNiveles}}/niveles",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdNiveles}}",
+                    "niveles"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orden\": 1,\n  \"altura_desde_piso_cm\": 10,\n  \"tipo_accesorio\": \"BANDEJA\",\n  \"ancho_disponible_cm\": 120\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.test('El nivel nuevo toma el orden solicitado', () => {",
+                      "  pm.expect(pm.response.json().orden).to.eql(1);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Verificar que el desplazamiento movio los niveles existentes",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdNiveles}}/niveles",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdNiveles}}",
+                    "niveles"
+                  ]
+                },
+                "description": "Depende de las dos inserciones anteriores de esta misma carpeta (orden 5 y orden 1 en conflicto)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('nivelId y nivelIdSecundario se desplazaron +1', () => {",
+                      "  const body = pm.response.json();",
+                      "  const propio     = body.find((n) => n.id === Number(pm.collectionVariables.get('nivelId')));",
+                      "  const secundario = body.find((n) => n.id === Number(pm.collectionVariables.get('nivelIdSecundario')));",
+                      "  pm.expect(propio.orden).to.eql(2);",
+                      "  pm.expect(secundario.orden).to.eql(3);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - tipo_accesorio invalido",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdNiveles}}/niveles",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdNiveles}}",
+                    "niveles"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orden\": 20,\n  \"altura_desde_piso_cm\": 90,\n  \"tipo_accesorio\": \"INVALIDO\",\n  \"ancho_disponible_cm\": 120\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - gondola no encontrada",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdInexistente}}/niveles",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdInexistente}}",
+                    "niveles"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orden\": 1,\n  \"altura_desde_piso_cm\": 90,\n  \"tipo_accesorio\": \"GANCHO\",\n  \"ancho_disponible_cm\": 120\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - codigo_accesorio_id no existe",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdNiveles}}/niveles",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdNiveles}}",
+                    "niveles"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orden\": 30,\n  \"altura_desde_piso_cm\": 90,\n  \"tipo_accesorio\": \"GANCHO\",\n  \"codigo_accesorio_id\": 999999,\n  \"ancho_disponible_cm\": 120\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - version no editable",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdNivelesPublicada}}/niveles",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdNivelesPublicada}}",
+                    "niveles"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orden\": 2,\n  \"altura_desde_piso_cm\": 90,\n  \"tipo_accesorio\": \"GANCHO\",\n  \"ancho_disponible_cm\": 100\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Editar nivel (PATCH /niveles/:id)",
+          "item": [
+            {
+              "name": "200 - Editar altura y ancho, sin advertencia",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"altura_desde_piso_cm\": 95,\n  \"ancho_disponible_cm\": 130\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Campos actualizados y sin advertencia', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.altura_desde_piso_cm).to.eql(95);",
+                      "  pm.expect(body.ancho_disponible_cm).to.eql(130);",
+                      "  pm.expect(body.advertencia).to.be.undefined;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Reducir ancho por debajo de lo ocupado genera advertencia",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdConPosiciones}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdConPosiciones}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"ancho_disponible_cm\": 5\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "nivelIdConPosiciones tiene una posición con ancho_asignado_cm=10 (fixture SQL de gondolaIdConPosiciones), por lo que reducir a 5 siempre dispara la advertencia, sin depender del estado dejado por corridas anteriores."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde con advertencia', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.ancho_disponible_cm).to.eql(5);",
+                      "  pm.expect(body.advertencia).to.be.a('string');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - body vacio",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - nivel no encontrado",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdInexistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdInexistente}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"notas\": \"x\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - codigo_accesorio_id no existe",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"codigo_accesorio_id\": 999999\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - version no editable",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdPublicado}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdPublicado}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"notas\": \"Cambio bloqueado\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Reordenar niveles (PATCH /gondolas/:id/niveles/orden)",
+          "item": [
+            {
+              "name": "200 - Reordenar intercambiando los dos niveles",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdNiveles}}/niveles/orden",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdNiveles}}",
+                    "niveles",
+                    "orden"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orden\": [\n    {\n      \"id\": \"{{nivelIdSecundario}}\",\n      \"orden\": 1\n    },\n    {\n      \"id\": \"{{nivelId}}\",\n      \"orden\": 2\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Retorna el orden confirmado', () => {",
+                      "  const body = pm.response.json();",
+                      "  const secundario = body.niveles.find((n) => n.id === Number(pm.collectionVariables.get('nivelIdSecundario')));",
+                      "  pm.expect(secundario.orden).to.eql(1);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - ids duplicados",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdNiveles}}/niveles/orden",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdNiveles}}",
+                    "niveles",
+                    "orden"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orden\": [\n    {\n      \"id\": \"{{nivelId}}\",\n      \"orden\": 1\n    },\n    {\n      \"id\": \"{{nivelId}}\",\n      \"orden\": 2\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - array de orden vacio",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdNiveles}}/niveles/orden",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdNiveles}}",
+                    "niveles",
+                    "orden"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orden\": []\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - gondola no encontrada",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdInexistente}}/niveles/orden",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdInexistente}}",
+                    "niveles",
+                    "orden"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orden\": [\n    {\n      \"id\": \"{{nivelId}}\",\n      \"orden\": 1\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - un nivel no pertenece a la gondola",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdNiveles}}/niveles/orden",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdNiveles}}",
+                    "niveles",
+                    "orden"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orden\": [\n    {\n      \"id\": \"{{nivelIdPublicado}}\",\n      \"orden\": 1\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "nivelIdPublicado pertenece a gondolaIdNivelesPublicada, no a gondolaIdNiveles."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - version no editable",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdNivelesPublicada}}/niveles/orden",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdNivelesPublicada}}",
+                    "niveles",
+                    "orden"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orden\": [\n    {\n      \"id\": \"{{nivelIdPublicado}}\",\n      \"orden\": 1\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Eliminar nivel (DELETE /niveles/:id)",
+          "item": [
+            {
+              "name": "204 - Eliminar nivel sin posiciones asignadas",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdSecundario}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdSecundario}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 204', () => pm.response.to.have.status(204));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - id no es un entero positivo",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/abc",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "abc"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - nivel no encontrado",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdInexistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdInexistente}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "409 - nivel con posiciones sin forzar",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdConPosiciones}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdConPosiciones}}"
+                  ]
+                },
+                "description": "Requiere el fixture nivelIdConPosiciones (obtenido en Setup a partir de gondolaIdConPosiciones) porque el módulo de posiciones todavía no tiene endpoints."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 409', () => pm.response.to.have.status(409));",
+                      "pm.test('Detalle incluye el conteo', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.error.code).to.eql('CONFLICT');",
+                      "  pm.expect(body.error.details.totalPosiciones).to.be.above(0);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - version no editable",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdPublicado}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdPublicado}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        }
+      ]
     }
   ]
 }
