@@ -77,6 +77,36 @@
       "value": "",
       "type": "string",
       "description": "Id de un nivel que tiene al menos una Posicion asignada. Se obtiene automáticamente en el Setup del módulo niveles a partir del fixture SQL de gondolaIdConPosiciones (ver esa variable), ya que el módulo de posiciones todavía no tiene endpoints para crearlo vía API."
+    },
+    {
+      "key": "skuExistente",
+      "value": "SKU-FIXTURE-GONDOLA",
+      "type": "string",
+      "description": "SKU de un Producto existente en la BD, requerido porque el módulo catálogo/producto todavía no tiene endpoint de creación vía API. Reutiliza el mismo fixture sembrado para la variable gondolaIdConPosiciones (INSERT INTO Producto (sku, nombre) VALUES ('SKU-FIXTURE-GONDOLA', 'Producto fixture'))."
+    },
+    {
+      "key": "skuInexistente",
+      "value": "SKU-NO-EXISTE-999999",
+      "type": "string",
+      "description": "SKU que no existe en la tabla Producto"
+    },
+    {
+      "key": "posicionIdInexistente",
+      "value": "999999",
+      "type": "string",
+      "description": "Id de posición que no existe en la base de datos"
+    },
+    {
+      "key": "accesorioIdExistente",
+      "value": "1",
+      "type": "string",
+      "description": "Id de un Accesorio existente en la BD, requerido porque el módulo de accesorios todavía no tiene endpoint de creación vía API. Script SQL mínimo para recrearlo si la BD se limpia: INSERT INTO Accesorio (codigo, nombre, tipo, longitud_cm) VALUES ('G-12-FIXTURE', 'Gancho fixture 12 pulgadas', 'GANCHO', 30) -- usar el id autogenerado si difiere de 1."
+    },
+    {
+      "key": "accesorioIdInexistente",
+      "value": "999999",
+      "type": "string",
+      "description": "Id de accesorio que no existe en la tabla Accesorio"
     }
   ],
   "item": [
@@ -7232,6 +7262,2996 @@
                     "v1",
                     "niveles",
                     "{{nivelIdPublicado}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "posiciones",
+      "item": [
+        {
+          "name": "Setup - datos de prueba",
+          "item": [
+            {
+              "name": "201 - Crear planograma para pruebas de posiciones (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Autos - Rack Posiciones {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\n    \"Aceites\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('planogramaIdPosiciones', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear version base GRANDE para posiciones (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdPosiciones}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdPosiciones}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdPosiciones', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear gondola para posiciones (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdPosiciones}}/gondolas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdPosiciones}}",
+                    "gondolas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Góndola Posiciones Setup\",\n  \"ancho_cm\": 200,\n  \"alto_cm\": 180,\n  \"profundidad_cm\": 40\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('gondolaIdPosiciones', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear nivel principal para posiciones (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdPosiciones}}/niveles",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdPosiciones}}",
+                    "niveles"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orden\": 1,\n  \"altura_desde_piso_cm\": 30,\n  \"tipo_accesorio\": \"BANDEJA\",\n  \"ancho_disponible_cm\": 120\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('nivelIdPosiciones', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear nivel destino para posiciones (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdPosiciones}}/niveles",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdPosiciones}}",
+                    "niveles"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orden\": 2,\n  \"altura_desde_piso_cm\": 60,\n  \"tipo_accesorio\": \"BANDEJA\",\n  \"ancho_disponible_cm\": 120\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('nivelIdPosicionesDestino', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear posicion base para obtener/editar (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdPosiciones}}/posiciones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdPosiciones}}",
+                    "posiciones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sku\": \"{{skuExistente}}\",\n  \"orden_horizontal\": 1,\n  \"ancho_asignado_cm\": 20,\n  \"facings_horizontal\": 2,\n  \"cantidad_apilable\": 1,\n  \"unidades_por_facing\": 1,\n  \"capacidad_maxima\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('posicionId', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear posicion para accesorios (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdPosiciones}}/posiciones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdPosiciones}}",
+                    "posiciones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sku\": \"{{skuExistente}}\",\n  \"orden_horizontal\": 2,\n  \"ancho_asignado_cm\": 20,\n  \"facings_horizontal\": 2,\n  \"cantidad_apilable\": 1,\n  \"unidades_por_facing\": 1,\n  \"capacidad_maxima\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('posicionIdAccesorios', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear posicion para mover (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdPosiciones}}/posiciones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdPosiciones}}",
+                    "posiciones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sku\": \"{{skuExistente}}\",\n  \"orden_horizontal\": 3,\n  \"ancho_asignado_cm\": 20,\n  \"facings_horizontal\": 2,\n  \"cantidad_apilable\": 1,\n  \"unidades_por_facing\": 1,\n  \"capacidad_maxima\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('posicionIdMover', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear posicion para copiar (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdPosiciones}}/posiciones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdPosiciones}}",
+                    "posiciones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sku\": \"{{skuExistente}}\",\n  \"orden_horizontal\": 4,\n  \"ancho_asignado_cm\": 20,\n  \"facings_horizontal\": 2,\n  \"cantidad_apilable\": 1,\n  \"unidades_por_facing\": 1,\n  \"capacidad_maxima\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('posicionIdCopiar', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear planograma para version publicada de posiciones (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Autos - Rack Posiciones Publicada {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\n    \"Aceites\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('planogramaIdPosicionesPublicada', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear version que sera publicada para posiciones (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdPosicionesPublicada}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdPosicionesPublicada}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdPosicionesPublicada', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear gondola en version que sera publicada para posiciones (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdPosicionesPublicada}}/gondolas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdPosicionesPublicada}}",
+                    "gondolas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Góndola Posiciones Publicada\",\n  \"ancho_cm\": 100,\n  \"alto_cm\": 180,\n  \"profundidad_cm\": 40\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('gondolaIdPosicionesPublicada', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear nivel en version que sera publicada para posiciones (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdPosicionesPublicada}}/niveles",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdPosicionesPublicada}}",
+                    "niveles"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orden\": 1,\n  \"altura_desde_piso_cm\": 30,\n  \"tipo_accesorio\": \"BANDEJA\",\n  \"ancho_disponible_cm\": 100\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('nivelIdPosicionesPublicado', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear posicion en version que sera publicada (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdPosicionesPublicado}}/posiciones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdPosicionesPublicado}}",
+                    "posiciones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sku\": \"{{skuExistente}}\",\n  \"orden_horizontal\": 1,\n  \"ancho_asignado_cm\": 10,\n  \"facings_horizontal\": 1,\n  \"cantidad_apilable\": 1,\n  \"unidades_por_facing\": 1,\n  \"capacidad_maxima\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('posicionIdPublicada', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Guardar version que sera publicada, avanza a en_desarrollo (setup)",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdPosicionesPublicada}}/guardar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdPosicionesPublicada}}",
+                    "guardar"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Promover version a piloto para posiciones (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdPosicionesPublicada}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdPosicionesPublicada}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Promover version a publicado para posiciones (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdPosicionesPublicada}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdPosicionesPublicada}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"publicado\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Listar posiciones de un nivel (GET /niveles/:id/posiciones)",
+          "item": [
+            {
+              "name": "200 - Listar posiciones del nivel con capacidad",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdPosiciones}}/posiciones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdPosiciones}}",
+                    "posiciones"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Retorna posiciones y capacidad del nivel', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.posiciones).to.be.an('array');",
+                      "  pm.expect(body.posiciones.length).to.be.at.least(4);",
+                      "  pm.expect(body.capacidad.ancho_disponible_cm).to.eql(120);",
+                      "  pm.expect(body.capacidad.ancho_ocupado_cm).to.eql(80);",
+                      "  pm.expect(body.capacidad.ancho_libre_cm).to.eql(40);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - nivel no encontrado",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdInexistente}}/posiciones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdInexistente}}",
+                    "posiciones"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Obtener detalle de posicion (GET /posiciones/:id)",
+          "item": [
+            {
+              "name": "200 - Obtener detalle con accesorios vacios",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Retorna los campos de la posicion', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.sku).to.eql(pm.collectionVariables.get('skuExistente'));",
+                      "  pm.expect(body.facings_horizontal).to.eql(2);",
+                      "  pm.expect(body.decision).to.eql('ACTIVO');",
+                      "  pm.expect(body.accesorios).to.be.an('array').that.has.lengthOf(0);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - id no es un entero positivo",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/abc",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "abc"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - posicion no encontrada",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdInexistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdInexistente}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Agregar posicion (POST /niveles/:id/posiciones)",
+          "item": [
+            {
+              "name": "201 - Crear posicion nueva sin desborde",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdPosicionesDestino}}/posiciones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdPosicionesDestino}}",
+                    "posiciones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sku\": \"{{skuExistente}}\",\n  \"orden_horizontal\": 1,\n  \"ancho_asignado_cm\": 15,\n  \"facings_horizontal\": 1,\n  \"cantidad_apilable\": 1,\n  \"unidades_por_facing\": 1,\n  \"capacidad_maxima\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.test('Posicion creada sin advertencia', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.sku).to.eql(pm.collectionVariables.get('skuExistente'));",
+                      "  pm.expect(body.nivelId).to.eql(Number(pm.collectionVariables.get('nivelIdPosicionesDestino')));",
+                      "  pm.expect(body.advertencia).to.be.undefined;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear posicion que desborda el nivel, responde con advertencia",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdPosicionesDestino}}/posiciones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdPosicionesDestino}}",
+                    "posiciones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sku\": \"{{skuExistente}}\",\n  \"orden_horizontal\": 2,\n  \"ancho_asignado_cm\": 200,\n  \"facings_horizontal\": 1,\n  \"cantidad_apilable\": 1,\n  \"unidades_por_facing\": 1,\n  \"capacidad_maxima\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.test('Responde con advertencia de desborde', () => {",
+                      "  pm.expect(pm.response.json().advertencia).to.be.a('string');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - sku vacio",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdPosicionesDestino}}/posiciones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdPosicionesDestino}}",
+                    "posiciones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sku\": \"\",\n  \"orden_horizontal\": 3,\n  \"ancho_asignado_cm\": 10,\n  \"facings_horizontal\": 1,\n  \"cantidad_apilable\": 1,\n  \"unidades_por_facing\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - sku no existe en el catalogo local",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdPosicionesDestino}}/posiciones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdPosicionesDestino}}",
+                    "posiciones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sku\": \"{{skuInexistente}}\",\n  \"orden_horizontal\": 3,\n  \"ancho_asignado_cm\": 10,\n  \"facings_horizontal\": 1,\n  \"cantidad_apilable\": 1,\n  \"unidades_por_facing\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - nivel no encontrado",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdInexistente}}/posiciones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdInexistente}}",
+                    "posiciones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sku\": \"{{skuExistente}}\",\n  \"orden_horizontal\": 1,\n  \"ancho_asignado_cm\": 10,\n  \"facings_horizontal\": 1,\n  \"cantidad_apilable\": 1,\n  \"unidades_por_facing\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - version no editable",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdPosicionesPublicado}}/posiciones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdPosicionesPublicado}}",
+                    "posiciones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sku\": \"{{skuExistente}}\",\n  \"orden_horizontal\": 2,\n  \"ancho_asignado_cm\": 10,\n  \"facings_horizontal\": 1,\n  \"cantidad_apilable\": 1,\n  \"unidades_por_facing\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Editar posicion (PATCH /posiciones/:id)",
+          "item": [
+            {
+              "name": "200 - Editar facings sin advertencia",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"facings_horizontal\": 3,\n  \"ancho_asignado_cm\": 30\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Campos actualizados', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.facings_horizontal).to.eql(3);",
+                      "  pm.expect(body.ancho_asignado_cm).to.eql(30);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Aceptar desborde con nota",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"desborda_gondola\": true,\n  \"nota_desborde\": \"Continúa en góndola B, nivel 2\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Desborde aceptado con nota', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.desborda_gondola).to.be.true;",
+                      "  pm.expect(body.nota_desborde).to.be.a('string');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - desborda_gondola sin nota_desborde",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdAccesorios}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdAccesorios}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"desborda_gondola\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - min_final mayor a max_final",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdAccesorios}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdAccesorios}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"min_final\": 10,\n  \"max_final\": 5\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - body vacio",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - posicion no encontrada",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdInexistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdInexistente}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"observaciones\": \"x\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - version no editable",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdPublicada}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdPublicada}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"observaciones\": \"Cambio bloqueado\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Mover posicion (PATCH /posiciones/:id/mover)",
+          "item": [
+            {
+              "name": "200 - Mover a otro nivel",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdMover}}/mover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdMover}}",
+                    "mover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nivel_id\": \"{{nivelIdPosicionesDestino}}\",\n  \"orden_horizontal\": 50\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Posicion movida al nivel y orden destino', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.nivel_id).to.eql(Number(pm.collectionVariables.get('nivelIdPosicionesDestino')));",
+                      "  pm.expect(body.orden_horizontal).to.eql(50);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Mismo nivel y mismo orden no hace nada",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdMover}}/mover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdMover}}",
+                    "mover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nivel_id\": \"{{nivelIdPosicionesDestino}}\",\n  \"orden_horizontal\": 50\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Retorna los datos actuales sin cambios', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.nivel_id).to.eql(Number(pm.collectionVariables.get('nivelIdPosicionesDestino')));",
+                      "  pm.expect(body.orden_horizontal).to.eql(50);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - nivel_id invalido",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdMover}}/mover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdMover}}",
+                    "mover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nivel_id\": 0,\n  \"orden_horizontal\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - posicion no encontrada",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdInexistente}}/mover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdInexistente}}",
+                    "mover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nivel_id\": \"{{nivelIdPosicionesDestino}}\",\n  \"orden_horizontal\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - nivel destino no pertenece a la misma version",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdAccesorios}}/mover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdAccesorios}}",
+                    "mover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nivel_id\": \"{{nivelIdPosicionesPublicado}}\",\n  \"orden_horizontal\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - version no editable",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdPublicada}}/mover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdPublicada}}",
+                    "mover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nivel_id\": \"{{nivelIdPosicionesPublicado}}\",\n  \"orden_horizontal\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Copiar posicion (POST /posiciones/:id/copiar)",
+          "item": [
+            {
+              "name": "201 - Copiar posicion a otro nivel",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdCopiar}}/copiar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdCopiar}}",
+                    "copiar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nivel_id_destino\": \"{{nivelIdPosicionesDestino}}\",\n  \"orden_destino\": 60\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.test('Copia creada en el nivel destino', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.id).to.not.eql(Number(pm.collectionVariables.get('posicionIdCopiar')));",
+                      "  pm.expect(body.sku).to.eql(pm.collectionVariables.get('skuExistente'));",
+                      "  pm.expect(body.nivelId).to.eql(Number(pm.collectionVariables.get('nivelIdPosicionesDestino')));",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - campos invalidos",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdCopiar}}/copiar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdCopiar}}",
+                    "copiar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nivel_id_destino\": 0,\n  \"orden_destino\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - posicion original no encontrada",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdInexistente}}/copiar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdInexistente}}",
+                    "copiar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nivel_id_destino\": \"{{nivelIdPosicionesDestino}}\",\n  \"orden_destino\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - nivel destino no existe",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdCopiar}}/copiar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdCopiar}}",
+                    "copiar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nivel_id_destino\": \"{{nivelIdInexistente}}\",\n  \"orden_destino\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - nivel destino pertenece a una version diferente",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdCopiar}}/copiar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdCopiar}}",
+                    "copiar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nivel_id_destino\": \"{{nivelIdPosicionesPublicado}}\",\n  \"orden_destino\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - version no editable",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdPublicada}}/copiar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdPublicada}}",
+                    "copiar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nivel_id_destino\": \"{{nivelIdPosicionesPublicado}}\",\n  \"orden_destino\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Listar accesorios de posicion (GET /posiciones/:id/accesorios)",
+          "item": [
+            {
+              "name": "200 - Listar accesorios vacio",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdAccesorios}}/accesorios",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdAccesorios}}",
+                    "accesorios"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Retorna un array vacio', () => {",
+                      "  pm.expect(pm.response.json()).to.be.an('array').that.has.lengthOf(0);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - posicion no encontrada",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdInexistente}}/accesorios",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdInexistente}}",
+                    "accesorios"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Agregar accesorio a posicion (POST /posiciones/:id/accesorios)",
+          "item": [
+            {
+              "name": "201 - Agregar accesorio con nota libre",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdAccesorios}}/accesorios",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdAccesorios}}",
+                    "accesorios"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"accesorio_id\": \"{{accesorioIdExistente}}\",\n  \"nota_libre\": \"Colocar a la derecha del producto\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.test('Accesorio agregado con orden 1', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.accesorio.id).to.eql(Number(pm.collectionVariables.get('accesorioIdExistente')));",
+                      "  pm.expect(body.orden).to.eql(1);",
+                      "  pm.collectionVariables.set('posicionAccesorioId', body.id);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - accesorio_id ausente",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdAccesorios}}/accesorios",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdAccesorios}}",
+                    "accesorios"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nota_libre\": \"x\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - posicion no encontrada",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdInexistente}}/accesorios",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdInexistente}}",
+                    "accesorios"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"accesorio_id\": \"{{accesorioIdExistente}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - accesorio no encontrado",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdAccesorios}}/accesorios",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdAccesorios}}",
+                    "accesorios"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"accesorio_id\": \"{{accesorioIdInexistente}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - version no editable",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdPublicada}}/accesorios",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdPublicada}}",
+                    "accesorios"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"accesorio_id\": \"{{accesorioIdExistente}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Eliminar accesorio de posicion (DELETE /posiciones/:id/accesorios/:accesorioId)",
+          "item": [
+            {
+              "name": "404 - posicion no encontrada",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdInexistente}}/accesorios/{{posicionAccesorioId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdInexistente}}",
+                    "accesorios",
+                    "{{posicionAccesorioId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - accesorio no pertenece a esta posicion",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionId}}/accesorios/{{posicionAccesorioId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionId}}",
+                    "accesorios",
+                    "{{posicionAccesorioId}}"
+                  ]
+                },
+                "description": "posicionAccesorioId pertenece a posicionIdAccesorios, no a posicionId."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - version no editable",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdPublicada}}/accesorios/{{posicionAccesorioId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdPublicada}}",
+                    "accesorios",
+                    "{{posicionAccesorioId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "204 - Eliminar accesorio existente",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdAccesorios}}/accesorios/{{posicionAccesorioId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdAccesorios}}",
+                    "accesorios",
+                    "{{posicionAccesorioId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 204', () => pm.response.to.have.status(204));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Buscar posiciones por SKU (GET /posiciones/por-sku)",
+          "item": [
+            {
+              "name": "200 - Buscar posiciones existentes de un SKU en una version",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/por-sku?sku={{skuExistente}}&versionId={{versionIdPosiciones}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "por-sku"
+                  ],
+                  "query": [
+                    {
+                      "key": "sku",
+                      "value": "{{skuExistente}}"
+                    },
+                    {
+                      "key": "versionId",
+                      "value": "{{versionIdPosiciones}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Retorna las posiciones del SKU en la version', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.sku).to.eql(pm.collectionVariables.get('skuExistente'));",
+                      "  pm.expect(body.totalPosicionesEnVersion).to.be.at.least(4);",
+                      "  pm.expect(body.posiciones).to.be.an('array');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - sku ausente",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/por-sku?versionId={{versionIdPosiciones}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "por-sku"
+                  ],
+                  "query": [
+                    {
+                      "key": "versionId",
+                      "value": "{{versionIdPosiciones}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - versionId ausente",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/por-sku?sku={{skuExistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "por-sku"
+                  ],
+                  "query": [
+                    {
+                      "key": "sku",
+                      "value": "{{skuExistente}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - version no encontrada",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/por-sku?sku={{skuExistente}}&versionId={{versionIdInexistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "por-sku"
+                  ],
+                  "query": [
+                    {
+                      "key": "sku",
+                      "value": "{{skuExistente}}"
+                    },
+                    {
+                      "key": "versionId",
+                      "value": "{{versionIdInexistente}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Eliminar posicion (DELETE /posiciones/:id)",
+          "item": [
+            {
+              "name": "204 - Eliminar posicion y reajustar orden de las siguientes",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 204', () => pm.response.to.have.status(204));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Verificar que el orden de las posiciones restantes se reajusto",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdPosiciones}}/posiciones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdPosiciones}}",
+                    "posiciones"
+                  ]
+                },
+                "description": "Depende de la eliminacion anterior de posicionId (orden_horizontal=1) en este mismo nivel."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Las posiciones restantes decrementaron su orden en 1', () => {",
+                      "  const body = pm.response.json();",
+                      "  const accesorios = body.posiciones.find((p) => p.id === Number(pm.collectionVariables.get('posicionIdAccesorios')));",
+                      "  const copiar = body.posiciones.find((p) => p.id === Number(pm.collectionVariables.get('posicionIdCopiar')));",
+                      "  pm.expect(accesorios.orden_horizontal).to.eql(1);",
+                      "  pm.expect(copiar.orden_horizontal).to.eql(2);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - id no es un entero positivo",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/abc",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "abc"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - posicion no encontrada",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdInexistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdInexistente}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - version no editable",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdPublicada}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdPublicada}}"
                   ]
                 }
               },
