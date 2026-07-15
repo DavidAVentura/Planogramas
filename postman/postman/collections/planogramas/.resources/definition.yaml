@@ -1,5 +1,4 @@
 $kind: collection
-name: planogramas
 description: |-
   Casos de éxito y de error para los 5 endpoints del módulo Planogramas (back/src/infrastructure/http/routes/planogramas.routes.js).
 
@@ -17,10 +16,10 @@ variables:
   versionIdConErroresBloqueantes: "1"
   gondolaIdInexistente: "999999"
   gondolaIdConPosiciones: "1"
-  planogramaIdGondolas: ""
-  versionIdGondolas: ""
-  gondolaId: ""
-  gondolaIdSecundaria: ""
-  planogramaIdGondolasPublicada: ""
-  versionIdGondolasPublicada: ""
-  gondolaIdPublicada: ""
+  nivelIdInexistente: "999999"
+  nivelIdConPosiciones: ""
+  skuExistente: SKU-FIXTURE-GONDOLA
+  skuInexistente: SKU-NO-EXISTE-999999
+  posicionIdInexistente: "999999"
+  accesorioIdExistente: "1"
+  accesorioIdInexistente: "999999"

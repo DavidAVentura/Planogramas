@@ -10272,6 +10272,239 @@
           ]
         }
       ]
+    },
+    {
+      "name": "accesorios",
+      "item": [
+        {
+          "name": "Listar accesorios (GET /accesorios)",
+          "item": [
+            {
+              "name": "200 - Listar sin filtros",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/accesorios",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "accesorios"
+                  ]
+                },
+                "description": "Catálogo completo, no paginado, ordenado por tipo ASC, nombre ASC."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Listar con filtro por tipo",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/accesorios?tipo=GANCHO",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "accesorios"
+                  ],
+                  "query": [
+                    {
+                      "key": "tipo",
+                      "value": "GANCHO"
+                    }
+                  ]
+                },
+                "description": "Filtra el catálogo por tipo = GANCHO."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Todos los items son del tipo solicitado', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  body.forEach((a) => pm.expect(a.tipo).to.eql('GANCHO'));",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - tipo con valor no permitido",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/accesorios?tipo=INVALIDO",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "accesorios"
+                  ],
+                  "query": [
+                    {
+                      "key": "tipo",
+                      "value": "INVALIDO"
+                    }
+                  ]
+                },
+                "description": "'tipo' solo admite GANCHO | BANDEJA | BARRA | CANASTA | OTRO."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Obtener detalle de accesorio (GET /accesorios/:id)",
+          "item": [
+            {
+              "name": "200 - Obtener detalle",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/accesorios/{{accesorioIdExistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "accesorios",
+                    "{{accesorioIdExistente}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Retorna los campos del accesorio', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.id).to.eql(Number(pm.collectionVariables.get('accesorioIdExistente')));",
+                      "  pm.expect(body).to.have.property('codigo').that.is.a('string');",
+                      "  pm.expect(body).to.have.property('tipo').that.is.a('string');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - id no es un entero positivo",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/accesorios/abc",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "accesorios",
+                    "abc"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - accesorio no encontrado",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/accesorios/{{accesorioIdInexistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "accesorios",
+                    "{{accesorioIdInexistente}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        }
+      ]
     }
   ]
 }
