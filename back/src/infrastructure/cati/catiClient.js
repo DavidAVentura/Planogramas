@@ -3,12 +3,15 @@
  * Cliente HTTP hacia CATI (catálogo y jerarquía). Adjunta Bearer + x-api-key en cada
  * llamada (ver tokenManager) y cachea en memoria las respuestas de jerarquía por 30 minutos,
  * ya que ese catálogo cambia raramente (ver contratos en Arquitectura/Contratos/11_jerarquia/).
+ * Las búsquedas de catálogo de productos se cachean por 5 minutos por separado (ver
+ * Arquitectura/Contratos/08_catalogo/).
  */
 
 const env          = require('../../config/env');
 const tokenManager = require('./tokenManager');
 
-const CACHE_TTL_MS = 30 * 60 * 1000;
+const CACHE_TTL_MS        = 30 * 60 * 1000;
+const CACHE_TTL_BUSQUEDA_MS = 5 * 60 * 1000;
 const cache        = new Map(); // clave → { valor, expiraEn }
 
 function errorServicioNoDisponible(mensaje, causa) {
@@ -25,8 +28,8 @@ function obtenerDeCache(clave) {
   return entrada.valor;
 }
 
-function guardarEnCache(clave, valor) {
-  cache.set(clave, { valor, expiraEn: Date.now() + CACHE_TTL_MS });
+function guardarEnCache(clave, valor, ttlMs = CACHE_TTL_MS) {
+  cache.set(clave, { valor, expiraEn: Date.now() + ttlMs });
 }
 
 function mapJerarquia(item) {
@@ -35,15 +38,20 @@ function mapJerarquia(item) {
 
 /**
  * GET autenticado contra CATI. Retorna `null` si CATI responde 404 (recurso no encontrado
- * dentro del catálogo, ej. área inexistente), y lanza 503 para cualquier otro error.
+ * dentro del catálogo, ej. área inexistente), y lanza 503 para cualquier otro error o si
+ * no responde dentro de `timeoutMs` (ver regla de negocio en GET_productos_buscar.md).
  * @param {string} path
  * @param {Record<string, string>} [params]
+ * @param {{ timeoutMs?: number }} [opciones]
  * @returns {Promise<any>}
  */
-async function get(path, params = {}) {
+async function get(path, params = {}, { timeoutMs } = {}) {
   const token = await tokenManager.obtenerAccessToken();
   const query = new URLSearchParams(params).toString();
   const url   = `${env.cati.baseUrl}${path}${query ? `?${query}` : ''}`;
+
+  const controller = timeoutMs ? new AbortController() : undefined;
+  const timeout     = timeoutMs ? setTimeout(() => controller.abort(), timeoutMs) : undefined;
 
   let response;
   try {
@@ -52,9 +60,12 @@ async function get(path, params = {}) {
         Authorization: `Bearer ${token}`,
         'x-api-key':   env.cati.apiKey,
       },
+      signal: controller?.signal,
     });
   } catch (err) {
     throw errorServicioNoDisponible('No se pudo conectar con CATI', err);
+  } finally {
+    if (timeout) clearTimeout(timeout);
   }
 
   if (response.status === 404) return null;
@@ -97,4 +108,120 @@ async function obtenerDepartamentos(areaId) {
   return departamentos;
 }
 
-module.exports = { get, obtenerAreas, obtenerDepartamentos };
+// ─── Catálogo de productos (ver Arquitectura/Contratos/08_catalogo/) ──────────
+
+const NOMBRES_ANCHO       = ['ancho', 'width'];
+const NOMBRES_ALTO        = ['alto', 'height'];
+const NOMBRES_PROFUNDIDAD = ['profundidad', 'fondo', 'depth'];
+const NOMBRE_ESTADO       = 'estado';
+const VALOR_ESTADO_ACTIVO = 'activo';
+
+/**
+ * Los atributos físicos (ancho/alto/profundidad) no vienen en `erpInformation` — CATI los
+ * expone como pares nombre/valor dentro de `internalAttributes`, con nombres que varían por
+ * producto. Se busca por coincidencia de nombre (case-insensitive) contra las variantes
+ * conocidas — ver anotación "Anti-corruption Layer" en GET_productos_detalle.md.
+ */
+function buscarAtributoNumerico(internalAttributes, nombresPosibles) {
+  if (!internalAttributes) return null;
+
+  for (const atributo of Object.values(internalAttributes)) {
+    if (!atributo?.name) continue;
+    const nombre = atributo.name.toLowerCase();
+    if (nombresPosibles.some((n) => nombre.includes(n))) {
+      const valor = Number(atributo.value);
+      return Number.isFinite(valor) ? valor : null;
+    }
+  }
+  return null;
+}
+
+function estaActivo(internalAttributes) {
+  if (!internalAttributes) return true; // sin el atributo no hay forma de excluirlo
+
+  for (const atributo of Object.values(internalAttributes)) {
+    if (atributo?.name?.toLowerCase() === NOMBRE_ESTADO) {
+      return atributo.value?.toLowerCase() === VALOR_ESTADO_ACTIVO;
+    }
+  }
+  return true;
+}
+
+function seleccionarImagenPrincipal(assets) {
+  if (!assets || assets.length === 0) return null;
+  const principal = assets.find((a) => a.destinoImagen === 'PRINCIPAL');
+  return (principal ?? assets[0]).azurePath_XL ?? null;
+}
+
+/** Forma usada en resultados de búsqueda — ver GET_productos_buscar.md. */
+function mapProductoCatalogo(raw) {
+  return {
+    sku:             raw.id,
+    nombre:          raw.name,
+    marca:           raw.erpInformation?.marca ?? null,
+    subcategoria:    raw.erpInformation?.subCategoria ?? null,
+    ancho_cm:        buscarAtributoNumerico(raw.internalAttributes, NOMBRES_ANCHO),
+    alto_cm:         buscarAtributoNumerico(raw.internalAttributes, NOMBRES_ALTO),
+    profundidad_cm:  buscarAtributoNumerico(raw.internalAttributes, NOMBRES_PROFUNDIDAD),
+    imagen_url:      seleccionarImagenPrincipal(raw.assets),
+    precio:          raw.regularPrice ?? null,
+  };
+}
+
+/** Forma usada en el detalle — agrega jerarquía; ver GET_productos_detalle.md. */
+function mapProductoDetalle(raw) {
+  return {
+    ...mapProductoCatalogo(raw),
+    categoria_nivel1: raw.erpInformation?.area ?? null,
+    categoria_nivel2: raw.erpInformation?.departamento ?? null,
+  };
+}
+
+/**
+ * Busca productos del catálogo (proxy a CATI GET /Product/search, cacheado 5 min).
+ * Solo retorna productos activos — ver regla 4 de GET_productos_buscar.md.
+ * @param {{ q: string, subcategoria?: string, page: number, pageSize: number }} filtros
+ * @returns {Promise<Array<object>>}
+ */
+async function buscarProductos({ q, subcategoria, page, pageSize }) {
+  const clave    = `catalogo:buscar:${JSON.stringify({ q, subcategoria, page, pageSize })}`;
+  const cacheado = obtenerDeCache(clave);
+  if (cacheado) return cacheado;
+
+  const params = {
+    Sku:         q,
+    Descripcion: q,
+    Marca:       q,
+    Profile:     'CEMACO',
+    PageNumber:  String(page),
+    PageSize:    String(pageSize),
+  };
+  if (subcategoria) params.Subcategoria = subcategoria;
+
+  const data       = await get('/Product/search', params, { timeoutMs: 5000 });
+  const productos  = (data?.productos ?? [])
+    .filter((raw) => estaActivo(raw.internalAttributes))
+    .map(mapProductoCatalogo);
+
+  guardarEnCache(clave, productos, CACHE_TTL_BUSQUEDA_MS);
+  return productos;
+}
+
+/**
+ * Obtiene el detalle de un producto (proxy a CATI GET /Product/{sku}). Retorna `null` si
+ * el SKU no existe en CATI — ver regla 4 de GET_productos_detalle.md.
+ * @param {string} sku
+ * @returns {Promise<object|null>}
+ */
+async function obtenerProducto(sku) {
+  const raw = await get(`/Product/${encodeURIComponent(sku)}`, { profile: 'CEMACO' });
+  return raw ? mapProductoDetalle(raw) : null;
+}
+
+module.exports = {
+  get,
+  obtenerAreas,
+  obtenerDepartamentos,
+  buscarProductos,
+  obtenerProducto,
+};

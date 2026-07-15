@@ -143,6 +143,12 @@
       "value": "",
       "type": "string",
       "description": "Id de una área real de la jerarquía comercial, obtenida dinámicamente desde CATI en el Setup del módulo jerarquia (GET /jerarquia/areas). No se puede sembrar vía SQL porque el catálogo es externo y de solo lectura."
+    },
+    {
+      "key": "catalogoSkuExistente",
+      "value": "",
+      "type": "string",
+      "description": "SKU real obtenido dinamicamente en catalogo/Setup - datos de prueba a partir de una busqueda en CATI. Se llena solo si la busqueda del setup encuentra resultados."
     }
   ],
   "item": [
@@ -10299,6 +10305,303 @@
                     "exec": [
                       "pm.test('Status 422', () => pm.response.to.have.status(422));",
                       "pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "catalogo",
+      "item": [
+        {
+          "name": "Setup - datos de prueba",
+          "item": [
+            {
+              "name": "200 - Buscar un producto real en CATI para usar en pruebas de detalle (setup)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos/buscar?q=de&page=1&pageSize=1",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos",
+                    "buscar"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "de"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "1"
+                    }
+                  ]
+                },
+                "description": "Busca un producto real en CATI (query generica 'de') para usarlo en el escenario de exito de /catalog/productos/{sku}. No se puede sembrar via SQL porque el catalogo de productos es externo (CATI) y de solo lectura."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "});",
+                      "const body = pm.response.json();",
+                      "if (body.length > 0) {",
+                      "  pm.collectionVariables.set('catalogoSkuExistente', body[0].sku);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Buscar productos (GET /catalog/productos/buscar)",
+          "item": [
+            {
+              "name": "200 - Buscar productos con query valido",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos/buscar?q=de&page=1&pageSize=20",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos",
+                    "buscar"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "de"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "20"
+                    }
+                  ]
+                },
+                "description": "Proxy/cache a CATI GET /Product/search — ver contrato en Arquitectura/Contratos/08_catalogo/GET_productos_buscar.md. Resultado cacheado 5 min."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array de productos con la forma esperada', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  body.forEach((p) => {",
+                      "    pm.expect(p).to.have.property('sku');",
+                      "    pm.expect(p).to.have.property('nombre');",
+                      "    pm.expect(p).to.have.property('marca');",
+                      "    pm.expect(p).to.have.property('subcategoria');",
+                      "    pm.expect(p).to.have.property('ancho_cm');",
+                      "    pm.expect(p).to.have.property('alto_cm');",
+                      "    pm.expect(p).to.have.property('profundidad_cm');",
+                      "    pm.expect(p).to.have.property('imagen_url');",
+                      "    pm.expect(p).to.have.property('precio');",
+                      "  });",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Sin parametro q",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos/buscar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos",
+                    "buscar"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - q con menos de 2 caracteres",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos/buscar?q=a",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos",
+                    "buscar"
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "a"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Obtener detalle de producto (GET /catalog/productos/:sku)",
+          "item": [
+            {
+              "name": "200 - Obtener detalle de un producto existente",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos/{{catalogoSkuExistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos",
+                    "{{catalogoSkuExistente}}"
+                  ]
+                },
+                "description": "Usa el SKU obtenido en el Setup del modulo. Proxy a CATI GET /Product/{sku}, enriquecido con sku_sustituto desde la tabla local Producto — ver Arquitectura/Contratos/08_catalogo/GET_productos_detalle.md."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde el detalle del producto con la forma esperada', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.have.property('sku');",
+                      "  pm.expect(body).to.have.property('nombre');",
+                      "  pm.expect(body).to.have.property('marca');",
+                      "  pm.expect(body).to.have.property('subcategoria');",
+                      "  pm.expect(body).to.have.property('categoria_nivel1');",
+                      "  pm.expect(body).to.have.property('categoria_nivel2');",
+                      "  pm.expect(body).to.have.property('ancho_cm');",
+                      "  pm.expect(body).to.have.property('alto_cm');",
+                      "  pm.expect(body).to.have.property('profundidad_cm');",
+                      "  pm.expect(body).to.have.property('imagen_url');",
+                      "  pm.expect(body).to.have.property('precio');",
+                      "  pm.expect(body).to.have.property('sku_sustituto');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - SKU inexistente en CATI",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos/{{skuInexistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos",
+                    "{{skuInexistente}}"
+                  ]
+                },
+                "description": "Reutiliza la variable skuInexistente (ya usada por otros modulos) asumiendo que un SKU que no existe localmente tampoco existe en CATI."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Code NOT_FOUND', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');",
+                      "});"
                     ]
                   }
                 }

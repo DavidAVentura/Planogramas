@@ -8,8 +8,12 @@ body:
   type: json
   content: |-
     {
-      "nombre": "Autos - Rack Frontal A (actualizado)",
-      "subcategorias": ["Aceites", "Filtros", "Bujias"]
+      "nombre": "Autos - Rack Frontal A (actualizado) {{$timestamp}}",
+      "subcategorias": [
+        "Aceites",
+        "Filtros",
+        "Bujias"
+      ]
     }
 scripts:
   - type: afterResponse
