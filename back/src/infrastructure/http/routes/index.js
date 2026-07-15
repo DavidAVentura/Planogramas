@@ -21,7 +21,7 @@ router.use('/niveles',        require('./niveles.routes'));
 router.use('/posiciones',     require('./posiciones.routes'));
 router.use('/accesorios',     require('./accesorios.routes'));
 router.use('/tiendas',        require('./tiendas.routes'));
-// router.use('/jerarquia',      require('./jerarquia.routes'));
+router.use('/jerarquia',      require('./jerarquia.routes'));
 // router.use('/catalog',        require('./catalogo.routes'));
 
 module.exports = router;

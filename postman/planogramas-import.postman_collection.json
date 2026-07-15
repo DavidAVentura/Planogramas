@@ -137,6 +137,12 @@
       "value": "",
       "type": "string",
       "description": "Id de la versión GRANDE base que el Setup del módulo tiendas usa para clonar una versión especial asignada a tiendaIdExistente (escenario sinVersionEspecial)."
+    },
+    {
+      "key": "jerarquiaAreaIdExistente",
+      "value": "",
+      "type": "string",
+      "description": "Id de una área real de la jerarquía comercial, obtenida dinámicamente desde CATI en el Setup del módulo jerarquia (GET /jerarquia/areas). No se puede sembrar vía SQL porque el catálogo es externo y de solo lectura."
     }
   ],
   "item": [
@@ -672,7 +678,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"nombre\": \"Autos - Rack Frontal A (actualizado)\",\n  \"subcategorias\": [\"Aceites\", \"Filtros\", \"Bujias\"]\n}",
+                  "raw": "{\n  \"nombre\": \"Autos - Rack Frontal A (actualizado) {{$timestamp}}\",\n  \"subcategorias\": [\n    \"Aceites\",\n    \"Filtros\",\n    \"Bujias\"\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -8507,7 +8513,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"sku\": \"{{skuExistente}}\",\n  \"orden_horizontal\": 1,\n  \"ancho_asignado_cm\": 10,\n  \"facings_horizontal\": 1,\n  \"cantidad_apilable\": 1,\n  \"unidades_por_facing\": 1\n}",
+                  "raw": "{\n  \"sku\": \"{{skuExistente}}\",\n  \"orden_horizontal\": 1,\n  \"ancho_asignado_cm\": 10,\n  \"facings_horizontal\": 1,\n  \"cantidad_apilable\": 1,\n  \"unidades_por_facing\": 1,\n  \"capacidad_maxima\": 1\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -8554,7 +8560,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"sku\": \"{{skuExistente}}\",\n  \"orden_horizontal\": 2,\n  \"ancho_asignado_cm\": 10,\n  \"facings_horizontal\": 1,\n  \"cantidad_apilable\": 1,\n  \"unidades_por_facing\": 1\n}",
+                  "raw": "{\n  \"sku\": \"{{skuExistente}}\",\n  \"orden_horizontal\": 2,\n  \"ancho_asignado_cm\": 10,\n  \"facings_horizontal\": 1,\n  \"cantidad_apilable\": 1,\n  \"unidades_por_facing\": 1,\n  \"capacidad_maxima\": 1\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -11231,6 +11237,183 @@
                       "pm.test('Status 404', () => pm.response.to.have.status(404));",
                       "pm.test('Code NOT_FOUND', () => {",
                       "  pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "jerarquia",
+      "item": [
+        {
+          "name": "Setup - datos de prueba",
+          "item": [
+            {
+              "name": "200 - Obtener área de referencia para pruebas de jerarquia (setup)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/jerarquia/areas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "jerarquia",
+                    "areas"
+                  ]
+                },
+                "description": "Obtiene una área real desde CATI para usarla en el escenario de éxito de /jerarquia/departamentos. No se puede sembrar vía SQL porque el catálogo de jerarquía es externo (CATI) y de solo lectura."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array de áreas con al menos un elemento', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  pm.expect(body.length).to.be.greaterThan(0);",
+                      "});",
+                      "pm.collectionVariables.set('jerarquiaAreaIdExistente', pm.response.json()[0].id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Listar áreas (GET /jerarquia/areas)",
+          "item": [
+            {
+              "name": "200 - Listar áreas",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/jerarquia/areas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "jerarquia",
+                    "areas"
+                  ]
+                },
+                "description": "La respuesta se cachea 30 minutos en el backend (ver contrato)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array de áreas con id y name', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  body.forEach((a) => {",
+                      "    pm.expect(a).to.have.property('id');",
+                      "    pm.expect(a).to.have.property('name');",
+                      "  });",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Listar departamentos por área (GET /jerarquia/departamentos)",
+          "item": [
+            {
+              "name": "200 - Listar departamentos de un área existente",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/jerarquia/departamentos?area={{jerarquiaAreaIdExistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "jerarquia",
+                    "departamentos"
+                  ],
+                  "query": [
+                    {
+                      "key": "area",
+                      "value": "{{jerarquiaAreaIdExistente}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array de departamentos con id y name', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  body.forEach((d) => {",
+                      "    pm.expect(d).to.have.property('id');",
+                      "    pm.expect(d).to.have.property('name');",
+                      "  });",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Sin parámetro area",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/jerarquia/departamentos",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "jerarquia",
+                    "departamentos"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
                       "});"
                     ]
                   }
