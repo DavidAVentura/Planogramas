@@ -50,7 +50,7 @@
     },
     {
       "key": "versionIdConErroresBloqueantes",
-      "value": "1",
+      "value": "82",
       "type": "string",
       "description": "Id de una version en estado piloto que tiene al menos una Posicion con min_final > max_final. No se puede generar via Setup porque el modulo de posiciones (min_final/max_final) todavia no tiene endpoints. Script SQL minimo para recrearlo si la BD se limpia: crear una version en estado piloto, agregarle una Gondola/Nivel, e insertar una Posicion con min_final=5, max_final=4 -- ej. INSERT INTO Posicion (nivel_id, orden_horizontal, sku, ancho_asignado_cm, min_final, max_final) VALUES (<nivel_id>, 1, '<sku_existente>', 10, 5, 4)."
     },
@@ -62,7 +62,7 @@
     },
     {
       "key": "gondolaIdConPosiciones",
-      "value": "1",
+      "value": "31",
       "type": "string",
       "description": "Id de una góndola que tiene al menos un Nivel con una Posicion asignada, para forzar 409 en DELETE sin forzar=true. No se puede generar via Setup porque los modulos de niveles y posiciones todavia no tienen endpoints. Debe pertenecer a una version en estado editable (borrador/en_desarrollo/piloto) para que el chequeo de 422 no se dispare antes. Script SQL minimo para recrearlo si la BD se limpia: crear un Planograma y una PlanogramaVersion (estado por defecto 'borrador'), una Gondola, un Nivel (INSERT INTO Nivel (gondola_id, orden, altura_desde_piso_cm, ancho_disponible_cm) VALUES (<gondola_id>, 1, 0, 100)), un Producto dummy (INSERT INTO Producto (sku, nombre) VALUES ('SKU-FIXTURE-GONDOLA', 'Producto fixture')) y una Posicion (INSERT INTO Posicion (nivel_id, orden_horizontal, sku, ancho_asignado_cm) VALUES (<nivel_id>, 1, 'SKU-FIXTURE-GONDOLA', 10))."
     },
@@ -107,6 +107,36 @@
       "value": "999999",
       "type": "string",
       "description": "Id de accesorio que no existe en la tabla Accesorio"
+    },
+    {
+      "key": "tiendaIdExistente",
+      "value": "1",
+      "type": "string",
+      "description": "Id de una Tienda existente en la BD (tipo GRANDE, estado activo), requerida porque el módulo de tiendas todavía no tiene endpoint de creación vía API (la tabla Tienda se carga por proceso de datos maestro, fuera del alcance del piloto). El valor '1' corresponde a Cemaco Pradera (codigo T0PC), ya sembrada en el entorno de referencia. Script SQL mínimo para recrearla si la BD se limpia: INSERT INTO Tienda (codigo, nombre, tipo, estado, region) VALUES ('T0PC', 'Cemaco Pradera', 'GRANDE', 'activo', 'Guatemala Metropolitana') -- usar el id autogenerado si difiere de 1."
+    },
+    {
+      "key": "tiendaIdInexistente",
+      "value": "999999",
+      "type": "string",
+      "description": "Id de tienda que no existe en la base de datos"
+    },
+    {
+      "key": "planogramaIdTiendas",
+      "value": "",
+      "type": "string",
+      "description": "Id del planograma temporal creado por el Setup del módulo tiendas. Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "versionIdParaPublicarTiendas",
+      "value": "",
+      "type": "string",
+      "description": "Id de la versión GRANDE que el Setup del módulo tiendas promueve hasta publicado y asigna a tiendaIdExistente."
+    },
+    {
+      "key": "versionBaseIdTiendas",
+      "value": "",
+      "type": "string",
+      "description": "Id de la versión GRANDE base que el Setup del módulo tiendas usa para clonar una versión especial asignada a tiendaIdExistente (escenario sinVersionEspecial)."
     }
   ],
   "item": [
@@ -10496,6 +10526,712 @@
                     "exec": [
                       "pm.test('Status 404', () => pm.response.to.have.status(404));",
                       "pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "tiendas",
+      "item": [
+        {
+          "name": "Setup - datos de prueba",
+          "item": [
+            {
+              "name": "201 - Crear planograma temporal para pruebas de tiendas (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
+                },
+                "description": "Planograma fresco para las pruebas de tiendas. Guarda su id en planogramaIdTiendas.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Tiendas - Planograma Setup {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\n    \"Aceites y lubricantes\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('planogramaIdTiendas', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear versión GRANDE para publicar (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdTiendas}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdTiendas}}",
+                    "versiones"
+                  ]
+                },
+                "description": "Versión que se promueve hasta publicado y se asigna a tiendaIdExistente, para el escenario \"con planogramas publicados\".",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdParaPublicarTiendas', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Guardar versión para publicar, borrador→en_desarrollo (setup)",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdParaPublicarTiendas}}/guardar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdParaPublicarTiendas}}",
+                    "guardar"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Promover versión a piloto asignando tienda existente (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdParaPublicarTiendas}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdParaPublicarTiendas}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    \"{{tiendaIdExistente}}\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Promover versión a publicado (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdParaPublicarTiendas}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdParaPublicarTiendas}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"publicado\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear versión GRANDE base para clonar (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdTiendas}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdTiendas}}",
+                    "versiones"
+                  ]
+                },
+                "description": "Segunda versión GRANDE del mismo planograma (la primera ya está publicada, así que no choca con la unicidad de versión activa). Sirve de base para la versión especial clonada abajo.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionBaseIdTiendas', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear versión especial derivada asignada a tienda existente (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdTiendas}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdTiendas}}",
+                    "versiones"
+                  ]
+                },
+                "description": "Versión especial clonada de versionBaseIdTiendas y asignada a tiendaIdExistente, para el escenario sinVersionEspecial=true (debe excluir a esta tienda).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\",\n  \"versionBaseId\": \"{{versionBaseIdTiendas}}\",\n  \"tiendaId\": \"{{tiendaIdExistente}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Listar tiendas (GET /tiendas)",
+          "item": [
+            {
+              "name": "200 - Listar sin filtros",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas"
+                  ]
+                },
+                "description": "Por defecto solo tiendas activas, sin paginación, ordenadas por nombre ASC."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array de tiendas', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  body.forEach((t) => {",
+                      "    pm.expect(t).to.have.property('id');",
+                      "    pm.expect(t).to.have.property('codigo');",
+                      "    pm.expect(t).to.have.property('nombre');",
+                      "    pm.expect(t).to.have.property('tipo');",
+                      "  });",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Listar con filtro por tipo",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas?tipo=GRANDE",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "tipo",
+                      "value": "GRANDE"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Todas las tiendas son del tipo solicitado', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  body.forEach((t) => pm.expect(t.tipo).to.eql('GRANDE'));",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - sinVersionEspecial excluye la tienda ya clonada",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas?tipo=GRANDE&sinVersionEspecial=true&planogramaId={{planogramaIdTiendas}}&versionBaseId={{versionBaseIdTiendas}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "tipo",
+                      "value": "GRANDE"
+                    },
+                    {
+                      "key": "sinVersionEspecial",
+                      "value": "true"
+                    },
+                    {
+                      "key": "planogramaId",
+                      "value": "{{planogramaIdTiendas}}"
+                    },
+                    {
+                      "key": "versionBaseId",
+                      "value": "{{versionBaseIdTiendas}}"
+                    }
+                  ]
+                },
+                "description": "tiendaIdExistente ya tiene una versión especial derivada de versionBaseIdTiendas (ver Setup) y debe quedar excluida del listado."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('No incluye la tienda ya clonada', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  const excluida = pm.collectionVariables.get('tiendaIdExistente');",
+                      "  pm.expect(body.some((t) => t.id === Number(excluida))).to.eql(false);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - tipo con valor no permitido",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas?tipo=INVALIDO",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "tipo",
+                      "value": "INVALIDO"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - sinVersionEspecial=true sin planogramaId ni versionBaseId",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas?sinVersionEspecial=true",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "sinVersionEspecial",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Planogramas publicados por tienda (GET /tiendas/:tiendaId/planogramas)",
+          "item": [
+            {
+              "name": "200 - Con planogramas publicados",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdExistente}}/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdExistente}}",
+                    "planogramas"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Retorna la tienda y al menos un planograma publicado', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.tienda.id).to.eql(Number(pm.collectionVariables.get('tiendaIdExistente')));",
+                      "  pm.expect(body.planogramas).to.be.an('array').that.is.not.empty;",
+                      "  const p = body.planogramas[0];",
+                      "  pm.expect(p).to.have.property('versionId');",
+                      "  pm.expect(p).to.have.property('codigo');",
+                      "  pm.expect(p).to.have.property('tipo');",
+                      "  pm.expect(p).to.have.property('planogramaId');",
+                      "  pm.expect(p).to.have.property('nombre');",
+                      "  pm.expect(p).to.have.property('departamento');",
+                      "  pm.expect(p.subcategorias).to.be.an('array');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Sin planogramas para el departamento filtrado",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdExistente}}/planogramas?departamento=NoExisteDepto",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdExistente}}",
+                    "planogramas"
+                  ],
+                  "query": [
+                    {
+                      "key": "departamento",
+                      "value": "NoExisteDepto"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Lista vacía con mensaje informativo', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.planogramas).to.eql([]);",
+                      "  pm.expect(body.mensaje).to.be.a('string');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - tiendaId no es un entero positivo",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/abc/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "abc",
+                    "planogramas"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - tienda no encontrada",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdInexistente}}/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdInexistente}}",
+                    "planogramas"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Code NOT_FOUND', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');",
+                      "});"
                     ]
                   }
                 }
