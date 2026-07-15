@@ -178,6 +178,9 @@
   },
   "active": "7a5912fe6ac89b40",
   "lastOpenFiles": [
+    "ESTRUCTURA_FRONTEND.md",
+    "ESTRUCTURA_FRONTEND.md.tmp.38572.4a5af0915208",
+    "INVENTARIO_PANTALLAS_COMPONENTES.md",
     "Contratos/02_versiones/PATCH_versiones_guardar.md",
     "ENDPOINTS.md.tmp.13820.1ab35ef28c0e",
     "ESTRUCTURA_BACKEND.md.tmp.13820.6b0f567c15fa",
@@ -189,7 +192,6 @@
     "SEQ_CU-01_gestion_planogramas.md.tmp.20272.6d163dbc7679",
     "SEQ_CU-05_sustitucion_skus.md.tmp.13020.db64f3910ca1",
     "SEQ_CU-04_posiciones_productos.md.tmp.13020.1b3cffc2f19e",
-    "SEQ_CU-01_gestion_planogramas.md.tmp.13020.a58c30f16778",
     "Contratos/05_posiciones/DELETE_posiciones_eliminar.md",
     "Contratos/05_posiciones/GET_posiciones_detalle_analista.md",
     "Contratos/04_niveles/GET_niveles_detalle.md",
@@ -212,8 +214,6 @@
     "Contratos/07_exportacion/GET_exportar_json.md",
     "Contratos/06_sustituciones/GET_posiciones_por_sku.md",
     "Contratos/06_sustituciones/POST_sustituciones_ejecutar.md",
-    "Contratos/06_sustituciones/GET_sustituciones_historial.md",
-    "Contratos/05_posiciones/GET_posiciones_capacidad.md",
     "Sin título.canvas"
   ]
 }
