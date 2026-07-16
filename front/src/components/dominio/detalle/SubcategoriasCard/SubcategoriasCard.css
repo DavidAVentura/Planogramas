@@ -1,0 +1,26 @@
+.subcategorias-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+
+  h3 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    color: var(--fg-2);
+  }
+}
+
+.subcategorias-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.subcategorias-card__chip {
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--ink-100);
+  color: var(--ink-700);
+  font-size: 13px;
+}

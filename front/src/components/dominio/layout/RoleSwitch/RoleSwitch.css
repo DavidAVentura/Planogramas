@@ -1,0 +1,23 @@
+.role-switch {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--ink-100);
+}
+
+.role-switch__opcion {
+  border: 0;
+  background: transparent;
+  padding: 7px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-2);
+  cursor: pointer;
+
+  &--activa {
+    background: #fff;
+    color: var(--cemaco-indigo);
+    box-shadow: var(--shadow-xs);
+  }
+}

@@ -1,0 +1,18 @@
+.planogramas-listado__contenido {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.planogramas-listado__cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.planogramas-listado__conteo {
+  font-size: 14px;
+  color: var(--fg-2);
+  font-weight: 600;
+}

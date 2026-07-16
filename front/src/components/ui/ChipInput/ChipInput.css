@@ -1,0 +1,42 @@
+.chip-input {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: #fff;
+
+  &:focus-within { border-color: var(--cemaco-indigo); }
+}
+
+.chip-input__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--cemaco-indigo-50);
+  color: var(--cemaco-indigo);
+  font-size: 13px;
+
+  button {
+    background: transparent;
+    border: 0;
+    color: inherit;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+  }
+}
+
+.chip-input__campo {
+  flex: 1;
+  min-width: 120px;
+  border: 0;
+  outline: 0;
+  font-size: 14px;
+  font-family: var(--font-body);
+  padding: 4px;
+}

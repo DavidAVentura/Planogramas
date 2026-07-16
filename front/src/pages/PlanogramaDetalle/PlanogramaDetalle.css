@@ -1,0 +1,46 @@
+.planograma-detalle__contenido {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.planograma-detalle__cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.planograma-detalle__titulo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: 28px;
+    margin: 0;
+    color: var(--fg-1);
+  }
+}
+
+.planograma-detalle__meta {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--fg-3);
+}
+
+.planograma-detalle__acciones {
+  display: flex;
+  gap: 10px;
+  flex: none;
+}
+
+.planograma-detalle__versiones h3 {
+  font-size: 16px;
+  color: var(--fg-1);
+  margin: 0 0 12px;
+}
