@@ -1,0 +1,29 @@
+.wizard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wizard__indicador {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg-3);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.wizard__puntos {
+  display: flex;
+  gap: 6px;
+}
+
+.wizard__punto {
+  width: 24px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--ink-200);
+
+  &--activo {
+    background: var(--cemaco-indigo);
+  }
+}

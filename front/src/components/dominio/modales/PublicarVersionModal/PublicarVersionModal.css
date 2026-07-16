@@ -1,0 +1,9 @@
+.publicar-version-modal__errores {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+  color: var(--danger);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}

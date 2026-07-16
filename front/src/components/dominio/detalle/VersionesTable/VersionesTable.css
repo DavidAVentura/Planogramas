@@ -1,0 +1,19 @@
+.versiones-table__acciones {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  button {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--fg-1);
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover { background: var(--ink-50); }
+  }
+}
