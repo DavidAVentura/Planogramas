@@ -1,0 +1,2359 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/cemaco-design-system-fbefd108-220b-4745-af0f-6ebbc2643e92/colors_and_type.css">
+  <link rel="stylesheet" href="_ds/cemaco-design-system-fbefd108-220b-4745-af0f-6ebbc2643e92/ui_kits/web/cemaco-web.css">
+  <script src="_ds/cemaco-design-system-fbefd108-220b-4745-af0f-6ebbc2643e92/_ds_bundle.js"></script>
+  <style>
+    body { margin: 0; box-sizing: border-box; }
+    *, *::before, *::after { box-sizing: border-box; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: var(--ink-200); border-radius: 4px; }
+  </style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;height:100vh;width:100%;background:var(--bg);font-family:var(--font-body);overflow:hidden;position:relative;">
+
+  <!-- Main column -->
+  <div style="display:flex;flex-direction:column;flex:1;min-width:0;height:100%;">
+
+    <!-- Topbar -->
+    <header style="display:flex;align-items:center;gap:14px;padding:14px 20px;background:#fff;border-bottom:1px solid var(--border);flex:none;">
+      <div style="display:flex;align-items:center;gap:10px;flex:none;">
+        <div style="width:34px;height:34px;border-radius:8px;background:var(--cemaco-green);display:flex;align-items:center;justify-content:center;flex:none;">
+          <span style="font-family:var(--font-display);font-size:16px;color:var(--cemaco-indigo);font-weight:400;">C</span>
+        </div>
+        <div>
+          <div style="font-family:var(--font-display);font-size:15px;color:var(--fg-1);line-height:1.1;">Planogramas</div>
+          <div style="font-size:10px;color:var(--fg-3);letter-spacing:0.03em;">CEMACO</div>
+        </div>
+      </div>
+      <div style="width:1px;height:28px;background:var(--border);flex:none;"></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:var(--font-display);font-size:20px;color:var(--fg-1);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ pageTitle }}</div>
+        <sc-if value="{{ showBreadcrumb }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12px;color:var(--fg-3);margin-top:2px;">
+            <a href="#" onClick="{{ goListado }}" style="color:var(--cemaco-indigo);text-decoration:none;font-weight:600;">Planogramas</a>
+            <span> / {{ breadcrumbTail }}</span>
+          </div>
+        </sc-if>
+      </div>
+      <div style="display:flex;align-items:center;gap:2px;background:var(--ink-100);border-radius:999px;padding:3px;flex:none;">
+        <button onClick="{{ setRoleAnalista }}" style="{{ roleAnalistaBtnStyle }}">Analista</button>
+        <button onClick="{{ setRoleImplementador }}" style="{{ roleImplementadorBtnStyle }}">Implementador</button>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main style="flex:1;overflow-y:auto;padding:{{ contentPadding }};">
+
+      <!-- LISTADO -->
+      <sc-if value="{{ isListado }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap;">
+            <div>
+              <div style="font-size:14px;color:var(--fg-2);">{{ totalCountLabel }}</div>
+            </div>
+            <sc-if value="{{ isAnalista }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ openCrear }}" style="background:var(--cemaco-indigo);color:#fff;border:0;border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;">+ Crear planograma</button>
+            </sc-if>
+          </div>
+
+          <!-- Filters -->
+          <sc-if value="{{ isFiltersInline }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px;">
+              <select value="{{ filtroArea }}" onChange="{{ onFiltroAreaChange }}" style="{{ selectStyle }}">
+                <option value="">Todas las áreas</option>
+                <sc-for list="{{ areasOptions }}" as="a" hint-placeholder-count="2">
+                  <option value="{{ a.value }}">{{ a.label }}</option>
+                </sc-for>
+              </select>
+              <select value="{{ filtroDepto }}" onChange="{{ onFiltroDeptoChange }}" style="{{ selectStyle }}">
+                <option value="">Todos los departamentos</option>
+                <sc-for list="{{ departamentosFiltroOptions }}" as="d" hint-placeholder-count="4">
+                  <option value="{{ d.codigo }}">{{ d.nombre }}</option>
+                </sc-for>
+              </select>
+              <select value="{{ filtroEstado }}" onChange="{{ onFiltroEstadoChange }}" style="{{ selectStyle }}">
+                <sc-for list="{{ estadosOptions }}" as="e" hint-placeholder-count="4">
+                  <option value="{{ e.value }}">{{ e.label }}</option>
+                </sc-for>
+              </select>
+              <input type="text" value="{{ search }}" onChange="{{ onSearchChange }}" placeholder="Buscar por nombre…" style="{{ searchInputStyle }}" />
+              <sc-if value="{{ hasActiveFilters }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ clearFiltros }}" style="background:transparent;border:0;color:var(--cemaco-indigo);font-size:13px;font-weight:600;cursor:pointer;padding:8px;">Limpiar filtros</button>
+              </sc-if>
+            </div>
+          </sc-if>
+          <sc-if value="{{ isFiltersInline }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ false }}" hint-placeholder-val="{{ false }}"><span></span></sc-if></sc-if>
+
+          <sc-if value="{{ showFiltersToggle }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-bottom:14px;">
+              <button onClick="{{ toggleFiltrosOpen }}" style="width:100%;text-align:left;background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;font-weight:600;color:var(--fg-1);cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
+                <span>Filtros {{ activeFilterCountLabel }}</span>
+                <span>{{ filtrosToggleChevron }}</span>
+              </button>
+              <sc-if value="{{ filtrosOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:10px;background:#fff;border:1px solid var(--border);border-top:0;border-radius:0 0 10px 10px;padding:14px;">
+                  <select value="{{ filtroArea }}" onChange="{{ onFiltroAreaChange }}" style="{{ selectStyleFull }}">
+                    <option value="">Todas las áreas</option>
+                    <sc-for list="{{ areasOptions }}" as="a2" hint-placeholder-count="2">
+                      <option value="{{ a2.value }}">{{ a2.label }}</option>
+                    </sc-for>
+                  </select>
+                  <select value="{{ filtroDepto }}" onChange="{{ onFiltroDeptoChange }}" style="{{ selectStyleFull }}">
+                    <option value="">Todos los departamentos</option>
+                    <sc-for list="{{ departamentosFiltroOptions }}" as="d2" hint-placeholder-count="4">
+                      <option value="{{ d2.codigo }}">{{ d2.nombre }}</option>
+                    </sc-for>
+                  </select>
+                  <select value="{{ filtroEstado }}" onChange="{{ onFiltroEstadoChange }}" style="{{ selectStyleFull }}">
+                    <sc-for list="{{ estadosOptions }}" as="e2" hint-placeholder-count="4">
+                      <option value="{{ e2.value }}">{{ e2.label }}</option>
+                    </sc-for>
+                  </select>
+                  <input type="text" value="{{ search }}" onChange="{{ onSearchChange }}" placeholder="Buscar por nombre…" style="{{ selectStyleFull }}" />
+                  <sc-if value="{{ hasActiveFilters }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ clearFiltros }}" style="background:transparent;border:0;color:var(--cemaco-indigo);font-size:13px;font-weight:600;cursor:pointer;padding:6px 0;text-align:left;">Limpiar filtros</button>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <!-- Empty state -->
+          <sc-if value="{{ isEmptyList }}" hint-placeholder-val="{{ false }}">
+            <div style="text-align:center;padding:60px 20px;background:#fff;border:1px dashed var(--border-strong);border-radius:12px;color:var(--fg-3);">
+              <div style="font-size:16px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">No se encontraron planogramas</div>
+              <div style="font-size:14px;">Ajusta los filtros o crea un nuevo planograma.</div>
+            </div>
+          </sc-if>
+
+          <!-- Table view -->
+          <sc-if value="{{ isTableView }}" hint-placeholder-val="{{ true }}">
+            <div style="background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+              <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                <thead>
+                  <tr style="background:var(--ink-50);">
+                    <th style="text-align:left;padding:12px 16px;font-size:12px;color:var(--fg-3);font-weight:600;letter-spacing:0.03em;">NOMBRE</th>
+                    <th style="text-align:left;padding:12px 16px;font-size:12px;color:var(--fg-3);font-weight:600;letter-spacing:0.03em;">DEPARTAMENTO</th>
+                    <th style="text-align:left;padding:12px 16px;font-size:12px;color:var(--fg-3);font-weight:600;letter-spacing:0.03em;">ESTADO</th>
+                    <th style="text-align:left;padding:12px 16px;font-size:12px;color:var(--fg-3);font-weight:600;letter-spacing:0.03em;">VERSIONES</th>
+                    <th style="text-align:left;padding:12px 16px;font-size:12px;color:var(--fg-3);font-weight:600;letter-spacing:0.03em;">CREADO</th>
+                    <sc-if value="{{ isAnalista }}" hint-placeholder-val="{{ true }}">
+                      <th style="text-align:right;padding:12px 16px;font-size:12px;color:var(--fg-3);font-weight:600;letter-spacing:0.03em;">ACCIONES</th>
+                    </sc-if>
+                  </tr>
+                </thead>
+                <tbody>
+                  <sc-for list="{{ planogramasList }}" as="p" hint-placeholder-count="6">
+                    <tr onClick="{{ p.goDetalle }}" style="border-top:1px solid var(--border-subtle);cursor:pointer;">
+                      <td style="padding:14px 16px;font-weight:600;color:var(--fg-1);">{{ p.nombre }}</td>
+                      <td style="padding:14px 16px;color:var(--fg-2);">{{ p.departamentoLabel }}</td>
+                      <td style="padding:14px 16px;"><span style="{{ p.badgeStyle }}">{{ p.estadoLabel }}</span></td>
+                      <td style="padding:14px 16px;color:var(--fg-2);">{{ p.totalVersiones }}</td>
+                      <td style="padding:14px 16px;color:var(--fg-3);font-size:13px;">{{ p.createdAtLabel }}</td>
+                      <sc-if value="{{ isAnalista }}" hint-placeholder-val="{{ true }}">
+                        <td style="padding:10px 16px;text-align:right;white-space:nowrap;">
+                          <button onClick="{{ p.openEditar }}" style="background:transparent;border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--fg-1);cursor:pointer;margin-right:6px;">Editar</button>
+                          <button onClick="{{ p.openArchivar }}" disabled="{{ p.archiveDisabled }}" style="{{ p.archiveBtnStyle }}">Archivar</button>
+                        </td>
+                      </sc-if>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+          </sc-if>
+
+          <!-- Card view -->
+          <sc-if value="{{ isCardView }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <sc-for list="{{ planogramasList }}" as="pc" hint-placeholder-count="6">
+                <div onClick="{{ pc.goDetalle }}" style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+                    <div style="font-weight:600;font-size:15px;color:var(--fg-1);">{{ pc.nombre }}</div>
+                    <span style="{{ pc.badgeStyle }}">{{ pc.estadoLabel }}</span>
+                  </div>
+                  <div style="font-size:13px;color:var(--fg-2);margin-top:4px;">{{ pc.departamentoLabel }} · {{ pc.totalVersiones }} versiones</div>
+                  <div style="font-size:12px;color:var(--fg-3);margin-top:2px;">Creado {{ pc.createdAtLabel }}</div>
+                  <sc-if value="{{ isAnalista }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex;gap:8px;margin-top:10px;">
+                      <button onClick="{{ pc.openEditar }}" style="flex:1;background:transparent;border:1px solid var(--border);border-radius:6px;padding:8px;font-size:13px;font-weight:600;color:var(--fg-1);cursor:pointer;">Editar</button>
+                      <button onClick="{{ pc.openArchivar }}" disabled="{{ pc.archiveDisabled }}" style="{{ pc.archiveBtnStyleFull }}">Archivar</button>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- DETALLE -->
+      <sc-if value="{{ isDetalle }}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{ hasCurrentPlanograma }}" hint-placeholder-val="{{ true }}">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
+              <div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <h1 style="font-family:var(--font-display);font-size:28px;margin:0;color:var(--fg-1);">{{ currentNombre }}</h1>
+                  <span style="{{ currentBadgeStyle }}">{{ currentEstadoLabel }}</span>
+                </div>
+                <div style="font-size:13px;color:var(--fg-3);margin-top:6px;">{{ currentAreaLabel }} · {{ currentDeptoLabel }} · Creado {{ currentCreatedAtLabel }} por {{ currentCreatedBy }}</div>
+                <sc-if value="{{ isImplementador }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:12px;color:var(--cemaco-indigo);margin-top:6px;font-weight:600;">Modo consulta — solo lectura</div>
+                </sc-if>
+              </div>
+              <sc-if value="{{ isAnalista }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;gap:8px;flex:none;">
+                  <button onClick="{{ openEditarCurrent }}" style="background:transparent;border:1.5px solid var(--cemaco-indigo);color:var(--cemaco-indigo);border-radius:8px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;">Editar</button>
+                  <button onClick="{{ openArchivarCurrent }}" disabled="{{ currentArchiveDisabled }}" style="{{ currentArchiveBtnStyle }}">Archivar</button>
+                </div>
+              </sc-if>
+            </div>
+
+            <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:20px;">
+              <div style="font-size:12px;font-weight:700;color:var(--fg-3);letter-spacing:0.04em;margin-bottom:10px;">SUBCATEGORÍAS DE REFERENCIA</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <sc-for list="{{ currentSubcategorias }}" as="s" hint-placeholder-count="3">
+                  <span style="background:var(--ink-100);color:var(--fg-1);border-radius:999px;padding:6px 14px;font-size:13px;">{{ s }}</span>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border-subtle);flex-wrap:wrap;gap:10px;">
+                <div style="font-family:var(--font-display);font-size:18px;color:var(--fg-1);">Versiones</div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <sc-if value="{{ isAnalista }}" hint-placeholder-val="{{ true }}">
+                    <button onClick="{{ openEspecialWizard }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:8px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;">Versión especial por tienda</button>
+                    <button onClick="{{ openCrearVersion }}" style="background:var(--cemaco-indigo);color:#fff;border:0;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;">+ Crear versión</button>
+                  </sc-if>
+                </div>
+              </div>
+
+              <sc-if value="{{ currentHasVersiones }}" hint-placeholder-val="{{ true }}">
+                <sc-if value="{{ isTableView }}" hint-placeholder-val="{{ true }}">
+                  <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                    <thead>
+                      <tr style="background:var(--ink-50);">
+                        <th style="text-align:left;padding:10px 20px;font-size:12px;color:var(--fg-3);font-weight:600;">CÓDIGO</th>
+                        <th style="text-align:left;padding:10px 20px;font-size:12px;color:var(--fg-3);font-weight:600;">TIPO</th>
+                        <th style="text-align:left;padding:10px 20px;font-size:12px;color:var(--fg-3);font-weight:600;">ESTADO</th>
+                        <th style="text-align:left;padding:10px 20px;font-size:12px;color:var(--fg-3);font-weight:600;">GÓNDOLAS</th>
+                        <th style="text-align:left;padding:10px 20px;font-size:12px;color:var(--fg-3);font-weight:600;">TIENDAS</th>
+                        <sc-if value="{{ isAnalista }}" hint-placeholder-val="{{ true }}">
+                          <th style="text-align:right;padding:10px 20px;font-size:12px;color:var(--fg-3);font-weight:600;">ACCIONES</th>
+                        </sc-if>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <sc-for list="{{ currentVersiones }}" as="v" hint-placeholder-count="2">
+                        <tr style="border-top:1px solid var(--border-subtle);">
+                          <td style="padding:12px 20px;font-family:var(--font-mono);font-size:13px;color:var(--fg-1);" title="{{ v.notas }}">{{ v.codigo }}</td>
+                          <td style="padding:12px 20px;color:var(--fg-2);">{{ v.tipoLabel }}</td>
+                          <td style="padding:12px 20px;"><span style="{{ v.badgeStyle }}">{{ v.estadoLabel }}</span></td>
+                          <td style="padding:12px 20px;color:var(--fg-2);">{{ v.totalGondolas }}</td>
+                          <td style="padding:12px 20px;color:var(--fg-2);">{{ v.tiendasLabel }}</td>
+                          <sc-if value="{{ isAnalista }}" hint-placeholder-val="{{ true }}">
+                            <td style="padding:10px 20px;text-align:right;white-space:nowrap;">
+                              <sc-if value="{{ v.canEditar }}" hint-placeholder-val="{{ true }}">
+                                <button onClick="{{ v.openEditor }}" style="background:var(--ink-100);border:0;color:var(--fg-1);border-radius:6px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;margin-left:6px;">Editor</button>
+                              </sc-if>
+                              <sc-if value="{{ v.canPromover }}" hint-placeholder-val="{{ false }}">
+                                <button onClick="{{ v.openPromover }}" style="background:transparent;border:1px solid var(--cemaco-indigo);color:var(--cemaco-indigo);border-radius:6px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;margin-left:6px;">Promover a piloto</button>
+                              </sc-if>
+                              <sc-if value="{{ v.canPublicar }}" hint-placeholder-val="{{ false }}">
+                                <button onClick="{{ v.openTiendas }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:6px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;margin-left:6px;">Tiendas piloto</button>
+                                <button onClick="{{ v.openPublicar }}" style="background:var(--cemaco-indigo);border:0;color:#fff;border-radius:6px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;margin-left:6px;">Publicar</button>
+                              </sc-if>
+                              <sc-if value="{{ v.isPublicado }}" hint-placeholder-val="{{ false }}">
+                                <button onClick="{{ v.openTiendas }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:6px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;margin-left:6px;">Tiendas asignadas</button>
+                              </sc-if>
+                            </td>
+                          </sc-if>
+                        </tr>
+                      </sc-for>
+                    </tbody>
+                  </table>
+                </sc-if>
+                <sc-if value="{{ isCardView }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;flex-direction:column;gap:0;">
+                    <sc-for list="{{ currentVersiones }}" as="v2" hint-placeholder-count="2">
+                      <div style="padding:14px 20px;border-top:1px solid var(--border-subtle);">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                          <span style="font-family:var(--font-mono);font-size:13px;color:var(--fg-1);">{{ v2.codigo }}</span>
+                          <span style="{{ v2.badgeStyle }}">{{ v2.estadoLabel }}</span>
+                        </div>
+                        <div style="font-size:13px;color:var(--fg-2);margin-top:4px;">{{ v2.tipoLabel }} · {{ v2.totalGondolas }} góndolas · {{ v2.tiendasLabel }}</div>
+                        <sc-if value="{{ isAnalista }}" hint-placeholder-val="{{ true }}">
+                          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+                            <sc-if value="{{ v2.canEditar }}" hint-placeholder-val="{{ true }}">
+                              <button onClick="{{ v2.openEditor }}" style="background:var(--ink-100);border:0;color:var(--fg-1);border-radius:6px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;">Editor</button>
+                            </sc-if>
+                            <sc-if value="{{ v2.canPromover }}" hint-placeholder-val="{{ false }}">
+                              <button onClick="{{ v2.openPromover }}" style="background:transparent;border:1px solid var(--cemaco-indigo);color:var(--cemaco-indigo);border-radius:6px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;">Promover a piloto</button>
+                            </sc-if>
+                            <sc-if value="{{ v2.canPublicar }}" hint-placeholder-val="{{ false }}">
+                              <button onClick="{{ v2.openTiendas }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:6px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;">Tiendas piloto</button>
+                              <button onClick="{{ v2.openPublicar }}" style="background:var(--cemaco-indigo);border:0;color:#fff;border-radius:6px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;">Publicar</button>
+                            </sc-if>
+                            <sc-if value="{{ v2.isPublicado }}" hint-placeholder-val="{{ false }}">
+                              <button onClick="{{ v2.openTiendas }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:6px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;">Tiendas asignadas</button>
+                            </sc-if>
+                          </div>
+                        </sc-if>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </sc-if>
+              <sc-if value="{{ currentHasVersiones }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ false }}" hint-placeholder-val="{{ false }}"><span></span></sc-if></sc-if>
+              <sc-if value="{{ currentNoVersiones }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:30px 20px;text-align:center;color:var(--fg-3);font-size:14px;">Este planograma aún no tiene versiones.</div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <!-- EDITOR DE PLANOGRAMA -->
+      <sc-if value="{{ isEditor }}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{ hasEditorVersion }}" hint-placeholder-val="{{ true }}">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 16px;">
+              <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                <a href="#" onClick="{{ goDetalleFromEditor }}" style="color:var(--cemaco-indigo);text-decoration:none;font-weight:600;font-size:13px;white-space:nowrap;">&larr; Volver</a>
+                <span style="font-family:var(--font-mono);font-size:13px;color:var(--fg-1);white-space:nowrap;">{{ editorVersionCodigo }}</span>
+                <span style="{{ editorVersionBadgeStyle }}">{{ editorVersionEstadoLabel }}</span>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button onClick="{{ guardarBorradorEditor }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:8px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;">Guardar borrador</button>
+                <button onClick="{{ openHistorialSustituciones }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:8px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;">Historial de sustituciones</button>
+                <button onClick="{{ toggleSustMode }}" style="{{ sustModeBtnStyle }}">{{ sustModeBtnLabel }}</button>
+                <button onClick="{{ openExportMenu }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:8px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;position:relative;">Exportar</button>
+                <button onClick="{{ openPublicarEditorPanel }}" style="background:var(--cemaco-indigo);color:#fff;border:0;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;">Publicar versión</button>
+              </div>
+            </div>
+
+            <sc-if value="{{ sustModeActive }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:var(--cemaco-indigo-50);border:1px solid var(--cemaco-indigo);border-radius:10px;padding:12px 16px;margin-bottom:14px;">
+                <div style="font-size:13px;color:var(--cemaco-indigo);font-weight:600;">{{ sustSelectionLabel }}</div>
+                <div style="display:flex;gap:8px;">
+                  <button onClick="{{ cancelSustMode }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:6px;padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer;">Cancelar</button>
+                  <button onClick="{{ openSustWizardStep2 }}" disabled="{{ sustContinueDisabled }}" style="{{ sustContinueBtnStyle }}">Continuar ({{ sustSelectedCount }})</button>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ showExportMenu }}" hint-placeholder-val="{{ false }}">
+              <div style="position:fixed;inset:0;z-index:55;" onClick="{{ closeExportMenu }}"></div>
+              <div style="position:absolute;right:24px;margin-top:-8px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow-lg);z-index:56;overflow:hidden;width:160px;">
+                <button onClick="{{ exportarJson }}" style="display:block;width:100%;text-align:left;background:#fff;border:0;padding:10px 14px;font-size:13px;color:var(--fg-1);cursor:pointer;">Exportar JSON</button>
+                <button onClick="{{ exportarCsv }}" style="display:block;width:100%;text-align:left;background:#fff;border:0;padding:10px 14px;font-size:13px;color:var(--fg-1);cursor:pointer;border-top:1px solid var(--border-subtle);">Exportar CSV</button>
+              </div>
+            </sc-if>
+
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
+              <sc-for list="{{ gondolasTabs }}" as="gt" hint-placeholder-count="1">
+                <button onClick="{{ gt.select }}" style="{{ gt.tabStyle }}">{{ gt.label }}</button>
+              </sc-for>
+              <sc-if value="{{ isAnalista }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ openCrearGondola }}" style="background:transparent;border:1px dashed var(--border-strong);color:var(--fg-2);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;">+ Góndola</button>
+              </sc-if>
+            </div>
+
+            <sc-if value="{{ hasSelectedGondola }}" hint-placeholder-val="{{ true }}">
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:14px;">
+                  <div style="font-size:13px;color:var(--fg-2);">
+                    <strong style="color:var(--fg-1);">{{ selectedGondolaNombre }}</strong> · {{ selectedGondolaDims }} · {{ selectedGondolaPosicion }}
+                  </div>
+                  <sc-if value="{{ isAnalista }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex;gap:8px;">
+                      <button onClick="{{ openEditarGondola }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:6px;padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer;">Editar góndola</button>
+                      <button onClick="{{ openEliminarGondola }}" style="background:transparent;border:1px solid var(--danger);color:var(--danger);border-radius:6px;padding:7px 12px;font-size:13px;font-weight:600;cursor:pointer;">Eliminar</button>
+                    </div>
+                  </sc-if>
+                </div>
+
+                <sc-if value="{{ hasSpaceSelection }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#fff;border:2px solid var(--cemaco-green);border-radius:10px;padding:10px 14px;margin-bottom:14px;box-shadow:var(--shadow-sm);">
+                    <div style="min-width:0;flex:1;">
+                      <div style="font-size:13px;font-weight:700;color:var(--fg-1);">{{ selSpaceNombre }}</div>
+                      <div style="font-size:11px;color:var(--fg-3);"><span style="font-family:var(--font-mono);">{{ selSpaceSku }}</span> · {{ selSpaceNivelLabel }}</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span style="font-size:12px;color:var(--fg-3);">Facings</span>
+                      <button onClick="{{ selSpaceMenos }}" style="width:28px;height:28px;background:var(--ink-50);border:1px solid var(--border);border-radius:6px;color:var(--fg-1);cursor:pointer;font-size:14px;">−</button>
+                      <span style="font-size:14px;font-weight:700;color:var(--cemaco-green-700);min-width:18px;text-align:center;">{{ selSpaceFacings }}</span>
+                      <button onClick="{{ selSpaceMas }}" style="width:28px;height:28px;background:var(--ink-50);border:1px solid var(--border);border-radius:6px;color:var(--fg-1);cursor:pointer;font-size:14px;">+</button>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <select value="{{ duplicarNivelSel }}" onChange="{{ onDuplicarNivelChange }}" style="height:32px;padding:0 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--fg-1);background:#fff;">
+                        <sc-for list="{{ duplicarNivelOptions }}" as="dn" hint-placeholder-count="3">
+                          <option value="{{ dn.value }}">{{ dn.label }}</option>
+                        </sc-for>
+                      </select>
+                      <button onClick="{{ duplicarSelSpace }}" style="height:32px;padding:0 12px;background:var(--cemaco-indigo-50);border:0;color:var(--cemaco-indigo);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Duplicar</button>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                      <button onClick="{{ openSelSpaceDrawer }}" style="height:32px;padding:0 12px;background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Editar</button>
+                      <button onClick="{{ openSelSpaceFicha }}" style="height:32px;padding:0 12px;background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Ficha</button>
+                      <button onClick="{{ deleteSelSpace }}" style="height:32px;padding:0 12px;background:transparent;border:1px solid var(--danger);color:var(--danger);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">Quitar</button>
+                      <button onClick="{{ deselectSpace }}" title="Deseleccionar" style="height:32px;width:32px;background:transparent;border:0;color:var(--fg-3);font-size:16px;cursor:pointer;">×</button>
+                    </div>
+                  </div>
+                </sc-if>
+
+                <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px 18px;">
+                  <div style="font-size:12px;color:var(--fg-3);margin-bottom:18px;">Un clic selecciona un espacio · doble clic abre sus editables · clic derecho muestra la ficha del producto · arrastra para reubicar entre niveles</div>
+                  <div style="display:flex;flex-direction:column;gap:26px;">
+                  <sc-for list="{{ nivelesRows }}" as="niv" hint-placeholder-count="3">
+                    <div>
+                      <div style="display:flex;align-items:flex-end;gap:12px;">
+                        <div style="width:110px;flex:none;padding-bottom:10px;">
+                          <div style="display:flex;align-items:center;gap:7px;">
+                            <span style="color:var(--ink-300);font-size:13px;cursor:grab;">⠿</span>
+                            <span style="font-size:13px;font-weight:700;color:var(--fg-1);white-space:nowrap;">Nivel {{ niv.orden }}</span>
+                          </div>
+                          <div style="font-size:10px;color:var(--fg-3);margin-top:2px;">{{ niv.alturaCm }}cm · {{ niv.accesorioLabel }}</div>
+                        </div>
+                        <div onDragOver="{{ niv.onDragOverLevel }}" onDrop="{{ niv.onDropLevel }}" style="flex:1;display:flex;gap:10px;align-items:flex-end;min-height:92px;flex-wrap:wrap;">
+                          <sc-for list="{{ niv.posiciones }}" as="pos" hint-placeholder-count="3">
+                            <div draggable="{{ pos.draggable }}" onDragStart="{{ pos.onDragStart }}" onDragOver="{{ pos.onDragOverPos }}" onDrop="{{ pos.onDropPos }}" onClick="{{ pos.onClick }}" onDoubleClick="{{ pos.onDoubleClick }}" onContextMenu="{{ pos.onContextMenu }}" title="{{ pos.nombre }}" style="{{ pos.cardStyle }}">
+                              <sc-if value="{{ pos.showSustCheckbox }}" hint-placeholder-val="{{ false }}">
+                                <div style="{{ pos.checkboxStyle }}">{{ pos.checkboxMark }}</div>
+                              </sc-if>
+                              <div style="position:absolute;top:-9px;right:-6px;background:var(--cemaco-green);color:var(--cemaco-indigo);font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;z-index:2;">{{ pos.facingsLabel }}</div>
+                              <div style="display:flex;gap:3px;">
+                                <sc-for list="{{ pos.facingTiles }}" as="ft" hint-placeholder-count="2">
+                                  <div style="width:44px;background:#fff;border:1px solid var(--border);border-radius:6px;padding:3px;display:flex;flex-direction:column;gap:2px;">
+                                    <div style="font-size:6px;font-weight:800;color:var(--cemaco-indigo);letter-spacing:0.03em;">CEMACO</div>
+                                    <div style="height:26px;border-radius:4px;background:{{ ft.swatch }};"></div>
+                                    <div style="font-size:6px;font-weight:700;color:var(--fg-2);line-height:1.15;overflow:hidden;max-height:14px;">{{ ft.nombreCorto }}</div>
+                                  </div>
+                                </sc-for>
+                              </div>
+                              <sc-if value="{{ pos.hasOverflowFlag }}" hint-placeholder-val="{{ false }}">
+                                <div style="font-size:9px;color:var(--warning);margin-top:4px;font-weight:700;">Desborda</div>
+                              </sc-if>
+                            </div>
+                          </sc-for>
+                          <sc-if value="{{ isAnalista }}" hint-placeholder-val="{{ true }}">
+                            <button onClick="{{ niv.addPosicion }}" title="Agregar espacio" style="width:44px;height:64px;background:transparent;border:1.5px dashed var(--border-strong);border-radius:8px;color:var(--fg-3);font-size:18px;cursor:pointer;flex:none;" style-hover="border-color:var(--cemaco-green-600);color:var(--cemaco-green-700);">+</button>
+                          </sc-if>
+                        </div>
+                        <sc-if value="{{ isAnalista }}" hint-placeholder-val="{{ true }}">
+                          <div style="flex:none;display:flex;gap:4px;padding-bottom:8px;">
+                            <button onClick="{{ niv.openEditar }}" title="Editar nivel" style="width:26px;height:26px;background:transparent;border:0;color:var(--fg-4);font-size:13px;cursor:pointer;" style-hover="color:var(--cemaco-indigo);">✎</button>
+                            <button onClick="{{ niv.openEliminar }}" title="Eliminar nivel" style="width:26px;height:26px;background:transparent;border:0;color:var(--fg-4);font-size:15px;cursor:pointer;" style-hover="color:var(--danger);">×</button>
+                          </div>
+                        </sc-if>
+                      </div>
+                      <div style="margin-left:110px;">
+                        <div style="height:7px;border-radius:2px;background:var(--ink-200);box-shadow:0 3px 0 rgba(17,24,17,0.12);"></div>
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
+                          <div style="flex:1;max-width:220px;height:4px;border-radius:999px;background:var(--ink-100);overflow:hidden;">
+                            <div style="{{ niv.capacityBarStyle }}"></div>
+                          </div>
+                          <span style="font-size:10px;color:{{ niv.capacityTextColor }};">{{ niv.capacityLabel }}</span>
+                          <sc-if value="{{ niv.hasSpaceWarning }}" hint-placeholder-val="{{ false }}">
+                            <span style="font-size:10px;color:var(--danger);font-weight:700;">Excede el ancho disponible</span>
+                          </sc-if>
+                        </div>
+                      </div>
+                    </div>
+                  </sc-for>
+                  </div>
+                </div>
+
+                <sc-if value="{{ isAnalista }}" hint-placeholder-val="{{ true }}">
+                  <button onClick="{{ openCrearNivel }}" style="width:100%;margin-top:12px;background:transparent;border:1px dashed var(--border-strong);color:var(--fg-2);border-radius:10px;padding:14px;font-size:13px;font-weight:600;cursor:pointer;">+ Agregar nivel</button>
+                </sc-if>
+              </div>
+            </sc-if>
+            <sc-if value="{{ hasSelectedGondola }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ false }}" hint-placeholder-val="{{ false }}"><span></span></sc-if></sc-if>
+            <sc-if value="{{ noGondolas }}" hint-placeholder-val="{{ false }}">
+              <div style="text-align:center;padding:50px 20px;background:#fff;border:1px dashed var(--border-strong);border-radius:12px;color:var(--fg-3);">
+                Esta versión no tiene góndolas todavía. Agrega la primera.
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+      </sc-if>
+
+    </main>
+  </div>
+
+  <!-- FICHA PRODUCTO MODAL -->
+  <sc-if value="{{ showFicha }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeFicha }}" style="position:fixed;inset:0;background:rgba(17,24,17,0.5);z-index:62;display:flex;align-items:center;justify-content:center;padding:20px;">
+      <div onClick="{{ stopPropFicha }}" style="background:#fff;border-radius:12px;width:100%;max-width:880px;max-height:90vh;overflow-y:auto;position:relative;">
+        <button onClick="{{ closeFicha }}" style="position:absolute;top:14px;right:14px;width:36px;height:36px;background:var(--ink-50);border:1px solid var(--border);border-radius:8px;color:var(--fg-1);font-size:17px;cursor:pointer;z-index:2;">×</button>
+        <div style="display:flex;gap:22px;padding:22px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:260px;background:var(--ink-50);border-radius:10px;display:flex;align-items:center;justify-content:center;min-height:360px;">
+            <div style="width:190px;height:190px;border-radius:14px;background:{{ fichaSwatch }};box-shadow:var(--shadow-lg);"></div>
+          </div>
+          <div style="flex:1.1;min-width:300px;display:flex;flex-direction:column;gap:13px;">
+            <span style="align-self:flex-start;background:var(--cemaco-green-50);color:var(--cemaco-green-700);font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;">{{ fichaCategoria }}</span>
+            <div style="font-family:var(--font-display);font-size:24px;line-height:1.15;color:var(--fg-1);">{{ fichaNombre }}</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <sc-for list="{{ fichaFields }}" as="ff" hint-placeholder-count="6">
+                <div style="background:var(--ink-50);border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
+                  <div style="font-size:9px;font-weight:700;letter-spacing:0.07em;color:var(--fg-3);text-transform:uppercase;">{{ ff.label }}</div>
+                  <div style="font-size:13px;font-weight:600;color:var(--fg-1);margin-top:3px;">{{ ff.value }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                <div style="font-size:13px;font-weight:700;color:var(--fg-1);">Medidas de montaje</div>
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <span style="{{ montajeFuenteBadgeStyle }}">{{ montajeFuente }}</span>
+                  <sc-if value="{{ montajeValidado }}" hint-placeholder-val="{{ false }}">
+                    <span style="background:var(--cemaco-green-50);color:var(--cemaco-green-700);font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;">Validado</span>
+                  </sc-if>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+                <div style="display:flex;flex-direction:column;gap:3px;">
+                  <label style="font-size:9px;font-weight:700;letter-spacing:0.07em;color:var(--fg-3);text-transform:uppercase;">Alto (cm)</label>
+                  <input type="number" min="0" step="0.1" value="{{ montajeAlto }}" onChange="{{ onMontajeAltoChange }}" style="border:1px solid var(--border);border-radius:4px;padding:7px 9px;font-size:13px;font-weight:600;color:var(--fg-1);width:100%;box-sizing:border-box;" />
+                </div>
+                <div style="display:flex;flex-direction:column;gap:3px;">
+                  <label style="font-size:9px;font-weight:700;letter-spacing:0.07em;color:var(--fg-3);text-transform:uppercase;">Ancho (cm)</label>
+                  <input type="number" min="0" step="0.1" value="{{ montajeAncho }}" onChange="{{ onMontajeAnchoChange }}" style="border:1px solid var(--border);border-radius:4px;padding:7px 9px;font-size:13px;font-weight:600;color:var(--fg-1);width:100%;box-sizing:border-box;" />
+                </div>
+                <div style="display:flex;flex-direction:column;gap:3px;">
+                  <label style="font-size:9px;font-weight:700;letter-spacing:0.07em;color:var(--fg-3);text-transform:uppercase;">Profundidad (cm)</label>
+                  <input type="number" min="0" step="0.1" value="{{ montajeProf }}" onChange="{{ onMontajeProfChange }}" style="border:1px solid var(--border);border-radius:4px;padding:7px 9px;font-size:13px;font-weight:600;color:var(--fg-1);width:100%;box-sizing:border-box;" />
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                <div style="font-size:11px;color:var(--fg-3);">fuente_dimensiones: <span style="font-family:var(--font-mono);font-weight:600;color:var(--fg-2);">{{ montajeFuente }}</span> · dimensiones_validadas: <span style="font-family:var(--font-mono);font-weight:600;color:var(--fg-2);">{{ montajeValidadoNum }}</span></div>
+                <button onClick="{{ validarMontaje }}" disabled="{{ montajeValidado }}" style="{{ validarBtnStyle }}">{{ validarBtnLabel }}</button>
+              </div>
+            </div>
+            <div style="font-size:13px;color:var(--fg-2);line-height:1.6;">{{ fichaDesc }}</div>
+            <div style="background:var(--cemaco-green-50);border:1px solid var(--cemaco-green-200, rgba(148,213,0,0.4));border-radius:10px;padding:12px 14px;">
+              <div style="font-size:13px;font-weight:700;color:var(--fg-1);">Datos para construir planograma</div>
+              <div style="font-size:12px;color:var(--fg-2);margin-top:3px;line-height:1.5;">Esta vista se limita a catálogo, imagen oficial, identificadores y dimensiones.</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-size:14px;font-weight:700;color:var(--fg-1);">Candidatos alternos del agente</div>
+              <span style="font-size:12px;font-weight:600;color:var(--cemaco-indigo);">Match asistido</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <sc-for list="{{ fichaCandidatos }}" as="fc" hint-placeholder-count="3">
+                <div onClick="{{ fc.aplicar }}" title="Usar este producto en el espacio seleccionado" style="display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 10px;cursor:pointer;" style-hover="border-color:var(--cemaco-green-600);">
+                  <div style="width:38px;height:44px;background:{{ fc.swatch }};border-radius:5px;flex:none;"></div>
+                  <div>
+                    <div style="font-size:12px;font-weight:700;color:var(--fg-1);">{{ fc.nombre }}</div>
+                    <div style="font-size:11px;color:var(--fg-3);"><span style="font-family:var(--font-mono);">{{ fc.sku }}</span> · {{ fc.confianza }} confianza</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- FORM MODAL: crear / editar -->
+  <sc-if value="{{ showForm }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,24,17,0.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;">
+      <div style="background:#fff;border-radius:12px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--border-subtle);">
+          <div style="font-family:var(--font-display);font-size:20px;color:var(--fg-1);">{{ formTitle }}</div>
+          <button onClick="{{ closeForm }}" style="background:transparent;border:0;font-size:24px;color:var(--fg-3);cursor:pointer;line-height:1;">&times;</button>
+        </div>
+        <div style="padding:22px;display:flex;flex-direction:column;gap:16px;">
+          <sc-if value="{{ formGlobalError }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--danger-bg);color:var(--danger);border-radius:8px;padding:12px 14px;font-size:13px;">{{ formGlobalErrorMsg }}</div>
+          </sc-if>
+
+          <div>
+            <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Nombre</label>
+            <input type="text" value="{{ formNombre }}" onChange="{{ onFormNombreChange }}" placeholder="Ej. AUTOS 01" style="{{ formInputStyle }}" />
+            <sc-if value="{{ formErrorNombre }}" hint-placeholder-val="{{ false }}">
+              <div style="color:var(--danger);font-size:12px;margin-top:4px;">{{ formErrorNombreMsg }}</div>
+            </sc-if>
+          </div>
+
+          <div style="display:flex;gap:14px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:160px;">
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Área</label>
+              <select value="{{ formArea }}" onChange="{{ onFormAreaChange }}" style="{{ formInputStyle }}">
+                <option value="">Selecciona un área</option>
+                <sc-for list="{{ areasOptions }}" as="fa" hint-placeholder-count="2">
+                  <option value="{{ fa.value }}">{{ fa.label }}</option>
+                </sc-for>
+              </select>
+              <sc-if value="{{ formErrorArea }}" hint-placeholder-val="{{ false }}">
+                <div style="color:var(--danger);font-size:12px;margin-top:4px;">Selecciona un área</div>
+              </sc-if>
+            </div>
+            <div style="flex:1;min-width:160px;">
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Departamento</label>
+              <select value="{{ formDepartamento }}" onChange="{{ onFormDeptoChange }}" style="{{ formInputStyle }}">
+                <option value="">Selecciona un departamento</option>
+                <sc-for list="{{ departamentosFormOptions }}" as="fd" hint-placeholder-count="4">
+                  <option value="{{ fd.codigo }}">{{ fd.nombre }}</option>
+                </sc-for>
+              </select>
+              <sc-if value="{{ formNoDeptoOptions }}" hint-placeholder-val="{{ false }}">
+                <div style="color:var(--fg-3);font-size:12px;margin-top:4px;">No hay departamentos disponibles en esta área todavía.</div>
+              </sc-if>
+              <sc-if value="{{ formErrorDepto }}" hint-placeholder-val="{{ false }}">
+                <div style="color:var(--danger);font-size:12px;margin-top:4px;">Selecciona un departamento</div>
+              </sc-if>
+            </div>
+          </div>
+
+          <div>
+            <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Subcategorías de referencia</label>
+            <div style="display:flex;gap:8px;">
+              <input type="text" value="{{ newSubcat }}" onChange="{{ onNewSubcatChange }}" onKeyDown="{{ onNewSubcatKeyDown }}" placeholder="Ej. Aceites y lubricantes" style="{{ formInputStyle }}" />
+              <button onClick="{{ addSubcat }}" style="background:var(--ink-100);color:var(--fg-1);border:0;border-radius:8px;padding:0 16px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;">Agregar</button>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+              <sc-for list="{{ formSubcategorias }}" as="fs" hint-placeholder-count="2">
+                <span style="background:var(--cemaco-indigo-50);color:var(--cemaco-indigo);border-radius:999px;padding:6px 8px 6px 14px;font-size:13px;display:flex;align-items:center;gap:8px;">
+                  {{ fs.value }}
+                  <button onClick="{{ fs.remove }}" style="background:transparent;border:0;color:var(--cemaco-indigo);cursor:pointer;font-size:15px;line-height:1;padding:0;">&times;</button>
+                </span>
+              </sc-for>
+            </div>
+            <sc-if value="{{ formErrorSubcats }}" hint-placeholder-val="{{ false }}">
+              <div style="color:var(--danger);font-size:12px;margin-top:6px;">Agrega al menos una subcategoría</div>
+            </sc-if>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--border-subtle);">
+          <button onClick="{{ closeForm }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;">Cancelar</button>
+          <button onClick="{{ submitForm }}" style="background:var(--cemaco-indigo);color:#fff;border:0;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;">{{ formSubmitLabel }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ARCHIVAR MODAL -->
+  <sc-if value="{{ showArchivar }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,24,17,0.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;">
+      <div style="background:#fff;border-radius:12px;width:100%;max-width:480px;">
+        <div style="padding:22px;">
+          <div style="font-family:var(--font-display);font-size:20px;color:var(--fg-1);margin-bottom:12px;">Archivar planograma</div>
+          <sc-if value="{{ archivarBloqueado }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--danger-bg);color:var(--danger);border-radius:8px;padding:14px;font-size:14px;margin-bottom:14px;">
+              No se puede archivar <strong>{{ archivarNombre }}</strong>: tiene versiones publicadas asignadas a tiendas. Desasígnalas o archívalas primero.
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+              <sc-for list="{{ archivarBloqueantes }}" as="b" hint-placeholder-count="1">
+                <div style="background:var(--ink-50);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--fg-1);display:flex;justify-content:space-between;">
+                  <span style="font-family:var(--font-mono);">{{ b.codigo }}</span>
+                  <span>{{ b.tiendasLabel }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ archivarBloqueado }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ false }}" hint-placeholder-val="{{ false }}"><span></span></sc-if></sc-if>
+          <sc-if value="{{ archivarPermitido }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:14px;color:var(--fg-2);margin-bottom:16px;">
+              Vas a archivar <strong>{{ archivarNombre }}</strong>. {{ archivarCascadaLabel }} Esta acción no se puede revertir.
+            </div>
+          </sc-if>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--border-subtle);">
+          <sc-if value="{{ archivarBloqueado }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ closeArchivar }}" style="background:var(--cemaco-indigo);color:#fff;border:0;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;">Entendido</button>
+          </sc-if>
+          <sc-if value="{{ archivarPermitido }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ closeArchivar }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;">Cancelar</button>
+            <button onClick="{{ confirmArchivar }}" style="background:var(--danger);color:#fff;border:0;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;">Archivar</button>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- CREAR VERSIÓN MODAL -->
+  <sc-if value="{{ showVersionForm }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,24,17,0.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;">
+      <div style="background:#fff;border-radius:12px;width:100%;max-width:460px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--border-subtle);">
+          <div style="font-family:var(--font-display);font-size:20px;color:var(--fg-1);">Crear versión</div>
+          <button onClick="{{ closeVersionForm }}" style="background:transparent;border:0;font-size:24px;color:var(--fg-3);cursor:pointer;line-height:1;">&times;</button>
+        </div>
+        <div style="padding:22px;display:flex;flex-direction:column;gap:16px;">
+          <div>
+            <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Tipo de versión</label>
+            <select value="{{ versionFormTipo }}" onChange="{{ onVersionFormTipoChange }}" style="{{ formInputStyle }}">
+              <sc-for list="{{ tiposOptions }}" as="t" hint-placeholder-count="3">
+                <option value="{{ t.value }}">{{ t.label }}</option>
+              </sc-for>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Notas (opcional)</label>
+            <textarea value="{{ versionFormNotas }}" onChange="{{ onVersionFormNotasChange }}" rows="3" placeholder="Contexto de esta versión…" style="{{ formInputStyle }}resize:vertical;font-family:var(--font-body);"></textarea>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--border-subtle);">
+          <button onClick="{{ closeVersionForm }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;">Cancelar</button>
+          <button onClick="{{ submitVersionForm }}" style="background:var(--cemaco-indigo);color:#fff;border:0;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;">Crear versión</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- VERSIÓN ESPECIAL POR TIENDA — WIZARD -->
+  <sc-if value="{{ showEspecialWizard }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,24,17,0.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;">
+      <div style="background:#fff;border-radius:12px;width:100%;max-width:460px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--border-subtle);">
+          <div>
+            <div style="font-family:var(--font-display);font-size:20px;color:var(--fg-1);">Versión especial por tienda</div>
+            <div style="font-size:12px;color:var(--fg-3);margin-top:2px;">Paso {{ especialStep }} de 2</div>
+          </div>
+          <button onClick="{{ closeEspecialWizard }}" style="background:transparent;border:0;font-size:24px;color:var(--fg-3);cursor:pointer;line-height:1;">&times;</button>
+        </div>
+        <div style="padding:22px;display:flex;flex-direction:column;gap:16px;">
+          <sc-if value="{{ especialStepIs1 }}" hint-placeholder-val="{{ true }}">
+            <div>
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Versión base</label>
+              <select value="{{ especialBaseVersionId }}" onChange="{{ onEspecialBaseChange }}" style="{{ formInputStyle }}">
+                <option value="">Selecciona una versión</option>
+                <sc-for list="{{ especialBaseOptions }}" as="eb" hint-placeholder-count="2">
+                  <option value="{{ eb.value }}">{{ eb.label }}</option>
+                </sc-for>
+              </select>
+              <sc-if value="{{ especialNoBaseOptions }}" hint-placeholder-val="{{ false }}">
+                <div style="color:var(--fg-3);font-size:12px;margin-top:6px;">No hay versiones disponibles como base todavía.</div>
+              </sc-if>
+            </div>
+          </sc-if>
+          <sc-if value="{{ especialStepIs2 }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--warning-bg);color:var(--warning);border-radius:8px;padding:12px 14px;font-size:13px;">
+              Esta operación clona toda la estructura de <strong>{{ especialBaseCodigo }}</strong> para la tienda seleccionada.
+            </div>
+            <div>
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Tienda</label>
+              <select value="{{ especialTiendaCodigo }}" onChange="{{ onEspecialTiendaChange }}" style="{{ formInputStyle }}">
+                <option value="">Selecciona una tienda</option>
+                <sc-for list="{{ tiendasOptions }}" as="et" hint-placeholder-count="6">
+                  <option value="{{ et.value }}">{{ et.label }}</option>
+                </sc-for>
+              </select>
+            </div>
+          </sc-if>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--border-subtle);">
+          <sc-if value="{{ especialStepIs1 }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ closeEspecialWizard }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;">Cancelar</button>
+            <button onClick="{{ especialGoStep2 }}" disabled="{{ especialStep1Invalid }}" style="{{ especialStep1BtnStyle }}">Continuar</button>
+          </sc-if>
+          <sc-if value="{{ especialStepIs2 }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ especialGoStep1 }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;">Atrás</button>
+            <button onClick="{{ confirmEspecial }}" disabled="{{ especialStep2Invalid }}" style="{{ especialStep2BtnStyle }}">Crear versión especial</button>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- PROMOVER A PILOTO MODAL -->
+  <sc-if value="{{ showPromoverModal }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,24,17,0.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;">
+      <div style="background:#fff;border-radius:12px;width:100%;max-width:440px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--border-subtle);">
+          <div style="font-family:var(--font-display);font-size:20px;color:var(--fg-1);">Promover a piloto</div>
+          <button onClick="{{ closePromoverModal }}" style="background:transparent;border:0;font-size:24px;color:var(--fg-3);cursor:pointer;line-height:1;">&times;</button>
+        </div>
+        <div style="padding:22px;">
+          <div style="font-size:13px;color:var(--fg-2);margin-bottom:12px;">Selecciona las tiendas piloto para {{ promoverVersionCodigo }}.</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <sc-for list="{{ promoverTiendasList }}" as="pt" hint-placeholder-count="6">
+              <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;">
+                <input type="checkbox" checked="{{ pt.checked }}" onChange="{{ pt.toggle }}" />
+                <span style="font-size:14px;color:var(--fg-1);">{{ pt.label }}</span>
+              </label>
+            </sc-for>
+          </div>
+          <sc-if value="{{ promoverErrorNone }}" hint-placeholder-val="{{ false }}">
+            <div style="color:var(--danger);font-size:12px;margin-top:8px;">Selecciona al menos una tienda</div>
+          </sc-if>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--border-subtle);">
+          <button onClick="{{ closePromoverModal }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;">Cancelar</button>
+          <button onClick="{{ confirmPromover }}" style="background:var(--cemaco-indigo);color:#fff;border:0;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;">Promover</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- PUBLICAR VERSIÓN MODAL -->
+  <sc-if value="{{ showPublicarModal }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,24,17,0.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;">
+      <div style="background:#fff;border-radius:12px;width:100%;max-width:460px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--border-subtle);">
+          <div style="font-family:var(--font-display);font-size:20px;color:var(--fg-1);">Publicar versión</div>
+          <button onClick="{{ closePublicarModal }}" style="background:transparent;border:0;font-size:24px;color:var(--fg-3);cursor:pointer;line-height:1;">&times;</button>
+        </div>
+        <div style="padding:22px;display:flex;flex-direction:column;gap:10px;">
+          <sc-for list="{{ publicarErrores }}" as="pe" hint-placeholder-count="0">
+            <div style="background:var(--danger-bg);color:var(--danger);border-radius:8px;padding:12px 14px;font-size:13px;">{{ pe.msg }}</div>
+          </sc-for>
+          <sc-for list="{{ publicarAdvertencias }}" as="pa" hint-placeholder-count="0">
+            <div style="background:var(--warning-bg);color:var(--warning);border-radius:8px;padding:12px 14px;font-size:13px;">{{ pa.msg }}</div>
+          </sc-for>
+          <div style="font-size:14px;color:var(--fg-2);">
+            {{ publicarConfirmText }}
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--border-subtle);">
+          <button onClick="{{ closePublicarModal }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;">Cancelar</button>
+          <button onClick="{{ confirmPublicar }}" disabled="{{ publicarBloqueado }}" style="{{ publicarBtnStyle }}">Confirmar publicación</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- TIENDAS ASIGNADAS MODAL -->
+  <sc-if value="{{ showTiendasModal }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,24,17,0.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;">
+      <div style="background:#fff;border-radius:12px;width:100%;max-width:440px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--border-subtle);">
+          <div style="font-family:var(--font-display);font-size:20px;color:var(--fg-1);">Tiendas asignadas</div>
+          <button onClick="{{ closeTiendasModal }}" style="background:transparent;border:0;font-size:24px;color:var(--fg-3);cursor:pointer;line-height:1;">&times;</button>
+        </div>
+        <div style="padding:22px;">
+          <div style="font-size:13px;color:var(--fg-2);margin-bottom:12px;">{{ tiendasModalCodigo }}</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <sc-for list="{{ tiendasModalList }}" as="tm" hint-placeholder-count="6">
+              <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;">
+                <input type="checkbox" checked="{{ tm.checked }}" onChange="{{ tm.toggle }}" />
+                <span style="font-size:14px;color:var(--fg-1);">{{ tm.label }}</span>
+              </label>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--border-subtle);">
+          <button onClick="{{ closeTiendasModal }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;">Cancelar</button>
+          <button onClick="{{ confirmTiendasModal }}" style="background:var(--cemaco-indigo);color:#fff;border:0;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- POSITION DRAWER -->
+  <sc-if value="{{ showDrawer }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeDrawer }}" style="position:fixed;inset:0;background:rgba(17,24,17,0.4);z-index:60;"></div>
+    <div style="position:fixed;top:0;right:0;height:100%;width:min(420px,100%);background:#fff;z-index:61;overflow-y:auto;box-shadow:var(--shadow-lg);">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--border-subtle);position:sticky;top:0;background:#fff;">
+        <div style="font-family:var(--font-display);font-size:18px;color:var(--fg-1);">Editar posición</div>
+        <button onClick="{{ closeDrawer }}" style="background:transparent;border:0;font-size:24px;color:var(--fg-3);cursor:pointer;line-height:1;">&times;</button>
+      </div>
+      <div style="padding:20px;display:flex;flex-direction:column;gap:20px;">
+
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--fg-3);letter-spacing:0.03em;margin-bottom:10px;">PRODUCTO</div>
+          <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;">
+            <div style="width:52px;height:52px;border-radius:8px;background:{{ drawerSwatch }};flex:none;"></div>
+            <div>
+              <div style="font-size:14px;font-weight:600;color:var(--fg-1);">{{ drawerNombre }}</div>
+              <div style="font-family:var(--font-mono);font-size:12px;color:var(--fg-3);">{{ drawerSku }}</div>
+            </div>
+          </div>
+          <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Buscar y reemplazar SKU</label>
+          <select value="{{ drawerSku }}" onChange="{{ onDrawerSkuChange }}" style="{{ formInputStyle }}">
+            <sc-for list="{{ catalogoOptions }}" as="c" hint-placeholder-count="4">
+              <option value="{{ c.value }}">{{ c.label }}</option>
+            </sc-for>
+          </select>
+        </div>
+
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--fg-3);letter-spacing:0.03em;margin-bottom:10px;">ESPACIO Y FACINGS</div>
+          <div style="display:flex;gap:12px;">
+            <div style="flex:1;">
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Facings horizontales</label>
+              <input type="number" min="1" value="{{ drawerFacings }}" onChange="{{ onDrawerFacingsChange }}" style="{{ formInputStyle }}" />
+            </div>
+            <div style="flex:1;">
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Ancho asignado (cm)</label>
+              <input type="number" min="0" value="{{ drawerAnchoAsignado }}" onChange="{{ onDrawerAnchoChange }}" style="{{ formInputStyle }}" />
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;margin-top:12px;">
+            <div style="flex:1;">
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Cantidad apilable</label>
+              <input type="number" min="1" value="{{ drawerApilable }}" onChange="{{ onDrawerApilableChange }}" style="{{ formInputStyle }}" />
+            </div>
+            <div style="flex:1;">
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Unidades por facing</label>
+              <input type="number" min="1" value="{{ drawerUnidadesPorFacing }}" onChange="{{ onDrawerUnidadesChange }}" style="{{ formInputStyle }}" />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--fg-3);letter-spacing:0.03em;margin-bottom:10px;">CAPACIDAD (calculado)</div>
+          <div style="display:flex;gap:16px;font-size:13px;color:var(--fg-2);margin-bottom:10px;">
+            <div>Máxima: <strong style="color:var(--fg-1);">{{ drawerCapacidadMaxima }}</strong></div>
+            <div>Mín. estético: <strong style="color:var(--fg-1);">{{ drawerMinEstetico }}</strong></div>
+          </div>
+          <div style="display:flex;gap:12px;">
+            <div style="flex:1;">
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Mín. final</label>
+              <input type="number" min="0" value="{{ drawerMinFinal }}" onChange="{{ onDrawerMinFinalChange }}" style="{{ formInputStyle }}" />
+            </div>
+            <div style="flex:1;">
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Máx. final</label>
+              <input type="number" min="0" value="{{ drawerMaxFinal }}" onChange="{{ onDrawerMaxFinalChange }}" style="{{ formInputStyle }}" />
+            </div>
+          </div>
+          <sc-if value="{{ drawerMinMaxError }}" hint-placeholder-val="{{ false }}">
+            <div style="color:var(--danger);font-size:12px;margin-top:6px;">El mínimo final no puede ser mayor al máximo final.</div>
+          </sc-if>
+        </div>
+
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--fg-3);letter-spacing:0.03em;margin-bottom:10px;">REPOSICIÓN</div>
+          <select value="{{ drawerPerfilRedondeo }}" onChange="{{ onDrawerPerfilChange }}" style="{{ formInputStyle }}">
+            <option value="MRP">MRP · no se rompe empaque</option>
+            <option value="ZSRE">ZSRE · se puede romper</option>
+          </select>
+        </div>
+
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--fg-3);letter-spacing:0.03em;margin-bottom:10px;">MONTAJE</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;">
+            <sc-for list="{{ drawerAccesorios }}" as="acc" hint-placeholder-count="1">
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input type="text" value="{{ acc.nombre }}" onChange="{{ acc.onNombreChange }}" placeholder="Accesorio" style="{{ formInputStyle }}flex:1;" />
+                <input type="text" value="{{ acc.nota }}" onChange="{{ acc.onNotaChange }}" placeholder="Nota (ej. a la derecha)" style="{{ formInputStyle }}flex:1;" />
+                <button onClick="{{ acc.remove }}" style="background:transparent;border:0;color:var(--danger);font-size:18px;cursor:pointer;">&times;</button>
+              </div>
+            </sc-for>
+          </div>
+          <button onClick="{{ addDrawerAccesorio }}" style="background:var(--ink-100);border:0;color:var(--fg-1);border-radius:6px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;">+ Agregar accesorio</button>
+          <label style="display:flex;align-items:center;gap:10px;margin-top:14px;cursor:pointer;">
+            <input type="checkbox" checked="{{ drawerMontarDisplay }}" onChange="{{ onDrawerMontarDisplayChange }}" />
+            <span style="font-size:13px;color:var(--fg-1);">Montar en display propio</span>
+          </label>
+        </div>
+
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--fg-3);letter-spacing:0.03em;margin-bottom:10px;">CLASIFICACIÓN</div>
+          <div style="display:flex;gap:12px;margin-bottom:12px;">
+            <div style="flex:1;">
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Modo</label>
+              <select value="{{ drawerModo }}" onChange="{{ onDrawerModoChange }}" style="{{ formInputStyle }}">
+                <option value="PLANOGRAMA">Planograma</option>
+                <option value="CROSS">Cross</option>
+              </select>
+            </div>
+            <div style="flex:1;">
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Decisión</label>
+              <select value="{{ drawerDecision }}" onChange="{{ onDrawerDecisionChange }}" style="{{ formInputStyle }}">
+                <option value="ACTIVO">Activo</option>
+                <option value="INACTIVO">Inactivo</option>
+              </select>
+            </div>
+          </div>
+          <label style="display:flex;align-items:center;gap:10px;margin-bottom:12px;cursor:pointer;">
+            <input type="checkbox" checked="{{ drawerCrossExterno }}" onChange="{{ onDrawerCrossExternoChange }}" />
+            <span style="font-size:13px;color:var(--fg-1);">Cross externo (accesorio colgante fuera de góndola)</span>
+          </label>
+          <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Observaciones</label>
+          <textarea value="{{ drawerObservaciones }}" onChange="{{ onDrawerObservacionesChange }}" rows="2" style="{{ formInputStyle }}resize:vertical;font-family:var(--font-body);"></textarea>
+        </div>
+
+        <sc-if value="{{ drawerHasDesborde }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--fg-3);letter-spacing:0.03em;margin-bottom:10px;">DESBORDE</div>
+            <label style="display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer;">
+              <input type="checkbox" checked="{{ drawerDesbordaGondola }}" onChange="{{ onDrawerDesbordaChange }}" />
+              <span style="font-size:13px;color:var(--fg-1);">Desborda góndola</span>
+            </label>
+            <sc-if value="{{ drawerDesbordaGondola }}" hint-placeholder-val="{{ false }}">
+              <textarea value="{{ drawerNotaDesborde }}" onChange="{{ onDrawerNotaDesbordeChange }}" rows="2" placeholder="Ej. continúa en góndola 2, nivel 3" style="{{ formInputStyle }}resize:vertical;font-family:var(--font-body);"></textarea>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <div style="display:flex;gap:10px;padding-top:6px;border-top:1px solid var(--border-subtle);padding-top:16px;">
+          <button onClick="{{ deleteDrawerPosicion }}" style="flex:1;background:transparent;border:1px solid var(--danger);color:var(--danger);border-radius:8px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;">Eliminar posición</button>
+          <button onClick="{{ closeDrawer }}" style="flex:1;background:var(--cemaco-indigo);color:#fff;border:0;border-radius:8px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;">Listo</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- GÓNDOLA MODAL -->
+  <sc-if value="{{ showGondolaModal }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,24,17,0.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;">
+      <div style="background:#fff;border-radius:12px;width:100%;max-width:440px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--border-subtle);">
+          <div style="font-family:var(--font-display);font-size:20px;color:var(--fg-1);">{{ gondolaModalTitle }}</div>
+          <button onClick="{{ closeGondolaModal }}" style="background:transparent;border:0;font-size:24px;color:var(--fg-3);cursor:pointer;line-height:1;">&times;</button>
+        </div>
+        <div style="padding:22px;display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Nombre</label>
+            <input type="text" value="{{ gondolaFormNombre }}" onChange="{{ onGondolaFormNombreChange }}" placeholder="Ej. Góndola central" style="{{ formInputStyle }}" />
+          </div>
+          <div style="display:flex;gap:12px;">
+            <div style="flex:1;">
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Ancho (cm)</label>
+              <input type="number" min="1" value="{{ gondolaFormAncho }}" onChange="{{ onGondolaFormAnchoChange }}" style="{{ formInputStyle }}" />
+            </div>
+            <div style="flex:1;">
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Alto (cm)</label>
+              <input type="number" min="1" value="{{ gondolaFormAlto }}" onChange="{{ onGondolaFormAltoChange }}" style="{{ formInputStyle }}" />
+            </div>
+            <div style="flex:1;">
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Profundidad (cm)</label>
+              <input type="number" min="1" value="{{ gondolaFormProfundidad }}" onChange="{{ onGondolaFormProfundidadChange }}" style="{{ formInputStyle }}" />
+            </div>
+          </div>
+          <div>
+            <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Posición en tienda</label>
+            <input type="text" value="{{ gondolaFormPosicion }}" onChange="{{ onGondolaFormPosicionChange }}" placeholder="Ej. Pasillo 3, entrada" style="{{ formInputStyle }}" />
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--border-subtle);">
+          <button onClick="{{ closeGondolaModal }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;">Cancelar</button>
+          <button onClick="{{ submitGondolaModal }}" style="background:var(--cemaco-indigo);color:#fff;border:0;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;">{{ gondolaModalSubmitLabel }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- NIVEL MODAL -->
+  <sc-if value="{{ showLevelModal }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,24,17,0.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;">
+      <div style="background:#fff;border-radius:12px;width:100%;max-width:440px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--border-subtle);">
+          <div style="font-family:var(--font-display);font-size:20px;color:var(--fg-1);">{{ levelModalTitle }}</div>
+          <button onClick="{{ closeLevelModal }}" style="background:transparent;border:0;font-size:24px;color:var(--fg-3);cursor:pointer;line-height:1;">&times;</button>
+        </div>
+        <div style="padding:22px;display:flex;flex-direction:column;gap:14px;">
+          <sc-if value="{{ levelFormWarnAccesorio }}" hint-placeholder-val="{{ false }}">
+            <div style="background:var(--warning-bg);color:var(--warning);border-radius:8px;padding:12px 14px;font-size:13px;">Cambiar el tipo de accesorio puede dejar desactualizadas las unidades por facing de las posiciones existentes.</div>
+          </sc-if>
+          <div style="display:flex;gap:12px;">
+            <div style="flex:1;">
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Orden</label>
+              <input type="number" min="1" value="{{ levelFormOrden }}" onChange="{{ onLevelFormOrdenChange }}" style="{{ formInputStyle }}" />
+            </div>
+            <div style="flex:1;">
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Altura desde piso (cm)</label>
+              <input type="number" min="0" value="{{ levelFormAltura }}" onChange="{{ onLevelFormAlturaChange }}" style="{{ formInputStyle }}" />
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;">
+            <div style="flex:1;">
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Tipo de accesorio</label>
+              <select value="{{ levelFormTipoAccesorio }}" onChange="{{ onLevelFormTipoAccesorioChange }}" style="{{ formInputStyle }}">
+                <sc-for list="{{ tipoAccesorioOptions }}" as="ta" hint-placeholder-count="3">
+                  <option value="{{ ta.value }}">{{ ta.label }}</option>
+                </sc-for>
+              </select>
+            </div>
+            <div style="flex:1;">
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Código accesorio</label>
+              <input type="text" value="{{ levelFormCodigoAccesorio }}" onChange="{{ onLevelFormCodigoChange }}" style="{{ formInputStyle }}" />
+            </div>
+          </div>
+          <div>
+            <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Ancho disponible (cm)</label>
+            <input type="number" min="1" value="{{ levelFormAnchoDisponible }}" onChange="{{ onLevelFormAnchoChange }}" style="{{ formInputStyle }}" />
+          </div>
+          <div>
+            <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Notas</label>
+            <textarea value="{{ levelFormNotas }}" onChange="{{ onLevelFormNotasChange }}" rows="2" style="{{ formInputStyle }}resize:vertical;font-family:var(--font-body);"></textarea>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--border-subtle);">
+          <button onClick="{{ closeLevelModal }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;">Cancelar</button>
+          <button onClick="{{ submitLevelModal }}" style="background:var(--cemaco-indigo);color:#fff;border:0;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;">{{ levelModalSubmitLabel }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- CONFIRM ELIMINAR NIVEL/GÓNDOLA -->
+  <sc-if value="{{ showDeleteConfirm }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,24,17,0.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;">
+      <div style="background:#fff;border-radius:12px;width:100%;max-width:420px;">
+        <div style="padding:22px;">
+          <div style="font-family:var(--font-display);font-size:20px;color:var(--fg-1);margin-bottom:12px;">{{ deleteConfirmTitle }}</div>
+          <div style="font-size:14px;color:var(--fg-2);">{{ deleteConfirmMsg }}</div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--border-subtle);">
+          <button onClick="{{ closeDeleteConfirm }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;">Cancelar</button>
+          <button onClick="{{ confirmDelete }}" style="background:var(--danger);color:#fff;border:0;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- PUBLICAR PANEL (EDITOR) -->
+  <sc-if value="{{ showPublicarEditorPanel }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,24,17,0.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;">
+      <div style="background:#fff;border-radius:12px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--border-subtle);">
+          <div style="font-family:var(--font-display);font-size:20px;color:var(--fg-1);">Validación pre-publicación</div>
+          <button onClick="{{ closePublicarEditorPanel }}" style="background:transparent;border:0;font-size:24px;color:var(--fg-3);cursor:pointer;line-height:1;">&times;</button>
+        </div>
+        <div style="padding:22px;display:flex;flex-direction:column;gap:10px;">
+          <sc-if value="{{ editorHasNoIssues }}" hint-placeholder-val="{{ false }}">
+            <div style="color:var(--fg-2);font-size:14px;">Sin errores ni advertencias. Lista para publicar.</div>
+          </sc-if>
+          <sc-for list="{{ editorErrores }}" as="ee" hint-placeholder-count="0">
+            <div style="background:var(--danger-bg);color:var(--danger);border-radius:8px;padding:12px 14px;font-size:13px;">{{ ee.msg }}</div>
+          </sc-for>
+          <sc-for list="{{ editorAdvertencias }}" as="ea" hint-placeholder-count="0">
+            <div style="background:var(--warning-bg);color:var(--warning);border-radius:8px;padding:12px 14px;font-size:13px;">{{ ea.msg }}</div>
+          </sc-for>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--border-subtle);">
+          <button onClick="{{ closePublicarEditorPanel }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;">Cancelar</button>
+          <button onClick="{{ confirmPublicarEditor }}" disabled="{{ editorPublicarBloqueado }}" style="{{ editorPublicarBtnStyle }}">Confirmar publicación</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- SUSTITUCIÓN DE SKU WIZARD -->
+  <sc-if value="{{ showSustWizard }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,24,17,0.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;">
+      <div style="background:#fff;border-radius:12px;width:100%;max-width:500px;max-height:88vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--border-subtle);">
+          <div>
+            <div style="font-family:var(--font-display);font-size:20px;color:var(--fg-1);">Sustituir SKU</div>
+            <div style="font-size:12px;color:var(--fg-3);margin-top:2px;">Paso {{ sustStep }} de 3</div>
+          </div>
+          <button onClick="{{ closeSustWizard }}" style="background:transparent;border:0;font-size:24px;color:var(--fg-3);cursor:pointer;line-height:1;">&times;</button>
+        </div>
+        <div style="padding:22px;display:flex;flex-direction:column;gap:14px;">
+
+          <sc-if value="{{ sustStepIs2 }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:13px;color:var(--fg-2);">SKU original: <strong style="font-family:var(--font-mono);color:var(--fg-1);">{{ sustSkuOriginal }}</strong> · {{ sustSelectedCount }} posición(es) afectada(s)</div>
+            <div>
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Buscar SKU sustituto</label>
+              <select value="{{ sustSustitutoSku }}" onChange="{{ onSustSustitutoChange }}" style="{{ formInputStyle }}">
+                <option value="">Selecciona un producto</option>
+                <sc-for list="{{ sustCatalogoOptions }}" as="so" hint-placeholder-count="4">
+                  <option value="{{ so.value }}">{{ so.label }}</option>
+                </sc-for>
+              </select>
+            </div>
+            <sc-if value="{{ sustShowDimWarning }}" hint-placeholder-val="{{ false }}">
+              <div style="background:var(--warning-bg);color:var(--warning);border-radius:8px;padding:12px 14px;font-size:13px;">Las dimensiones del sustituto difieren más de 20% del original — se recalcularán ancho asignado y facings.</div>
+            </sc-if>
+          </sc-if>
+
+          <sc-if value="{{ sustStepIs3 }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:13px;color:var(--fg-2);">
+              <strong style="font-family:var(--font-mono);color:var(--fg-1);">{{ sustSkuOriginal }}</strong> → <strong style="font-family:var(--font-mono);color:var(--fg-1);">{{ sustSustitutoSku }}</strong> en {{ sustSelectedCount }} posición(es).
+            </div>
+            <div>
+              <label style="display:block;font-size:13px;font-weight:600;color:var(--fg-1);margin-bottom:6px;">Motivo de la sustitución</label>
+              <textarea value="{{ sustMotivo }}" onChange="{{ onSustMotivoChange }}" rows="3" placeholder="Mínimo 10 caracteres…" style="{{ formInputStyle }}resize:vertical;font-family:var(--font-body);"></textarea>
+              <sc-if value="{{ sustMotivoError }}" hint-placeholder-val="{{ false }}">
+                <div style="color:var(--danger);font-size:12px;margin-top:4px;">El motivo debe tener al menos 10 caracteres.</div>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--border-subtle);">
+          <sc-if value="{{ sustStepIs2 }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ closeSustWizard }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;">Cancelar</button>
+            <button onClick="{{ sustGoStep3 }}" disabled="{{ sustStep2Invalid }}" style="{{ sustStep2BtnStyle }}">Continuar</button>
+          </sc-if>
+          <sc-if value="{{ sustStepIs3 }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ sustGoStep2 }}" style="background:transparent;border:1px solid var(--border);color:var(--fg-1);border-radius:8px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;">Atrás</button>
+            <button onClick="{{ confirmSustitucion }}" style="background:var(--cemaco-indigo);color:#fff;border:0;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;cursor:pointer;">Confirmar sustitución</button>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- HISTORIAL DE SUSTITUCIONES -->
+  <sc-if value="{{ showHistorialSustituciones }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(17,24,17,0.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;">
+      <div style="background:#fff;border-radius:12px;width:100%;max-width:640px;max-height:85vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--border-subtle);">
+          <div style="font-family:var(--font-display);font-size:20px;color:var(--fg-1);">Historial de sustituciones</div>
+          <button onClick="{{ closeHistorialSustituciones }}" style="background:transparent;border:0;font-size:24px;color:var(--fg-3);cursor:pointer;line-height:1;">&times;</button>
+        </div>
+        <div style="padding:0;">
+          <sc-if value="{{ historialEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:30px 22px;text-align:center;color:var(--fg-3);font-size:14px;">Aún no hay sustituciones registradas en esta versión.</div>
+          </sc-if>
+          <sc-if value="{{ historialHasRows }}" hint-placeholder-val="{{ false }}">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+              <thead>
+                <tr style="background:var(--ink-50);">
+                  <th style="text-align:left;padding:10px 20px;font-size:11px;color:var(--fg-3);font-weight:600;">ORIGINAL → SUSTITUTO</th>
+                  <th style="text-align:left;padding:10px 20px;font-size:11px;color:var(--fg-3);font-weight:600;">MOTIVO</th>
+                  <th style="text-align:left;padding:10px 20px;font-size:11px;color:var(--fg-3);font-weight:600;">FECHA</th>
+                  <th style="text-align:left;padding:10px 20px;font-size:11px;color:var(--fg-3);font-weight:600;">USUARIO</th>
+                  <th style="text-align:left;padding:10px 20px;font-size:11px;color:var(--fg-3);font-weight:600;">POSICIONES</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ historialRows }}" as="h" hint-placeholder-count="2">
+                  <tr style="border-top:1px solid var(--border-subtle);">
+                    <td style="padding:10px 20px;font-family:var(--font-mono);color:var(--fg-1);">{{ h.skuOriginal }} → {{ h.skuSustituto }}</td>
+                    <td style="padding:10px 20px;color:var(--fg-2);max-width:200px;">{{ h.motivo }}</td>
+                    <td style="padding:10px 20px;color:var(--fg-3);white-space:nowrap;">{{ h.fechaLabel }}</td>
+                    <td style="padding:10px 20px;color:var(--fg-2);">{{ h.usuario }}</td>
+                    <td style="padding:10px 20px;color:var(--fg-2);">{{ h.totalPosiciones }}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- TOAST -->
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+    <div style="{{ toastStyle }}">{{ toastMsg }}</div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    vw: typeof window !== 'undefined' ? window.innerWidth : 1440,
+    role: 'analista',
+    screen: 'listado',
+    selectedId: null,
+    filtroArea: '', filtroDepto: '', filtroEstado: '', search: '',
+    filtrosOpen: false,
+    showForm: false, formMode: 'crear',
+    formId: null, formNombre: '', formArea: '', formDepartamento: '', formSubcategorias: [],
+    newSubcat: '',
+    formErrors: {},
+    showArchivar: false, archivarId: null,
+    nextVersionId: 100,
+    showVersionForm: false, versionFormTipo: 'GRANDE', versionFormNotas: '',
+    showEspecialWizard: false, especialStep: 1, especialBaseVersionId: '', especialTiendaCodigo: '',
+    showPromoverModal: false, promoverVersionId: null, promoverSelected: [],
+    showPublicarModal: false, publicarVersionId: null,
+    showTiendasModal: false, tiendasModalVersionId: null, tiendasModalSelected: [],
+    editorVersionId: null, selectedGondolaId: null,
+    clipboardPosition: null, draggingPositionId: null,
+    selectedSpaceId: null, fichaSku: null, duplicarNivelSel: '',
+    drawerPositionId: null, drawerDraft: null,
+    showGondolaModal: false, gondolaModalMode: 'crear', gondolaForm: { nombre: '', ancho: 300, alto: 200, profundidad: 60, posicion: '' },
+    showLevelModal: false, levelModalMode: 'crear', levelForm: { orden: 1, altura: 0, tipoAccesorio: 'ESTANTE', codigoAccesorio: '', anchoDisponible: 100, notas: '' },
+    showDeleteConfirm: false, deleteConfirmTarget: null,
+    showExportMenu: false, showPublicarEditorPanel: false,
+    sustModeActive: false, sustSelectedIds: [], sustSkuOriginal: null,
+    showSustWizard: false, sustStep: 2, sustSustitutoSku: '', sustMotivo: '',
+    showHistorialSustituciones: false,
+    sustHistorial: [],
+    nextGondolaId: 3, nextNivelId: 100, nextPosicionId: 1000,
+    editorGondolas: [
+      { id: 1, versionId: 11, nombre: 'Góndola central', ancho: 300, alto: 200, profundidad: 60, posicion: 'Pasillo 3, entrada',
+        niveles: [
+          { id: 1, orden: 1, alturaCm: 0, tipoAccesorio: 'ESTANTE', codigoAccesorio: 'EST-A1', anchoDisponible: 120, notas: '',
+            posiciones: [
+              { id: 1, sku: 'SKU-1001', nombre: 'Aceite motor 5W30 1L', anchoCm: 8, profundidadCm: 12, facingsH: 3, cantidadApilable: 2, unidadesPorFacing: 4, minFinal: 8, maxFinal: 24, perfilRedondeo: 'MRP', accesorios: [], montarDisplay: false, modo: 'PLANOGRAMA', crossExterno: false, decision: 'ACTIVO', observaciones: '', desbordaGondola: false, notaDesborde: '', swatch: 'var(--cemaco-indigo-100)' },
+              { id: 2, sku: 'SKU-1002', nombre: 'Filtro de aceite universal', anchoCm: 6, profundidadCm: 8, facingsH: 4, cantidadApilable: 3, unidadesPorFacing: 5, minFinal: 6, maxFinal: 20, perfilRedondeo: 'ZSRE', accesorios: [], montarDisplay: false, modo: 'PLANOGRAMA', crossExterno: false, decision: 'ACTIVO', observaciones: '', desbordaGondola: false, notaDesborde: '', swatch: 'var(--cemaco-green-100)' },
+            ] },
+          { id: 2, orden: 2, alturaCm: 40, tipoAccesorio: 'ESTANTE', codigoAccesorio: 'EST-A1', anchoDisponible: 120, notas: '',
+            posiciones: [
+              { id: 3, sku: 'SKU-1003', nombre: 'Baterías de auto 12V', anchoCm: 15, profundidadCm: 18, facingsH: 2, cantidadApilable: 1, unidadesPorFacing: 3, minFinal: 4, maxFinal: 8, perfilRedondeo: 'MRP', accesorios: [], montarDisplay: false, modo: 'PLANOGRAMA', crossExterno: false, decision: 'ACTIVO', observaciones: '', desbordaGondola: false, notaDesborde: '', swatch: 'var(--warning-bg)' },
+            ] },
+          { id: 3, orden: 3, alturaCm: 80, tipoAccesorio: 'GANCHO', codigoAccesorio: 'GAN-B2', anchoDisponible: 100, notas: '', posiciones: [] },
+        ] },
+    ],
+    toast: null,
+    planogramas: [
+      { id: 1, nombre: 'AUTOS 01', area: 'HOGAR', departamento: 'AUTOS', estado: 'borrador',
+        subcategorias: ['Aceites y lubricantes', 'Accesorios eléctricos', 'Filtros'],
+        versiones: [{ id: 10, tipo: 'GRANDE', codigo: 'AUTOS-TG-01', estado: 'borrador', totalGondolas: 0, tiendas: [] }],
+        createdAt: '2026-07-01T10:00:00Z', createdBy: 'ana.lopez@cemaco.com' },
+      { id: 2, nombre: 'AUTOS PREMIUM', area: 'HOGAR', departamento: 'AUTOS', estado: 'publicado',
+        subcategorias: ['Baterías', 'Herramientas para auto'],
+        versiones: [
+          { id: 11, tipo: 'GRANDE', codigo: 'AUTOS-TG-02', estado: 'publicado', totalGondolas: 3, tiendas: ['T004', 'T007'] },
+          { id: 12, tipo: 'MEDIANA', codigo: 'AUTOS-TM-01', estado: 'archivado', totalGondolas: 2, tiendas: [] },
+        ], createdAt: '2026-06-15T08:30:00Z', createdBy: 'ana.lopez@cemaco.com' },
+      { id: 3, nombre: 'AUTOS EXPRESS T0PC', area: 'HOGAR', departamento: 'AUTOS', estado: 'borrador',
+        subcategorias: ['Accesorios eléctricos'],
+        versiones: [{ id: 13, tipo: 'EXPRESS', codigo: 'AUTOS-TE-01-T0PC', estado: 'en_desarrollo', totalGondolas: 1, tiendas: ['T0PC'] }],
+        createdAt: '2026-07-05T09:00:00Z', createdBy: 'david.ventura@cemaco.com' },
+      { id: 4, nombre: 'LIMPIEZA HOGAR 01', area: 'HOGAR', departamento: 'LIMPIEZA', estado: 'publicado',
+        subcategorias: ['Detergentes', 'Desinfectantes', 'Trapeadores'],
+        versiones: [{ id: 14, tipo: 'GRANDE', codigo: 'LIMPIEZA-TG-01', estado: 'publicado', totalGondolas: 4, tiendas: ['T004', 'T007', 'T010', 'T014', 'T015'] }],
+        createdAt: '2026-05-20T14:00:00Z', createdBy: 'carla.mendez@cemaco.com' },
+      { id: 5, nombre: 'LIMPIEZA PROFESIONAL', area: 'HOGAR', departamento: 'LIMPIEZA', estado: 'borrador',
+        subcategorias: ['Químicos industriales', 'Equipos de limpieza'], versiones: [],
+        createdAt: '2026-07-10T11:20:00Z', createdBy: 'carla.mendez@cemaco.com' },
+      { id: 6, nombre: 'LIMPIEZA HOGAR EXPRESS', area: 'HOGAR', departamento: 'LIMPIEZA', estado: 'archivado',
+        subcategorias: ['Aromatizantes', 'Bolsas de basura'],
+        versiones: [{ id: 15, tipo: 'EXPRESS', codigo: 'LIMPIEZA-TE-01', estado: 'archivado', totalGondolas: 1, tiendas: [] }],
+        createdAt: '2026-03-02T09:00:00Z', createdBy: 'carla.mendez@cemaco.com' },
+      { id: 7, nombre: 'ELECTRONICA AUDIO Y VIDEO', area: 'HOGAR', departamento: 'ELECTRONICA', estado: 'publicado',
+        subcategorias: ['Bocinas', 'Televisores', 'Audífonos'],
+        versiones: [{ id: 16, tipo: 'GRANDE', codigo: 'ELECT-TG-01', estado: 'publicado', totalGondolas: 5, tiendas: ['T004', 'T010', 'T0PC'] }],
+        createdAt: '2026-04-18T10:00:00Z', createdBy: 'jose.ramirez@cemaco.com' },
+      { id: 8, nombre: 'ELECTRONICA COMPUTO', area: 'HOGAR', departamento: 'ELECTRONICA', estado: 'borrador',
+        subcategorias: ['Laptops', 'Accesorios de cómputo'],
+        versiones: [{ id: 17, tipo: 'MEDIANA', codigo: 'ELECT-TM-02', estado: 'en_desarrollo', totalGondolas: 2, tiendas: [] }],
+        createdAt: '2026-07-08T16:45:00Z', createdBy: 'jose.ramirez@cemaco.com' },
+      { id: 9, nombre: 'ELECTRONICA GAMING', area: 'HOGAR', departamento: 'ELECTRONICA', estado: 'archivado',
+        subcategorias: ['Consolas', 'Videojuegos'],
+        versiones: [{ id: 18, tipo: 'MEDIANA', codigo: 'ELECT-TM-05', estado: 'archivado', totalGondolas: 2, tiendas: [] }],
+        createdAt: '2026-01-11T09:00:00Z', createdBy: 'jose.ramirez@cemaco.com' },
+      { id: 10, nombre: 'ELECTRODOMESTICOS COCINA', area: 'HOGAR', departamento: 'ELECTRODOMESTICOS', estado: 'publicado',
+        subcategorias: ['Licuadoras', 'Freidoras de aire', 'Microondas'],
+        versiones: [{ id: 19, tipo: 'GRANDE', codigo: 'ELECTRO-TG-01', estado: 'publicado', totalGondolas: 3, tiendas: ['T007', 'T014'] }],
+        createdAt: '2026-05-02T12:00:00Z', createdBy: 'maria.paz@cemaco.com' },
+      { id: 11, nombre: 'ELECTRODOMESTICOS LAVADO', area: 'HOGAR', departamento: 'ELECTRODOMESTICOS', estado: 'borrador',
+        subcategorias: ['Lavadoras', 'Secadoras'], versiones: [],
+        createdAt: '2026-07-12T15:00:00Z', createdBy: 'maria.paz@cemaco.com' },
+      { id: 12, nombre: 'ELECTRODOMESTICOS CLIMA', area: 'HOGAR', departamento: 'ELECTRODOMESTICOS', estado: 'publicado',
+        subcategorias: ['Ventiladores', 'Aires acondicionados portátiles'],
+        versiones: [{ id: 20, tipo: 'GRANDE', codigo: 'ELECTRO-TG-02', estado: 'publicado', totalGondolas: 2, tiendas: ['T004', 'T015', 'T0PC'] }],
+        createdAt: '2026-06-01T08:00:00Z', createdBy: 'maria.paz@cemaco.com' },
+    ],
+  };
+
+  AREAS = [{ value: 'HOGAR', label: 'Hogar' }, { value: 'FERRETERIA', label: 'Ferretería' }];
+  DEPARTAMENTOS = [
+    { codigo: 'AUTOS', nombre: 'Autos', area: 'HOGAR' },
+    { codigo: 'LIMPIEZA', nombre: 'Limpieza', area: 'HOGAR' },
+    { codigo: 'ELECTRONICA', nombre: 'Electrónica', area: 'HOGAR' },
+    { codigo: 'ELECTRODOMESTICOS', nombre: 'Electrodomésticos', area: 'HOGAR' },
+  ];
+  ESTADO_META = {
+    borrador: { label: 'Borrador', bg: 'var(--ink-100)', color: 'var(--ink-700)' },
+    publicado: { label: 'Publicado', bg: 'var(--cemaco-green-50)', color: 'var(--cemaco-green-700)' },
+    archivado: { label: 'Archivado', bg: 'var(--ink-100)', color: 'var(--fg-3)' },
+    en_desarrollo: { label: 'En desarrollo', bg: 'var(--cemaco-indigo-50)', color: 'var(--cemaco-indigo)' },
+    piloto: { label: 'Piloto', bg: 'var(--warning-bg)', color: 'var(--warning)' },
+  };
+  TIPO_LABEL = { GRANDE: 'Grande (TG)', MEDIANA: 'Mediana (TM)', EXPRESS: 'Express (TE)' };
+  TIPO_ABREV = { GRANDE: 'TG', MEDIANA: 'TM', EXPRESS: 'TE' };
+  CASCADA_ESTADOS = ['borrador', 'en_desarrollo', 'piloto'];
+  TIENDAS = ['T004', 'T007', 'T010', 'T014', 'T015', 'T0PC'];
+  CATALOGO = [
+    { sku: 'SKU-1001', nombre: 'Aceite motor 5W30 1L', anchoCm: 8, profundidadCm: 12, upc: '7401001999991', precio: 'Q89.99', categoria: 'Aceites y lubricantes', swatch: '#EF6C00', desc: 'Aceite sintético para motor a gasolina. Protección contra desgaste en arranques en frío y altas temperaturas.' },
+    { sku: 'SKU-1002', nombre: 'Filtro de aceite universal', anchoCm: 6, profundidadCm: 8, upc: '7401002999998', precio: 'Q45.99', categoria: 'Filtros', swatch: '#1565C0', desc: 'Filtro de aceite de ajuste universal para vehículos livianos. Retiene impurezas y prolonga la vida del motor.' },
+    { sku: 'SKU-1003', nombre: 'Baterías de auto 12V', anchoCm: 15, profundidadCm: 18, upc: '7401003999995', precio: 'Q899.00', categoria: 'Baterías', swatch: '#37474F', desc: 'Batería de 12V libre de mantenimiento. Arranque confiable y garantía de 18 meses.' },
+    { sku: 'SKU-1004', nombre: 'Aromatizante para auto', anchoCm: 5, profundidadCm: 5, upc: '7401004999992', precio: 'Q34.99', categoria: 'Aromatizantes', swatch: '#8D6E63', desc: 'Aromatizante con clip para rejilla de ventilación. Aroma fresco de larga duración, aproximadamente 30 días.' },
+    { sku: 'SKU-1005', nombre: 'Kit de herramientas básico', anchoCm: 20, profundidadCm: 15, upc: '7401005999999', precio: 'Q249.99', categoria: 'Herramientas para auto', swatch: '#C62828', desc: 'Kit de emergencia con herramientas esenciales para el auto: llaves, dados, cables pasa corriente y guantes.' },
+  ];
+  TIPO_ACCESORIO_OPTIONS = [{ value: 'ESTANTE', label: 'Estante' }, { value: 'GANCHO', label: 'Gancho' }, { value: 'CANASTA', label: 'Canasta' }];
+
+  componentDidMount() {
+    this.onResize = () => this.setState({ vw: window.innerWidth });
+    window.addEventListener('resize', this.onResize);
+    this.onKeyDown = (e) => {
+      if (this.state.screen !== 'editor' || this.state.drawerPositionId != null) return;
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') { e.preventDefault(); this.copyActivePosicion(); }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') { e.preventDefault(); this.pasteClipboardPosicion(); }
+    };
+    window.addEventListener('keydown', this.onKeyDown);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.onResize);
+    window.removeEventListener('keydown', this.onKeyDown);
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+  }
+
+  fmtDate(iso) {
+    return new Date(iso).toLocaleDateString('es-GT', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+  badgeStyleFor(estado) {
+    const m = this.ESTADO_META[estado] || this.ESTADO_META.borrador;
+    return `background:${m.bg};color:${m.color};font-size:12px;font-weight:600;padding:5px 12px;border-radius:999px;white-space:nowrap;`;
+  }
+  showToast(type, msg) {
+    if (this.toastTimer) clearTimeout(this.toastTimer);
+    this.setState({ toast: { type, msg } });
+    this.toastTimer = setTimeout(() => this.setState({ toast: null }), 3200);
+  }
+
+  goListado = () => this.setState({ screen: 'listado', selectedId: null });
+  goDetalleId = (id) => this.setState({ screen: 'detalle', selectedId: id });
+  setRoleAnalista = () => this.setState({ role: 'analista' });
+  setRoleImplementador = () => this.setState({ role: 'implementador' });
+
+  onFiltroAreaChange = (e) => this.setState({ filtroArea: e.target.value, filtroDepto: '' });
+  onFiltroDeptoChange = (e) => this.setState({ filtroDepto: e.target.value });
+  onFiltroEstadoChange = (e) => this.setState({ filtroEstado: e.target.value });
+  onSearchChange = (e) => this.setState({ search: e.target.value });
+  clearFiltros = () => this.setState({ filtroArea: '', filtroDepto: '', filtroEstado: '', search: '' });
+  toggleFiltrosOpen = () => this.setState((s) => ({ filtrosOpen: !s.filtrosOpen }));
+
+  openCrear = () => this.setState({
+    showForm: true, formMode: 'crear', formId: null, formNombre: '', formArea: '', formDepartamento: '',
+    formSubcategorias: [], newSubcat: '', formErrors: {},
+  });
+  openEditarId = (id) => {
+    const p = this.state.planogramas.find((x) => x.id === id);
+    if (!p) return;
+    this.setState({
+      showForm: true, formMode: 'editar', formId: id, formNombre: p.nombre, formArea: p.area,
+      formDepartamento: p.departamento, formSubcategorias: [...p.subcategorias], newSubcat: '', formErrors: {},
+    });
+  };
+  closeForm = () => this.setState({ showForm: false, formErrors: {} });
+  onFormNombreChange = (e) => this.setState({ formNombre: e.target.value });
+  onFormAreaChange = (e) => this.setState({ formArea: e.target.value, formDepartamento: '' });
+  onFormDeptoChange = (e) => this.setState({ formDepartamento: e.target.value });
+  onNewSubcatChange = (e) => this.setState({ newSubcat: e.target.value });
+  onNewSubcatKeyDown = (e) => { if (e.key === 'Enter') { e.preventDefault(); this.addSubcat(); } };
+  addSubcat = () => {
+    const v = this.state.newSubcat.trim();
+    if (!v || v.length > 100) return;
+    if (this.state.formSubcategorias.length >= 20) return;
+    if (this.state.formSubcategorias.some((s) => s.toLowerCase() === v.toLowerCase())) { this.setState({ newSubcat: '' }); return; }
+    this.setState((s) => ({ formSubcategorias: [...s.formSubcategorias, v], newSubcat: '' }));
+  };
+  removeSubcatAt = (idx) => this.setState((s) => ({ formSubcategorias: s.formSubcategorias.filter((_, i) => i !== idx) }));
+
+  submitForm = () => {
+    const s = this.state;
+    const nombre = s.formNombre.trim();
+    const errors = {};
+    if (nombre.length < 3 || nombre.length > 100) errors.nombre = 'Debe tener entre 3 y 100 caracteres';
+    if (!s.formArea) errors.area = true;
+    if (!s.formDepartamento) errors.depto = true;
+    if (s.formSubcategorias.length < 1) errors.subcats = true;
+    if (!errors.nombre) {
+      const dup = s.planogramas.some((p) => p.id !== s.formId && p.departamento === s.formDepartamento && p.nombre.toLowerCase() === nombre.toLowerCase());
+      if (dup) errors.nombre = 'Ya existe un planograma con este nombre en el departamento';
+    }
+    if (Object.keys(errors).length > 0) { this.setState({ formErrors: errors }); return; }
+
+    if (s.formMode === 'crear') {
+      const newId = Math.max(0, ...s.planogramas.map((p) => p.id)) + 1;
+      const nuevo = {
+        id: newId, nombre, area: s.formArea, departamento: s.formDepartamento, estado: 'borrador',
+        subcategorias: [...s.formSubcategorias], versiones: [],
+        createdAt: new Date().toISOString(), createdBy: 'tu.usuario@cemaco.com',
+      };
+      this.setState((st) => ({ planogramas: [...st.planogramas, nuevo], showForm: false, screen: 'detalle', selectedId: newId }));
+      this.showToast('success', 'Planograma creado');
+    } else {
+      const target = s.planogramas.find((p) => p.id === s.formId);
+      if (target && target.estado === 'archivado') { this.setState({ formErrors: { nombre: 'Un planograma archivado no puede editarse' } }); return; }
+      this.setState((st) => ({
+        planogramas: st.planogramas.map((p) => p.id === s.formId ? { ...p, nombre, area: s.formArea, departamento: s.formDepartamento, subcategorias: [...s.formSubcategorias] } : p),
+        showForm: false,
+      }));
+      this.showToast('success', 'Planograma actualizado');
+    }
+  };
+
+  openArchivarId = (id) => this.setState({ showArchivar: true, archivarId: id });
+  closeArchivar = () => this.setState({ showArchivar: false, archivarId: null });
+  confirmArchivar = () => {
+    const s = this.state;
+    const target = s.planogramas.find((p) => p.id === s.archivarId);
+    if (!target) return;
+    const bloqueantes = target.versiones.filter((v) => v.estado === 'publicado' && v.tiendas.length > 0);
+    if (bloqueantes.length > 0) return;
+    const cascadaCount = target.versiones.filter((v) => this.CASCADA_ESTADOS.includes(v.estado)).length;
+    this.setState((st) => ({
+      planogramas: st.planogramas.map((p) => p.id === target.id ? {
+        ...p, estado: 'archivado',
+        versiones: p.versiones.map((v) => this.CASCADA_ESTADOS.includes(v.estado) ? { ...v, estado: 'archivado' } : v),
+      } : p),
+      showArchivar: false, archivarId: null,
+    }));
+    this.showToast('success', `Planograma archivado (${cascadaCount} versiones archivadas)`);
+  };
+
+  currentPlanogramaObj() { return this.state.planogramas.find((p) => p.id === this.state.selectedId) || null; }
+
+  updateVersionInCurrent(versionId, patch) {
+    this.setState((st) => ({
+      planogramas: st.planogramas.map((p) => p.id !== st.selectedId ? p : {
+        ...p, versiones: p.versiones.map((v) => v.id === versionId ? { ...v, ...patch } : v),
+      }),
+    }));
+  }
+
+  openCrearVersion = () => this.setState({ showVersionForm: true, versionFormTipo: 'GRANDE', versionFormNotas: '' });
+  closeVersionForm = () => this.setState({ showVersionForm: false });
+  onVersionFormTipoChange = (e) => this.setState({ versionFormTipo: e.target.value });
+  onVersionFormNotasChange = (e) => this.setState({ versionFormNotas: e.target.value });
+  submitVersionForm = () => {
+    const s = this.state;
+    const p = this.currentPlanogramaObj();
+    if (!p) return;
+    const seq = p.versiones.filter((v) => v.tipo === s.versionFormTipo).length + 1;
+    const codigo = `${p.departamento}-${this.TIPO_ABREV[s.versionFormTipo]}-${String(seq).padStart(2, '0')}`;
+    const nueva = { id: s.nextVersionId, tipo: s.versionFormTipo, codigo, estado: 'en_desarrollo', totalGondolas: 0, tiendas: [], notas: s.versionFormNotas.trim() };
+    this.setState((st) => ({
+      nextVersionId: st.nextVersionId + 1,
+      planogramas: st.planogramas.map((x) => x.id === p.id ? { ...x, versiones: [...x.versiones, nueva] } : x),
+      showVersionForm: false,
+    }));
+    this.showToast('success', `Versión ${codigo} creada`);
+  };
+
+  openEspecialWizard = () => this.setState({ showEspecialWizard: true, especialStep: 1, especialBaseVersionId: '', especialTiendaCodigo: '' });
+  closeEspecialWizard = () => this.setState({ showEspecialWizard: false });
+  onEspecialBaseChange = (e) => this.setState({ especialBaseVersionId: e.target.value });
+  onEspecialTiendaChange = (e) => this.setState({ especialTiendaCodigo: e.target.value });
+  especialGoStep2 = () => { if (this.state.especialBaseVersionId) this.setState({ especialStep: 2 }); };
+  especialGoStep1 = () => this.setState({ especialStep: 1 });
+  confirmEspecial = () => {
+    const s = this.state;
+    const p = this.currentPlanogramaObj();
+    if (!p || !s.especialTiendaCodigo) return;
+    const base = p.versiones.find((v) => String(v.id) === String(s.especialBaseVersionId));
+    if (!base) return;
+    const codigo = `${base.codigo}-${s.especialTiendaCodigo}`;
+    const nueva = { id: s.nextVersionId, tipo: base.tipo, codigo, estado: 'en_desarrollo', totalGondolas: base.totalGondolas, tiendas: [s.especialTiendaCodigo], notas: `Versión especial derivada de ${base.codigo}` };
+    this.setState((st) => ({
+      nextVersionId: st.nextVersionId + 1,
+      planogramas: st.planogramas.map((x) => x.id === p.id ? { ...x, versiones: [...x.versiones, nueva] } : x),
+      showEspecialWizard: false,
+    }));
+    this.showToast('success', `Versión especial ${codigo} creada`);
+  };
+
+  openPromoverModal = (versionId) => {
+    const p = this.currentPlanogramaObj();
+    const v = p && p.versiones.find((x) => x.id === versionId);
+    this.setState({ showPromoverModal: true, promoverVersionId: versionId, promoverSelected: v ? [...v.tiendas] : [] });
+  };
+  closePromoverModal = () => this.setState({ showPromoverModal: false, promoverVersionId: null });
+  togglePromoverTienda = (codigo) => this.setState((s) => ({
+    promoverSelected: s.promoverSelected.includes(codigo) ? s.promoverSelected.filter((c) => c !== codigo) : [...s.promoverSelected, codigo],
+  }));
+  confirmPromover = () => {
+    const s = this.state;
+    if (s.promoverSelected.length < 1) { this.setState({ promoverAttempted: true }); return; }
+    this.updateVersionInCurrent(s.promoverVersionId, { estado: 'piloto', tiendas: [...s.promoverSelected] });
+    this.setState({ showPromoverModal: false, promoverVersionId: null, promoverAttempted: false });
+    this.showToast('success', 'Versión promovida a piloto');
+  };
+
+  openPublicarModal = (versionId) => this.setState({ showPublicarModal: true, publicarVersionId: versionId });
+  closePublicarModal = () => this.setState({ showPublicarModal: false, publicarVersionId: null });
+  confirmPublicar = () => {
+    const s = this.state;
+    const p = this.currentPlanogramaObj();
+    if (!p) return;
+    const v = p.versiones.find((x) => x.id === s.publicarVersionId);
+    if (!v || v.totalGondolas === 0) return;
+    const previaPublicada = p.versiones.find((x) => x.estado === 'publicado' && x.id !== v.id);
+    this.setState((st) => ({
+      planogramas: st.planogramas.map((x) => x.id !== p.id ? x : {
+        ...x, versiones: x.versiones.map((ver) => {
+          if (ver.id === v.id) return { ...ver, estado: 'publicado' };
+          if (previaPublicada && ver.id === previaPublicada.id) return { ...ver, estado: 'archivado' };
+          return ver;
+        }),
+      }),
+      showPublicarModal: false, publicarVersionId: null,
+    }));
+    this.showToast('success', previaPublicada ? `${v.codigo} publicada · versión anterior archivada` : `${v.codigo} publicada`);
+  };
+
+  openTiendasModal = (versionId) => {
+    const p = this.currentPlanogramaObj();
+    const v = p && p.versiones.find((x) => x.id === versionId);
+    this.setState({ showTiendasModal: true, tiendasModalVersionId: versionId, tiendasModalSelected: v ? [...v.tiendas] : [] });
+  };
+  closeTiendasModal = () => this.setState({ showTiendasModal: false, tiendasModalVersionId: null });
+  toggleTiendaModal = (codigo) => this.setState((s) => ({
+    tiendasModalSelected: s.tiendasModalSelected.includes(codigo) ? s.tiendasModalSelected.filter((c) => c !== codigo) : [...s.tiendasModalSelected, codigo],
+  }));
+  confirmTiendasModal = () => {
+    const s = this.state;
+    this.updateVersionInCurrent(s.tiendasModalVersionId, { tiendas: [...s.tiendasModalSelected] });
+    this.setState({ showTiendasModal: false, tiendasModalVersionId: null });
+    this.showToast('success', 'Tiendas actualizadas');
+  };
+
+  currentEditorGondola() { return this.state.editorGondolas.find((g) => g.id === this.state.selectedGondolaId) || null; }
+  goEditor = (versionId) => {
+    const gs = this.state.editorGondolas.filter((g) => g.versionId === versionId);
+    this.setState({ screen: 'editor', editorVersionId: versionId, selectedGondolaId: gs.length ? gs[0].id : null });
+  };
+  goDetalleFromEditor = (e) => { e.preventDefault(); this.setState({ screen: 'detalle', editorVersionId: null }); };
+  selectGondola = (id) => this.setState({ selectedGondolaId: id });
+  guardarBorradorEditor = () => this.showToast('success', 'Borrador guardado');
+  openExportMenu = () => this.setState({ showExportMenu: true });
+  closeExportMenu = () => this.setState({ showExportMenu: false });
+  exportarJson = () => { this.setState({ showExportMenu: false }); this.showToast('success', 'Exportación JSON generada'); };
+  exportarCsv = () => { this.setState({ showExportMenu: false }); this.showToast('success', 'Exportación CSV generada'); };
+
+  openCrearGondola = () => this.setState({ showGondolaModal: true, gondolaModalMode: 'crear', gondolaForm: { nombre: '', ancho: 300, alto: 200, profundidad: 60, posicion: '' } });
+  openEditarGondola = () => {
+    const g = this.currentEditorGondola(); if (!g) return;
+    this.setState({ showGondolaModal: true, gondolaModalMode: 'editar', gondolaForm: { nombre: g.nombre, ancho: g.ancho, alto: g.alto, profundidad: g.profundidad, posicion: g.posicion } });
+  };
+  closeGondolaModal = () => this.setState({ showGondolaModal: false });
+  onGondolaFormNombreChange = (e) => this.setState((s) => ({ gondolaForm: { ...s.gondolaForm, nombre: e.target.value } }));
+  onGondolaFormAnchoChange = (e) => this.setState((s) => ({ gondolaForm: { ...s.gondolaForm, ancho: Number(e.target.value) } }));
+  onGondolaFormAltoChange = (e) => this.setState((s) => ({ gondolaForm: { ...s.gondolaForm, alto: Number(e.target.value) } }));
+  onGondolaFormProfundidadChange = (e) => this.setState((s) => ({ gondolaForm: { ...s.gondolaForm, profundidad: Number(e.target.value) } }));
+  onGondolaFormPosicionChange = (e) => this.setState((s) => ({ gondolaForm: { ...s.gondolaForm, posicion: e.target.value } }));
+  submitGondolaModal = () => {
+    const s = this.state, f = s.gondolaForm;
+    if (s.gondolaModalMode === 'crear') {
+      const nueva = { id: s.nextGondolaId, versionId: s.editorVersionId, nombre: f.nombre || `Góndola ${s.nextGondolaId}`, ancho: f.ancho, alto: f.alto, profundidad: f.profundidad, posicion: f.posicion, niveles: [] };
+      this.setState((st) => ({ editorGondolas: [...st.editorGondolas, nueva], nextGondolaId: st.nextGondolaId + 1, selectedGondolaId: nueva.id, showGondolaModal: false }));
+    } else {
+      this.setState((st) => ({ editorGondolas: st.editorGondolas.map((g) => g.id === st.selectedGondolaId ? { ...g, ...f } : g), showGondolaModal: false }));
+    }
+    this.showToast('success', 'Góndola guardada');
+  };
+  openEliminarGondola = () => this.setState({ showDeleteConfirm: true, deleteConfirmTarget: { type: 'gondola', id: this.state.selectedGondolaId } });
+
+  openCrearNivel = () => {
+    const g = this.currentEditorGondola();
+    this.setState({ showLevelModal: true, levelModalMode: 'crear', levelForm: { orden: (g ? g.niveles.length : 0) + 1, altura: 0, tipoAccesorio: 'ESTANTE', codigoAccesorio: '', anchoDisponible: 100, notas: '' } });
+  };
+  openEditarNivel = (nivelId) => {
+    const g = this.currentEditorGondola(); const n = g && g.niveles.find((x) => x.id === nivelId);
+    if (!n) return;
+    this.setState({ showLevelModal: true, levelModalMode: 'editar', levelModalTargetId: nivelId, levelForm: { orden: n.orden, altura: n.alturaCm, tipoAccesorio: n.tipoAccesorio, codigoAccesorio: n.codigoAccesorio, anchoDisponible: n.anchoDisponible, notas: n.notas } });
+  };
+  closeLevelModal = () => this.setState({ showLevelModal: false });
+  onLevelFormOrdenChange = (e) => this.setState((s) => ({ levelForm: { ...s.levelForm, orden: Number(e.target.value) } }));
+  onLevelFormAlturaChange = (e) => this.setState((s) => ({ levelForm: { ...s.levelForm, altura: Number(e.target.value) } }));
+  onLevelFormTipoAccesorioChange = (e) => this.setState((s) => ({ levelForm: { ...s.levelForm, tipoAccesorio: e.target.value } }));
+  onLevelFormCodigoChange = (e) => this.setState((s) => ({ levelForm: { ...s.levelForm, codigoAccesorio: e.target.value } }));
+  onLevelFormAnchoChange = (e) => this.setState((s) => ({ levelForm: { ...s.levelForm, anchoDisponible: Number(e.target.value) } }));
+  onLevelFormNotasChange = (e) => this.setState((s) => ({ levelForm: { ...s.levelForm, notas: e.target.value } }));
+  submitLevelModal = () => {
+    const s = this.state, f = s.levelForm, gid = s.selectedGondolaId;
+    if (s.levelModalMode === 'crear') {
+      const nuevo = { id: s.nextNivelId, orden: f.orden, alturaCm: f.altura, tipoAccesorio: f.tipoAccesorio, codigoAccesorio: f.codigoAccesorio, anchoDisponible: f.anchoDisponible, notas: f.notas, posiciones: [] };
+      this.setState((st) => ({ nextNivelId: st.nextNivelId + 1, editorGondolas: st.editorGondolas.map((g) => g.id !== gid ? g : { ...g, niveles: [...g.niveles, nuevo] }), showLevelModal: false }));
+    } else {
+      this.setState((st) => ({ editorGondolas: st.editorGondolas.map((g) => g.id !== gid ? g : { ...g, niveles: g.niveles.map((n) => n.id === st.levelModalTargetId ? { ...n, orden: f.orden, alturaCm: f.altura, tipoAccesorio: f.tipoAccesorio, codigoAccesorio: f.codigoAccesorio, anchoDisponible: f.anchoDisponible, notas: f.notas } : n) }), showLevelModal: false }));
+    }
+    this.showToast('success', 'Nivel guardado');
+  };
+  openEliminarNivel = (nivelId) => this.setState({ showDeleteConfirm: true, deleteConfirmTarget: { type: 'nivel', id: nivelId } });
+  closeDeleteConfirm = () => this.setState({ showDeleteConfirm: false, deleteConfirmTarget: null });
+  confirmDelete = () => {
+    const s = this.state, t = s.deleteConfirmTarget; if (!t) return;
+    if (t.type === 'gondola') {
+      this.setState((st) => {
+        const remaining = st.editorGondolas.filter((g) => g.id !== t.id);
+        return { editorGondolas: remaining, selectedGondolaId: remaining.length ? remaining[0].id : null, showDeleteConfirm: false };
+      });
+    } else {
+      this.setState((st) => ({ editorGondolas: st.editorGondolas.map((g) => g.id !== st.selectedGondolaId ? g : { ...g, niveles: g.niveles.filter((n) => n.id !== t.id) }), showDeleteConfirm: false }));
+    }
+    this.showToast('success', 'Eliminado');
+  };
+
+  addPosicionToNivel = (nivelId) => {
+    const s = this.state, gid = s.selectedGondolaId;
+    const prod = this.CATALOGO[0];
+    const nueva = { id: s.nextPosicionId, sku: prod.sku, nombre: prod.nombre, anchoCm: prod.anchoCm, profundidadCm: prod.profundidadCm, facingsH: 1, cantidadApilable: 1, unidadesPorFacing: 1, minFinal: 1, maxFinal: 1, perfilRedondeo: 'MRP', accesorios: [], montarDisplay: false, modo: 'PLANOGRAMA', crossExterno: false, decision: 'ACTIVO', observaciones: '', desbordaGondola: false, notaDesborde: '', swatch: 'var(--ink-100)' };
+    this.setState((st) => ({ nextPosicionId: st.nextPosicionId + 1, editorGondolas: st.editorGondolas.map((g) => g.id !== gid ? g : { ...g, niveles: g.niveles.map((n) => n.id === nivelId ? { ...n, posiciones: [...n.posiciones, nueva] } : n) }) }));
+  };
+  movePosicionToNivel = (posId, fromNivelId, toNivelId) => {
+    if (fromNivelId === toNivelId) return;
+    this.setState((st) => {
+      const gid = st.selectedGondolaId;
+      return { editorGondolas: st.editorGondolas.map((g) => {
+        if (g.id !== gid) return g;
+        let moved = null;
+        const niveles = g.niveles.map((n) => {
+          if (n.id === fromNivelId) { moved = n.posiciones.find((p) => p.id === posId); return { ...n, posiciones: n.posiciones.filter((p) => p.id !== posId) }; }
+          return n;
+        });
+        return { ...g, niveles: niveles.map((n) => n.id === toNivelId && moved ? { ...n, posiciones: [...n.posiciones, moved] } : n) };
+      }) };
+    });
+    this.showToast('success', 'Posición movida');
+  };
+  swapPosicionesOrder = (nivelId, posIdA, posIdB) => {
+    this.setState((st) => ({ editorGondolas: st.editorGondolas.map((g) => g.id !== st.selectedGondolaId ? g : {
+      ...g, niveles: g.niveles.map((n) => {
+        if (n.id !== nivelId) return n;
+        const arr = [...n.posiciones];
+        const ia = arr.findIndex((p) => p.id === posIdA), ib = arr.findIndex((p) => p.id === posIdB);
+        if (ia < 0 || ib < 0) return n;
+        [arr[ia], arr[ib]] = [arr[ib], arr[ia]];
+        return { ...n, posiciones: arr };
+      }),
+    }) }));
+  };
+  onDragStartPos = (posId, nivelId) => this.setState({ draggingPositionId: posId, draggingFromNivel: nivelId });
+  onDropOnLevel = (nivelId) => { if (this.state.draggingPositionId != null) this.movePosicionToNivel(this.state.draggingPositionId, this.state.draggingFromNivel, nivelId); this.setState({ draggingPositionId: null }); };
+  onDropOnPosicion = (nivelId, targetPosId) => {
+    const s = this.state;
+    if (s.draggingPositionId == null) return;
+    if (s.draggingFromNivel === nivelId) this.swapPosicionesOrder(nivelId, s.draggingPositionId, targetPosId);
+    else this.movePosicionToNivel(s.draggingPositionId, s.draggingFromNivel, nivelId);
+    this.setState({ draggingPositionId: null });
+  };
+
+  findPosicion(posId) {
+    const g = this.currentEditorGondola(); if (!g) return null;
+    for (const n of g.niveles) { const p = n.posiciones.find((x) => x.id === posId); if (p) return { nivel: n, pos: p }; }
+    return null;
+  }
+  openDrawer = (posId) => this.setState({ drawerPositionId: posId, activePositionId: posId });
+  updatePosById(posId, patch) {
+    const gid = this.state.selectedGondolaId;
+    this.setState((st) => ({ editorGondolas: st.editorGondolas.map((g) => g.id !== gid ? g : {
+      ...g, niveles: g.niveles.map((n) => ({ ...n, posiciones: n.posiciones.map((p) => p.id === posId ? { ...p, ...patch } : p) })),
+    }) }));
+  }
+  selectSpace = (posId) => this.setState({ selectedSpaceId: posId, activePositionId: posId });
+  deselectSpace = () => this.setState({ selectedSpaceId: null });
+  openFicha = (sku) => this.setState({ fichaSku: sku });
+  getMontaje = (sku) => {
+    const st = (this.state.montajeMedidas || {})[sku];
+    if (st) return st;
+    const prod = this.CATALOGO.find((c) => c.sku === sku);
+    return { alto: prod && prod.altoCm != null ? prod.altoCm : '', ancho: prod ? prod.anchoCm : '', prof: prod ? prod.profundidadCm : '', fuente: 'sistema', validado: false };
+  };
+  setMontajeField = (field, e) => {
+    const sku = this.state.fichaSku; if (!sku) return;
+    const val = e.target.value;
+    const cur = this.getMontaje(sku);
+    this.setState((st) => ({ montajeMedidas: { ...(st.montajeMedidas || {}), [sku]: { ...cur, [field]: val, fuente: 'manual', validado: false } } }));
+  };
+  validarMontaje = () => {
+    const sku = this.state.fichaSku; if (!sku) return;
+    const cur = this.getMontaje(sku);
+    this.setState((st) => ({ montajeMedidas: { ...(st.montajeMedidas || {}), [sku]: { ...cur, validado: true } } }));
+    this.showToast('success', `Medidas de montaje validadas para ${sku}`);
+  };
+  closeFicha = () => this.setState({ fichaSku: null });
+  duplicateSpaceTo = (posId, nivelId) => {
+    const found = this.findPosicion(posId); if (!found) return;
+    const target = nivelId != null && nivelId !== 0 ? nivelId : found.nivel.id;
+    this.setState((st) => ({
+      nextPosicionId: st.nextPosicionId + 1,
+      editorGondolas: st.editorGondolas.map((g) => g.id !== st.selectedGondolaId ? g : {
+        ...g, niveles: g.niveles.map((n) => n.id === target ? { ...n, posiciones: [...n.posiciones, { ...found.pos, id: st.nextPosicionId, accesorios: [...found.pos.accesorios] }] } : n),
+      }),
+    }));
+    this.showToast('success', 'Espacio duplicado');
+  };
+  deleteSpace = (posId) => {
+    const gid = this.state.selectedGondolaId;
+    this.setState((st) => ({ editorGondolas: st.editorGondolas.map((g) => g.id !== gid ? g : { ...g, niveles: g.niveles.map((n) => ({ ...n, posiciones: n.posiciones.filter((p) => p.id !== posId) })) }), selectedSpaceId: null }));
+    this.showToast('success', 'Espacio eliminado');
+  };
+  closeDrawer = () => this.setState({ drawerPositionId: null });
+  updateDrawerPos(patch) {
+    const posId = this.state.drawerPositionId, gid = this.state.selectedGondolaId;
+    this.setState((st) => ({ editorGondolas: st.editorGondolas.map((g) => g.id !== gid ? g : {
+      ...g, niveles: g.niveles.map((n) => ({ ...n, posiciones: n.posiciones.map((p) => p.id === posId ? { ...p, ...patch } : p) })),
+    }) }));
+  }
+  onDrawerSkuChange = (e) => {
+    const prod = this.CATALOGO.find((c) => c.sku === e.target.value); if (!prod) return;
+    this.updateDrawerPos({ sku: prod.sku, nombre: prod.nombre, anchoCm: prod.anchoCm, profundidadCm: prod.profundidadCm });
+  };
+  onDrawerFacingsChange = (e) => {
+    const f = Math.max(1, Number(e.target.value) || 1);
+    const found = this.findPosicion(this.state.drawerPositionId); if (!found) return;
+    this.updateDrawerPos({ facingsH: f, anchoCm: found.pos.anchoCm, minFinal: found.pos.minFinal, maxFinal: found.pos.maxFinal });
+  };
+  onDrawerAnchoChange = (e) => {
+    const found = this.findPosicion(this.state.drawerPositionId); if (!found) return;
+    const ancho = Number(e.target.value) || 0;
+    const facings = found.pos.anchoCm > 0 ? Math.max(1, Math.floor(ancho / found.pos.anchoCm)) : 1;
+    this.updateDrawerPos({ facingsH: facings });
+  };
+  onDrawerApilableChange = (e) => this.updateDrawerPos({ cantidadApilable: Math.max(1, Number(e.target.value) || 1) });
+  onDrawerUnidadesChange = (e) => this.updateDrawerPos({ unidadesPorFacing: Math.max(1, Number(e.target.value) || 1) });
+  onDrawerMinFinalChange = (e) => this.updateDrawerPos({ minFinal: Number(e.target.value) || 0 });
+  onDrawerMaxFinalChange = (e) => this.updateDrawerPos({ maxFinal: Number(e.target.value) || 0 });
+  onDrawerPerfilChange = (e) => this.updateDrawerPos({ perfilRedondeo: e.target.value });
+  onDrawerMontarDisplayChange = (e) => this.updateDrawerPos({ montarDisplay: e.target.checked });
+  onDrawerModoChange = (e) => this.updateDrawerPos({ modo: e.target.value });
+  onDrawerDecisionChange = (e) => this.updateDrawerPos({ decision: e.target.value });
+  onDrawerCrossExternoChange = (e) => this.updateDrawerPos({ crossExterno: e.target.checked });
+  onDrawerObservacionesChange = (e) => this.updateDrawerPos({ observaciones: e.target.value });
+  onDrawerDesbordaChange = (e) => this.updateDrawerPos({ desbordaGondola: e.target.checked });
+  onDrawerNotaDesbordeChange = (e) => this.updateDrawerPos({ notaDesborde: e.target.value });
+  addDrawerAccesorio = () => {
+    const found = this.findPosicion(this.state.drawerPositionId); if (!found) return;
+    this.updateDrawerPos({ accesorios: [...found.pos.accesorios, { nombre: '', nota: '' }] });
+  };
+  updateDrawerAccesorio(idx, patch) {
+    const found = this.findPosicion(this.state.drawerPositionId); if (!found) return;
+    this.updateDrawerPos({ accesorios: found.pos.accesorios.map((a, i) => i === idx ? { ...a, ...patch } : a) });
+  }
+  removeDrawerAccesorio(idx) {
+    const found = this.findPosicion(this.state.drawerPositionId); if (!found) return;
+    this.updateDrawerPos({ accesorios: found.pos.accesorios.filter((_, i) => i !== idx) });
+  }
+  deleteDrawerPosicion = () => {
+    const posId = this.state.drawerPositionId, gid = this.state.selectedGondolaId;
+    this.setState((st) => ({ editorGondolas: st.editorGondolas.map((g) => g.id !== gid ? g : { ...g, niveles: g.niveles.map((n) => ({ ...n, posiciones: n.posiciones.filter((p) => p.id !== posId) })) }), drawerPositionId: null }));
+    this.showToast('success', 'Posición eliminada');
+  };
+
+  toggleSustMode = () => this.setState((s) => (s.sustModeActive
+    ? { sustModeActive: false, sustSelectedIds: [], sustSkuOriginal: null }
+    : { sustModeActive: true, sustSelectedIds: [], sustSkuOriginal: null }));
+  cancelSustMode = () => this.setState({ sustModeActive: false, sustSelectedIds: [], sustSkuOriginal: null });
+  toggleSustSelect = (posId, sku) => {
+    const s = this.state;
+    if (s.sustSelectedIds.length === 0) { this.setState({ sustSelectedIds: [posId], sustSkuOriginal: sku }); return; }
+    if (sku !== s.sustSkuOriginal) { this.showToast('error', 'Solo puedes seleccionar posiciones con el mismo SKU'); return; }
+    this.setState((st) => ({
+      sustSelectedIds: st.sustSelectedIds.includes(posId) ? st.sustSelectedIds.filter((id) => id !== posId) : [...st.sustSelectedIds, posId],
+    }));
+  };
+  openSustWizardStep2 = () => this.setState({ showSustWizard: true, sustStep: 2, sustSustitutoSku: '', sustMotivo: '' });
+  closeSustWizard = () => this.setState({ showSustWizard: false });
+  onSustSustitutoChange = (e) => this.setState({ sustSustitutoSku: e.target.value });
+  sustGoStep3 = () => { if (this.state.sustSustitutoSku) this.setState({ sustStep: 3 }); };
+  sustGoStep2 = () => this.setState({ sustStep: 2 });
+  onSustMotivoChange = (e) => this.setState({ sustMotivo: e.target.value });
+  confirmSustitucion = () => {
+    const s = this.state;
+    if (s.sustMotivo.trim().length < 10) return;
+    const sustituto = this.CATALOGO.find((c) => c.sku === s.sustSustitutoSku);
+    const gid = s.selectedGondolaId;
+    if (!sustituto) return;
+    this.setState((st) => ({
+      editorGondolas: st.editorGondolas.map((g) => g.id !== gid ? g : {
+        ...g, niveles: g.niveles.map((n) => ({
+          ...n, posiciones: n.posiciones.map((p) => {
+            if (!st.sustSelectedIds.includes(p.id)) return p;
+            const anchoAsignado = p.facingsH * p.anchoCm;
+            const nuevoFacings = Math.max(1, Math.floor(anchoAsignado / sustituto.anchoCm));
+            return { ...p, sku: sustituto.sku, nombre: sustituto.nombre, anchoCm: sustituto.anchoCm, profundidadCm: sustituto.profundidadCm, facingsH: nuevoFacings };
+          }),
+        })),
+      }),
+      sustHistorial: [...st.sustHistorial, {
+        skuOriginal: st.sustSkuOriginal, skuSustituto: sustituto.sku, motivo: st.sustMotivo.trim(),
+        fecha: new Date().toISOString(), usuario: 'tu.usuario@cemaco.com', posicionesAfectadas: [...st.sustSelectedIds],
+      }],
+      showSustWizard: false, sustModeActive: false, sustSelectedIds: [], sustSkuOriginal: null,
+    }));
+    this.showToast('success', 'SKU sustituido');
+  };
+  openHistorialSustituciones = () => this.setState({ showHistorialSustituciones: true });
+  closeHistorialSustituciones = () => this.setState({ showHistorialSustituciones: false });
+
+  openPublicarEditorPanel = () => this.setState({ showPublicarEditorPanel: true });
+  closePublicarEditorPanel = () => this.setState({ showPublicarEditorPanel: false });
+  confirmPublicarEditor = () => {
+    this.setState({ showPublicarEditorPanel: false, screen: 'detalle' });
+    this.showToast('success', 'Versión publicada');
+  };
+
+  copyActivePosicion = () => {
+    const found = this.state.activePositionId != null ? this.findPosicion(this.state.activePositionId) : null;
+    if (!found) return;
+    this.setState({ clipboardPosition: { ...found.pos, accesorios: [...found.pos.accesorios], sourceNivelId: found.nivel.id } });
+    this.showToast('success', 'Posición copiada');
+  };
+  pasteClipboardPosicion = () => {
+    const s = this.state, g = this.currentEditorGondola(), cp = s.clipboardPosition;
+    if (!g || !cp) return;
+    const niveles = [...g.niveles].sort((a, b) => a.orden - b.orden);
+    const idx = niveles.findIndex((n) => n.id === cp.sourceNivelId);
+    let destino = null;
+    if (idx >= 0 && idx < niveles.length - 1) destino = niveles[idx + 1];
+    else if (idx > 0) destino = niveles[idx - 1];
+    else destino = niveles[0];
+    if (!destino) return;
+    const dup = destino.posiciones.some((p) => p.sku === cp.sku);
+    const nueva = { ...cp, id: s.nextPosicionId, accesorios: [...cp.accesorios] };
+    delete nueva.sourceNivelId;
+    this.setState((st) => ({
+      nextPosicionId: st.nextPosicionId + 1,
+      editorGondolas: st.editorGondolas.map((gg) => gg.id !== g.id ? gg : { ...gg, niveles: gg.niveles.map((n) => n.id === destino.id ? { ...n, posiciones: [...n.posiciones, nueva] } : n) }),
+    }));
+    this.showToast(dup ? 'error' : 'success', dup ? 'Pegado — este producto ya existe en el nivel destino' : 'Posición pegada');
+  };
+
+  renderVals() {
+    const s = this.state;
+    const isTableView = s.vw >= 860;
+    const isFiltersInline = s.vw >= 760;
+    const isAnalista = s.role === 'analista';
+
+    const estadosOptions = [
+      { value: '', label: 'Todos los estados' }, { value: 'borrador', label: 'Borrador' },
+      { value: 'publicado', label: 'Publicado' }, { value: 'archivado', label: 'Archivado' },
+    ];
+    const departamentosFiltroOptions = this.DEPARTAMENTOS.filter((d) => !s.filtroArea || d.area === s.filtroArea);
+
+    const selectStyle = 'height:40px;padding:0 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--fg-1);background:#fff;min-width:150px;';
+    const selectStyleFull = 'height:42px;padding:0 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;color:var(--fg-1);background:#fff;width:100%;';
+    const searchInputStyle = selectStyle + 'flex:1;min-width:180px;';
+
+    let filtered = s.planogramas.filter((p) => {
+      if (s.filtroArea && p.area !== s.filtroArea) return false;
+      if (s.filtroDepto && p.departamento !== s.filtroDepto) return false;
+      if (s.filtroEstado && p.estado !== s.filtroEstado) return false;
+      if (s.search.trim().length >= 2 && !p.nombre.toLowerCase().includes(s.search.trim().toLowerCase())) return false;
+      return true;
+    }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    const planogramasList = filtered.map((p) => {
+      const deptoObj = this.DEPARTAMENTOS.find((d) => d.codigo === p.departamento);
+      const canArchive = isAnalista && p.estado !== 'archivado';
+      return {
+        id: p.id, nombre: p.nombre, departamentoLabel: deptoObj ? deptoObj.nombre : p.departamento,
+        estadoLabel: this.ESTADO_META[p.estado].label, badgeStyle: this.badgeStyleFor(p.estado),
+        totalVersiones: p.versiones.length, createdAtLabel: this.fmtDate(p.createdAt),
+        goDetalle: () => this.goDetalleId(p.id),
+        openEditar: (e) => { e.stopPropagation(); this.openEditarId(p.id); },
+        openArchivar: (e) => { e.stopPropagation(); if (canArchive) this.openArchivarId(p.id); },
+        archiveDisabled: !canArchive,
+        archiveBtnStyle: `background:transparent;border:1px solid ${canArchive ? 'var(--danger)' : 'var(--border)'};border-radius:6px;padding:6px 12px;font-size:13px;font-weight:600;color:${canArchive ? 'var(--danger)' : 'var(--fg-4)'};cursor:${canArchive ? 'pointer' : 'not-allowed'};`,
+        archiveBtnStyleFull: `flex:1;background:transparent;border:1px solid ${canArchive ? 'var(--danger)' : 'var(--border)'};border-radius:6px;padding:8px;font-size:13px;font-weight:600;color:${canArchive ? 'var(--danger)' : 'var(--fg-4)'};cursor:${canArchive ? 'pointer' : 'not-allowed'};`,
+      };
+    });
+
+    const activeFilterCount = [s.filtroArea, s.filtroDepto, s.filtroEstado, s.search.trim()].filter(Boolean).length;
+
+    let current = null;
+    if (s.selectedId != null) current = s.planogramas.find((p) => p.id === s.selectedId) || null;
+    let currentVersiones = [], currentSubcategorias = [], currentNombre = '', currentEstadoLabel = '', currentBadgeStyle = '';
+    let currentAreaLabel = '', currentDeptoLabel = '', currentCreatedAtLabel = '', currentCreatedBy = '', currentArchiveDisabled = true, currentArchiveBtnStyle = '';
+    if (current) {
+      const deptoObj = this.DEPARTAMENTOS.find((d) => d.codigo === current.departamento);
+      const areaObj = this.AREAS.find((a) => a.value === current.area);
+      currentNombre = current.nombre;
+      currentEstadoLabel = this.ESTADO_META[current.estado].label;
+      currentBadgeStyle = this.badgeStyleFor(current.estado);
+      currentAreaLabel = areaObj ? areaObj.label : current.area;
+      currentDeptoLabel = deptoObj ? deptoObj.nombre : current.departamento;
+      currentCreatedAtLabel = this.fmtDate(current.createdAt);
+      currentCreatedBy = current.createdBy;
+      currentSubcategorias = current.subcategorias;
+      const canArchive = isAnalista && current.estado !== 'archivado';
+      currentArchiveDisabled = !canArchive;
+      currentArchiveBtnStyle = `background:${canArchive ? 'var(--danger)' : 'var(--ink-100)'};color:${canArchive ? '#fff' : 'var(--fg-4)'};border:0;border-radius:8px;padding:10px 16px;font-size:14px;font-weight:600;cursor:${canArchive ? 'pointer' : 'not-allowed'};`;
+      currentVersiones = current.versiones.map((v) => ({
+        codigo: v.codigo, notas: v.notas || '', tipoLabel: this.TIPO_LABEL[v.tipo] || v.tipo,
+        estadoLabel: this.ESTADO_META[v.estado].label, badgeStyle: this.badgeStyleFor(v.estado),
+        totalGondolas: v.totalGondolas, tiendasLabel: v.tiendas.length > 0 ? `${v.tiendas.length} (${v.tiendas.join(', ')})` : 'Sin tiendas',
+        canPromover: v.estado === 'en_desarrollo', canPublicar: v.estado === 'piloto', isPublicado: v.estado === 'publicado',
+        canEditar: v.estado !== 'archivado',
+        openPromover: () => this.openPromoverModal(v.id), openPublicar: () => this.openPublicarModal(v.id), openTiendas: () => this.openTiendasModal(v.id),
+        openEditor: () => this.goEditor(v.id),
+      }));
+    }
+
+    // ----- Crear versión / especial / promover / publicar / tiendas modals -----
+    const tiposOptions = [{ value: 'GRANDE', label: 'Grande (TG)' }, { value: 'MEDIANA', label: 'Mediana (TM)' }, { value: 'EXPRESS', label: 'Express (TE)' }];
+    const tiendasOptions = this.TIENDAS.map((t) => ({ value: t, label: t }));
+
+    const especialBaseOptions = current ? current.versiones.filter((v) => v.estado !== 'archivado').map((v) => ({ value: String(v.id), label: `${v.codigo} · ${this.ESTADO_META[v.estado].label}` })) : [];
+    const especialBase = current ? current.versiones.find((v) => String(v.id) === String(s.especialBaseVersionId)) : null;
+
+    let promoverVersionCodigo = '', promoverTiendasList = [];
+    if (s.promoverVersionId != null && current) {
+      const pv = current.versiones.find((v) => v.id === s.promoverVersionId);
+      promoverVersionCodigo = pv ? pv.codigo : '';
+      promoverTiendasList = this.TIENDAS.map((t) => ({ label: t, checked: s.promoverSelected.includes(t), toggle: () => this.togglePromoverTienda(t) }));
+    }
+
+    let publicarErrores = [], publicarAdvertencias = [], publicarConfirmText = '', publicarBloqueado = false;
+    if (s.publicarVersionId != null && current) {
+      const pubV = current.versiones.find((v) => v.id === s.publicarVersionId);
+      if (pubV) {
+        if (pubV.totalGondolas === 0) publicarErrores.push({ msg: 'La versión no tiene góndolas configuradas.' });
+        if (pubV.tiendas.length === 0) publicarAdvertencias.push({ msg: 'No tiene tiendas piloto asignadas.' });
+        publicarBloqueado = publicarErrores.length > 0;
+        const previa = current.versiones.find((v) => v.estado === 'publicado' && v.id !== pubV.id);
+        publicarConfirmText = previa
+          ? `Vas a publicar ${pubV.codigo}. La versión publicada actual (${previa.codigo}) se archivará automáticamente.`
+          : `Vas a publicar ${pubV.codigo}.`;
+      }
+    }
+
+    let tiendasModalCodigo = '', tiendasModalList = [];
+    if (s.tiendasModalVersionId != null && current) {
+      const tv = current.versiones.find((v) => v.id === s.tiendasModalVersionId);
+      tiendasModalCodigo = tv ? tv.codigo : '';
+      tiendasModalList = this.TIENDAS.map((t) => ({ label: t, checked: s.tiendasModalSelected.includes(t), toggle: () => this.toggleTiendaModal(t) }));
+    }
+
+    let archivarTarget = null, archivarBloqueantes = [], archivarBloqueado = false, archivarNombre = '', archivarCascadaLabel = '';
+    if (s.archivarId != null) {
+      archivarTarget = s.planogramas.find((p) => p.id === s.archivarId) || null;
+      if (archivarTarget) {
+        archivarNombre = archivarTarget.nombre;
+        const bloq = archivarTarget.versiones.filter((v) => v.estado === 'publicado' && v.tiendas.length > 0);
+        archivarBloqueado = bloq.length > 0;
+        archivarBloqueantes = bloq.map((v) => ({ codigo: v.codigo, tiendasLabel: `${v.tiendas.length} tienda(s)` }));
+        const cascada = archivarTarget.versiones.filter((v) => this.CASCADA_ESTADOS.includes(v.estado)).length;
+        archivarCascadaLabel = cascada > 0 ? `Se archivarán ${cascada} versión(es) en cascada.` : 'No tiene versiones activas para archivar en cascada.';
+      }
+    }
+
+    // ----- Editor de planograma -----
+    const editorVersion = current ? current.versiones.find((v) => v.id === s.editorVersionId) : null;
+    const gondolasForVersion = s.editorGondolas.filter((g) => g.versionId === s.editorVersionId);
+    const selectedGondola = gondolasForVersion.find((g) => g.id === s.selectedGondolaId) || null;
+    const gondolasTabs = gondolasForVersion.map((g) => ({
+      label: g.nombre,
+      select: () => this.selectGondola(g.id),
+      tabStyle: `border:0;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;background:${g.id === s.selectedGondolaId ? 'var(--cemaco-indigo)' : 'var(--ink-100)'};color:${g.id === s.selectedGondolaId ? '#fff' : 'var(--fg-1)'};`,
+    }));
+
+    let nivelesRows = [];
+    if (selectedGondola) {
+      nivelesRows = [...selectedGondola.niveles].sort((a, b) => a.orden - b.orden).map((n) => {
+        const ocupado = n.posiciones.reduce((sum, p) => sum + p.facingsH * p.anchoCm, 0);
+        const overCapacity = ocupado > n.anchoDisponible;
+        const pct = n.anchoDisponible > 0 ? Math.min(100, (ocupado / n.anchoDisponible) * 100) : 0;
+        return {
+          orden: n.orden, alturaCm: n.alturaCm, accesorioLabel: `${n.tipoAccesorio}${n.codigoAccesorio ? ' ' + n.codigoAccesorio : ''}`,
+          capacityBarStyle: `width:${pct}%;height:100%;background:${overCapacity ? 'var(--danger)' : 'var(--cemaco-green)'};border-radius:999px;`,
+          capacityLabel: `${ocupado}cm / ${n.anchoDisponible}cm ocupado`,
+          capacityTextColor: overCapacity ? 'var(--danger)' : 'var(--fg-3)',
+          hasSpaceWarning: overCapacity,
+          addPosicion: () => this.addPosicionToNivel(n.id), openEditar: () => this.openEditarNivel(n.id), openEliminar: () => this.openEliminarNivel(n.id),
+          onDragOverLevel: (e) => e.preventDefault(),
+          onDropLevel: (e) => { e.preventDefault(); this.onDropOnLevel(n.id); },
+          isEmpty: n.posiciones.length === 0,
+          posiciones: n.posiciones.map((p) => {
+            const prod = this.CATALOGO.find((c) => c.sku === p.sku);
+            const isSel = s.selectedSpaceId === p.id;
+            const swatch = prod ? prod.swatch : (p.swatch || 'var(--ink-200)');
+            const short = p.nombre.length > 16 ? p.nombre.slice(0, 16) + '…' : p.nombre;
+            return {
+              id: p.id, sku: p.sku, nombre: p.nombre,
+              facingsLabel: `×${p.facingsH}`, hasOverflowFlag: p.desbordaGondola,
+              facingTiles: Array.from({ length: Math.min(p.facingsH, 6) }, () => ({ swatch, nombreCorto: short })),
+              cardStyle: `position:relative;flex:none;background:var(--ink-50);border:2px solid ${isSel ? 'var(--cemaco-green)' : 'var(--border)'};border-radius:10px;padding:7px;cursor:pointer;transition:border-color 140ms cubic-bezier(0.22,1,0.36,1);${isSel ? 'box-shadow:0 0 0 3px rgba(148,213,0,0.25);' : ''}${s.draggingPositionId === p.id ? 'opacity:0.5;' : ''}`,
+              draggable: !s.sustModeActive,
+              onDragStart: () => this.onDragStartPos(p.id, n.id),
+              onDragOverPos: (e) => e.preventDefault(),
+              onDropPos: (e) => { e.preventDefault(); e.stopPropagation(); this.onDropOnPosicion(n.id, p.id); },
+              onClick: s.sustModeActive ? () => this.toggleSustSelect(p.id, p.sku) : () => this.selectSpace(p.id),
+              onDoubleClick: s.sustModeActive ? () => {} : () => { this.selectSpace(p.id); this.openDrawer(p.id); },
+              onContextMenu: (e) => { e.preventDefault(); this.selectSpace(p.id); this.openFicha(p.sku); },
+              showSustCheckbox: s.sustModeActive,
+              checkboxStyle: `width:16px;height:16px;border-radius:4px;border:1.5px solid var(--cemaco-indigo);margin-bottom:6px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;background:${s.sustSelectedIds.includes(p.id) ? 'var(--cemaco-indigo)' : '#fff'};`,
+              checkboxMark: s.sustSelectedIds.includes(p.id) ? '✓' : '',
+            };
+          }),
+        };
+      });
+    }
+
+    const selSpaceFound = s.selectedSpaceId != null ? this.findPosicion(s.selectedSpaceId) : null;
+    const selSpace = selSpaceFound ? selSpaceFound.pos : null;
+    const duplicarNivelOptions = selectedGondola ? [...selectedGondola.niveles].sort((a, b) => a.orden - b.orden).map((n) => ({ value: String(n.id), label: `Nivel ${n.orden}` })) : [];
+    const fichaProd = s.fichaSku ? this.CATALOGO.find((c) => c.sku === s.fichaSku) : null;
+    const fichaCandidatos = fichaProd ? this.CATALOGO.filter((c) => c.sku !== fichaProd.sku).slice(0, 3).map((c, i) => ({
+      nombre: c.nombre, sku: c.sku, swatch: c.swatch, confianza: `${72 - i * 9}%`,
+      aplicar: () => {
+        if (selSpace) {
+          this.updatePosById(selSpace.id, { sku: c.sku, nombre: c.nombre, anchoCm: c.anchoCm, profundidadCm: c.profundidadCm });
+          this.setState({ fichaSku: null });
+          this.showToast('success', `Sustituido por ${c.sku}`);
+        } else { this.setState({ fichaSku: c.sku }); }
+      },
+    })) : [];
+
+    const drawerFound = s.drawerPositionId != null ? this.findPosicion(s.drawerPositionId) : null;
+    const dp = drawerFound ? drawerFound.pos : null;
+    const catalogoOptions = this.CATALOGO.map((c) => ({ value: c.sku, label: `${c.sku} · ${c.nombre}` }));
+
+    let levelFormWarnAccesorio = false;
+    if (s.showLevelModal && s.levelModalMode === 'editar' && selectedGondola) {
+      const n = selectedGondola.niveles.find((x) => x.id === s.levelModalTargetId);
+      levelFormWarnAccesorio = !!(n && n.posiciones.length > 0);
+    }
+
+    let deleteConfirmTitle = '', deleteConfirmMsg = '';
+    if (s.showDeleteConfirm && s.deleteConfirmTarget) {
+      if (s.deleteConfirmTarget.type === 'gondola') {
+        const g = gondolasForVersion.find((x) => x.id === s.deleteConfirmTarget.id);
+        const totalPos = g ? g.niveles.reduce((sum, n) => sum + n.posiciones.length, 0) : 0;
+        deleteConfirmTitle = 'Eliminar góndola';
+        deleteConfirmMsg = g ? `Se eliminarán ${g.niveles.length} nivel(es) y ${totalPos} posición(es). Esta acción no se puede revertir.` : '';
+      } else {
+        const n = selectedGondola && selectedGondola.niveles.find((x) => x.id === s.deleteConfirmTarget.id);
+        deleteConfirmTitle = 'Eliminar nivel';
+        deleteConfirmMsg = n && n.posiciones.length > 0
+          ? `Este nivel tiene ${n.posiciones.length} posición(es) asignada(s). Muévelas o elimínalas antes de continuar, o confirma para eliminarlas junto con el nivel.`
+          : 'Este nivel no tiene posiciones asignadas.';
+      }
+    }
+
+    let editorErrores = [], editorAdvertencias = [];
+    gondolasForVersion.forEach((g) => g.niveles.forEach((n) => {
+      if (n.posiciones.length > 0 && !n.codigoAccesorio) editorAdvertencias.push({ msg: `${g.nombre} · Nivel ${n.orden} no tiene accesorio asignado.` });
+      const ocupado = n.posiciones.reduce((sum, p) => sum + p.facingsH * p.anchoCm, 0);
+      if (ocupado > n.anchoDisponible) editorAdvertencias.push({ msg: `${g.nombre} · Nivel ${n.orden} excede el ancho disponible.` });
+      n.posiciones.forEach((p) => {
+        if (p.minFinal > p.maxFinal) editorErrores.push({ msg: `${p.sku} en ${g.nombre} · Nivel ${n.orden}: mínimo final mayor al máximo final.` });
+        const capMax = p.facingsH * p.cantidadApilable * p.unidadesPorFacing;
+        if (capMax === 0) editorAdvertencias.push({ msg: `${p.sku}: capacidad máxima calculada en 0.` });
+      });
+    }));
+    const editorPublicarBloqueado = editorErrores.length > 0;
+
+    // ----- Sustitución de SKU -----
+    const sustOriginalProd = this.CATALOGO.find((c) => c.sku === s.sustSkuOriginal);
+    const sustSustitutoProd = this.CATALOGO.find((c) => c.sku === s.sustSustitutoSku);
+    let sustShowDimWarning = false;
+    if (sustOriginalProd && sustSustitutoProd) {
+      const diffAncho = Math.abs(sustSustitutoProd.anchoCm - sustOriginalProd.anchoCm) / sustOriginalProd.anchoCm;
+      sustShowDimWarning = diffAncho > 0.2;
+    }
+    const sustCatalogoOptions = this.CATALOGO.filter((c) => c.sku !== s.sustSkuOriginal).map((c) => ({ value: c.sku, label: `${c.sku} · ${c.nombre}` }));
+    const historialRows = s.sustHistorial.map((h) => ({
+      skuOriginal: h.skuOriginal, skuSustituto: h.skuSustituto, motivo: h.motivo,
+      fechaLabel: this.fmtDate(h.fecha), usuario: h.usuario, totalPosiciones: h.posicionesAfectadas.length,
+    }));
+
+    const toastStyle = s.toast
+      ? `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:70;background:${s.toast.type === 'success' ? 'var(--ink-900)' : 'var(--danger)'};color:#fff;padding:12px 20px;border-radius:8px;font-size:14px;font-weight:600;box-shadow:var(--shadow-lg);white-space:nowrap;`
+      : '';
+
+    return {
+      goListado: this.goListado,
+      pageTitle: current ? current.nombre : 'Planogramas',
+      showBreadcrumb: s.screen === 'detalle', breadcrumbTail: current ? current.nombre : '',
+      roleAnalistaBtnStyle: `border:0;border-radius:999px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;background:${isAnalista ? '#fff' : 'transparent'};color:${isAnalista ? 'var(--cemaco-indigo)' : 'var(--fg-3)'};box-shadow:${isAnalista ? 'var(--shadow-xs)' : 'none'};`,
+      roleImplementadorBtnStyle: `border:0;border-radius:999px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;background:${!isAnalista ? '#fff' : 'transparent'};color:${!isAnalista ? 'var(--cemaco-indigo)' : 'var(--fg-3)'};box-shadow:${!isAnalista ? 'var(--shadow-xs)' : 'none'};`,
+      setRoleAnalista: this.setRoleAnalista, setRoleImplementador: this.setRoleImplementador,
+      contentPadding: s.vw < 600 ? '16px' : '28px',
+
+      isListado: s.screen === 'listado', isDetalle: s.screen === 'detalle', isAnalista, isImplementador: !isAnalista,
+      totalCountLabel: `${filtered.length} planograma${filtered.length === 1 ? '' : 's'}`,
+      openCrear: this.openCrear,
+      isFiltersInline, showFiltersToggle: !isFiltersInline,
+      filtroArea: s.filtroArea, filtroDepto: s.filtroDepto, filtroEstado: s.filtroEstado, search: s.search,
+      onFiltroAreaChange: this.onFiltroAreaChange, onFiltroDeptoChange: this.onFiltroDeptoChange,
+      onFiltroEstadoChange: this.onFiltroEstadoChange, onSearchChange: this.onSearchChange, clearFiltros: this.clearFiltros,
+      areasOptions: this.AREAS, departamentosFiltroOptions, estadosOptions,
+      selectStyle, selectStyleFull, searchInputStyle,
+      hasActiveFilters: activeFilterCount > 0,
+      filtrosOpen: s.filtrosOpen, toggleFiltrosOpen: this.toggleFiltrosOpen,
+      activeFilterCountLabel: activeFilterCount > 0 ? `(${activeFilterCount})` : '',
+      filtrosToggleChevron: s.filtrosOpen ? '▲' : '▼',
+      isEmptyList: filtered.length === 0, isTableView, isCardView: !isTableView,
+      planogramasList,
+
+      hasCurrentPlanograma: !!current,
+      currentNombre, currentEstadoLabel, currentBadgeStyle, currentAreaLabel, currentDeptoLabel,
+      currentCreatedAtLabel, currentCreatedBy, currentSubcategorias, currentVersiones,
+      currentHasVersiones: currentVersiones.length > 0, currentNoVersiones: currentVersiones.length === 0,
+      currentArchiveDisabled, currentArchiveBtnStyle,
+      openEditarCurrent: () => current && this.openEditarId(current.id),
+      openArchivarCurrent: () => current && current.estado !== 'archivado' && this.openArchivarId(current.id),
+
+      showForm: s.showForm, formTitle: s.formMode === 'crear' ? 'Crear planograma' : 'Editar planograma',
+      formSubmitLabel: s.formMode === 'crear' ? 'Crear planograma' : 'Guardar cambios',
+      closeForm: this.closeForm, submitForm: this.submitForm,
+      formNombre: s.formNombre, onFormNombreChange: this.onFormNombreChange,
+      formArea: s.formArea, onFormAreaChange: this.onFormAreaChange,
+      formDepartamento: s.formDepartamento, onFormDeptoChange: this.onFormDeptoChange,
+      departamentosFormOptions: this.DEPARTAMENTOS.filter((d) => !s.formArea || d.area === s.formArea),
+      formNoDeptoOptions: !!s.formArea && this.DEPARTAMENTOS.filter((d) => d.area === s.formArea).length === 0,
+      newSubcat: s.newSubcat, onNewSubcatChange: this.onNewSubcatChange, onNewSubcatKeyDown: this.onNewSubcatKeyDown, addSubcat: this.addSubcat,
+      formSubcategorias: s.formSubcategorias.map((v, i) => ({ value: v, remove: () => this.removeSubcatAt(i) })),
+      formInputStyle: 'height:42px;padding:0 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;color:var(--fg-1);width:100%;',
+      formGlobalError: !!s.formErrors.nombre && s.formMode === 'editar' && s.formErrors.nombre.includes('archivado'),
+      formGlobalErrorMsg: s.formErrors.nombre || '',
+      formErrorNombre: !!s.formErrors.nombre && !s.formErrors.nombre.includes('archivado'),
+      formErrorNombreMsg: s.formErrors.nombre || '',
+      formErrorArea: !!s.formErrors.area, formErrorDepto: !!s.formErrors.depto, formErrorSubcats: !!s.formErrors.subcats,
+
+      showArchivar: s.showArchivar, closeArchivar: this.closeArchivar, confirmArchivar: this.confirmArchivar,
+      archivarBloqueado, archivarPermitido: !archivarBloqueado, archivarNombre, archivarBloqueantes, archivarCascadaLabel,
+
+      openCrearVersion: this.openCrearVersion, showVersionForm: s.showVersionForm, closeVersionForm: this.closeVersionForm,
+      versionFormTipo: s.versionFormTipo, onVersionFormTipoChange: this.onVersionFormTipoChange,
+      versionFormNotas: s.versionFormNotas, onVersionFormNotasChange: this.onVersionFormNotasChange,
+      submitVersionForm: this.submitVersionForm, tiposOptions,
+
+      openEspecialWizard: this.openEspecialWizard, showEspecialWizard: s.showEspecialWizard, closeEspecialWizard: this.closeEspecialWizard,
+      especialStep: s.especialStep, especialStepIs1: s.especialStep === 1, especialStepIs2: s.especialStep === 2,
+      especialBaseVersionId: s.especialBaseVersionId, onEspecialBaseChange: this.onEspecialBaseChange, especialBaseOptions,
+      especialNoBaseOptions: especialBaseOptions.length === 0, especialBaseCodigo: especialBase ? especialBase.codigo : '',
+      especialTiendaCodigo: s.especialTiendaCodigo, onEspecialTiendaChange: this.onEspecialTiendaChange, tiendasOptions,
+      especialGoStep1: this.especialGoStep1, especialGoStep2: this.especialGoStep2, confirmEspecial: this.confirmEspecial,
+      especialStep1Invalid: !s.especialBaseVersionId,
+      especialStep1BtnStyle: `background:${s.especialBaseVersionId ? 'var(--cemaco-indigo)' : 'var(--ink-100)'};color:${s.especialBaseVersionId ? '#fff' : 'var(--fg-4)'};border:0;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;cursor:${s.especialBaseVersionId ? 'pointer' : 'not-allowed'};`,
+      especialStep2Invalid: !s.especialTiendaCodigo,
+      especialStep2BtnStyle: `background:${s.especialTiendaCodigo ? 'var(--cemaco-indigo)' : 'var(--ink-100)'};color:${s.especialTiendaCodigo ? '#fff' : 'var(--fg-4)'};border:0;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;cursor:${s.especialTiendaCodigo ? 'pointer' : 'not-allowed'};`,
+
+      showPromoverModal: s.showPromoverModal, closePromoverModal: this.closePromoverModal, confirmPromover: this.confirmPromover,
+      promoverVersionCodigo, promoverTiendasList, promoverErrorNone: !!s.promoverAttempted && s.promoverSelected.length === 0,
+
+      showPublicarModal: s.showPublicarModal, closePublicarModal: this.closePublicarModal, confirmPublicar: this.confirmPublicar,
+      publicarErrores, publicarAdvertencias, publicarConfirmText, publicarBloqueado,
+      publicarBtnStyle: `background:${publicarBloqueado ? 'var(--ink-100)' : 'var(--cemaco-indigo)'};color:${publicarBloqueado ? 'var(--fg-4)' : '#fff'};border:0;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;cursor:${publicarBloqueado ? 'not-allowed' : 'pointer'};`,
+
+      showTiendasModal: s.showTiendasModal, closeTiendasModal: this.closeTiendasModal, confirmTiendasModal: this.confirmTiendasModal,
+      tiendasModalCodigo, tiendasModalList,
+
+      isEditor: s.screen === 'editor', hasEditorVersion: !!editorVersion,
+      editorVersionCodigo: editorVersion ? editorVersion.codigo : '', editorVersionEstadoLabel: editorVersion ? this.ESTADO_META[editorVersion.estado].label : '',
+      editorVersionBadgeStyle: editorVersion ? this.badgeStyleFor(editorVersion.estado) : '',
+      goDetalleFromEditor: this.goDetalleFromEditor,
+      guardarBorradorEditor: this.guardarBorradorEditor,
+      showExportMenu: s.showExportMenu, openExportMenu: this.openExportMenu, closeExportMenu: this.closeExportMenu,
+      exportarJson: this.exportarJson, exportarCsv: this.exportarCsv,
+      openPublicarEditorPanel: this.openPublicarEditorPanel,
+      gondolasTabs, noGondolas: gondolasForVersion.length === 0, hasSelectedGondola: !!selectedGondola,
+      openCrearGondola: this.openCrearGondola, openEditarGondola: this.openEditarGondola, openEliminarGondola: this.openEliminarGondola,
+      selectedGondolaNombre: selectedGondola ? selectedGondola.nombre : '',
+      selectedGondolaDims: selectedGondola ? `${selectedGondola.ancho}×${selectedGondola.alto}×${selectedGondola.profundidad} cm` : '',
+      selectedGondolaPosicion: selectedGondola && selectedGondola.posicion ? selectedGondola.posicion : 'Sin posición definida',
+      nivelesRows, openCrearNivel: this.openCrearNivel,
+
+      hasSpaceSelection: !!selSpace && !s.sustModeActive,
+      selSpaceNombre: selSpace ? selSpace.nombre : '',
+      selSpaceSku: selSpace ? selSpace.sku : '',
+      selSpaceNivelLabel: selSpaceFound ? `Nivel ${selSpaceFound.nivel.orden}` : '',
+      selSpaceFacings: selSpace ? selSpace.facingsH : 0,
+      selSpaceMas: () => { if (selSpace) this.updatePosById(selSpace.id, { facingsH: Math.min(12, selSpace.facingsH + 1) }); },
+      selSpaceMenos: () => { if (selSpace) this.updatePosById(selSpace.id, { facingsH: Math.max(1, selSpace.facingsH - 1) }); },
+      duplicarNivelSel: s.duplicarNivelSel || (selSpaceFound ? String(selSpaceFound.nivel.id) : ''),
+      onDuplicarNivelChange: (e) => this.setState({ duplicarNivelSel: e.target.value }),
+      duplicarNivelOptions,
+      duplicarSelSpace: () => { if (selSpace) this.duplicateSpaceTo(selSpace.id, Number(s.duplicarNivelSel || (selSpaceFound ? selSpaceFound.nivel.id : 0))); },
+      openSelSpaceDrawer: () => { if (selSpace) this.openDrawer(selSpace.id); },
+      openSelSpaceFicha: () => { if (selSpace) this.openFicha(selSpace.sku); },
+      deleteSelSpace: () => { if (selSpace) this.deleteSpace(selSpace.id); },
+      deselectSpace: this.deselectSpace,
+
+      showFicha: !!fichaProd, closeFicha: this.closeFicha, stopPropFicha: (e) => e.stopPropagation(),
+      fichaNombre: fichaProd ? fichaProd.nombre : '', fichaCategoria: fichaProd ? fichaProd.categoria : '',
+      fichaSwatch: fichaProd ? fichaProd.swatch : 'var(--ink-100)', fichaDesc: fichaProd ? fichaProd.desc : '',
+      fichaFields: fichaProd ? [
+        { label: 'SKU', value: fichaProd.sku }, { label: 'UPC', value: fichaProd.upc },
+        { label: 'Precio', value: fichaProd.precio }, { label: 'Categoría', value: fichaProd.categoria },
+        { label: 'Dimensiones', value: `${fichaProd.anchoCm}×${fichaProd.profundidadCm} cm aprox` }, { label: 'Estado', value: 'Activo en surtido' },
+      ] : [],
+      fichaCandidatos,
+      ...((() => {
+        if (!fichaProd) return {};
+        const m = this.getMontaje(fichaProd.sku);
+        return {
+          montajeAlto: m.alto, montajeAncho: m.ancho, montajeProf: m.prof,
+          montajeFuente: m.fuente, montajeValidado: m.validado, montajeValidadoNum: m.validado ? 1 : 0,
+          montajeFuenteBadgeStyle: m.fuente === 'sistema'
+            ? 'background:var(--ink-100);color:var(--fg-2);font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;font-family:var(--font-mono);'
+            : 'background:var(--cemaco-indigo-50, #E8EAF8);color:var(--cemaco-indigo);font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;font-family:var(--font-mono);',
+          onMontajeAltoChange: (e) => this.setMontajeField('alto', e),
+          onMontajeAnchoChange: (e) => this.setMontajeField('ancho', e),
+          onMontajeProfChange: (e) => this.setMontajeField('prof', e),
+          validarMontaje: this.validarMontaje,
+          validarBtnLabel: m.validado ? 'Validado' : 'Validar',
+          validarBtnStyle: m.validado
+            ? 'background:var(--ink-100);color:var(--fg-3);border:0;border-radius:4px;padding:7px 16px;font-size:12px;font-weight:700;cursor:default;'
+            : 'background:var(--cemaco-green);color:#111;border:0;border-radius:4px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;',
+        };
+      })()),
+
+      showDrawer: !!dp, drawerSwatch: dp ? dp.swatch : 'var(--ink-100)', drawerNombre: dp ? dp.nombre : '', drawerSku: dp ? dp.sku : '',
+      onDrawerSkuChange: this.onDrawerSkuChange, catalogoOptions,
+      drawerFacings: dp ? dp.facingsH : 1, onDrawerFacingsChange: this.onDrawerFacingsChange,
+      drawerAnchoAsignado: dp ? dp.facingsH * dp.anchoCm : 0, onDrawerAnchoChange: this.onDrawerAnchoChange,
+      drawerApilable: dp ? dp.cantidadApilable : 1, onDrawerApilableChange: this.onDrawerApilableChange,
+      drawerUnidadesPorFacing: dp ? dp.unidadesPorFacing : 1, onDrawerUnidadesChange: this.onDrawerUnidadesChange,
+      drawerCapacidadMaxima: dp ? dp.facingsH * dp.cantidadApilable * dp.unidadesPorFacing : 0,
+      drawerMinEstetico: dp ? (dp.unidadesPorFacing >= 4 ? dp.facingsH * 3 + 1 : dp.facingsH * dp.unidadesPorFacing) : 0,
+      drawerMinFinal: dp ? dp.minFinal : 0, onDrawerMinFinalChange: this.onDrawerMinFinalChange,
+      drawerMaxFinal: dp ? dp.maxFinal : 0, onDrawerMaxFinalChange: this.onDrawerMaxFinalChange,
+      drawerMinMaxError: !!dp && dp.minFinal > dp.maxFinal,
+      drawerPerfilRedondeo: dp ? dp.perfilRedondeo : 'MRP', onDrawerPerfilChange: this.onDrawerPerfilChange,
+      drawerAccesorios: dp ? dp.accesorios.map((a, i) => ({ nombre: a.nombre, nota: a.nota, onNombreChange: (e) => this.updateDrawerAccesorio(i, { nombre: e.target.value }), onNotaChange: (e) => this.updateDrawerAccesorio(i, { nota: e.target.value }), remove: () => this.removeDrawerAccesorio(i) })) : [],
+      addDrawerAccesorio: this.addDrawerAccesorio,
+      drawerMontarDisplay: dp ? dp.montarDisplay : false, onDrawerMontarDisplayChange: this.onDrawerMontarDisplayChange,
+      drawerModo: dp ? dp.modo : 'PLANOGRAMA', onDrawerModoChange: this.onDrawerModoChange,
+      drawerDecision: dp ? dp.decision : 'ACTIVO', onDrawerDecisionChange: this.onDrawerDecisionChange,
+      drawerCrossExterno: dp ? dp.crossExterno : false, onDrawerCrossExternoChange: this.onDrawerCrossExternoChange,
+      drawerObservaciones: dp ? dp.observaciones : '', onDrawerObservacionesChange: this.onDrawerObservacionesChange,
+      drawerHasDesborde: true, drawerDesbordaGondola: dp ? dp.desbordaGondola : false, onDrawerDesbordaChange: this.onDrawerDesbordaChange,
+      drawerNotaDesborde: dp ? dp.notaDesborde : '', onDrawerNotaDesbordeChange: this.onDrawerNotaDesbordeChange,
+      closeDrawer: this.closeDrawer, deleteDrawerPosicion: this.deleteDrawerPosicion,
+
+      showGondolaModal: s.showGondolaModal, closeGondolaModal: this.closeGondolaModal, submitGondolaModal: this.submitGondolaModal,
+      gondolaModalTitle: s.gondolaModalMode === 'crear' ? 'Agregar góndola' : 'Editar góndola',
+      gondolaModalSubmitLabel: s.gondolaModalMode === 'crear' ? 'Crear góndola' : 'Guardar cambios',
+      gondolaFormNombre: s.gondolaForm.nombre, onGondolaFormNombreChange: this.onGondolaFormNombreChange,
+      gondolaFormAncho: s.gondolaForm.ancho, onGondolaFormAnchoChange: this.onGondolaFormAnchoChange,
+      gondolaFormAlto: s.gondolaForm.alto, onGondolaFormAltoChange: this.onGondolaFormAltoChange,
+      gondolaFormProfundidad: s.gondolaForm.profundidad, onGondolaFormProfundidadChange: this.onGondolaFormProfundidadChange,
+      gondolaFormPosicion: s.gondolaForm.posicion, onGondolaFormPosicionChange: this.onGondolaFormPosicionChange,
+
+      showLevelModal: s.showLevelModal, closeLevelModal: this.closeLevelModal, submitLevelModal: this.submitLevelModal,
+      levelModalTitle: s.levelModalMode === 'crear' ? 'Agregar nivel' : 'Editar nivel',
+      levelModalSubmitLabel: s.levelModalMode === 'crear' ? 'Crear nivel' : 'Guardar cambios',
+      levelFormWarnAccesorio, tipoAccesorioOptions: this.TIPO_ACCESORIO_OPTIONS,
+      levelFormOrden: s.levelForm.orden, onLevelFormOrdenChange: this.onLevelFormOrdenChange,
+      levelFormAltura: s.levelForm.altura, onLevelFormAlturaChange: this.onLevelFormAlturaChange,
+      levelFormTipoAccesorio: s.levelForm.tipoAccesorio, onLevelFormTipoAccesorioChange: this.onLevelFormTipoAccesorioChange,
+      levelFormCodigoAccesorio: s.levelForm.codigoAccesorio, onLevelFormCodigoChange: this.onLevelFormCodigoChange,
+      levelFormAnchoDisponible: s.levelForm.anchoDisponible, onLevelFormAnchoChange: this.onLevelFormAnchoChange,
+      levelFormNotas: s.levelForm.notas, onLevelFormNotasChange: this.onLevelFormNotasChange,
+
+      showDeleteConfirm: s.showDeleteConfirm, closeDeleteConfirm: this.closeDeleteConfirm, confirmDelete: this.confirmDelete,
+      deleteConfirmTitle, deleteConfirmMsg,
+
+      showPublicarEditorPanel: s.showPublicarEditorPanel, closePublicarEditorPanel: this.closePublicarEditorPanel, confirmPublicarEditor: this.confirmPublicarEditor,
+      editorErrores, editorAdvertencias, editorHasNoIssues: editorErrores.length === 0 && editorAdvertencias.length === 0,
+      editorPublicarBloqueado, editorPublicarBtnStyle: `background:${editorPublicarBloqueado ? 'var(--ink-100)' : 'var(--cemaco-indigo)'};color:${editorPublicarBloqueado ? 'var(--fg-4)' : '#fff'};border:0;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;cursor:${editorPublicarBloqueado ? 'not-allowed' : 'pointer'};`,
+
+      sustModeActive: s.sustModeActive, toggleSustMode: this.toggleSustMode, cancelSustMode: this.cancelSustMode,
+      sustModeBtnLabel: s.sustModeActive ? 'Cancelar sustitución' : 'Sustituir SKU',
+      sustModeBtnStyle: `background:${s.sustModeActive ? 'var(--danger-bg)' : 'transparent'};border:1px solid ${s.sustModeActive ? 'var(--danger)' : 'var(--border)'};color:${s.sustModeActive ? 'var(--danger)' : 'var(--fg-1)'};border-radius:8px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;`,
+      sustSelectedCount: s.sustSelectedIds.length,
+      sustSelectionLabel: s.sustSelectedIds.length === 0 ? `Selecciona posiciones con el SKU ${s.sustSkuOriginal || 'a sustituir'}` : `${s.sustSelectedIds.length} posición(es) seleccionada(s) · SKU ${s.sustSkuOriginal}`,
+      sustContinueDisabled: s.sustSelectedIds.length === 0, openSustWizardStep2: this.openSustWizardStep2,
+      sustContinueBtnStyle: `background:${s.sustSelectedIds.length === 0 ? 'var(--ink-100)' : 'var(--cemaco-indigo)'};color:${s.sustSelectedIds.length === 0 ? 'var(--fg-4)' : '#fff'};border:0;border-radius:6px;padding:7px 14px;font-size:13px;font-weight:600;cursor:${s.sustSelectedIds.length === 0 ? 'not-allowed' : 'pointer'};`,
+
+      showSustWizard: s.showSustWizard, closeSustWizard: this.closeSustWizard, sustStep: s.sustStep,
+      sustStepIs2: s.sustStep === 2, sustStepIs3: s.sustStep === 3, sustSkuOriginal: s.sustSkuOriginal,
+      sustSustitutoSku: s.sustSustitutoSku, onSustSustitutoChange: this.onSustSustitutoChange, sustCatalogoOptions,
+      sustShowDimWarning, sustStep2Invalid: !s.sustSustitutoSku,
+      sustStep2BtnStyle: `background:${s.sustSustitutoSku ? 'var(--cemaco-indigo)' : 'var(--ink-100)'};color:${s.sustSustitutoSku ? '#fff' : 'var(--fg-4)'};border:0;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;cursor:${s.sustSustitutoSku ? 'pointer' : 'not-allowed'};`,
+      sustGoStep2: this.sustGoStep2, sustGoStep3: this.sustGoStep3,
+      sustMotivo: s.sustMotivo, onSustMotivoChange: this.onSustMotivoChange, sustMotivoError: s.sustMotivo.length > 0 && s.sustMotivo.trim().length < 10,
+      confirmSustitucion: this.confirmSustitucion,
+      showHistorialSustituciones: s.showHistorialSustituciones, openHistorialSustituciones: this.openHistorialSustituciones, closeHistorialSustituciones: this.closeHistorialSustituciones,
+      historialEmpty: historialRows.length === 0, historialHasRows: historialRows.length > 0, historialRows,
+
+      hasToast: !!s.toast, toastMsg: s.toast ? s.toast.msg : '', toastStyle,
+    };
+  }
+}
+
+</script>
+</body>
+</html>
