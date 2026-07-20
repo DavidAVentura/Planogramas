@@ -117,6 +117,7 @@ export function PlanogramaDetalle() {
             </div>
             {!cargandoVersiones && (
               <VersionesTable
+                planogramaId={idNumerico}
                 versiones={versiones}
                 puedeEscribir={puedeEscribir}
                 onMarcarEnDesarrollo={onMarcarEnDesarrollo}

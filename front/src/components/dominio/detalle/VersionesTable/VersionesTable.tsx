@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Table, type TableColumn } from '../../../ui/Table/Table';
 import { EmptyState } from '../../../ui/EmptyState/EmptyState';
 import { EstadoBadge } from '../../EstadoBadge/EstadoBadge';
@@ -5,6 +6,7 @@ import type { VersionListItem } from '../../../../types/version';
 import './VersionesTable.css';
 
 interface VersionesTableProps {
+  planogramaId: number;
   versiones: VersionListItem[];
   puedeEscribir: boolean;
   onMarcarEnDesarrollo: (v: VersionListItem) => void;
@@ -14,6 +16,7 @@ interface VersionesTableProps {
 }
 
 export function VersionesTable({
+  planogramaId,
   versiones,
   puedeEscribir,
   onMarcarEnDesarrollo,
@@ -22,7 +25,15 @@ export function VersionesTable({
   onPublicar,
 }: VersionesTableProps) {
   const columnas: TableColumn<VersionListItem>[] = [
-    { key: 'codigo', header: 'Código', render: (v) => <span className="mono">{v.codigo}</span> },
+    {
+      key: 'codigo',
+      header: 'Código',
+      render: (v) => (
+        <Link className="mono versiones-table__codigo" to={`/planogramas/${planogramaId}/versiones/${v.id}/editor`}>
+          {v.codigo}
+        </Link>
+      ),
+    },
     { key: 'tipo', header: 'Tipo', render: (v) => v.tipo },
     { key: 'estado', header: 'Estado', render: (v) => <EstadoBadge estado={v.estado} /> },
     { key: 'gondolas', header: 'Góndolas', render: (v) => v.totalGondolas },
@@ -35,6 +46,7 @@ export function VersionesTable({
       header: 'Acciones',
       render: (v) => (
         <span className="versiones-table__acciones">
+          <Link to={`/planogramas/${planogramaId}/versiones/${v.id}/editor`}>Diseñar</Link>
           {v.estado === 'borrador' && (
             <button type="button" onClick={() => onMarcarEnDesarrollo(v)}>
               Marcar en desarrollo
