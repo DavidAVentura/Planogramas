@@ -10,6 +10,7 @@
 const {
   ESTADOS,
   generarCodigo,
+  generarCodigoEspecial,
   validarPlanogramaNoArchivado,
   validarNoArchivada,
   calcularTransicionGuardar,
@@ -68,8 +69,7 @@ async function crearVersionVacia(versionRepo, planograma, datos) {
     );
   }
 
-  const secuencial = await versionRepo.siguienteSecuencial(planograma.id, datos.tipo);
-  const codigo     = generarCodigo(planograma.departamento, datos.tipo, secuencial);
+  const codigo = generarCodigo(planograma.nombre, datos.tipo);
 
   const id = await versionRepo.crear({
     planograma_id: planograma.id,
@@ -93,8 +93,10 @@ async function crearVersionEspecial(versionRepo, planograma, datos) {
     throw errorConflict('La tienda ya tiene una versión especial derivada de esta versión base');
   }
 
-  const secuencial = await versionRepo.siguienteSecuencial(planograma.id, datos.tipo);
-  const codigo     = generarCodigo(planograma.departamento, datos.tipo, secuencial);
+  const tienda = await versionRepo.buscarTiendaPorId(datos.tiendaId);
+  if (!tienda) throw errorNotFound(`Tienda ${datos.tiendaId} no encontrada`);
+
+  const codigo = generarCodigoEspecial(planograma.nombre, datos.tipo, tienda.codigo);
 
   const id = await versionRepo.crearConClon(
     {

@@ -41,7 +41,7 @@ Retorna los planogramas publicados asignados a una tienda específica. Endpoint 
   "planogramas": [
     {
       "versionId": 10,
-      "codigo": "AUTOS-TG-01",
+      "codigo": "AUTOS 01-TG",
       "tipo": "GRANDE",
       "planogramaId": 42,
       "nombre": "AUTOS 01",

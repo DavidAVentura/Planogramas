@@ -53,7 +53,7 @@ Modifica los metadatos editables de una versión: notas y código personalizado.
 ```json
 {
   "id": 10,
-  "codigo": "AUTOS-TG-01",
+  "codigo": "AUTOS 01-TG",
   "estado": "en_desarrollo",
   "notas": "Ajustado para inauguración Majadas"
 }

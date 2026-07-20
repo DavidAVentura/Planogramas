@@ -36,7 +36,7 @@ Crea una nueva versión de planograma. Si se incluye `versionBaseId`, crea una *
 
 1. No se pueden crear versiones en un planograma `archivado` → `422`.
 2. Solo puede existir **una versión activa** (`borrador`, `en_desarrollo`, `piloto`) del mismo `tipo` por planograma. Si ya existe, retorna `409`.
-3. El `codigo` se genera automáticamente con el patrón: `{DEPARTAMENTO}-T{INICIAL_TIPO}-{SECUENCIAL}`. Ej: `AUTOS-TG-01`.
+3. El `codigo` se genera automáticamente con el patrón: `{NOMBRE_PLANOGRAMA}-T{INICIAL_TIPO}` para una versión vacía, y `{NOMBRE_PLANOGRAMA}-T{INICIAL_TIPO}-{CODIGO_TIENDA}` para una versión especial por tienda. Ej: `AUTOS 01-TG` y `AUTOS 01-TG-T010`.
 4. Si se envía `versionBaseId`:
    - La versión base debe existir y pertenecer al mismo planograma.
    - Se copia toda la estructura en una transacción única.
@@ -74,7 +74,7 @@ Crea una nueva versión de planograma. Si se incluye `versionBaseId`, crea una *
   "id": 12,
   "planogramaId": 42,
   "tipo": "GRANDE",
-  "codigo": "AUTOS-TG-02",
+  "codigo": "AUTOS 01-TG",
   "estado": "borrador",
   "notas": "Rediseño Q3 2026",
   "versionBaseId": null,
@@ -89,11 +89,11 @@ Crea una nueva versión de planograma. Si se incluye `versionBaseId`, crea una *
   "id": 13,
   "planogramaId": 42,
   "tipo": "GRANDE",
-  "codigo": "AUTOS-TG-03",
+  "codigo": "AUTOS 01-TG-T010",
   "estado": "borrador",
   "notas": "Versión especial Cemaco Majadas",
   "versionBaseId": 10,
-  "tiendaAsignada": { "id": 5, "nombre": "Cemaco Majadas" },
+  "tiendaAsignada": { "id": 5, "codigo": "T010", "nombre": "Cemaco Majadas" },
   "createdAt": "2026-07-10T14:01:00Z"
 }
 ```
@@ -115,7 +115,7 @@ Crea una nueva versión de planograma. Si se incluye `versionBaseId`, crea una *
 // 409 Conflict
 {
   "error": "Ya existe una versión activa de tipo GRANDE. Archívala antes de crear una nueva.",
-  "versionActiva": { "id": 11, "codigo": "AUTOS-TG-02", "estado": "en_desarrollo" }
+  "versionActiva": { "id": 11, "codigo": "AUTOS 01-TG", "estado": "en_desarrollo" }
 }
 ```
 
@@ -133,4 +133,4 @@ Crea una nueva versión de planograma. Si se incluye `versionBaseId`, crea una *
 > Si en el futuro se necesita clonar parcialmente (solo algunas góndolas), el mecanismo de copia debe ser extensible sin modificar el caso de uso base.
 
 > **[CLEAN CODE — Generación de código]**  
-> El patrón `{DEP}-T{INICIAL}-{SEQ}` debe encapsularse en un `CodigoVersionGenerator` (estrategia), no hardcodeado en el repositorio.
+> El patrón `{NOMBRE_PLANOGRAMA}-T{INICIAL}[-{CODIGO_TIENDA}]` debe encapsularse en un `CodigoVersionGenerator` (estrategia), no hardcodeado en el repositorio.

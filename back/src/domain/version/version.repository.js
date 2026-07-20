@@ -95,13 +95,11 @@ module.exports = {
   existeCodigoEnPlanograma: async (_planogramaId, _codigo, _excluirId) => { throw new Error('No implementado'); },
 
   /**
-   * Calcula el siguiente secuencial para el código de una versión nueva
-   * (cuenta todas las versiones del mismo planograma+tipo, sin importar estado).
-   * @param {number} planogramaId
-   * @param {string} tipo
-   * @returns {Promise<number>}
+   * Retorna el código de la tienda indicada (para armar el código de una versión especial).
+   * @param {number} tiendaId
+   * @returns {Promise<{ id, codigo, nombre }|null>}
    */
-  siguienteSecuencial: async (_planogramaId, _tipo) => { throw new Error('No implementado'); },
+  buscarTiendaPorId: async (_tiendaId) => { throw new Error('No implementado'); },
 
   /**
    * Verifica si la tienda ya tiene una versión especial derivada de la versión base indicada.

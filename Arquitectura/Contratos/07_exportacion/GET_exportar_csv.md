@@ -28,7 +28,7 @@ Genera y descarga el planograma como CSV con una fila por posición. Compatible 
 **Headers:**
 ```
 Content-Type: text/csv; charset=utf-8
-Content-Disposition: attachment; filename="AUTOS-TG-01.csv"
+Content-Disposition: attachment; filename="AUTOS 01-TG.csv"
 ```
 
 **Columnas del CSV:**
@@ -62,7 +62,7 @@ Content-Disposition: attachment; filename="AUTOS-TG-01.csv"
 
 **Ejemplo de fila:**
 ```
-AUTOS-TG-01,Góndola A,120,1,30,GANCHO,1,10012345,3,27,1,4,12,4,3,12,NORMAL,NORMAL,ACTIVO,false,false,false,,
+AUTOS 01-TG,Góndola A,120,1,30,GANCHO,1,10012345,3,27,1,4,12,4,3,12,NORMAL,NORMAL,ACTIVO,false,false,false,,
 ```
 
 ---

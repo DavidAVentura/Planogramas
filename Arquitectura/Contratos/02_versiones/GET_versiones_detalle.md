@@ -50,7 +50,7 @@ Retorna el detalle completo de una versión: todas sus góndolas, con sus nivele
 {
   "id": 10,
   "planogramaId": 42,
-  "codigo": "AUTOS-TG-01",
+  "codigo": "AUTOS 01-TG",
   "tipo": "GRANDE",
   "estado": "publicado",
   "notas": "Versión inicial",

@@ -116,7 +116,7 @@ sequenceDiagram
 
         API->>API: Construye JSON con estructura estable:<br/>{ version: { id, codigo, tipo, estado },<br/>planograma: { nombre, departamento },<br/>gondolas: [{ nombre, medidas,<br/>  niveles: [{ orden, altura_piso,<br/>    posiciones: [{ sku, facings, capacidad, accesorios[] }] }] }] }
 
-        API-->>FE: 200 OK<br/>Content-Type: application/json<br/>Content-Disposition: attachment: filename="AUTOS-TG-03.json"<br/>Body: { ...estructura JSON del planograma }
+        API-->>FE: 200 OK<br/>Content-Type: application/json<br/>Content-Disposition: attachment: filename="AUTOS 01-TG.json"<br/>Body: { ...estructura JSON del planograma }
 
         FE-->>Analista: Descarga automática del archivo JSON
     end
@@ -137,7 +137,7 @@ sequenceDiagram
 
         API->>API: Serializa a CSV con encabezados<br/>version,gondola,gondola_ancho_cm,nivel,altura_piso_cm,<br/>tipo_accesorio,posicion,sku,facings_h,ancho_cm,...
 
-        API-->>FE: 200 OK<br/>Content-Type: text/csv: charset=utf-8<br/>Content-Disposition: attachment filename="AUTOS-TG-03.csv"<br/>Body: datos CSV
+        API-->>FE: 200 OK<br/>Content-Type: text/csv: charset=utf-8<br/>Content-Disposition: attachment filename="AUTOS 01-TG.csv"<br/>Body: datos CSV
 
         FE-->>Analista: Descarga automática del archivo CSV compatible con Excel
     end

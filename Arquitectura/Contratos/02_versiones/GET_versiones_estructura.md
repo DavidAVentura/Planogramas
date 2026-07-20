@@ -42,7 +42,7 @@ Retorna la estructura completa de una versión publicada en formato de solo lect
 ```json
 {
   "versionId": 10,
-  "codigo": "AUTOS-TG-01",
+  "codigo": "AUTOS 01-TG",
   "tipo": "GRANDE",
   "gondolas": [
     {

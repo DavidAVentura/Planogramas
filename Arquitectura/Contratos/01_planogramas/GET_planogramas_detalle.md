@@ -54,7 +54,7 @@ Retorna el detalle completo de un planograma: metadatos, subcategorías de refer
     {
       "id": 10,
       "tipo": "GRANDE",
-      "codigo": "AUTOS-TG-01",
+      "codigo": "AUTOS 01-TG",
       "estado": "publicado",
       "totalGondolas": 3,
       "totalTiendas": 2
@@ -62,7 +62,7 @@ Retorna el detalle completo de un planograma: metadatos, subcategorías de refer
     {
       "id": 11,
       "tipo": "MEDIANA",
-      "codigo": "AUTOS-TM-01",
+      "codigo": "AUTOS 01-TM",
       "estado": "borrador",
       "totalGondolas": 0,
       "totalTiendas": 0

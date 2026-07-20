@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"require\\('./src/domain/version/version.entity.js'\\); require\\('./src/domain/version/version.usecases.js'\\); require\\('./src/domain/version/version.repository.js'\\); console.log\\('domain OK'\\)\")",
+      "Bash(node -e ' *)",
+      "Bash(node -e \"require\\('./src/infrastructure/db/migrations/004_ampliar_codigo_version.js'\\); console.log\\('migration file OK'\\)\")",
+      "Bash(timeout 5 npx knex migrate:status)",
+      "Bash(npx knex *)",
+      "Bash(node index.js)",
+      "Read(//tmp/**)",
+      "Bash(curl -s http://127.0.0.1:3000/api/v1/planogramas -o /dev/null -w \"status:%{http_code}\\\\n\")",
+      "Bash(curl -s -X POST http://127.0.0.1:3000/api/v1/planogramas/123/versiones -H 'Content-Type: application/json' -d '{\"tipo\":\"GRANDE\",\"notas\":\"prueba QA\"}')",
+      "Bash(curl -s -X POST http://127.0.0.1:3000/api/v1/planogramas/123/versiones -H 'Content-Type: application/json' -d '{\"tipo\":\"MEDIANA\",\"notas\":\"prueba QA\"}')",
+      "Bash(curl -s http://127.0.0.1:3000/api/v1/versiones/151/tiendas)",
+      "Bash(curl -s -X POST http://127.0.0.1:3000/api/v1/planogramas/123/versiones -H 'Content-Type: application/json' -d '{\"tipo\":\"GRANDE\",\"versionBaseId\":151,\"tiendaId\":1,\"notas\":\"version especial T0PC QA\"}')",
+      "Bash(curl -s -X POST http://127.0.0.1:3000/api/v1/planogramas/123/archivar -o /dev/null -w \"archivar status:%{http_code}\\\\n\")",
+      "Bash(curl -s http://127.0.0.1:3000/api/v1/planogramas -o /dev/null -w \"still up, status:%{http_code}\\\\n\")",
+      "Bash(netstat -ano)",
+      "Bash(taskkill //PID 23296 //F)"
+    ]
+  }
+}

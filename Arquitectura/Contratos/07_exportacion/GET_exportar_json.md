@@ -33,7 +33,7 @@ Genera y descarga el planograma completo en formato JSON. Estructura anidada est
 ## Reglas de negocio
 
 1. Disponible para versiones en cualquier estado (incluso borrador — el Analista puede exportar para revisión).
-2. El archivo se nombra con el código de la versión: `{CODIGO}.json`. Ej: `AUTOS-TG-01.json`.
+2. El archivo se nombra con el código de la versión: `{CODIGO}.json`. Ej: `AUTOS 01-TG.json`.
 3. La estructura JSON es **estable** — no puede cambiar sin versionado de API, ya que sistemas externos pueden depender de ella.
 
 ---
@@ -43,7 +43,7 @@ Genera y descarga el planograma completo en formato JSON. Estructura anidada est
 **Headers de respuesta:**
 ```
 Content-Type: application/json
-Content-Disposition: attachment; filename="AUTOS-TG-01.json"
+Content-Disposition: attachment; filename="AUTOS 01-TG.json"
 ```
 
 **Body:**
@@ -51,7 +51,7 @@ Content-Disposition: attachment; filename="AUTOS-TG-01.json"
 {
   "version": {
     "id": 10,
-    "codigo": "AUTOS-TG-01",
+    "codigo": "AUTOS 01-TG",
     "tipo": "GRANDE",
     "estado": "publicado"
   },

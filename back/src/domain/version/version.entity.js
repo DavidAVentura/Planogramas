@@ -41,17 +41,27 @@ function errorUnprocessable(mensaje) {
 }
 
 /**
- * Genera el código de versión con el patrón {DEPARTAMENTO}-T{INICIAL_TIPO}-{SECUENCIAL}.
- * Ej: generarCodigo('Autos', 'GRANDE', 2) → 'AUTOS-TG-02'
- * @param {string} departamento
+ * Genera el código de versión base con el patrón {NOMBRE_PLANOGRAMA}-T{INICIAL_TIPO}.
+ * Ej: generarCodigo('LIMPIEZA 03', 'GRANDE') → 'LIMPIEZA 03-TG'
+ * @param {string} nombrePlanograma
  * @param {string} tipo
- * @param {number} secuencial
  * @returns {string}
  */
-function generarCodigo(departamento, tipo, secuencial) {
-  const dep = departamento.trim().toUpperCase().replace(/\s+/g, '');
-  const seq = String(secuencial).padStart(2, '0');
-  return `${dep}-T${INICIALES_TIPO[tipo]}-${seq}`;
+function generarCodigo(nombrePlanograma, tipo) {
+  const nombre = nombrePlanograma.trim().toUpperCase();
+  return `${nombre}-T${INICIALES_TIPO[tipo]}`;
+}
+
+/**
+ * Genera el código de versión especial por tienda, agregando el código de tienda como sufijo.
+ * Ej: generarCodigoEspecial('LIMPIEZA 03', 'GRANDE', 'T0PC') → 'LIMPIEZA 03-TG-T0PC'
+ * @param {string} nombrePlanograma
+ * @param {string} tipo
+ * @param {string} codigoTienda
+ * @returns {string}
+ */
+function generarCodigoEspecial(nombrePlanograma, tipo, codigoTienda) {
+  return `${generarCodigo(nombrePlanograma, tipo)}-${codigoTienda.trim().toUpperCase()}`;
 }
 
 /**
@@ -105,6 +115,7 @@ module.exports = {
   ESTADOS,
   ESTADOS_ACTIVOS,
   generarCodigo,
+  generarCodigoEspecial,
   validarPlanogramaNoArchivado,
   validarNoArchivada,
   calcularTransicionGuardar,

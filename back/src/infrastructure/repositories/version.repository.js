@@ -388,15 +388,11 @@ async function existeCodigoEnPlanograma(planogramaId, codigo, excluirId) {
   return row !== undefined;
 }
 
-// ─── siguienteSecuencial ─────────────────────────────────────────────────────
+// ─── buscarTiendaPorId ───────────────────────────────────────────────────────
 
-async function siguienteSecuencial(planogramaId, tipo) {
-  const [{ total }] = await db(TABLA_VERSION)
-    .where('planograma_id', planogramaId)
-    .where('tipo', tipo)
-    .count('id as total');
-
-  return Number(total) + 1;
+async function buscarTiendaPorId(tiendaId) {
+  const row = await db(TABLA_TIENDA).where('id', tiendaId).select('id', 'codigo', 'nombre').first();
+  return row ?? null;
 }
 
 // ─── tiendaTieneVersionEspecialDeBase ────────────────────────────────────────
@@ -533,7 +529,7 @@ module.exports = {
   actualizarEstado,
   buscarVersionActivaDeTipo,
   existeCodigoEnPlanograma,
-  siguienteSecuencial,
+  buscarTiendaPorId,
   tiendaTieneVersionEspecialDeBase,
   listarTiendas,
   reemplazarTiendas,

@@ -88,7 +88,7 @@ Cuando pasa a `publicado`:
 {
   "id": 10,
   "estado": "publicado",
-  "versionAnteriorArchivada": { "id": 8, "codigo": "AUTOS-TG-00" }
+  "versionAnteriorArchivada": { "id": 8, "codigo": "AUTOS 01-TG" }
 }
 ```
 

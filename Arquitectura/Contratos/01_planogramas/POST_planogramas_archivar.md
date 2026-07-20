@@ -75,7 +75,7 @@ Sin body (operación de acción/comando).
 {
   "error": "Existen versiones publicadas asignadas a tiendas. Desasígnalas antes de archivar.",
   "versionesPublicadas": [
-    { "id": 10, "codigo": "AUTOS-TG-01", "tiendas": 2 }
+    { "id": 10, "codigo": "AUTOS 01-TG", "tiendas": 2 }
   ]
 }
 ```

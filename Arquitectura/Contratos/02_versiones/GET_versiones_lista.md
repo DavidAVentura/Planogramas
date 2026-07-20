@@ -52,7 +52,7 @@ Lista todas las versiones de un planograma con su estado, tipo, tiendas asignada
     {
       "id": 10,
       "tipo": "GRANDE",
-      "codigo": "AUTOS-TG-01",
+      "codigo": "AUTOS 01-TG",
       "estado": "publicado",
       "notas": "Versión inicial para tiendas grandes",
       "versionBaseId": null,
@@ -67,7 +67,7 @@ Lista todas las versiones de un planograma con su estado, tipo, tiendas asignada
     {
       "id": 11,
       "tipo": "GRANDE",
-      "codigo": "AUTOS-TG-02",
+      "codigo": "AUTOS 01-TG",
       "estado": "en_desarrollo",
       "notas": null,
       "versionBaseId": null,
