@@ -40,6 +40,32 @@ export function useBuscarProductosCatalogo() {
   return { productos, cargando, error, buscar };
 }
 
+export function useProductosPorSubcategoria() {
+  const [productos, setProductos] = useState<ProductoCatalogo[]>([]);
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState(false);
+
+  async function buscar(subcategoriaId: string) {
+    if (!subcategoriaId) {
+      setProductos([]);
+      setError(false);
+      return;
+    }
+    setCargando(true);
+    try {
+      setProductos(await catalogoService.buscarProductos('', { subcategoria: subcategoriaId }));
+      setError(false);
+    } catch {
+      setError(true);
+      setProductos([]);
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  return { productos, cargando, error, buscar };
+}
+
 export function useProductoCatalogo(sku: string | null) {
   const [producto, setProducto] = useState<ProductoDetalle | null>(null);
   const [cargando, setCargando] = useState(false);

@@ -6,4 +6,13 @@ export const jerarquiaService = {
 
   listarDepartamentos: (area: string) =>
     httpClient.get<JerarquiaItem[]>('/jerarquia/departamentos', { area }),
+
+  listarFamilias: (departamento: string) =>
+    httpClient.get<JerarquiaItem[]>('/jerarquia/familias', { departamento }),
+
+  listarCategorias: (familia: string) =>
+    httpClient.get<JerarquiaItem[]>('/jerarquia/categorias', { familia }),
+
+  listarSubcategorias: (categoria: string) =>
+    httpClient.get<JerarquiaItem[]>('/jerarquia/subcategorias', { categoria }),
 };

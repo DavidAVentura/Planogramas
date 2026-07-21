@@ -3,8 +3,10 @@ import { Modal } from '../../../ui/Modal/Modal';
 import { Button } from '../../../ui/Button/Button';
 import { ChipInput } from '../../../ui/ChipInput/ChipInput';
 import { CascadingSelect } from '../../../ui/CascadingSelect/CascadingSelect';
+import { ExploradorSubcategorias } from './ExploradorSubcategorias';
 import { useJerarquia } from '../../../../hooks/useJerarquia';
 import { useGuardarPlanograma, usePlanogramaDetalle } from '../../../../hooks/usePlanogramas';
+import { useToast } from '../../../../context/ToastContext';
 import type { PlanogramaDetalle } from '../../../../types/planograma';
 import './PlanogramaFormModal.css';
 
@@ -20,6 +22,7 @@ export function PlanogramaFormModal({ planogramaId, onClose, onGuardado }: Plano
   const { planograma } = usePlanogramaDetalle(planogramaId ?? null);
   const { areas, departamentos, cargandoDepartamentos, cargarDepartamentos } = useJerarquia();
   const { guardar, enviando } = useGuardarPlanograma();
+  const { mostrarToast } = useToast();
 
   const [nombre, setNombre] = useState('');
   const [area, setArea] = useState('');
@@ -42,6 +45,12 @@ export function PlanogramaFormModal({ planogramaId, onClose, onGuardado }: Plano
     cargarDepartamentos(area);
   }, [area, cargarDepartamentos]);
 
+  function agregarSubcategoria(nombreNueva: string) {
+    if (!nombreNueva || subcategorias.includes(nombreNueva)) return;
+    setSubcategorias([...subcategorias, nombreNueva]);
+    mostrarToast(`"${nombreNueva}" agregada`, 'success');
+  }
+
   const nombreValido = nombre.trim().length > 0;
   const departamentoValido = editando || Boolean(departamentoNombre);
   const formularioValido = nombreValido && departamentoValido && subcategorias.length > 0;
@@ -63,7 +72,7 @@ export function PlanogramaFormModal({ planogramaId, onClose, onGuardado }: Plano
     <Modal
       titulo={editando ? 'Editar planograma' : 'Crear planograma'}
       onClose={onClose}
-      ancho="lg"
+      ancho="xl"
       footer={
         <>
           <Button variante="outline" onClick={onClose} disabled={enviando}>
@@ -79,42 +88,50 @@ export function PlanogramaFormModal({ planogramaId, onClose, onGuardado }: Plano
         <p className="planograma-form__cargando">Cargando…</p>
       ) : (
         <form id="planograma-form" className="planograma-form" onSubmit={onSubmit}>
-          <label className="planograma-form__campo">
-            <span>Nombre</span>
-            <input value={nombre} onChange={(e) => setNombre(e.target.value)} required />
-          </label>
+          <div className="planograma-form__layout">
+            <div className="planograma-form__columna">
+              <label className="planograma-form__campo">
+                <span>Nombre</span>
+                <input value={nombre} onChange={(e) => setNombre(e.target.value)} required />
+              </label>
 
-          {editando && (
-            <p className="planograma-form__depto-actual">
-              Departamento actual: <strong>{planograma?.departamento}</strong>
-            </p>
-          )}
+              {editando && (
+                <p className="planograma-form__depto-actual">
+                  Departamento actual: <strong>{planograma?.departamento}</strong>
+                </p>
+              )}
 
-          <div className="planograma-form__campo">
-            <span>{editando ? 'Cambiar departamento (opcional)' : 'Área y departamento'}</span>
-            <CascadingSelect
-              areas={areas}
-              departamentos={departamentos}
-              areaValue={area}
-              departamentoValue={departamentoId}
-              cargandoDepartamentos={cargandoDepartamentos}
-              requerido={!editando}
-              onAreaChange={(areaId) => {
-                setArea(areaId);
-                setDepartamentoId('');
-              }}
-              onDepartamentoChange={setDepartamentoId}
-            />
+              <div className="planograma-form__campo">
+                <span>{editando ? 'Cambiar departamento (opcional)' : 'Área y departamento'}</span>
+                <CascadingSelect
+                  areas={areas}
+                  departamentos={departamentos}
+                  areaValue={area}
+                  departamentoValue={departamentoId}
+                  cargandoDepartamentos={cargandoDepartamentos}
+                  requerido={!editando}
+                  onAreaChange={(areaId) => {
+                    setArea(areaId);
+                    setDepartamentoId('');
+                  }}
+                  onDepartamentoChange={setDepartamentoId}
+                />
+              </div>
+
+              <label className="planograma-form__campo">
+                <span>Subcategorías de referencia</span>
+                <ChipInput
+                  valores={subcategorias}
+                  onChange={setSubcategorias}
+                  placeholder="Escribí y presioná Enter"
+                />
+              </label>
+            </div>
+
+            <div className="planograma-form__columna planograma-form__columna--exploracion">
+              <ExploradorSubcategorias departamentoId={departamentoId} onAgregar={agregarSubcategoria} />
+            </div>
           </div>
-
-          <label className="planograma-form__campo">
-            <span>Subcategorías de referencia</span>
-            <ChipInput
-              valores={subcategorias}
-              onChange={setSubcategorias}
-              placeholder="Escribí y presioná Enter"
-            />
-          </label>
         </form>
       )}
     </Modal>

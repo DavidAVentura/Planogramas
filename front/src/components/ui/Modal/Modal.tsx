@@ -6,7 +6,7 @@ interface ModalProps {
   onClose: () => void;
   children: ReactNode;
   footer?: ReactNode;
-  ancho?: 'sm' | 'md' | 'lg';
+  ancho?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
 export function Modal({ titulo, onClose, children, footer, ancho = 'md' }: ModalProps) {

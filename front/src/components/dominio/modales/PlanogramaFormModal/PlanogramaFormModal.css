@@ -4,6 +4,39 @@
   gap: 16px;
 }
 
+.planograma-form__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .planograma-form__layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.planograma-form__columna {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.planograma-form__columna--exploracion {
+  padding-left: 24px;
+  border-left: 1px solid var(--border-subtle);
+}
+
+@media (max-width: 720px) {
+  .planograma-form__columna--exploracion {
+    padding-left: 0;
+    padding-top: 20px;
+    border-left: 0;
+    border-top: 1px solid var(--border-subtle);
+  }
+}
+
 .planograma-form__campo {
   display: flex;
   flex-direction: column;

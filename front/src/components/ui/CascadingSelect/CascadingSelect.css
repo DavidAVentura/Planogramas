@@ -1,10 +1,7 @@
 .cascading-select {
   display: flex;
+  flex-direction: column;
   gap: 16px;
-
-  @media (width <= 600px) {
-    flex-direction: column;
-  }
 }
 
 .cascading-select__campo {
