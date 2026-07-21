@@ -155,6 +155,12 @@
       "value": "",
       "type": "string",
       "description": "SKU real obtenido dinamicamente en catalogo/Setup - datos de prueba a partir de una busqueda en CATI. Se llena solo si la busqueda del setup encuentra resultados."
+    },
+    {
+      "key": "skuSinDimensiones",
+      "value": "SKU-FIXTURE-SIN-DIMENSIONES",
+      "type": "string",
+      "description": "SKU de un Producto local sembrado a mano via SQL sin ancho_cm/alto_cm/profundidad_cm, requerido para probar el 422 de 'Validar dimensiones de producto' (no hay endpoint que cree un Producto sin dimensiones -- POST /niveles/:id/posiciones siempre trae las 3 medidas reales desde CATI via asegurarExistencia). Script SQL minimo para recrearlo si la BD se limpia: INSERT INTO Producto (sku, nombre) VALUES ('SKU-FIXTURE-SIN-DIMENSIONES', 'Producto fixture sin dimensiones')."
     }
   ],
   "item": [
@@ -10648,6 +10654,337 @@
                   ]
                 },
                 "description": "Reutiliza la variable skuInexistente (ya usada por otros modulos) asumiendo que un SKU que no existe localmente tampoco existe en CATI."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Code NOT_FOUND', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Actualizar dimensiones de producto (PATCH /catalog/productos/:sku/dimensiones)",
+          "item": [
+            {
+              "name": "200 - Actualizar dimensiones de un producto existente",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos/{{skuExistente}}/dimensiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos",
+                    "{{skuExistente}}",
+                    "dimensiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"ancho_cm\": 15,\n  \"alto_cm\": 20,\n  \"profundidad_cm\": 10\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Actualiza las 3 dimensiones del producto local. El backend fija fuente_dimensiones=MANUAL y dimensiones_validadas=true automaticamente -- ver Arquitectura/Contratos/08_catalogo/PATCH_productos_actualizar_dimensiones.md."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Aplica las dimensiones enviadas y marca fuente MANUAL + validadas', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(Number(body.ancho_cm)).to.eql(15);",
+                      "  pm.expect(Number(body.alto_cm)).to.eql(20);",
+                      "  pm.expect(Number(body.profundidad_cm)).to.eql(10);",
+                      "  pm.expect(body.fuente_dimensiones).to.eql('MANUAL');",
+                      "  pm.expect(body.dimensiones_validadas).to.eql(true);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Falta profundidad_cm",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos/{{skuExistente}}/dimensiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos",
+                    "{{skuExistente}}",
+                    "dimensiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"ancho_cm\": 15,\n  \"alto_cm\": 20\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Ancho en 0",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos/{{skuExistente}}/dimensiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos",
+                    "{{skuExistente}}",
+                    "dimensiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"ancho_cm\": 0,\n  \"alto_cm\": 20,\n  \"profundidad_cm\": 10\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - SKU inexistente",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos/{{skuInexistente}}/dimensiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos",
+                    "{{skuInexistente}}",
+                    "dimensiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"ancho_cm\": 15,\n  \"alto_cm\": 20,\n  \"profundidad_cm\": 10\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Code NOT_FOUND', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Validar dimensiones de producto (PATCH /catalog/productos/:sku/dimensiones/validar)",
+          "item": [
+            {
+              "name": "200 - Validar dimensiones de un producto con medidas completas",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos/{{skuExistente}}/dimensiones/validar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos",
+                    "{{skuExistente}}",
+                    "dimensiones",
+                    "validar"
+                  ]
+                },
+                "description": "Requiere que el request anterior (Actualizar dimensiones) haya corrido antes en la misma pasada, para que {{skuExistente}} ya tenga las 3 medidas > 0 -- ver Arquitectura/Contratos/08_catalogo/PATCH_productos_validar_dimensiones.md."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Marca dimensiones_validadas=true sin tocar las medidas', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.dimensiones_validadas).to.eql(true);",
+                      "  pm.expect(Number(body.ancho_cm)).to.eql(15);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - Producto con dimensiones incompletas",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos/{{skuSinDimensiones}}/dimensiones/validar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos",
+                    "{{skuSinDimensiones}}",
+                    "dimensiones",
+                    "validar"
+                  ]
+                },
+                "description": "skuSinDimensiones es un fixture sembrado a mano via SQL, sin ancho_cm/alto_cm/profundidad_cm (ver descripcion de la variable de coleccion) -- no puede validarse."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.test('Code UNPROCESSABLE', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - SKU inexistente",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos/{{skuInexistente}}/dimensiones/validar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos",
+                    "{{skuInexistente}}",
+                    "dimensiones",
+                    "validar"
+                  ]
+                }
               },
               "event": [
                 {

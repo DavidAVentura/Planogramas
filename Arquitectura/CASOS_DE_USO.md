@@ -62,6 +62,8 @@ Actores:
 | CU-04-09 | Agregar accesorio de montaje a posición | Analista | Agrega uno o más accesorios con nota libre a una posición (ej. "a la derecha"). |
 | CU-04-10 | Deshacer / Rehacer acción | Analista | Revierte o repite la última acción de edición con Ctrl+Z / Ctrl+Y. |
 | CU-04-11 | Eliminar accesorio de montaje de posición | Analista | Quita un accesorio de montaje previamente asignado a una posición. |
+| CU-04-12 | Actualizar dimensiones de producto | Analista | Corrige el ancho, alto y profundidad físicos de un producto en la tabla local; el sistema marca la fuente como `MANUAL` y las dimensiones como validadas. |
+| CU-04-13 | Validar dimensiones de producto | Analista | Confirma que las dimensiones físicas ya guardadas de un producto son correctas, sin modificarlas. Requiere que las tres medidas sean mayores a 0. |
 
 ---
 

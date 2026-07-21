@@ -37,6 +37,7 @@ back/
     │   │       ├── sustituciones.routes.js
     │   │       ├── exportacion.routes.js
     │   │       ├── catalogo.routes.js
+    │   │       ├── producto.routes.js   # Escritura de dimensiones; montado también bajo /catalog
     │   │       ├── accesorios.routes.js
     │   │       ├── tiendas.routes.js
     │   │       └── jerarquia.routes.js
@@ -78,9 +79,13 @@ back/
     │   │   ├── posicion.entity.js       # Cálculos: capacidad_maxima, min_estetico
     │   │   ├── posicion.usecases.js     # Mover, copiar, validar desborde
     │   │   └── posicion.repository.js
-    │   └── sustitucion/
-    │       ├── sustitucion.usecases.js
-    │       └── sustitucion.repository.js
+    │   ├── sustitucion/
+    │   │   ├── sustitucion.usecases.js
+    │   │   └── sustitucion.repository.js
+    │   └── producto/                    # Dimensiones físicas de la tabla local Producto —
+    │       ├── producto.entity.js       # separado de "catalogo" (proxy CATI sin dominio propio)
+    │       ├── producto.usecases.js
+    │       └── producto.repository.js
     │
     └── application/
         ├── planogramas/
@@ -99,6 +104,8 @@ back/
         │   └── exportacion.controller.js
         ├── catalogo/
         │   └── catalogo.controller.js     # Proxy a CATI
+        ├── producto/
+        │   └── producto.controller.js     # Escritura de dimensiones (tabla local Producto)
         ├── accesorios/
         │   └── accesorios.controller.js
         ├── tiendas/

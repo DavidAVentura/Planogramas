@@ -8,7 +8,11 @@ import {
   usePosicionAccesorios,
   usePosicionDetalle,
 } from '../../../../hooks/usePosiciones';
-import { useProductoCatalogo } from '../../../../hooks/useCatalogo';
+import {
+  useActualizarDimensionesProducto,
+  useProductoCatalogo,
+  useValidarDimensionesProducto,
+} from '../../../../hooks/useCatalogo';
 import { useAccesorios } from '../../../../hooks/useAccesorios';
 import {
   DECISIONES_POSICION,
@@ -52,8 +56,15 @@ interface PosicionDrawerProps {
 
 export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawerProps) {
   const { posicion, cargando, recargar } = usePosicionDetalle(posicionId);
-  const { producto, cargando: cargandoProducto, error: errorProducto } = useProductoCatalogo(posicion?.sku ?? null);
+  const {
+    producto,
+    cargando: cargandoProducto,
+    error: errorProducto,
+    recargar: recargarProducto,
+  } = useProductoCatalogo(posicion?.sku ?? null);
   const { editar, enviando } = useEditarPosicion();
+  const { actualizar: actualizarDimensiones, enviando: actualizandoDimensiones } = useActualizarDimensionesProducto();
+  const { validar: validarDimensiones, enviando: validandoDimensiones } = useValidarDimensionesProducto();
   const { accesorios, cargando: cargandoAccesorios, recargar: recargarAccesorios } = usePosicionAccesorios(posicionId);
   const { accesorios: catalogoAccesorios, cargando: cargandoCatalogoAccesorios } = useAccesorios();
   const { agregar: agregarAccesorio, enviando: agregandoAccesorio } = useAgregarAccesorioPosicion();
@@ -130,6 +141,7 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
 
   const notaDesbordeInvalida = desbordaGondola && !notaDesborde.trim();
   const minMaxInvalido = minFinal !== '' && maxFinal !== '' && Number(minFinal) > Number(maxFinal);
+  const dimensionesCompletas = Number(dimAnchoCm) > 0 && Number(dimAltoCm) > 0 && Number(dimProfundidadCm) > 0;
 
   async function onGuardar() {
     if (notaDesbordeInvalida || minMaxInvalido) return;
@@ -164,10 +176,29 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
     }
   }
 
-  function onActualizarMedidas() {
+  async function onActualizarMedidas() {
+    if (!posicion) return;
     const dimAnchoNum = Number(dimAnchoCm) || 0;
-    if (facingsNum === 0 || dimAnchoNum === 0) return;
-    setAnchoCm(String(facingsNum * dimAnchoNum));
+    const dimAltoNum = Number(dimAltoCm) || 0;
+    const dimProfundidadNum = Number(dimProfundidadCm) || 0;
+    if (dimAnchoNum <= 0 || dimAltoNum <= 0 || dimProfundidadNum <= 0) return;
+
+    const resultado = await actualizarDimensiones(posicion.sku, {
+      ancho_cm: dimAnchoNum,
+      alto_cm: dimAltoNum,
+      profundidad_cm: dimProfundidadNum,
+    });
+
+    if (resultado) {
+      if (facingsNum !== 0) setAnchoCm(String(facingsNum * dimAnchoNum));
+      recargarProducto();
+    }
+  }
+
+  async function onValidarDimensiones() {
+    if (!posicion) return;
+    const resultado = await validarDimensiones(posicion.sku);
+    if (resultado) recargarProducto();
   }
 
   function onFacingsChange(valor: string) {
@@ -237,6 +268,8 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
                     Dimensiones: {producto.ancho_cm ?? '—'} × {producto.alto_cm ?? '—'} × {producto.profundidad_cm ?? '—'} cm
                   </span>
                 )}
+                <span>Fuente de dimensiones: {producto.fuente_dimensiones ?? '—'}</span>
+                <span>Dimensiones validadas: {producto.dimensiones_validadas ? 'Sí' : 'No'}</span>
                 {producto.precio != null && <span>Precio: Q{producto.precio.toFixed(2)}</span>}
                 {producto.sku_sustituto && <span>SKU sustituto recomendado: {producto.sku_sustituto}</span>}
               </>
@@ -264,17 +297,29 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
             />
           </label>
         </div>
-        <Button
-          variante="outline"
-          type="button"
-          onClick={onActualizarMedidas}
-          disabled={facingsNum === 0 || Number(dimAnchoCm) === 0}
-        >
-          Actualizar medidas
-        </Button>
+        <div className="posicion-drawer__fila">
+          <Button
+            variante="outline"
+            type="button"
+            onClick={onActualizarMedidas}
+            disabled={actualizandoDimensiones || !dimensionesCompletas}
+          >
+            Actualizar medidas
+          </Button>
+          <Button
+            variante="outline"
+            type="button"
+            onClick={onValidarDimensiones}
+            disabled={validandoDimensiones || !dimensionesCompletas}
+          >
+            Validar dimensiones
+          </Button>
+        </div>
         <span className="posicion-drawer__ayuda">
-          Estas medidas no se guardan en el catálogo — actualiza el ancho asignado con facings horizontales × ancho
-          del producto (o se recalcula solo al guardar), salvo que alguna de las dos sea 0.
+          "Actualizar medidas" guarda las tres medidas en el producto (fuente pasa a MANUAL) y
+          recalcula el ancho asignado con facings horizontales × ancho del producto, salvo que
+          facings sea 0. "Validar dimensiones" confirma que las medidas ya guardadas son
+          correctas, sin modificarlas. Ambos botones requieren las tres medidas mayores a 0.
         </span>
       </Seccion>
 

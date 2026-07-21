@@ -121,13 +121,19 @@ Descarga del planograma completo en distintos formatos.
 
 ## 8. Catálogo de productos
 
-Búsqueda y consulta del catálogo de productos. La fuente de verdad es CATI (API interna de Cemaco);
-estos endpoints del backend actúan como proxy/caché para el frontend.
+Búsqueda y consulta del catálogo de productos. La fuente de verdad de la búsqueda/detalle general
+es CATI (API interna de Cemaco); esos 2 endpoints actúan como proxy/caché para el frontend. Las
+dimensiones físicas, en cambio, tienen una porción de escritura LOCAL (tabla `Producto`, distinta
+del proxy): un analista puede corregirlas a mano o validar las que ya trae CATI — ver los 2
+endpoints `PATCH .../dimensiones*`, servidos por un módulo de dominio separado (`domain/producto/`,
+no `catalogo`).
 
 | Método | Ruta | Actor | CU | Descripción |
 |--------|------|-------|----|-------------|
 | `GET` | `/catalog/productos` | Analista | CU-04-01 / CU-05-02 | Busca productos del catálogo. Filtros: `sku`, `gtin`, `marca`, `nombre`, `subcategoria`, `categoria_nivel1`, `categoria_nivel2`, `solo_con_stock`. Paginado. |
-| `GET` | `/catalog/productos/{sku}` | Analista | CU-04-02 | Retorna el detalle de un producto: dimensiones, imagen, precio, jerarquía, SKU sustituto sugerido. |
+| `GET` | `/catalog/productos/{sku}` | Analista | CU-04-02 | Retorna el detalle de un producto: dimensiones, imagen, precio, jerarquía, SKU sustituto sugerido, fuente de dimensiones y si están validadas. |
+| `PATCH` | `/catalog/productos/{sku}/dimensiones` | Analista | CU-04-12 | Actualiza `ancho_cm`/`alto_cm`/`profundidad_cm` del producto local; marca `fuente_dimensiones='MANUAL'` y `dimensiones_validadas=true`. |
+| `PATCH` | `/catalog/productos/{sku}/dimensiones/validar` | Analista | CU-04-13 | Marca `dimensiones_validadas=true` sin modificar las medidas; requiere que las tres sean mayores a 0 (`422` si no). |
 
 ---
 

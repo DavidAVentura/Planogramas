@@ -41,7 +41,7 @@ exports.up = async function (knex) {
     t.decimal('ancho_cm', 8, 2).nullable();
     t.decimal('alto_cm', 8, 2).nullable();
     t.decimal('profundidad_cm', 8, 2).nullable();
-    t.string('fuente_dimensiones', 10).nullable();      // STIBO | VTEX | MANUAL
+    t.string('fuente_dimensiones', 10).nullable();      // CATI | VTEX | MANUAL
     t.boolean('dimensiones_validadas').notNullable().defaultTo(false);
     t.string('gtin', 50).nullable();
     t.decimal('precio', 12, 2).nullable();

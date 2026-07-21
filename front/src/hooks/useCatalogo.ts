@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { catalogoService } from '../services/catalogo.service';
-import type { ProductoCatalogo, ProductoDetalle } from '../types/catalogo';
+import { useToast } from '../context/ToastContext';
+import { mensajeDeError } from '../utils/errors';
+import type { DimensionesProducto, ProductoCatalogo, ProductoDetalle } from '../types/catalogo';
 
 // El catálogo CATI es un proxy externo que puede no estar disponible en desarrollo — a
 // diferencia del resto de los hooks del proyecto, estos NO muestran toast en error: la UI que
@@ -59,5 +61,51 @@ export function useProductoCatalogo(sku: string | null) {
     cargar();
   }, [cargar]);
 
-  return { producto, cargando, error };
+  return { producto, cargando, error, recargar: cargar };
+}
+
+// A diferencia de los hooks de lectura de arriba, los siguientes SÍ muestran toast: escriben en
+// la tabla local `Producto` (fuente de verdad propia del backend), no en el proxy CATI que puede
+// estar caído — un error acá es una falla real que vale la pena interrumpir para mostrar.
+
+export function useActualizarDimensionesProducto() {
+  const [enviando, setEnviando] = useState(false);
+  const { mostrarToast } = useToast();
+
+  async function actualizar(sku: string, dimensiones: DimensionesProducto): Promise<ProductoDetalle | null> {
+    setEnviando(true);
+    try {
+      const producto = await catalogoService.actualizarDimensiones(sku, dimensiones);
+      mostrarToast('Medidas del producto actualizadas', 'success');
+      return producto;
+    } catch (err) {
+      mostrarToast(mensajeDeError(err, 'No se pudieron actualizar las medidas'), 'error');
+      return null;
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  return { actualizar, enviando };
+}
+
+export function useValidarDimensionesProducto() {
+  const [enviando, setEnviando] = useState(false);
+  const { mostrarToast } = useToast();
+
+  async function validar(sku: string): Promise<ProductoDetalle | null> {
+    setEnviando(true);
+    try {
+      const producto = await catalogoService.validarDimensiones(sku);
+      mostrarToast('Dimensiones validadas', 'success');
+      return producto;
+    } catch (err) {
+      mostrarToast(mensajeDeError(err, 'No se pudieron validar las dimensiones'), 'error');
+      return null;
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  return { validar, enviando };
 }

@@ -14,4 +14,12 @@ export interface ProductoDetalle extends ProductoCatalogo {
   categoria_nivel1: string | null;
   categoria_nivel2: string | null;
   sku_sustituto: string | null;
+  fuente_dimensiones: 'CATI' | 'VTEX' | 'MANUAL' | null;
+  dimensiones_validadas: boolean;
+}
+
+export interface DimensionesProducto {
+  ancho_cm: number;
+  alto_cm: number;
+  profundidad_cm: number;
 }

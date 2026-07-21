@@ -2,8 +2,10 @@
  * catalogo.controller.js
  * Proxy a CATI: extrae parámetros del request, llama al cliente CATI y formatea la respuesta.
  * Sin capa de dominio — el módulo no tiene reglas de negocio propias, solo cachea y traduce
- * el catálogo externo (ver Arquitectura/ESTRUCTURA_BACKEND.md). El único dato local es el
- * `sku_sustituto`, enriquecido desde la tabla `Producto` (ver producto.repository.js).
+ * el catálogo externo (ver Arquitectura/ESTRUCTURA_BACKEND.md). Los datos locales
+ * (`sku_sustituto`, `fuente_dimensiones`, `dimensiones_validadas`) se enriquecen desde la
+ * tabla `Producto` (ver producto.repository.js). La escritura de dimensiones vive en el
+ * módulo `producto` (domain/producto + application/producto), no acá.
  */
 
 const Joi             = require('joi');
@@ -52,8 +54,13 @@ async function obtenerProducto(req, res, next) {
     const producto = await catiClient.obtenerProducto(sku);
     if (!producto) throw errorNotFound(sku);
 
-    const skuSustituto = await productoRepo.buscarSkuSustituto(sku);
-    res.json({ ...producto, sku_sustituto: skuSustituto });
+    const local = await productoRepo.buscarPorSku(sku);
+    res.json({
+      ...producto,
+      sku_sustituto:          local?.sku_sustituto ?? null,
+      fuente_dimensiones:     local?.fuente_dimensiones ?? null,
+      dimensiones_validadas:  local?.dimensiones_validadas ?? false,
+    });
   } catch (err) {
     next(err);
   }

@@ -27,7 +27,9 @@ Retorna el detalle completo de un producto desde CATI: dimensiones físicas, ima
 
 1. Proxy a `CATI GET /api/Product/{sku}?profile=CEMACO`.
 2. La imagen principal se selecciona con `destinoImagen = 'PRINCIPAL'`, o el primer asset si no hay principal.
-3. El `sku_sustituto` se retorna desde la tabla local `Producto` si existe, no desde CATI.
+3. El `sku_sustituto`, `fuente_dimensiones` y `dimensiones_validadas` se retornan desde la tabla
+   local `Producto` si existe, no desde CATI. Si el SKU todavía no existe en la tabla local,
+   `sku_sustituto` y `fuente_dimensiones` vienen `null` y `dimensiones_validadas` viene `false`.
 4. Si el SKU no existe en CATI, retorna `404`.
 
 ---
@@ -47,7 +49,9 @@ Retorna el detalle completo de un producto desde CATI: dimensiones físicas, ima
   "profundidad_cm": 9.0,
   "imagen_url": "https://vtex.cemaco.com/productos/10012345_XL.jpg",
   "precio": 85.00,
-  "sku_sustituto": "10098765"
+  "sku_sustituto": "10098765",
+  "fuente_dimensiones": "CATI",
+  "dimensiones_validadas": false
 }
 ```
 
@@ -69,7 +73,12 @@ Retorna el detalle completo de un producto desde CATI: dimensiones físicas, ima
 > `CatiProductoMapper.toProductoDetalle(catiProduct)` transforma el modelo CATI (con `erpInformation`, `assets`, `internalAttributes`) al modelo interno simplificado.
 
 > **[HEXAGONAL]**  
-> `ObtenerProductoUseCase(sku)` → `ICatalogoService.obtenerProducto(sku)` → CATI. El `sku_sustituto` se enriquece desde `IProductoLocalRepository.findSustituto(sku)` — fuente de verdad local.
+> `ObtenerProductoUseCase(sku)` → `ICatalogoService.obtenerProducto(sku)` → CATI. `sku_sustituto`,
+> `fuente_dimensiones` y `dimensiones_validadas` se enriquecen desde `productoRepo.buscarPorSku(sku)`
+> — fuente de verdad local. La escritura de `fuente_dimensiones`/`dimensiones_validadas` vive en un
+> módulo de dominio separado (`domain/producto/`, ver
+> `PATCH_productos_actualizar_dimensiones.md` y `PATCH_productos_validar_dimensiones.md`) — este
+> endpoint solo lee.
 
 > **[SOLID — SRP]**  
 > La selección de la imagen principal (`destinoImagen = 'PRINCIPAL'`) es responsabilidad del mapper, no del caso de uso.
