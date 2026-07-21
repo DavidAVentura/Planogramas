@@ -10,11 +10,11 @@
   font-size: 14px;
   color: #fff;
   background: var(--ink-800);
-
-  &--success { background: var(--cemaco-green-700); }
-  &--error { background: var(--danger); }
-  &--info { background: var(--cemaco-indigo); }
 }
+
+.toast--success { background: var(--cemaco-green-700); }
+.toast--error { background: var(--danger); }
+.toast--info { background: var(--cemaco-indigo); }
 
 .toast__cerrar {
   margin-left: auto;

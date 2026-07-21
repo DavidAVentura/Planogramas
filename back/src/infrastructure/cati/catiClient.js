@@ -14,11 +14,12 @@ const CACHE_TTL_MS        = 30 * 60 * 1000;
 const CACHE_TTL_BUSQUEDA_MS = 5 * 60 * 1000;
 const cache        = new Map(); // clave → { valor, expiraEn }
 
-function errorServicioNoDisponible(mensaje, causa) {
+function errorServicioNoDisponible(mensaje, { causa, catiStatus } = {}) {
   const err = new Error(mensaje);
   err.status = 503;
   err.code   = 'SERVICE_UNAVAILABLE';
   if (causa) err.details = causa.message;
+  if (catiStatus !== undefined) err.catiStatus = catiStatus;
   return err;
 }
 
@@ -63,14 +64,16 @@ async function get(path, params = {}, { timeoutMs } = {}) {
       signal: controller?.signal,
     });
   } catch (err) {
-    throw errorServicioNoDisponible('No se pudo conectar con CATI', err);
+    throw errorServicioNoDisponible('No se pudo conectar con CATI', { causa: err });
   } finally {
     if (timeout) clearTimeout(timeout);
   }
 
   if (response.status === 404) return null;
   if (!response.ok) {
-    throw errorServicioNoDisponible(`CATI respondió con status ${response.status} en ${path}`);
+    throw errorServicioNoDisponible(`CATI respondió con status ${response.status} en ${path}`, {
+      catiStatus: response.status,
+    });
   }
 
   return response.json();
@@ -209,12 +212,22 @@ async function buscarProductos({ q, subcategoria, page, pageSize }) {
 
 /**
  * Obtiene el detalle de un producto (proxy a CATI GET /Product/{sku}). Retorna `null` si
- * el SKU no existe en CATI — ver regla 4 de GET_productos_detalle.md.
+ * el SKU no existe en CATI — ver regla 4 de GET_productos_detalle.md. CATI responde 404 para
+ * un SKU bien formado que no existe, pero 400 para un SKU que no puede interpretar (formato
+ * inesperado) — ambos casos se tratan igual acá: no hay producto que devolver. Cualquier otro
+ * error (503, timeout, etc.) sí se relanza, porque ahí no sabemos si el producto existe o no.
  * @param {string} sku
+ * @param {{ timeoutMs?: number }} [opciones]
  * @returns {Promise<object|null>}
  */
-async function obtenerProducto(sku) {
-  const raw = await get(`/Product/${encodeURIComponent(sku)}`, { profile: 'CEMACO' });
+async function obtenerProducto(sku, { timeoutMs = 5000 } = {}) {
+  let raw;
+  try {
+    raw = await get(`/Product/${encodeURIComponent(sku)}`, { profile: 'CEMACO' }, { timeoutMs });
+  } catch (err) {
+    if (err.catiStatus === 400) return null;
+    throw err;
+  }
   return raw ? mapProductoDetalle(raw) : null;
 }
 

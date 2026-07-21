@@ -12,3 +12,8 @@
   border-radius: var(--radius-md);
   padding: 24px;
 }
+
+.editor-planograma__acciones {
+  display: flex;
+  justify-content: flex-end;
+}

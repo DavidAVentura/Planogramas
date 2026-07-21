@@ -1,0 +1,35 @@
+.facing-tile {
+  position: relative;
+  min-width: 44px;
+  height: 44px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--ink-50);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 4px;
+}
+
+.facing-tile__sku {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--fg-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.facing-tile__apilable {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: var(--cemaco-indigo);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 3px 4px;
+  border-radius: var(--radius-pill);
+}

@@ -129,13 +129,6 @@ async function buscarPorIdConAccesorios(id) {
   return { ...posicion, accesorios: accesorios.map(mapAccesorioEmbebido) };
 }
 
-// ─── productoExiste ──────────────────────────────────────────────────────────
-
-async function productoExiste(sku) {
-  const row = await db(TABLA_PRODUCTO).where('sku', sku).select('sku').first();
-  return Boolean(row);
-}
-
 // ─── crear ───────────────────────────────────────────────────────────────────
 
 async function crear(datos) {
@@ -332,7 +325,6 @@ module.exports = {
   listarPorNivel,
   buscarPorId,
   buscarPorIdConAccesorios,
-  productoExiste,
   crear,
   actualizar,
   mover,

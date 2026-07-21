@@ -88,7 +88,13 @@
       "key": "skuInexistente",
       "value": "SKU-NO-EXISTE-999999",
       "type": "string",
-      "description": "SKU que no existe en la tabla Producto"
+      "description": "SKU que no existe ni en la tabla Producto ni en CATI. Desde que POST /niveles/:id/posiciones intenta resolver un SKU ausente contra CATI antes de fallar (ver producto.repository.js asegurarExistencia), este valor debe ser un SKU que CATI tampoco reconozca (hoy responde 400/404 para este formato claramente sintético) para que el escenario siga devolviendo 400 VALIDATION_ERROR."
+    },
+    {
+      "key": "skuRealEnCatiNoLocal",
+      "value": "1109135",
+      "type": "string",
+      "description": "SKU real de CATI (Licuadora Ninja Professional Plus) usado para probar la auto-alta: POST /niveles/:id/posiciones, al no encontrar el SKU en la tabla local Producto, lo busca en CATI y si existe lo inserta localmente antes de crear la posición (ver producto.repository.js asegurarExistencia). Es idempotente entre corridas: la primera vez inserta el Producto vía CATI, las siguientes lo encuentra ya local y solo crea la posición -- el contrato HTTP observado (201, mismo sku) es igual en ambos casos, no hay endpoint para borrar el Producto entre corridas. Si CATI llegara a dar de baja este SKU, reemplazar por otro SKU real vigente."
     },
     {
       "key": "posicionIdInexistente",
@@ -8393,6 +8399,57 @@
                       "pm.test('Status 201', () => pm.response.to.have.status(201));",
                       "pm.test('Responde con advertencia de desborde', () => {",
                       "  pm.expect(pm.response.json().advertencia).to.be.a('string');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear posicion con SKU no sembrado localmente pero real en CATI (nutre el catalogo)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdPosicionesDestino}}/posiciones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdPosicionesDestino}}",
+                    "posiciones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sku\": \"{{skuRealEnCatiNoLocal}}\",\n  \"orden_horizontal\": 4,\n  \"ancho_asignado_cm\": 25,\n  \"facings_horizontal\": 1,\n  \"cantidad_apilable\": 1,\n  \"unidades_por_facing\": 1,\n  \"capacidad_maxima\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.test('Posicion creada con el SKU resuelto desde CATI', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.sku).to.eql(pm.collectionVariables.get('skuRealEnCatiNoLocal'));",
+                      "  pm.expect(body.nivelId).to.eql(Number(pm.collectionVariables.get('nivelIdPosicionesDestino')));",
                       "});"
                     ]
                   }

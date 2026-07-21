@@ -14,10 +14,10 @@
   font-weight: 600;
   color: var(--fg-2);
   cursor: pointer;
+}
 
-  &--activa {
-    background: #fff;
-    color: var(--cemaco-indigo);
-    box-shadow: var(--shadow-xs);
-  }
+.role-switch__opcion--activa {
+  background: #fff;
+  color: var(--cemaco-indigo);
+  box-shadow: var(--shadow-xs);
 }

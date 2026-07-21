@@ -1,0 +1,29 @@
+.posiciones-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+}
+
+.posiciones-panel__header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  .capacity-bar {
+    flex: 1;
+  }
+}
+
+.posiciones-panel__vacio {
+  text-align: center;
+  font-size: 13px;
+  color: var(--fg-3);
+  padding: 8px 0;
+}
+
+.posiciones-panel__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

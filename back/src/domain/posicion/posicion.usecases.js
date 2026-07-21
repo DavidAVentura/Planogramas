@@ -123,14 +123,16 @@ async function buscarPorSku(posicionRepo, versionRepo, sku, versionId) {
 /**
  * Agrega una posición nueva a un nivel. Verifica espacio disponible pero no bloquea
  * — retorna una advertencia no bloqueante si el nivel queda en desborde (CU-04-01).
+ * El SKU se garantiza contra el catálogo local, nutriéndolo desde CATI si hace falta
+ * (ver productoRepo.asegurarExistencia).
  */
-async function agregarPosicion(posicionRepo, nivelRepo, gondolaRepo, versionRepo, nivelId, datos) {
+async function agregarPosicion(posicionRepo, nivelRepo, gondolaRepo, versionRepo, productoRepo, nivelId, datos) {
   const { nivel, version } = await versionDelNivel(nivelRepo, gondolaRepo, versionRepo, nivelId);
   validarVersionEditable(version.estado);
 
-  const productoExiste = await posicionRepo.productoExiste(datos.sku);
+  const productoExiste = await productoRepo.asegurarExistencia(datos.sku);
   if (!productoExiste) {
-    throw errorBadRequest(`El SKU '${datos.sku}' no existe en el catálogo local`);
+    throw errorBadRequest(`El SKU '${datos.sku}' no existe en el catálogo local ni en CATI`);
   }
 
   const anchoOcupado = await nivelRepo.anchoOcupadoCm(nivelId);
@@ -152,8 +154,8 @@ async function agregarPosicion(posicionRepo, nivelRepo, gondolaRepo, versionRepo
     min_estetico:        datos.min_estetico ?? null,
     min_final:           datos.min_final ?? null,
     max_final:           datos.max_final ?? null,
-    perfil_redondeo:     datos.perfil_redondeo ?? 'NORMAL',
-    modo:                datos.modo ?? 'NORMAL',
+    perfil_redondeo:     datos.perfil_redondeo ?? 'MRP',
+    modo:                datos.modo ?? 'PLANOGRAMA',
     decision:            datos.decision ?? 'ACTIVO',
   });
 

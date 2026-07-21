@@ -23,10 +23,12 @@ erDiagram
         int         id              PK
         int         planograma_id   FK
         varchar     tipo                "GRANDE | MEDIANA | EXPRESS"
-        varchar     codigo              "ej. AUTOS 01-TG, AUTOS 01-TG-T010"
+        varchar     codigo              "ej. AUTOS 01-TG, AUTOS 01-TG-T010 — varchar(250), ver migración 004"
         int         version_base_id FK  "null si es base; FK self si es especial por tienda"
         varchar     estado              "borrador | en_desarrollo | piloto | publicado | archivado"
         text        notas
+        datetime    created_at          "agregado en migración 002"
+        datetime    updated_at          "agregado en migración 002"
     }
     %% solo una versión por planograma+tipo puede estar en 'publicado' simultáneamente
     %% índice único filtrado: CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='publicado'
@@ -58,22 +60,22 @@ erDiagram
         int         id                  PK
         int         nivel_id            FK
         int         orden_horizontal
-        varchar     sku                 FK
-        decimal     ancho_asignado_cm       "sincronizado con facings_horizontal"
-        int         facings_horizontal      "sincronizado con ancho_asignado_cm"
+        varchar     sku                 FK  "FK real a Producto.sku — constraint a nivel de BD, no solo de app"
+        decimal     ancho_asignado_cm       "ingresado por el analista; el backend NO lo sincroniza con facings_horizontal"
+        int         facings_horizontal      "ingresado por el analista; ver nota de ancho_asignado_cm"
         int         cantidad_apilable       "unidades apiladas verticalmente en la misma posición"
         int         unidades_por_facing     "profundidad accesorio / profundidad producto"
-        int         capacidad_maxima        "calculado: facings_h x cantidad_apilable x unidades_por_facing"
-        int         min_estetico            "calculado: si unid_x_facing>=4 => facings*3+1, sino => cap*facings"
-        int         min_final               "ajustable manualmente"
+        int         capacidad_maxima        "ingresado por el analista — requerido al crear; el backend NO lo calcula (responsabilidad del front, ver POST_posiciones_agregar.md)"
+        int         min_estetico            "ingresado por el analista (opcional) — el backend NO aplica ninguna fórmula; la fórmula facings*3+1 / cap*facings es diseño no implementado"
+        int         min_final              "ajustable manualmente; min_final <= max_final validado por la API si ambos vienen juntos"
         int         max_final               "ajustable manualmente"
-        varchar     perfil_redondeo         "MRP | ZSRE"
-        varchar     modo                    "PLANOGRAMA | CROSS"
+        varchar     perfil_redondeo         "MRP (no se rompe empaque) | ZSRE (se puede romper) — ver posicion.entity.js (default MRP). Ojo: hasta 2026-07-20 posicion.entity.js tenía valores equivocados (NORMAL/REDONDEAR_ARRIBA/REDONDEAR_ABAJO) que ni siquiera entraban en la columna varchar(10) — causaba un 500 al crear una posición; corregido"
+        varchar     modo                    "PLANOGRAMA | CROSS — ver posicion.entity.js (default PLANOGRAMA, coincide con el default de la columna en BD)"
         bit         cross_externo           "true = accesorio colgante fuera de la góndola"
         bit         montar_en_display       "true = producto trae display propio (ej. Kinder)"
-        bit         desborda_gondola        "true = producto cruza límite al módulo siguiente"
+        bit         desborda_gondola        "true = producto cruza límite al módulo siguiente; si true, nota_desborde es obligatoria (validado por la API)"
         varchar     nota_desborde           "ej. 'continúa en góndola 2, nivel 3'"
-        varchar     decision                "ACTIVO | INACTIVO"
+        varchar     decision                "ACTIVO | INACTIVO — ver posicion.entity.js (default ACTIVO, coincide con el default de la columna en BD)"
         text        observaciones
     }
 
@@ -98,13 +100,18 @@ erDiagram
 
     %% ─── CATÁLOGOS ─────────────────────────────────────────────────
 
+    %% Fuente de verdad LOCAL que valida el backend al crear una Posicion (FK real a nivel de BD,
+    %% ver Posicion.sku arriba) — todavía NO existe un pipeline automático que la sincronice desde
+    %% Stibo/VTEX/CATI (planeado, ver REUNION_TECNICA.md); hoy se puebla manualmente. Es una tabla
+    %% DISTINTA del catálogo de solo-lectura que expone `GET /catalog/productos/*` (proxy en vivo a
+    %% CATI, ver catalogo.controller.js) — CATI puede conocer un SKU real que todavía no exista acá.
     Producto {
         varchar     sku                     PK
         varchar     nombre
         varchar     marca
         varchar     categoria_nivel1
         varchar     categoria_nivel2
-        varchar     categoria_nivel3
+        varchar     categoria_nivel3        "columna existe en BD; no se expone hoy en GET /catalog/productos/*"
         varchar     subcategoria
         decimal     ancho_cm
         decimal     alto_cm
@@ -116,7 +123,7 @@ erDiagram
         varchar     imagen_url
         int         unidades_por_empaque
         varchar     estado
-        varchar     sku_sustituto           FK  "FK self — sustituto recomendado en catálogo"
+        varchar     sku_sustituto           FK  "FK self — sustituto recomendado en catálogo; expuesto como sku_sustituto en GET /catalog/productos/{sku}"
     }
 
     Accesorio {
@@ -134,6 +141,8 @@ erDiagram
         varchar     codigo      "T0PC, T007, T010..."
         varchar     nombre
         varchar     tipo        "GRANDE | MEDIANA | EXPRESS"
+        varchar     estado      "activo | inactivo — agregado en migración 003, default 'activo'"
+        varchar     region      "agregado en migración 003, nullable"
     }
 
     VersionTienda {
@@ -142,6 +151,11 @@ erDiagram
     }
 
     %% ─── FLUJO CAPTURA (MVP foto → planograma) ─────────────────────
+    %% PLANEADO — NO IMPLEMENTADO. Verificado contra la BD real (2026-07-20): estas 3 tablas NO
+    %% existen todavía. La migración 001 las excluyó a propósito ("se crearán en una migración
+    %% separada cuando inicie esa fase") y no hay ninguna migración posterior (002-004) que las
+    %% cree. Quedan documentadas aquí como diseño objetivo del módulo 12 (fuera del MVP actual,
+    %% ver CLAUDE.md/ENDPOINTS.md), no como esquema existente.
 
     SesionCaptura {
         int         id                          PK
@@ -196,11 +210,12 @@ erDiagram
     Nivel                }o--o| Accesorio             : "accesorio principal del nivel"
 
     Posicion             ||--o{ PosicionAccesorio     : "usa accesorios"
-    Posicion             }o--|| Producto              : "asigna SKU"
+    Posicion             }o--|| Producto              : "asigna SKU (FK real en BD, no solo validación de app)"
     PosicionAccesorio    }o--|| Accesorio             : "referencia accesorio"
 
     Producto             }o--o| Producto              : "sku_sustituto (self)"
 
+    %% Relaciones del flujo de captura — PLANEADAS, no existen en la BD real (ver nota arriba)
     SesionCaptura        }o--|| PlanogramaVersion     : "sobre versión"
     SesionCaptura        }o--o| Gondola               : "góndola específica (auditoría)"
     SesionCaptura        ||--o{ FotoCaptura           : "tiene fotos"

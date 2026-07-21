@@ -11,6 +11,7 @@ const posicionRepo = require('../../infrastructure/repositories/posicion.reposit
 const nivelRepo    = require('../../infrastructure/repositories/nivel.repository');
 const gondolaRepo  = require('../../infrastructure/repositories/gondola.repository');
 const versionRepo  = require('../../infrastructure/repositories/version.repository');
+const productoRepo = require('../../infrastructure/repositories/producto.repository');
 
 // ─── Esquemas de validación ───────────────────────────────────────────────────
 
@@ -106,7 +107,9 @@ async function agregar(req, res, next) {
   try {
     const nivelId  = parsearId(req.params.id);
     const datos    = validarBody(schemaCrear, req.body);
-    const posicion = await usecases.agregarPosicion(posicionRepo, nivelRepo, gondolaRepo, versionRepo, nivelId, datos);
+    const posicion = await usecases.agregarPosicion(
+      posicionRepo, nivelRepo, gondolaRepo, versionRepo, productoRepo, nivelId, datos,
+    );
     res.status(201).json(posicion);
   } catch (err) {
     next(err);

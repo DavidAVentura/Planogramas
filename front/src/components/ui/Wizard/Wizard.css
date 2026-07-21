@@ -22,8 +22,8 @@
   height: 4px;
   border-radius: var(--radius-pill);
   background: var(--ink-200);
+}
 
-  &--activo {
-    background: var(--cemaco-indigo);
-  }
+.wizard__punto--activo {
+  background: var(--cemaco-indigo);
 }

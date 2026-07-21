@@ -7,14 +7,14 @@
 /** Estados de PlanogramaVersion en los que se admite editar sus posiciones. */
 const ESTADOS_VERSION_EDITABLE = Object.freeze(['borrador', 'en_desarrollo', 'piloto']);
 
-/** Valores permitidos de perfil_redondeo (ver POST_posiciones_agregar.md / PATCH_posiciones_editar.md). */
-const PERFILES_REDONDEO = Object.freeze(['NORMAL', 'REDONDEAR_ARRIBA', 'REDONDEAR_ABAJO']);
+/** Valores permitidos de perfil_redondeo: MRP (no se rompe empaque) | ZSRE (se puede romper). */
+const PERFILES_REDONDEO = Object.freeze(['MRP', 'ZSRE']);
 
 /** Valores permitidos de modo. */
-const MODOS = Object.freeze(['NORMAL', 'CROSS', 'DISPLAY']);
+const MODOS = Object.freeze(['PLANOGRAMA', 'CROSS']);
 
 /** Valores permitidos de decision. */
-const DECISIONES = Object.freeze(['ACTIVO', 'BAJA', 'NUEVO']);
+const DECISIONES = Object.freeze(['ACTIVO', 'INACTIVO']);
 
 function errorBadRequest(mensaje) {
   const err = new Error(mensaje);

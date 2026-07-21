@@ -35,9 +35,9 @@ Agrega una posición (producto con SKU) a un nivel del planograma. Valida el esp
 | `min_estetico` | `integer` | No | Mínimo estético. |
 | `min_final` | `integer` | No | Mínimo de reorden. Debe ser ≤ `max_final`. |
 | `max_final` | `integer` | No | Máximo de reorden. Debe ser ≥ `min_final`. |
-| `perfil_redondeo` | `string` | No | `NORMAL`, `REDONDEAR_ARRIBA`, `REDONDEAR_ABAJO`. Default: `NORMAL`. |
-| `modo` | `string` | No | `NORMAL`, `CROSS`, `DISPLAY`. Default: `NORMAL`. |
-| `decision` | `string` | No | `ACTIVO`, `BAJA`, `NUEVO`. Default: `ACTIVO`. |
+| `perfil_redondeo` | `string` | No | `MRP` (no se rompe empaque), `ZSRE` (se puede romper). Default: `MRP`. |
+| `modo` | `string` | No | `PLANOGRAMA`, `CROSS`. Default: `PLANOGRAMA`. |
+| `decision` | `string` | No | `ACTIVO`, `INACTIVO`. Default: `ACTIVO`. |
 
 ---
 
@@ -64,8 +64,8 @@ Agrega una posición (producto con SKU) a un nivel del planograma. Valida el esp
   "min_estetico": 4,
   "min_final": 3,
   "max_final": 12,
-  "perfil_redondeo": "NORMAL",
-  "modo": "NORMAL",
+  "perfil_redondeo": "MRP",
+  "modo": "PLANOGRAMA",
   "decision": "ACTIVO"
 }
 ```
@@ -87,8 +87,8 @@ Agrega una posición (producto con SKU) a un nivel del planograma. Valida el esp
   "capacidad_maxima": 12,
   "min_final": 3,
   "max_final": 12,
-  "perfil_redondeo": "NORMAL",
-  "modo": "NORMAL",
+  "perfil_redondeo": "MRP",
+  "modo": "PLANOGRAMA",
   "decision": "ACTIVO"
 }
 ```

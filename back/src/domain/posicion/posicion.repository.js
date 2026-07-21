@@ -30,13 +30,6 @@ module.exports = {
   buscarPorIdConAccesorios: async (_id) => { throw new Error('No implementado'); },
 
   /**
-   * Verifica si un SKU existe en la tabla Producto (caché local del catálogo).
-   * @param {string} sku
-   * @returns {Promise<boolean>}
-   */
-  productoExiste: async (_sku) => { throw new Error('No implementado'); },
-
-  /**
    * Crea una posición nueva.
    * @param {object} datos
    * @returns {Promise<number>} id de la posición creada

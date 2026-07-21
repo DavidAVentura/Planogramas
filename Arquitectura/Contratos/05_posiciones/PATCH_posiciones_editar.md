@@ -33,13 +33,13 @@ Modifica atributos de una posición existente: facings, capacidad, mínimos, má
 | `min_estetico` | `integer \| null` | Mínimo estético. |
 | `min_final` | `integer \| null` | Mínimo de reorden. |
 | `max_final` | `integer \| null` | Máximo de reorden. |
-| `perfil_redondeo` | `string` | `NORMAL`, `REDONDEAR_ARRIBA`, `REDONDEAR_ABAJO`. |
-| `modo` | `string` | `NORMAL`, `CROSS`, `DISPLAY`. |
+| `perfil_redondeo` | `string` | `MRP` (no se rompe empaque), `ZSRE` (se puede romper). |
+| `modo` | `string` | `PLANOGRAMA`, `CROSS`. |
 | `cross_externo` | `boolean` | Posición cross merchandising desde otra categoría. |
 | `montar_en_display` | `boolean` | Requiere montaje en display. |
 | `desborda_gondola` | `boolean` | Producto físicamente cruza límite de góndola. |
 | `nota_desborde` | `string \| null` | Descripción de hacia dónde desborda. |
-| `decision` | `string` | `ACTIVO`, `BAJA`, `NUEVO`. |
+| `decision` | `string` | `ACTIVO`, `INACTIVO`. |
 | `observaciones` | `string \| null` | Notas libres del Analista. Máximo 500 chars. |
 
 ---
@@ -75,8 +75,8 @@ Modifica atributos de una posición existente: facings, capacidad, mínimos, má
   "capacidad_maxima": 12,
   "min_final": 3,
   "max_final": 12,
-  "perfil_redondeo": "NORMAL",
-  "modo": "NORMAL",
+  "perfil_redondeo": "MRP",
+  "modo": "PLANOGRAMA",
   "cross_externo": false,
   "montar_en_display": false,
   "desborda_gondola": true,
