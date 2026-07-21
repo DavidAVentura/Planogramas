@@ -30,7 +30,13 @@ Retorna el detalle completo de un producto desde CATI: dimensiones físicas, ima
 3. El `sku_sustituto`, `fuente_dimensiones` y `dimensiones_validadas` se retornan desde la tabla
    local `Producto` si existe, no desde CATI. Si el SKU todavía no existe en la tabla local,
    `sku_sustituto` y `fuente_dimensiones` vienen `null` y `dimensiones_validadas` viene `false`.
-4. Si el SKU no existe en CATI, retorna `404`.
+4. `ancho_cm`, `alto_cm` y `profundidad_cm` se toman de la tabla local `Producto` cuando esa fila
+   ya tiene un valor cargado (típicamente porque `fuente_dimensiones='MANUAL'`, o porque
+   `crearDesdeCati` ya la sembró) — las de CATI son solo el valor por defecto si la fila local
+   todavía no tiene esa medida. Esto evita que una corrección manual "desaparezca" la próxima
+   vez que se pide el detalle: sin esta regla, este mismo endpoint devolvía siempre la medida de
+   CATI y el frontend mostraba `0` al reabrir el panel de edición después de guardar a mano.
+5. Si el SKU no existe en CATI, retorna `404`.
 
 ---
 
@@ -74,11 +80,11 @@ Retorna el detalle completo de un producto desde CATI: dimensiones físicas, ima
 
 > **[HEXAGONAL]**  
 > `ObtenerProductoUseCase(sku)` → `ICatalogoService.obtenerProducto(sku)` → CATI. `sku_sustituto`,
-> `fuente_dimensiones` y `dimensiones_validadas` se enriquecen desde `productoRepo.buscarPorSku(sku)`
-> — fuente de verdad local. La escritura de `fuente_dimensiones`/`dimensiones_validadas` vive en un
-> módulo de dominio separado (`domain/producto/`, ver
-> `PATCH_productos_actualizar_dimensiones.md` y `PATCH_productos_validar_dimensiones.md`) — este
-> endpoint solo lee.
+> `fuente_dimensiones`, `dimensiones_validadas` y — con precedencia sobre CATI — `ancho_cm`/
+> `alto_cm`/`profundidad_cm` se enriquecen desde `productoRepo.buscarPorSku(sku)` — fuente de
+> verdad local. La escritura de `fuente_dimensiones`/`dimensiones_validadas` vive en un módulo de
+> dominio separado (`domain/producto/`, ver `PATCH_productos_actualizar_dimensiones.md` y
+> `PATCH_productos_validar_dimensiones.md`) — este endpoint solo lee.
 
 > **[SOLID — SRP]**  
 > La selección de la imagen principal (`destinoImagen = 'PRINCIPAL'`) es responsabilidad del mapper, no del caso de uso.

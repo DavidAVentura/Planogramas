@@ -111,12 +111,16 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
     setNotaDesborde(posicion.nota_desborde ?? '');
   }, [posicion]);
 
+  // Se hidrata solo cuando cambia el SKU (producto distinto), no en cada refetch del mismo
+  // producto (ej. después de "Actualizar medidas"/"Validar dimensiones") — así lo que el
+  // analista acaba de guardar o está escribiendo no se pisa con la respuesta del servidor.
   useEffect(() => {
     if (!producto) return;
-    setDimAnchoCm(producto.ancho_cm != null ? String(producto.ancho_cm) : '');
-    setDimAltoCm(producto.alto_cm != null ? String(producto.alto_cm) : '');
-    setDimProfundidadCm(producto.profundidad_cm != null ? String(producto.profundidad_cm) : '');
-  }, [producto]);
+    setDimAnchoCm(producto.ancho_cm != null ? String(producto.ancho_cm) : '0');
+    setDimAltoCm(producto.alto_cm != null ? String(producto.alto_cm) : '0');
+    setDimProfundidadCm(producto.profundidad_cm != null ? String(producto.profundidad_cm) : '0');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [producto?.sku]);
 
   const facingsNum = Number(facings) || 0;
   const cantidadApilableNum = Number(cantidadApilable) || 0;

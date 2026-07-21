@@ -57,6 +57,13 @@ async function obtenerProducto(req, res, next) {
     const local = await productoRepo.buscarPorSku(sku);
     res.json({
       ...producto,
+      // Las dimensiones locales (tabla Producto) mandan sobre las de CATI en cuanto existen —
+      // es la razón de ser de esta tabla: CATI puede traer una medida incorrecta que el
+      // analista corrigió a mano (fuente_dimensiones='MANUAL'), y esa corrección no debe
+      // desaparecer la próxima vez que se pida el detalle del producto.
+      ancho_cm:               local?.ancho_cm ?? producto.ancho_cm,
+      alto_cm:                local?.alto_cm ?? producto.alto_cm,
+      profundidad_cm:         local?.profundidad_cm ?? producto.profundidad_cm,
       sku_sustituto:          local?.sku_sustituto ?? null,
       fuente_dimensiones:     local?.fuente_dimensiones ?? null,
       dimensiones_validadas:  local?.dimensiones_validadas ?? false,
