@@ -134,6 +134,7 @@ no `catalogo`).
 | `GET` | `/catalog/productos/{sku}` | Analista | CU-04-02 | Retorna el detalle de un producto: dimensiones, imagen, precio, jerarquía, SKU sustituto sugerido, fuente de dimensiones y si están validadas. |
 | `PATCH` | `/catalog/productos/{sku}/dimensiones` | Analista | CU-04-12 | Actualiza `ancho_cm`/`alto_cm`/`profundidad_cm` del producto local; marca `fuente_dimensiones='MANUAL'` y `dimensiones_validadas=true`. |
 | `PATCH` | `/catalog/productos/{sku}/dimensiones/validar` | Analista | CU-04-13 | Marca `dimensiones_validadas=true` sin modificar las medidas; requiere que las tres sean mayores a 0 (`422` si no). |
+| `GET` | `/catalog/productos/{sku}/stock` | Analista | CU-04-14 | Retorna el stock SAP del producto por centro (proxy a CATI, sin filtrar ni cachear). Arreglo vacío si no tiene inventario registrado. |
 
 ---
 

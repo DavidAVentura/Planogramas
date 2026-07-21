@@ -23,3 +23,13 @@ export interface DimensionesProducto {
   alto_cm: number;
   profundidad_cm: number;
 }
+
+export interface InventarioSap {
+  sku: string | null;
+  centroId: string | null;
+  centro: string | null;
+  stock: string | null;
+  stockDaniado: string | null;
+  stockBloqueado: string | null;
+  stockAlterno: string | null;
+}

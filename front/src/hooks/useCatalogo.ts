@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { catalogoService } from '../services/catalogo.service';
 import { useToast } from '../context/ToastContext';
 import { mensajeDeError } from '../utils/errors';
-import type { DimensionesProducto, ProductoCatalogo, ProductoDetalle } from '../types/catalogo';
+import type { DimensionesProducto, InventarioSap, ProductoCatalogo, ProductoDetalle } from '../types/catalogo';
 
 // El catálogo CATI es un proxy externo que puede no estar disponible en desarrollo — a
 // diferencia del resto de los hooks del proyecto, estos NO muestran toast en error: la UI que
@@ -62,6 +62,36 @@ export function useProductoCatalogo(sku: string | null) {
   }, [cargar]);
 
   return { producto, cargando, error, recargar: cargar };
+}
+
+export function useStockProducto(sku: string | null) {
+  const [inventario, setInventario] = useState<InventarioSap[]>([]);
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState(false);
+
+  const cargar = useCallback(async () => {
+    if (!sku) {
+      setInventario([]);
+      setError(false);
+      return;
+    }
+    setCargando(true);
+    try {
+      setInventario(await catalogoService.obtenerStock(sku));
+      setError(false);
+    } catch {
+      setError(true);
+      setInventario([]);
+    } finally {
+      setCargando(false);
+    }
+  }, [sku]);
+
+  useEffect(() => {
+    cargar();
+  }, [cargar]);
+
+  return { inventario, cargando, error, recargar: cargar };
 }
 
 // A diferencia de los hooks de lectura de arriba, los siguientes SÍ muestran toast: escriben en

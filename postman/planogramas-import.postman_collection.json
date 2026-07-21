@@ -11007,6 +11007,95 @@
               "response": []
             }
           ]
+        },
+        {
+          "name": "Obtener stock de producto (GET /catalog/productos/:sku/stock)",
+          "item": [
+            {
+              "name": "200 - Obtener stock de un producto existente",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos/{{catalogoSkuExistente}}/stock",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos",
+                    "{{catalogoSkuExistente}}",
+                    "stock"
+                  ]
+                },
+                "description": "Usa el SKU obtenido en el Setup del modulo. Proxy a CATI GET /Stock/sap/{sku} — ver Arquitectura/Contratos/08_catalogo/GET_productos_stock.md."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array de inventarios con la forma esperada', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  if (body.length > 0) {",
+                      "    pm.expect(body[0]).to.have.property('sku');",
+                      "    pm.expect(body[0]).to.have.property('centroId');",
+                      "    pm.expect(body[0]).to.have.property('centro');",
+                      "    pm.expect(body[0]).to.have.property('stock');",
+                      "    pm.expect(body[0]).to.have.property('stockDaniado');",
+                      "    pm.expect(body[0]).to.have.property('stockBloqueado');",
+                      "    pm.expect(body[0]).to.have.property('stockAlterno');",
+                      "  }",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "503 - SKU con formato invalido no reconocido por CATI",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos/{{skuInexistente}}/stock",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos",
+                    "{{skuInexistente}}",
+                    "stock"
+                  ]
+                },
+                "description": "CATI Stock/sap responde 500 para un SKU sintetico que no reconoce (a diferencia de /Product/{sku}, que distingue 400/404) — el cliente lo traduce a 503 SERVICE_UNAVAILABLE. No se encontro un SKU real y valido con cero inventario para probar el caso 200+arreglo-vacio documentado en la regla 4 del contrato (requeriria un fixture manual); queda como limitacion de esta cobertura."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 503', () => pm.response.to.have.status(503));",
+                      "pm.test('Code SERVICE_UNAVAILABLE', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('SERVICE_UNAVAILABLE');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
         }
       ]
     },

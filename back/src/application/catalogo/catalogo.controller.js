@@ -73,4 +73,14 @@ async function obtenerProducto(req, res, next) {
   }
 }
 
-module.exports = { buscarProductos, obtenerProducto };
+async function obtenerStock(req, res, next) {
+  try {
+    const { sku }     = req.params;
+    const inventario  = await catiClient.obtenerStockSap(sku);
+    res.json(inventario);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { buscarProductos, obtenerProducto, obtenerStock };

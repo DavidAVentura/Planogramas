@@ -1,5 +1,5 @@
 import { httpClient } from './httpClient';
-import type { DimensionesProducto, ProductoCatalogo, ProductoDetalle } from '../types/catalogo';
+import type { DimensionesProducto, InventarioSap, ProductoCatalogo, ProductoDetalle } from '../types/catalogo';
 
 export const catalogoService = {
   buscarProductos: (q: string, opts: { subcategoria?: string; page?: number; pageSize?: number } = {}) =>
@@ -7,6 +7,9 @@ export const catalogoService = {
 
   obtenerProducto: (sku: string) =>
     httpClient.get<ProductoDetalle>(`/catalog/productos/${encodeURIComponent(sku)}`),
+
+  obtenerStock: (sku: string) =>
+    httpClient.get<InventarioSap[]>(`/catalog/productos/${encodeURIComponent(sku)}/stock`),
 
   actualizarDimensiones: (sku: string, dimensiones: DimensionesProducto) =>
     httpClient.patch<ProductoDetalle>(`/catalog/productos/${encodeURIComponent(sku)}/dimensiones`, dimensiones),

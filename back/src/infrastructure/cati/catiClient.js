@@ -231,10 +231,41 @@ async function obtenerProducto(sku, { timeoutMs = 5000 } = {}) {
   return raw ? mapProductoDetalle(raw) : null;
 }
 
+// ─── Stock (ver Arquitectura/Contratos/08_catalogo/GET_productos_stock.md) ────
+
+/** Pasa los campos tal cual vienen de CATI — son strings nullable de SAP, no se castean a
+ * número para no romper formatos con separador de miles u otras convenciones de SAP. */
+function mapInventarioSap(raw) {
+  return {
+    sku:            raw.sku ?? null,
+    centroId:       raw.centroId ?? null,
+    centro:         raw.centro ?? null,
+    stock:          raw.stock ?? null,
+    stockDaniado:   raw.stockDaniado ?? null,
+    stockBloqueado: raw.stockBloqueado ?? null,
+    stockAlterno:   raw.stockAlterno ?? null,
+  };
+}
+
+/**
+ * Obtiene el stock SAP de un producto por centro (proxy a CATI GET /Stock/sap/{sku}).
+ * Sin cache — a diferencia de catálogo/jerarquía, el stock cambia constantemente y cachearlo
+ * daría información desactualizada para una decisión de surtido. Retorna `[]` si CATI responde
+ * 404 (sin inventario en SAP para ese SKU) — no es un error, es un estado válido.
+ * @param {string} sku
+ * @param {{ timeoutMs?: number }} [opciones]
+ * @returns {Promise<Array<object>>}
+ */
+async function obtenerStockSap(sku, { timeoutMs = 5000 } = {}) {
+  const items = await get(`/Stock/sap/${encodeURIComponent(sku)}`, { profile: 'CEMACO' }, { timeoutMs });
+  return (items ?? []).map(mapInventarioSap);
+}
+
 module.exports = {
   get,
   obtenerAreas,
   obtenerDepartamentos,
   buscarProductos,
   obtenerProducto,
+  obtenerStockSap,
 };

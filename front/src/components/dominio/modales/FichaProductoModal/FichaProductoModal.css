@@ -41,3 +41,40 @@
   font-family: var(--font-mono);
   color: var(--fg-3);
 }
+
+.ficha-producto-modal__inventarios {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.ficha-producto-modal__inventarios-titulo {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--fg-1);
+}
+
+.ficha-producto-modal__tabla-inventarios {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  color: var(--fg-2);
+}
+
+.ficha-producto-modal__tabla-inventarios th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--fg-3);
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ficha-producto-modal__tabla-inventarios td {
+  padding: 4px 6px;
+  font-family: var(--font-mono);
+  border-bottom: 1px solid var(--border);
+}
