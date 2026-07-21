@@ -20,6 +20,7 @@ function mapTienda(row) {
     nombre: row.nombre,
     tipo:   row.tipo,
     region: row.region,
+    marca:  row.marca,
   };
 }
 
@@ -30,7 +31,7 @@ async function listar({ tipo, estado }) {
   if (tipo) query.where('tipo', tipo);
 
   const rows = await query
-    .select('id', 'codigo', 'nombre', 'tipo', 'region')
+    .select('id', 'codigo', 'nombre', 'tipo', 'region', 'Marca as marca')
     .orderBy('nombre', 'asc');
 
   return rows.map(mapTienda);
@@ -50,7 +51,7 @@ async function listarDisponiblesParaVersionEspecial({ planogramaId, versionBaseI
   if (yaClonadas.length > 0) query.whereNotIn('id', yaClonadas);
 
   const rows = await query
-    .select('id', 'codigo', 'nombre', 'tipo', 'region')
+    .select('id', 'codigo', 'nombre', 'tipo', 'region', 'Marca as marca')
     .orderBy('nombre', 'asc');
 
   return rows.map(mapTienda);

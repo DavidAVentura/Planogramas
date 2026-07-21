@@ -32,7 +32,7 @@ Reemplaza el listado completo de tiendas asignadas a la versión. Hace DELETE de
 ## Reglas de negocio
 
 1. Versión archivada → `422`.
-2. Las tiendas deben ser del mismo `tipo` que la versión.
+2. Una tienda puede asignarse a una versión sin importar su `tipo` (no se valida coincidencia).
 3. IDs inexistentes son ignorados silenciosamente (o retornan advertencia — a decisión de implementación; se recomienda retornar advertencia).
 4. La operación es idempotente: llamar dos veces con los mismos IDs produce el mismo resultado.
 

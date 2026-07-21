@@ -46,7 +46,7 @@ export function TiendasAsignadasModal({ version, onClose, onGuardado }: TiendasA
         seleccionadas={seleccionadas}
         onChange={setSeleccionadas}
         cargando={cargando}
-        vacioHint={`No hay tiendas activas de tipo ${version.tipo}.`}
+        vacioHint="No hay tiendas disponibles."
       />
     </Modal>
   );

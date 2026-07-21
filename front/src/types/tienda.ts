@@ -4,4 +4,5 @@ export interface Tienda {
   nombre: string;
   tipo: string;
   region: string | null;
+  marca: string | null;
 }

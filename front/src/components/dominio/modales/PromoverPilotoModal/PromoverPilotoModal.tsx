@@ -13,7 +13,7 @@ interface PromoverPilotoModalProps {
 }
 
 export function PromoverPilotoModal({ version, onClose, onPromovida }: PromoverPilotoModalProps) {
-  const { tiendas, cargando } = useTiendas({ tipo: version.tipo });
+  const { tiendas, cargando } = useTiendas({});
   const { promover, enviando } = usePromoverAPiloto();
   const [seleccionadas, setSeleccionadas] = useState<number[]>(version.tiendas.map((t) => t.id));
 
@@ -43,7 +43,7 @@ export function PromoverPilotoModal({ version, onClose, onPromovida }: PromoverP
         seleccionadas={seleccionadas}
         onChange={setSeleccionadas}
         cargando={cargando}
-        vacioHint={`No hay tiendas activas de tipo ${version.tipo}.`}
+        vacioHint="No hay tiendas activas."
       />
     </Modal>
   );

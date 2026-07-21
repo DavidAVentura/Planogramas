@@ -26,6 +26,19 @@
   span:nth-child(2) { flex: 1; }
 }
 
+.tiendas-selector__grupo + .tiendas-selector__grupo {
+  margin-top: 8px;
+}
+
+.tiendas-selector__grupo-titulo {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fg-3);
+}
+
 .tiendas-selector__codigo {
   color: var(--fg-3);
   font-size: 12px;

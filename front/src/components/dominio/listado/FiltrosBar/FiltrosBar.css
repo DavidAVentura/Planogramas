@@ -22,11 +22,29 @@
   font-size: 13px;
   color: var(--fg-2);
   font-weight: 600;
+  flex: 1;
+  min-width: 140px;
 }
 
 .filtros-bar__campo--busqueda {
   flex: 1;
   min-width: 200px;
+}
+
+@media (width <= 640px) {
+  .filtros-bar {
+    flex-direction: column;
+    align-items: stretch;
+
+    .cascading-select {
+      min-width: 0;
+    }
+  }
+
+  .filtros-bar__campo,
+  .filtros-bar__campo--busqueda {
+    min-width: 0;
+  }
 }
 
 .filtros-bar__estado {

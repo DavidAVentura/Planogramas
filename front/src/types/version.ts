@@ -5,6 +5,7 @@ export interface TiendaResumen {
   id: number;
   codigo: string;
   nombre: string;
+  marca?: string | null;
 }
 
 /** Fila de `GET /planogramas/{id}/versiones` — la que alimenta la tabla de versiones. */

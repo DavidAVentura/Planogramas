@@ -25,8 +25,8 @@ Retorna las tiendas asignadas y disponibles para una versión, separadas en dos 
 
 ## Reglas de negocio
 
-1. Solo se muestran tiendas del mismo `tipo` que la versión.
-2. Las tiendas disponibles son las del tipo correcto que **no** están asignadas a esta versión.
+1. Las tiendas disponibles son todas las que **no** están asignadas a esta versión — sin filtrar
+   por `tipo` (una versión puede tener tiendas piloto de cualquier tipo/marca).
 
 ---
 
@@ -35,11 +35,11 @@ Retorna las tiendas asignadas y disponibles para una versión, separadas en dos 
 ```json
 {
   "asignadas": [
-    { "id": 1, "codigo": "GTM-PRA", "nombre": "Cemaco Pradera", "tipo": "GRANDE" }
+    { "id": 1, "codigo": "GTM-PRA", "nombre": "Cemaco Pradera", "tipo": "GRANDE", "marca": "Cemaco" }
   ],
   "disponibles": [
-    { "id": 2, "codigo": "GTM-OAK", "nombre": "Cemaco Oakland", "tipo": "GRANDE" },
-    { "id": 4, "codigo": "GTM-MAJ", "nombre": "Cemaco Majadas", "tipo": "GRANDE" }
+    { "id": 2, "codigo": "GTM-OAK", "nombre": "Cemaco Oakland", "tipo": "GRANDE", "marca": "Cemaco" },
+    { "id": 4, "codigo": "GTM-MAJ", "nombre": "Cemaco Majadas", "tipo": "MEDIANA", "marca": "Jugueton" }
   ]
 }
 ```

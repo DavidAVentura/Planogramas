@@ -9,7 +9,10 @@
 
 ## Descripción
 
-Lista las tiendas activas de la cadena con código, nombre y tipo. Usado para asignar tiendas a versiones y para que el Implementador seleccione su tienda al abrir la app.
+Lista las tiendas activas de la cadena con código, nombre, tipo y marca. Usado para asignar tiendas a versiones y para que el Implementador seleccione su tienda al abrir la app.
+
+`marca` distingue el punto de venta (Cemaco, Jugueton, Bebé Jugueton) — un mismo local físico puede
+tener códigos de tienda separados por marca. Puede venir `null` en tiendas sin marca asignada.
 
 ---
 
@@ -44,21 +47,24 @@ Lista las tiendas activas de la cadena con código, nombre y tipo. Usado para as
     "codigo": "GTM-PRA",
     "nombre": "Cemaco Pradera",
     "tipo": "GRANDE",
-    "region": "Guatemala Metropolitana"
+    "region": "Guatemala Metropolitana",
+    "marca": "Cemaco"
   },
   {
     "id": 2,
     "codigo": "GTM-OAK",
     "nombre": "Cemaco Oakland",
     "tipo": "GRANDE",
-    "region": "Guatemala Metropolitana"
+    "region": "Guatemala Metropolitana",
+    "marca": "Cemaco"
   },
   {
     "id": 5,
     "codigo": "GTM-MED",
     "nombre": "Cemaco Mediana Norte",
     "tipo": "MEDIANA",
-    "region": "Guatemala Norte"
+    "region": "Guatemala Norte",
+    "marca": "Jugueton"
   }
 ]
 ```

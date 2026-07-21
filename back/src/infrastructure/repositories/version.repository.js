@@ -411,19 +411,23 @@ async function tiendaTieneVersionEspecialDeBase(versionBaseId, tiendaId) {
 // ─── listarTiendas ───────────────────────────────────────────────────────────
 
 async function listarTiendas(id) {
-  const version = await db(TABLA_VERSION).where('id', id).select('tipo').first();
-
   const asignadas = await db(TABLA_VERSION_TIENDA)
     .join(TABLA_TIENDA, `${TABLA_VERSION_TIENDA}.tienda_id`, `${TABLA_TIENDA}.id`)
     .where(`${TABLA_VERSION_TIENDA}.planograma_version_id`, id)
-    .select(`${TABLA_TIENDA}.id`, `${TABLA_TIENDA}.codigo`, `${TABLA_TIENDA}.nombre`, `${TABLA_TIENDA}.tipo`);
+    .select(
+      `${TABLA_TIENDA}.id`,
+      `${TABLA_TIENDA}.codigo`,
+      `${TABLA_TIENDA}.nombre`,
+      `${TABLA_TIENDA}.tipo`,
+      `${TABLA_TIENDA}.Marca as marca`,
+    );
 
   const asignadasIds = asignadas.map((t) => t.id);
 
-  const disponiblesQuery = db(TABLA_TIENDA).where('tipo', version.tipo);
+  const disponiblesQuery = db(TABLA_TIENDA);
   if (asignadasIds.length > 0) disponiblesQuery.whereNotIn('id', asignadasIds);
 
-  const disponibles = await disponiblesQuery.select('id', 'codigo', 'nombre', 'tipo');
+  const disponibles = await disponiblesQuery.select('id', 'codigo', 'nombre', 'tipo', 'Marca as marca');
 
   return { asignadas, disponibles };
 }
@@ -431,15 +435,12 @@ async function listarTiendas(id) {
 // ─── reemplazarTiendas ───────────────────────────────────────────────────────
 
 async function reemplazarTiendas(id, tiendaIds) {
-  const version = await db(TABLA_VERSION).where('id', id).select('tipo').first();
-
   let tiendasValidas = [];
   let ignorados       = [];
 
   if (tiendaIds.length > 0) {
     tiendasValidas = await db(TABLA_TIENDA)
       .whereIn('id', tiendaIds)
-      .where('tipo', version.tipo)
       .select('id', 'codigo', 'nombre');
 
     const validasIds = tiendasValidas.map((t) => t.id);
