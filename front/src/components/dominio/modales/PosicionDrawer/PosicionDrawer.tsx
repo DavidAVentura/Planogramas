@@ -78,6 +78,10 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
   const [accesorioSeleccionado, setAccesorioSeleccionado] = useState('');
   const [notaAccesorio, setNotaAccesorio] = useState('');
 
+  const [dimAnchoCm, setDimAnchoCm] = useState('');
+  const [dimAltoCm, setDimAltoCm] = useState('');
+  const [dimProfundidadCm, setDimProfundidadCm] = useState('');
+
   useLayoutEffect(() => {
     if (!posicion) return;
     setAnchoCm(String(posicion.ancho_asignado_cm));
@@ -95,6 +99,13 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
     setDesbordaGondola(posicion.desborda_gondola);
     setNotaDesborde(posicion.nota_desborde ?? '');
   }, [posicion]);
+
+  useEffect(() => {
+    if (!producto) return;
+    setDimAnchoCm(producto.ancho_cm != null ? String(producto.ancho_cm) : '');
+    setDimAltoCm(producto.alto_cm != null ? String(producto.alto_cm) : '');
+    setDimProfundidadCm(producto.profundidad_cm != null ? String(producto.profundidad_cm) : '');
+  }, [producto]);
 
   const facingsNum = Number(facings) || 0;
   const cantidadApilableNum = Number(cantidadApilable) || 0;
@@ -123,8 +134,12 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
   async function onGuardar() {
     if (notaDesbordeInvalida || minMaxInvalido) return;
 
+    const dimAnchoNum = Number(dimAnchoCm) || 0;
+    const anchoAsignadoFinal =
+      facingsNum !== 0 && dimAnchoNum !== 0 ? facingsNum * dimAnchoNum : Number(anchoCm);
+
     const resultado = await editar(posicionId, {
-      ancho_asignado_cm: Number(anchoCm),
+      ancho_asignado_cm: anchoAsignadoFinal,
       facings_horizontal: Number(facings),
       cantidad_apilable: Number(cantidadApilable),
       unidades_por_facing: Number(unidadesPorFacing),
@@ -143,9 +158,24 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
     });
 
     if (resultado) {
+      setAnchoCm(String(anchoAsignadoFinal));
       recargar();
       onCambio();
     }
+  }
+
+  function onActualizarMedidas() {
+    const dimAnchoNum = Number(dimAnchoCm) || 0;
+    if (facingsNum === 0 || dimAnchoNum === 0) return;
+    setAnchoCm(String(facingsNum * dimAnchoNum));
+  }
+
+  function onFacingsChange(valor: string) {
+    setFacings(valor);
+    const facingsNuevoNum = Number(valor) || 0;
+    const dimAnchoNum = Number(dimAnchoCm) || 0;
+    if (facingsNuevoNum === 0 || dimAnchoNum === 0) return;
+    setAnchoCm(String(facingsNuevoNum * dimAnchoNum));
   }
 
   async function onAgregarAccesorio() {
@@ -213,6 +243,39 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
             )}
           </div>
         </div>
+
+        <div className="posicion-drawer__fila">
+          <label className="posicion-drawer__campo">
+            <span>Ancho del producto (cm)</span>
+            <input type="number" min="0" step="0.1" value={dimAnchoCm} onChange={(e) => setDimAnchoCm(e.target.value)} />
+          </label>
+          <label className="posicion-drawer__campo">
+            <span>Alto del producto (cm)</span>
+            <input type="number" min="0" step="0.1" value={dimAltoCm} onChange={(e) => setDimAltoCm(e.target.value)} />
+          </label>
+          <label className="posicion-drawer__campo">
+            <span>Profundidad del producto (cm)</span>
+            <input
+              type="number"
+              min="0"
+              step="0.1"
+              value={dimProfundidadCm}
+              onChange={(e) => setDimProfundidadCm(e.target.value)}
+            />
+          </label>
+        </div>
+        <Button
+          variante="outline"
+          type="button"
+          onClick={onActualizarMedidas}
+          disabled={facingsNum === 0 || Number(dimAnchoCm) === 0}
+        >
+          Actualizar medidas
+        </Button>
+        <span className="posicion-drawer__ayuda">
+          Estas medidas no se guardan en el catálogo — actualiza el ancho asignado con facings horizontales × ancho
+          del producto (o se recalcula solo al guardar), salvo que alguna de las dos sea 0.
+        </span>
       </Seccion>
 
       <Seccion titulo="Espacio y facings">
@@ -223,7 +286,7 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
           </label>
           <label className="posicion-drawer__campo">
             <span>Facings horizontales</span>
-            <input type="number" min="1" step="1" value={facings} onChange={(e) => setFacings(e.target.value)} />
+            <input type="number" min="1" step="1" value={facings} onChange={(e) => onFacingsChange(e.target.value)} />
           </label>
         </div>
         <div className="posicion-drawer__fila">
