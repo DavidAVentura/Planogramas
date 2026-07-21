@@ -53,7 +53,9 @@ export function useProductosPorSubcategoria() {
     }
     setCargando(true);
     try {
-      setProductos(await catalogoService.buscarProductos('', { subcategoria: subcategoriaId }));
+      setProductos(
+        await catalogoService.buscarProductos('', { subcategoria: subcategoriaId, page: 1, pageSize: 5 }),
+      );
       setError(false);
     } catch {
       setError(true);

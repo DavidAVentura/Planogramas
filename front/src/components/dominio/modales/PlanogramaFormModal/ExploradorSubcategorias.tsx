@@ -132,6 +132,7 @@ export function ExploradorSubcategorias({ departamentoId, onAgregar }: Explorado
           <span className="explorador-subcategorias__etiqueta">Productos en subcategoría</span>
           <Table<ProductoCatalogo>
             columns={[
+              { key: 'sku', header: 'SKU', render: (p) => p.sku },
               {
                 key: 'nombre',
                 header: 'Nombre',
@@ -142,12 +143,8 @@ export function ExploradorSubcategorias({ departamentoId, onAgregar }: Explorado
                   </span>
                 ),
               },
-              { key: 'sku', header: 'SKU', render: (p) => p.sku },
-              {
-                key: 'precio',
-                header: 'Precio',
-                render: (p) => (p.precio != null ? `Q${p.precio.toFixed(2)}` : '—'),
-              },
+              { key: 'marca', header: 'Marca', render: (p) => p.marca ?? '—' },
+              { key: 'modelo', header: 'Modelo', render: (p) => p.modelo ?? '—' },
             ]}
             rows={productos}
             rowKey={(p) => p.sku}

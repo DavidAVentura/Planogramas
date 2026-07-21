@@ -207,7 +207,7 @@ function seleccionarImagenPrincipal(assets) {
   return (principal ?? assets[0]).azurePath_XL ?? null;
 }
 
-/** Forma usada en resultados de búsqueda — ver GET_productos_buscar.md. */
+/** Forma cruda de CATI GET /Product/{sku} — ver GET_productos_detalle.md. */
 function mapProductoCatalogo(raw) {
   return {
     sku:             raw.id,
@@ -219,6 +219,7 @@ function mapProductoCatalogo(raw) {
     profundidad_cm:  buscarAtributoNumerico(raw.internalAttributes, NOMBRES_PROFUNDIDAD),
     imagen_url:      seleccionarImagenPrincipal(raw.assets),
     precio:          raw.regularPrice ?? null,
+    modelo:          null,
   };
 }
 
@@ -232,8 +233,27 @@ function mapProductoDetalle(raw) {
 }
 
 /**
+ * Forma cruda de CATI GET /Product/search — filas planas, muy distintas al detalle (sin
+ * `erpInformation`/`internalAttributes`/`assets`): no trae precio, dimensiones ni imagen, esos
+ * solo se obtienen pidiendo el detalle de un SKU puntual (ver GET_productos_buscar.md).
+ */
+function mapProductoBusqueda(raw) {
+  return {
+    sku:            raw.sku,
+    nombre:         raw.descripcion,
+    marca:          raw.marca ?? null,
+    subcategoria:   raw.desSubcategoria ?? null,
+    ancho_cm:       null,
+    alto_cm:        null,
+    profundidad_cm: null,
+    imagen_url:     null,
+    precio:         null,
+    modelo:         raw.modelo ?? null,
+  };
+}
+
+/**
  * Busca productos del catálogo (proxy a CATI GET /Product/search, cacheado 5 min).
- * Solo retorna productos activos — ver regla 4 de GET_productos_buscar.md.
  * @param {{ q: string, subcategoria?: string, page: number, pageSize: number }} filtros
  * @returns {Promise<Array<object>>}
  */
@@ -256,10 +276,16 @@ async function buscarProductos({ q, subcategoria, page, pageSize }) {
   }
   if (subcategoria) params.Subcategoria = subcategoria;
 
-  const data       = await get('/Product/search', params, { timeoutMs: 5000 });
-  const productos  = (data?.productos ?? [])
+  const data = await get('/Product/search', params, { timeoutMs: 5000 });
+  // La respuesta paginada de CATI envuelve las filas en `items` (junto con totalRecords/
+  // pageNumber/totalPages, que no se usan acá). Las filas no traen `internalAttributes` — a
+  // diferencia del detalle, el endpoint de búsqueda no expone el campo de estado ACTIVO/INACTIVO,
+  // así que `estaActivo` no filtra nada acá (siempre ve `undefined` y pasa todo); se deja el
+  // filtro para el día que CATI empiece a incluirlo.
+  const items      = data?.items ?? [];
+  const productos  = items
     .filter((raw) => estaActivo(raw.internalAttributes))
-    .map(mapProductoCatalogo);
+    .map(mapProductoBusqueda);
 
   guardarEnCache(clave, productos, CACHE_TTL_BUSQUEDA_MS);
   return productos;

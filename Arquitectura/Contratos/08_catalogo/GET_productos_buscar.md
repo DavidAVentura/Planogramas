@@ -49,6 +49,7 @@ Busca productos en el catálogo CATI. El backend actúa como proxy/caché — el
     "sku": "10012345",
     "nombre": "Aceite Motor 10W30 1L",
     "marca": "Castrol",
+    "modelo": null,
     "subcategoria": "Aceites y lubricantes",
     "ancho_cm": 9.0,
     "alto_cm": 22.0,
@@ -58,6 +59,12 @@ Busca productos en el catálogo CATI. El backend actúa como proxy/caché — el
   }
 ]
 ```
+
+> **Nota de implementación** — `CATI GET /Product/search` responde filas planas (`sku`,
+> `descripcion`, `marca`, `modelo`, `desSubcategoria`, ...) muy distintas a la forma rica del
+> detalle (`GET /Product/{sku}`, con `erpInformation`/`internalAttributes`/`assets`). Por eso
+> `ancho_cm`, `alto_cm`, `profundidad_cm`, `imagen_url` y `precio` siempre vienen `null` en este
+> endpoint — esos datos solo están disponibles pidiendo el detalle de un SKU puntual.
 
 ---
 

@@ -2,6 +2,7 @@ export interface ProductoCatalogo {
   sku: string;
   nombre: string;
   marca: string | null;
+  modelo: string | null;
   subcategoria: string | null;
   ancho_cm: number | null;
   alto_cm: number | null;
