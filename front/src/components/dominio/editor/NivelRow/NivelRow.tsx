@@ -8,6 +8,8 @@ import './NivelRow.css';
 interface NivelRowProps {
   niveles: Nivel[];
   puedeEscribir: boolean;
+  extendido: boolean;
+  onToggleExtender: () => void;
   onAgregar: () => void;
   onEditar: (nivel: Nivel) => void;
   onEliminar: (nivel: Nivel) => void;
@@ -25,6 +27,8 @@ interface NivelRowProps {
 export function NivelRow({
   niveles,
   puedeEscribir,
+  extendido,
+  onToggleExtender,
   onAgregar,
   onEditar,
   onEliminar,
@@ -39,14 +43,19 @@ export function NivelRow({
   onSoltarPosicion,
 }: NivelRowProps) {
   return (
-    <div className="nivel-row-lista">
+    <div className={`nivel-row-lista${extendido ? ' nivel-row-lista--extendido' : ''}`}>
       <div className="nivel-row-lista__header">
         <span className="nivel-row-lista__titulo">Niveles</span>
-        {puedeEscribir && (
-          <Button variante="outline" onClick={onAgregar}>
-            + Agregar nivel
+        <span className="nivel-row-lista__header-acciones">
+          <Button variante="outline" onClick={onToggleExtender}>
+            {extendido ? 'Contraer' : 'Extender'}
           </Button>
-        )}
+          {puedeEscribir && (
+            <Button variante="outline" onClick={onAgregar}>
+              + Agregar nivel
+            </Button>
+          )}
+        </span>
       </div>
 
       {niveles.map((nivel, indice) => (
@@ -72,13 +81,16 @@ export function NivelRow({
                 </button>
               </span>
             )}
-            <span className="nivel-row__nombre">Nivel {nivel.orden}</span>
-            <span className="nivel-row__detalle">
-              {nivel.altura_desde_piso_cm} cm · {nivel.tipo_accesorio}
-              {nivel.accesorio && ` ${nivel.accesorio.nombre}`}
-              {nivel.tamano_accesorio_pulgadas ? ` (${nivel.tamano_accesorio_pulgadas}")` : ''}
+            <span
+              className="nivel-row__nombre"
+              title={`Nivel ${nivel.orden} - altura desde el suelo ${nivel.altura_desde_piso_cm} cm - ${
+                nivel.tipo_accesorio
+              }${nivel.accesorio ? ` ${nivel.accesorio.nombre}` : ''}${
+                nivel.tamano_accesorio_pulgadas ? ` ${nivel.tamano_accesorio_pulgadas}''` : ''
+              }${nivel.notas ? `\n${nivel.notas}` : ''}`}
+            >
+              {nivel.orden}
             </span>
-            {nivel.notas && <span className="nivel-row__notas">{nivel.notas}</span>}
           </div>
 
           <PosicionesPanel

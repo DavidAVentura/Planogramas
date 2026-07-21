@@ -365,27 +365,8 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
       <Seccion titulo="Capacidad">
         <div className="posicion-drawer__fila">
           <label className="posicion-drawer__campo">
-            <span>Capacidad máxima (calculada: facings × apilable × unidades por facing)</span>
-            <input type="number" value={capacidadMaximaCalculada} disabled />
-          </label>
-          <label className="posicion-drawer__campo">
-            <span>Perfil de redondeo</span>
-            <select value={perfilRedondeo} onChange={(e) => setPerfilRedondeo(e.target.value as PerfilRedondeo)}>
-              {PERFILES_REDONDEO.map((valor) => (
-                <option key={valor} value={valor}>
-                  {ETIQUETAS_PERFIL[valor]}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-      </Seccion>
-
-      <Seccion titulo="Reposición">
-        <div className="posicion-drawer__fila">
-          <label className="posicion-drawer__campo">
             <span>
-              Mínimo estético
+              Mínimo estético <br />
               {minEsteticoBloqueado ? ' (calculado: 3 × facings + 1)' : ' (editable — por defecto, la capacidad máxima)'}
             </span>
             <input
@@ -396,6 +377,25 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
               onChange={(e) => setMinEstetico(e.target.value)}
               disabled={minEsteticoBloqueado}
             />
+          </label>
+          <label className="posicion-drawer__campo">
+            <span>Capacidad máxima (facings × apilable × unidades por facing)</span>
+            <input type="number" value={capacidadMaximaCalculada} disabled />
+          </label>
+        </div>
+      </Seccion>
+
+      <Seccion titulo="Reposición">
+        <div className="posicion-drawer__fila">
+          <label className="posicion-drawer__campo">
+            <span>Perfil de redondeo</span>
+            <select value={perfilRedondeo} onChange={(e) => setPerfilRedondeo(e.target.value as PerfilRedondeo)}>
+              {PERFILES_REDONDEO.map((valor) => (
+                <option key={valor} value={valor}>
+                  {ETIQUETAS_PERFIL[valor]}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="posicion-drawer__campo">
             <span>Mínimo final</span>

@@ -49,6 +49,7 @@ export function EditorPlanograma() {
   const version = versiones.find((v) => v.id === versionIdNumerico);
 
   const [activaId, setActivaId] = useState<number | null>(null);
+  const [nivelesExtendido, setNivelesExtendido] = useState(false);
   const [modalGondola, setModalGondola] = useState<'crear' | GondolaListItem | null>(null);
   const [gondolaAEliminar, setGondolaAEliminar] = useState<GondolaListItem | null>(null);
 
@@ -249,7 +250,9 @@ export function EditorPlanograma() {
           )}
 
           {gondolaActiva && (
-            <div className="editor-planograma__gondola-activa">
+            <div
+              className={`editor-planograma__gondola-activa${nivelesExtendido ? ' editor-planograma__gondola-activa--extendido' : ''}`}
+            >
               {selectedPosicion && (
                 <BarraAccionesPosicion
                   posicion={selectedPosicion}
@@ -268,6 +271,8 @@ export function EditorPlanograma() {
               <NivelRow
                 niveles={niveles}
                 puedeEscribir={puedeEscribir}
+                extendido={nivelesExtendido}
+                onToggleExtender={() => setNivelesExtendido((v) => !v)}
                 onAgregar={() => setModalNivel('crear')}
                 onEditar={setModalNivel}
                 onEliminar={setNivelAEliminar}
@@ -327,6 +332,7 @@ export function EditorPlanograma() {
             setModalNivel(null);
             recargarNiveles();
             recargarGondolas();
+            recargarPosiciones();
           }}
         />
       )}

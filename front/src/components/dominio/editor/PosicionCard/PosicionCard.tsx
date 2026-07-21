@@ -4,8 +4,6 @@ import { escribirDatosArrastre, leerDatosArrastre, type DatosArrastrePosicion } 
 import type { PosicionConProducto } from '../../../../types/posicion';
 import './PosicionCard.css';
 
-const MAX_TILES_VISIBLES = 8;
-
 interface PosicionCardProps {
   posicion: PosicionConProducto;
   seleccionada: boolean;
@@ -25,8 +23,6 @@ export function PosicionCard({
   onAbrirFicha,
   onSoltarPosicion,
 }: PosicionCardProps) {
-  const tilesVisibles = Math.min(posicion.facings_horizontal, MAX_TILES_VISIBLES);
-
   function onDragStart(e: DragEvent<HTMLDivElement>) {
     escribirDatosArrastre(e, { posicionId: posicion.id, nivelOrigenId: posicion.nivelId });
   }
@@ -61,7 +57,7 @@ export function PosicionCard({
       <span className="posicion-card__badge-facings">×{posicion.facings_horizontal}</span>
 
       <div className="posicion-card__facings">
-        {Array.from({ length: tilesVisibles }).map((_, i) => (
+        {Array.from({ length: posicion.facings_horizontal }).map((_, i) => (
           <FacingTile
             key={i}
             sku={posicion.sku}

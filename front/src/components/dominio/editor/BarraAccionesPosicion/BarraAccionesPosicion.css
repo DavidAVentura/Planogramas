@@ -1,8 +1,7 @@
 .barra-acciones-posicion {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 14px;
+  flex-direction: column;
+  gap: 6px;
   background: #fff;
   border: 2px solid var(--cemaco-green);
   border-radius: var(--radius-md);
@@ -41,16 +40,18 @@
   }
 }
 
-.barra-acciones-posicion__info {
+.barra-acciones-posicion__fila {
   display: flex;
-  flex-direction: column;
-  gap: 1px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
 }
 
 .barra-acciones-posicion__nombre {
   font-size: 13px;
   font-weight: 700;
   color: var(--fg-1);
+  overflow-wrap: break-word;
 }
 
 .barra-acciones-posicion__meta {

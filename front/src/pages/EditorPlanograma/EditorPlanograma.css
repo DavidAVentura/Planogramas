@@ -16,6 +16,12 @@
   padding: 24px;
 }
 
+.editor-planograma__gondola-activa--extendido {
+  border: none;
+  border-radius: 0;
+  padding: 24px 0;
+}
+
 .editor-planograma__acciones {
   display: flex;
   align-items: center;
