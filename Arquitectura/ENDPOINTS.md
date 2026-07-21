@@ -130,7 +130,7 @@ no `catalogo`).
 
 | Método | Ruta | Actor | CU | Descripción |
 |--------|------|-------|----|-------------|
-| `GET` | `/catalog/productos` | Analista | CU-04-01 / CU-05-02 | Busca productos del catálogo. Filtros: `sku`, `gtin`, `marca`, `nombre`, `subcategoria`, `categoria_nivel1`, `categoria_nivel2`, `solo_con_stock`. Paginado. |
+| `GET` | `/catalog/productos` | Analista | CU-04-01 / CU-05-02 | Busca productos del catálogo. Filtros: `sku`, `gtin`, `marca`, `nombre`, `subcategoria`, `categoria_nivel1`, `categoria_nivel2`, `solo_con_stock`. Paginado. Se puede navegar solo por `subcategoria` (sin texto de búsqueda) para el drill-down de jerarquía. |
 | `GET` | `/catalog/productos/{sku}` | Analista | CU-04-02 | Retorna el detalle de un producto: dimensiones, imagen, precio, jerarquía, SKU sustituto sugerido, fuente de dimensiones y si están validadas. |
 | `PATCH` | `/catalog/productos/{sku}/dimensiones` | Analista | CU-04-12 | Actualiza `ancho_cm`/`alto_cm`/`profundidad_cm` del producto local; marca `fuente_dimensiones='MANUAL'` y `dimensiones_validadas=true`. |
 | `PATCH` | `/catalog/productos/{sku}/dimensiones/validar` | Analista | CU-04-13 | Marca `dimensiones_validadas=true` sin modificar las medidas; requiere que las tres sean mayores a 0 (`422` si no). |
@@ -163,12 +163,15 @@ Lookup de tiendas de la cadena para asignarlas a versiones de planograma.
 
 ## 12. Jerarquía
 
-Consulta de la jerarquía de productos (Área → Departamento) desde CATI. El backend actúa como proxy autenticado; el frontend nunca llama a CATI directamente.
+Consulta de la jerarquía de productos (Área → Departamento → Familia → Categoría → Subcategoría) desde CATI. El backend actúa como proxy autenticado; el frontend nunca llama a CATI directamente.
 
 | Método | Ruta | Actor | CU | Descripción |
 |--------|------|-------|----|-------------|
 | `GET` | `/jerarquia/areas` | Analista | CU-01-01 / CU-01-02 / CU-01-04 | Lista todas las áreas activas desde CATI. |
 | `GET` | `/jerarquia/departamentos` | Analista | CU-01-01 / CU-01-02 / CU-01-04 | Lista departamentos de un área. Query param requerido: `area` (ID de área). |
+| `GET` | `/jerarquia/familias` | Analista | CU-01-01 / CU-01-02 / CU-01-04 | Lista familias de un departamento. Query param requerido: `departamento` (ID de departamento). |
+| `GET` | `/jerarquia/categorias` | Analista | CU-01-01 / CU-01-02 / CU-01-04 | Lista categorías de una familia. Query param requerido: `familia` (ID de familia). |
+| `GET` | `/jerarquia/subcategorias` | Analista | CU-01-01 / CU-01-02 / CU-01-04 | Lista subcategorías de una categoría. Query param requerido: `categoria` (ID de categoría). El id resultante es el que se usa como filtro `subcategoria` en `GET /catalog/productos/buscar`. |
 
 ---
 

@@ -14,6 +14,18 @@ const schemaDepartamentos = Joi.object({
   area: Joi.string().trim().required(),
 });
 
+const schemaFamilias = Joi.object({
+  departamento: Joi.string().trim().required(),
+});
+
+const schemaCategorias = Joi.object({
+  familia: Joi.string().trim().required(),
+});
+
+const schemaSubcategorias = Joi.object({
+  categoria: Joi.string().trim().required(),
+});
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function validarQuery(schema, query) {
@@ -43,4 +55,40 @@ async function listarDepartamentos(req, res, next) {
   }
 }
 
-module.exports = { listarAreas, listarDepartamentos };
+async function listarFamilias(req, res, next) {
+  try {
+    const { departamento } = validarQuery(schemaFamilias, req.query);
+    const familias = await catiClient.obtenerFamilias(departamento);
+    res.json(familias);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function listarCategorias(req, res, next) {
+  try {
+    const { familia } = validarQuery(schemaCategorias, req.query);
+    const categorias = await catiClient.obtenerCategorias(familia);
+    res.json(categorias);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function listarSubcategorias(req, res, next) {
+  try {
+    const { categoria } = validarQuery(schemaSubcategorias, req.query);
+    const subcategorias = await catiClient.obtenerSubcategorias(categoria);
+    res.json(subcategorias);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = {
+  listarAreas,
+  listarDepartamentos,
+  listarFamilias,
+  listarCategorias,
+  listarSubcategorias,
+};

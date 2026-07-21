@@ -19,10 +19,12 @@ Busca productos en el catálogo CATI. El backend actúa como proxy/caché — el
 
 | Parámetro | Tipo | Requerido | Descripción |
 |-----------|------|-----------|-------------|
-| `q` | `string` | Sí | Texto de búsqueda: SKU, nombre o marca. Mínimo 2 chars. |
-| `subcategoria` | `string` | No | Filtra por subcategoría. |
+| `q` | `string` | No* | Texto de búsqueda: SKU, nombre o marca. Mínimo 2 chars. |
+| `subcategoria` | `string` | No* | Filtra por subcategoría (id obtenido de `GET /jerarquia/subcategorias`). |
 | `page` | `integer` | No | Default: `1`. |
 | `pageSize` | `integer` | No | Default: `20`. Máximo: `50`. |
+
+\* Al menos uno de `q` o `subcategoria` es requerido.
 
 ---
 
@@ -32,6 +34,10 @@ Busca productos en el catálogo CATI. El backend actúa como proxy/caché — el
 2. Si CATI no responde en < 5s, retornar `503` con mensaje de timeout.
 3. Los resultados pueden cachearse por hasta 5 minutos para reducir carga en CATI.
 4. Solo retorna productos con `estado = ACTIVO` en CATI.
+5. `q` es opcional cuando se navega el catálogo por jerarquía (drill-down Área → ... →
+   Subcategoría, ver `Arquitectura/Contratos/11_jerarquia/`) en vez de buscar por texto: en ese
+   caso `Sku`/`Descripcion`/`Marca` no se envían a CATI (enviarlos vacíos filtraría a cero
+   resultados en vez de no filtrar). Si ambos `q` y `subcategoria` faltan, `400`.
 
 ---
 
@@ -59,7 +65,7 @@ Busca productos en el catálogo CATI. El backend actúa como proxy/caché — el
 
 | Código | Condición |
 |--------|-----------|
-| `400 Bad Request` | `q` ausente o menor a 2 chars. |
+| `400 Bad Request` | `q` y `subcategoria` ambos ausentes, o `q` presente con menos de 2 chars. |
 | `401 Unauthorized` | JWT ausente. |
 | `503 Service Unavailable` | CATI no disponible. |
 

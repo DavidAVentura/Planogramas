@@ -15,11 +15,11 @@ const productoRepo     = require('../../infrastructure/repositories/producto.rep
 // ─── Esquemas de validación ───────────────────────────────────────────────────
 
 const schemaBuscar = Joi.object({
-  q:            Joi.string().trim().min(2).required(),
+  q:            Joi.string().trim().min(2).optional(),
   subcategoria: Joi.string().trim().optional(),
   page:         Joi.number().integer().min(1).default(1),
   pageSize:     Joi.number().integer().min(1).max(50).default(20),
-});
+}).or('q', 'subcategoria');
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

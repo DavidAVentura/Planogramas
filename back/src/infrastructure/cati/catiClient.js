@@ -111,6 +111,57 @@ async function obtenerDepartamentos(areaId) {
   return departamentos;
 }
 
+/**
+ * Lista las familias de un departamento (cacheado 30 min por departamento).
+ * @param {string} departamentoId
+ * @returns {Promise<Array<{id: string, name: string}>>}
+ */
+async function obtenerFamilias(departamentoId) {
+  const clave    = `familias:${departamentoId}`;
+  const cacheado = obtenerDeCache(clave);
+  if (cacheado) return cacheado;
+
+  const items    = await get('/Jerarquia/Familia', { departamento: departamentoId, profile: 'CEMACO' });
+  const familias = (items ?? []).map(mapJerarquia);
+
+  guardarEnCache(clave, familias);
+  return familias;
+}
+
+/**
+ * Lista las categorías de una familia (cacheado 30 min por familia).
+ * @param {string} familiaId
+ * @returns {Promise<Array<{id: string, name: string}>>}
+ */
+async function obtenerCategorias(familiaId) {
+  const clave    = `categorias:${familiaId}`;
+  const cacheado = obtenerDeCache(clave);
+  if (cacheado) return cacheado;
+
+  const items      = await get('/Jerarquia/Categoria', { familia: familiaId, profile: 'CEMACO' });
+  const categorias = (items ?? []).map(mapJerarquia);
+
+  guardarEnCache(clave, categorias);
+  return categorias;
+}
+
+/**
+ * Lista las subcategorías de una categoría (cacheado 30 min por categoría).
+ * @param {string} categoriaId
+ * @returns {Promise<Array<{id: string, name: string}>>}
+ */
+async function obtenerSubcategorias(categoriaId) {
+  const clave    = `subcategorias:${categoriaId}`;
+  const cacheado = obtenerDeCache(clave);
+  if (cacheado) return cacheado;
+
+  const items         = await get('/Jerarquia/Subcategoria', { categoria: categoriaId, profile: 'CEMACO' });
+  const subcategorias = (items ?? []).map(mapJerarquia);
+
+  guardarEnCache(clave, subcategorias);
+  return subcategorias;
+}
+
 // ─── Catálogo de productos (ver Arquitectura/Contratos/08_catalogo/) ──────────
 
 const NOMBRES_ANCHO       = ['ancho', 'width'];
@@ -192,13 +243,17 @@ async function buscarProductos({ q, subcategoria, page, pageSize }) {
   if (cacheado) return cacheado;
 
   const params = {
-    Sku:         q,
-    Descripcion: q,
-    Marca:       q,
-    Profile:     'CEMACO',
-    PageNumber:  String(page),
-    PageSize:    String(pageSize),
+    Profile:    'CEMACO',
+    PageNumber: String(page),
+    PageSize:   String(pageSize),
   };
+  // q es opcional cuando se navega por subcategoria (ver GET_productos_buscar.md, regla 5):
+  // mandar Sku/Descripcion/Marca vacíos a CATI filtra a cero resultados en vez de no filtrar.
+  if (q) {
+    params.Sku         = q;
+    params.Descripcion = q;
+    params.Marca       = q;
+  }
   if (subcategoria) params.Subcategoria = subcategoria;
 
   const data       = await get('/Product/search', params, { timeoutMs: 5000 });
@@ -331,6 +386,9 @@ module.exports = {
   get,
   obtenerAreas,
   obtenerDepartamentos,
+  obtenerFamilias,
+  obtenerCategorias,
+  obtenerSubcategorias,
   buscarProductos,
   obtenerProducto,
   obtenerStockSap,

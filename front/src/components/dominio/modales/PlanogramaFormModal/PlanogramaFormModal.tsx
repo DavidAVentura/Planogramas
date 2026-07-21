@@ -63,6 +63,7 @@ export function PlanogramaFormModal({ planogramaId, onClose, onGuardado }: Plano
     <Modal
       titulo={editando ? 'Editar planograma' : 'Crear planograma'}
       onClose={onClose}
+      ancho="lg"
       footer={
         <>
           <Button variante="outline" onClick={onClose} disabled={enviando}>

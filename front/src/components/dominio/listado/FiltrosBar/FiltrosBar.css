@@ -1,7 +1,7 @@
 .filtros-bar {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   gap: 12px;
   padding: 16px;
   background: #fff;
@@ -13,6 +13,20 @@
     flex: 2;
     min-width: 280px;
   }
+}
+
+.filtros-bar__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--fg-2);
+  font-weight: 600;
+}
+
+.filtros-bar__campo--busqueda {
+  flex: 1;
+  min-width: 200px;
 }
 
 .filtros-bar__estado {
@@ -27,8 +41,7 @@
 }
 
 .filtros-bar__busqueda {
-  flex: 1;
-  min-width: 200px;
+  width: 100%;
   height: 40px;
   padding: 0 14px;
   border: 1px solid var(--border);

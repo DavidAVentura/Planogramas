@@ -59,29 +59,35 @@ export function FiltrosBar({ filtros, onChange }: FiltrosBarProps) {
         }}
       />
 
-      <select
-        className="filtros-bar__estado"
-        value={filtros.estado ?? ''}
-        onChange={(e) => onChange({ estado: (e.target.value || undefined) as PlanogramaEstado | undefined })}
-      >
-        {OPCIONES_ESTADO.map((op) => (
-          <option key={op.value} value={op.value}>
-            {op.label}
-          </option>
-        ))}
-      </select>
+      <label className="filtros-bar__campo">
+        <span>Estado</span>
+        <select
+          className="filtros-bar__estado"
+          value={filtros.estado ?? ''}
+          onChange={(e) => onChange({ estado: (e.target.value || undefined) as PlanogramaEstado | undefined })}
+        >
+          {OPCIONES_ESTADO.map((op) => (
+            <option key={op.value} value={op.value}>
+              {op.label}
+            </option>
+          ))}
+        </select>
+      </label>
 
-      <input
-        className="filtros-bar__busqueda"
-        type="search"
-        placeholder="Buscar por nombre…"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        onBlur={() => onChange({ search: search.trim() || undefined })}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') onChange({ search: search.trim() || undefined });
-        }}
-      />
+      <label className="filtros-bar__campo filtros-bar__campo--busqueda">
+        <span>Buscar</span>
+        <input
+          className="filtros-bar__busqueda"
+          type="search"
+          placeholder="Buscar por nombre…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onBlur={() => onChange({ search: search.trim() || undefined })}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') onChange({ search: search.trim() || undefined });
+          }}
+        />
+      </label>
 
       {hayFiltrosActivos && (
         <Button variante="ghost" onClick={limpiar}>

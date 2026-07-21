@@ -151,6 +151,30 @@
       "description": "Id de una área real de la jerarquía comercial, obtenida dinámicamente desde CATI en el Setup del módulo jerarquia (GET /jerarquia/areas). No se puede sembrar vía SQL porque el catálogo es externo y de solo lectura."
     },
     {
+      "key": "jerarquiaDepartamentoIdExistente",
+      "value": "",
+      "type": "string",
+      "description": "Id de un departamento real de jerarquiaAreaIdExistente, obtenido dinámicamente desde CATI en el Setup del módulo jerarquia (GET /jerarquia/departamentos). No se puede sembrar vía SQL porque el catálogo es externo y de solo lectura."
+    },
+    {
+      "key": "jerarquiaFamiliaIdExistente",
+      "value": "",
+      "type": "string",
+      "description": "Id de una familia real de jerarquiaDepartamentoIdExistente, obtenida dinámicamente desde CATI en el Setup del módulo jerarquia (GET /jerarquia/familias). No se puede sembrar vía SQL porque el catálogo es externo y de solo lectura."
+    },
+    {
+      "key": "jerarquiaCategoriaIdExistente",
+      "value": "",
+      "type": "string",
+      "description": "Id de una categoría real de jerarquiaFamiliaIdExistente, obtenida dinámicamente desde CATI en el Setup del módulo jerarquia (GET /jerarquia/categorias). No se puede sembrar vía SQL porque el catálogo es externo y de solo lectura."
+    },
+    {
+      "key": "jerarquiaSubcategoriaIdExistente",
+      "value": "",
+      "type": "string",
+      "description": "Id de una subcategoría real de jerarquiaCategoriaIdExistente, obtenida dinámicamente desde CATI en el Setup del módulo jerarquia (GET /jerarquia/subcategorias). Usada también para probar la búsqueda de productos por subcategoria sin query en el módulo catalogo. No se puede sembrar vía SQL porque el catálogo es externo y de solo lectura."
+    },
+    {
       "key": "catalogoSkuExistente",
       "value": "",
       "type": "string",
@@ -10442,6 +10466,217 @@
                 }
               ],
               "response": []
+            },
+            {
+              "name": "200 - Obtener cadena de jerarquia (area-departamento-familia-categoria-subcategoria) para pruebas de busqueda por subcategoria (setup)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/jerarquia/areas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "jerarquia",
+                    "areas"
+                  ]
+                },
+                "description": "Primer paso de una cadena de 5 llamadas (area -> departamento -> familia -> categoria -> subcategoria, ver modulo jerarquia) que este modulo repite de forma independiente para no depender del orden de ejecucion entre carpetas de la coleccion (el modulo jerarquia corre despues de catalogo). Llena jerarquiaAreaIdExistente, la misma variable que usa el modulo jerarquia."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array de areas con al menos un elemento', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  pm.expect(body.length).to.be.greaterThan(0);",
+                      "});",
+                      "pm.collectionVariables.set('jerarquiaAreaIdExistente', pm.response.json()[0].id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Obtener departamento de la cadena de jerarquia (setup)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/jerarquia/departamentos?area={{jerarquiaAreaIdExistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "jerarquia",
+                    "departamentos"
+                  ],
+                  "query": [
+                    {
+                      "key": "area",
+                      "value": "{{jerarquiaAreaIdExistente}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array de departamentos con al menos un elemento', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  pm.expect(body.length).to.be.greaterThan(0);",
+                      "});",
+                      "pm.collectionVariables.set('jerarquiaDepartamentoIdExistente', pm.response.json()[0].id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Obtener familia de la cadena de jerarquia (setup)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/jerarquia/familias?departamento={{jerarquiaDepartamentoIdExistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "jerarquia",
+                    "familias"
+                  ],
+                  "query": [
+                    {
+                      "key": "departamento",
+                      "value": "{{jerarquiaDepartamentoIdExistente}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array de familias con al menos un elemento', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  pm.expect(body.length).to.be.greaterThan(0);",
+                      "});",
+                      "pm.collectionVariables.set('jerarquiaFamiliaIdExistente', pm.response.json()[0].id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Obtener categoria de la cadena de jerarquia (setup)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/jerarquia/categorias?familia={{jerarquiaFamiliaIdExistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "jerarquia",
+                    "categorias"
+                  ],
+                  "query": [
+                    {
+                      "key": "familia",
+                      "value": "{{jerarquiaFamiliaIdExistente}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array de categorías con al menos un elemento', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  pm.expect(body.length).to.be.greaterThan(0);",
+                      "});",
+                      "pm.collectionVariables.set('jerarquiaCategoriaIdExistente', pm.response.json()[0].id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Obtener subcategoria de la cadena de jerarquia para busqueda de productos (setup)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/jerarquia/subcategorias?categoria={{jerarquiaCategoriaIdExistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "jerarquia",
+                    "subcategorias"
+                  ],
+                  "query": [
+                    {
+                      "key": "categoria",
+                      "value": "{{jerarquiaCategoriaIdExistente}}"
+                    }
+                  ]
+                },
+                "description": "Ultimo paso de la cadena: llena jerarquiaSubcategoriaIdExistente, usada por el escenario de exito 'Buscar productos por subcategoria sin query'."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array de subcategorías con al menos un elemento', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  pm.expect(body.length).to.be.greaterThan(0);",
+                      "});",
+                      "pm.collectionVariables.set('jerarquiaSubcategoriaIdExistente', pm.response.json()[0].id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
             }
           ]
         },
@@ -10538,6 +10773,61 @@
                       "pm.test('Status 400', () => pm.response.to.have.status(400));",
                       "pm.test('Code VALIDATION_ERROR', () => {",
                       "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Buscar productos por subcategoria sin query",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos/buscar?subcategoria={{jerarquiaSubcategoriaIdExistente}}&page=1&pageSize=5",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos",
+                    "buscar"
+                  ],
+                  "query": [
+                    {
+                      "key": "subcategoria",
+                      "value": "{{jerarquiaSubcategoriaIdExistente}}"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "5"
+                    }
+                  ]
+                },
+                "description": "Navegacion por jerarquia (drill-down) en vez de texto libre: sin `q`, solo `subcategoria` (id obtenido en el Setup del modulo). Ver regla 5 de GET_productos_buscar.md."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array de productos con la forma esperada', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  body.forEach((p) => {",
+                      "    pm.expect(p).to.have.property('sku');",
+                      "    pm.expect(p).to.have.property('nombre');",
+                      "  });",
                       "});"
                     ]
                   }
@@ -12081,6 +12371,138 @@
                 }
               ],
               "response": []
+            },
+            {
+              "name": "200 - Obtener departamento de referencia para pruebas de jerarquia (setup)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/jerarquia/departamentos?area={{jerarquiaAreaIdExistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "jerarquia",
+                    "departamentos"
+                  ],
+                  "query": [
+                    {
+                      "key": "area",
+                      "value": "{{jerarquiaAreaIdExistente}}"
+                    }
+                  ]
+                },
+                "description": "Obtiene un departamento real de jerarquiaAreaIdExistente desde CATI para usarlo en el escenario de éxito de /jerarquia/familias. No se puede sembrar vía SQL porque el catálogo de jerarquía es externo (CATI) y de solo lectura."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array de departamentos con al menos un elemento', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  pm.expect(body.length).to.be.greaterThan(0);",
+                      "});",
+                      "pm.collectionVariables.set('jerarquiaDepartamentoIdExistente', pm.response.json()[0].id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Obtener familia de referencia para pruebas de jerarquia (setup)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/jerarquia/familias?departamento={{jerarquiaDepartamentoIdExistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "jerarquia",
+                    "familias"
+                  ],
+                  "query": [
+                    {
+                      "key": "departamento",
+                      "value": "{{jerarquiaDepartamentoIdExistente}}"
+                    }
+                  ]
+                },
+                "description": "Obtiene una familia real de jerarquiaDepartamentoIdExistente desde CATI para usarla en el escenario de éxito de /jerarquia/categorias. No se puede sembrar vía SQL porque el catálogo de jerarquía es externo (CATI) y de solo lectura."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array de familias con al menos un elemento', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  pm.expect(body.length).to.be.greaterThan(0);",
+                      "});",
+                      "pm.collectionVariables.set('jerarquiaFamiliaIdExistente', pm.response.json()[0].id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Obtener categoria de referencia para pruebas de jerarquia (setup)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/jerarquia/categorias?familia={{jerarquiaFamiliaIdExistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "jerarquia",
+                    "categorias"
+                  ],
+                  "query": [
+                    {
+                      "key": "familia",
+                      "value": "{{jerarquiaFamiliaIdExistente}}"
+                    }
+                  ]
+                },
+                "description": "Obtiene una categoría real de jerarquiaFamiliaIdExistente desde CATI para usarla en el escenario de éxito de /jerarquia/subcategorias. No se puede sembrar vía SQL porque el catálogo de jerarquía es externo (CATI) y de solo lectura."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array de categorías con al menos un elemento', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  pm.expect(body.length).to.be.greaterThan(0);",
+                      "});",
+                      "pm.collectionVariables.set('jerarquiaCategoriaIdExistente', pm.response.json()[0].id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
             }
           ]
         },
@@ -12192,6 +12614,263 @@
                     "v1",
                     "jerarquia",
                     "departamentos"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Listar familias por departamento (GET /jerarquia/familias)",
+          "item": [
+            {
+              "name": "200 - Listar familias de un departamento existente",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/jerarquia/familias?departamento={{jerarquiaDepartamentoIdExistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "jerarquia",
+                    "familias"
+                  ],
+                  "query": [
+                    {
+                      "key": "departamento",
+                      "value": "{{jerarquiaDepartamentoIdExistente}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array de familias con id y name', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  body.forEach((f) => {",
+                      "    pm.expect(f).to.have.property('id');",
+                      "    pm.expect(f).to.have.property('name');",
+                      "  });",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Sin parámetro departamento",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/jerarquia/familias",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "jerarquia",
+                    "familias"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Listar categorías por familia (GET /jerarquia/categorias)",
+          "item": [
+            {
+              "name": "200 - Listar categorías de una familia existente",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/jerarquia/categorias?familia={{jerarquiaFamiliaIdExistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "jerarquia",
+                    "categorias"
+                  ],
+                  "query": [
+                    {
+                      "key": "familia",
+                      "value": "{{jerarquiaFamiliaIdExistente}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array de categorías con id y name', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  body.forEach((c) => {",
+                      "    pm.expect(c).to.have.property('id');",
+                      "    pm.expect(c).to.have.property('name');",
+                      "  });",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Sin parámetro familia",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/jerarquia/categorias",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "jerarquia",
+                    "categorias"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Listar subcategorías por categoría (GET /jerarquia/subcategorias)",
+          "item": [
+            {
+              "name": "200 - Listar subcategorías de una categoría existente",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/jerarquia/subcategorias?categoria={{jerarquiaCategoriaIdExistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "jerarquia",
+                    "subcategorias"
+                  ],
+                  "query": [
+                    {
+                      "key": "categoria",
+                      "value": "{{jerarquiaCategoriaIdExistente}}"
+                    }
+                  ]
+                },
+                "description": "Guarda el primer id resultante en jerarquiaSubcategoriaIdExistente, reutilizado por catalogo/Buscar productos para probar la búsqueda por subcategoria sin query."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array de subcategorías con id y name', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  body.forEach((s) => {",
+                      "    pm.expect(s).to.have.property('id');",
+                      "    pm.expect(s).to.have.property('name');",
+                      "  });",
+                      "});",
+                      "const body = pm.response.json();",
+                      "if (body.length > 0) {",
+                      "  pm.collectionVariables.set('jerarquiaSubcategoriaIdExistente', body[0].id);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Sin parámetro categoria",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/jerarquia/subcategorias",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "jerarquia",
+                    "subcategorias"
                   ]
                 }
               },
