@@ -11,7 +11,7 @@
 
 Acción de "guardar" en el editor. Si la versión estaba en `borrador`, la avanza a `en_desarrollo`. Si ya estaba en `en_desarrollo` o `piloto`, solo actualiza el timestamp. Versiones `publicadas` o `archivadas` rechazan la operación.
 
-Al avanzar de `borrador` a `en_desarrollo`, archiva automáticamente la versión que ya estuviera en `en_desarrollo` del mismo `planograma_id` + `tipo` (si existe). Mismo mecanismo que ya usa la promoción a `publicado` (ver `POST_versiones_promover.md`).
+Al avanzar de `borrador` a `en_desarrollo`, y solo si la versión es de la **línea base** (sin `versionBaseId`), archiva automáticamente la versión base que ya estuviera en `en_desarrollo` del mismo `planograma_id` + `tipo` (si existe). Mismo mecanismo que ya usa la promoción a `publicado` (ver `POST_versiones_promover.md`). Las versiones especiales por tienda nunca archivan ninguna anterior al guardar.
 
 ---
 
@@ -31,7 +31,7 @@ Sin body.
 
 ## Reglas de negocio
 
-1. `borrador` → `en_desarrollo`: avanza estado + actualiza `updatedAt`. Archiva, en la misma transacción, la versión en `en_desarrollo` anterior del mismo `planograma_id` + `tipo` (si existe).
+1. `borrador` → `en_desarrollo`: avanza estado + actualiza `updatedAt`. Si la versión es de línea base, archiva en la misma transacción la versión base en `en_desarrollo` anterior del mismo `planograma_id` + `tipo` (si existe). Las versiones especiales por tienda no archivan ninguna anterior.
 2. `en_desarrollo` / `piloto` → sin cambio de estado, solo actualiza `updatedAt`.
 3. `publicado` / `archivado` → `422`.
 

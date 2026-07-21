@@ -25,4 +25,11 @@
 
     &:hover { background: var(--ink-50); }
   }
+
+  .versiones-table__accion-peligro {
+    border-color: var(--danger);
+    color: var(--danger);
+
+    &:hover { background: var(--danger); color: #fff; }
+  }
 }

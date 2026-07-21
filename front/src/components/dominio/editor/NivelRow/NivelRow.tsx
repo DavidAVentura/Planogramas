@@ -9,6 +9,7 @@ interface NivelRowProps {
   niveles: Nivel[];
   puedeEscribir: boolean;
   extendido: boolean;
+  subcategorias: string[];
   onToggleExtender: () => void;
   onAgregar: () => void;
   onEditar: (nivel: Nivel) => void;
@@ -28,6 +29,7 @@ export function NivelRow({
   niveles,
   puedeEscribir,
   extendido,
+  subcategorias,
   onToggleExtender,
   onAgregar,
   onEditar,
@@ -98,6 +100,7 @@ export function NivelRow({
             datos={posicionesPorNivel[nivel.id]}
             cargando={cargandoPosiciones}
             puedeEscribir={puedeEscribir}
+            subcategorias={subcategorias}
             onCambio={onCambioPosiciones}
             seleccionadaId={seleccionadaId}
             onSeleccionar={onSeleccionarPosicion}

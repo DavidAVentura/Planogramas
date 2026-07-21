@@ -45,7 +45,7 @@ export function useProductosPorSubcategoria() {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(false);
 
-  async function buscar(subcategoriaId: string) {
+  async function buscar(subcategoriaId: string, pageSize = 5) {
     if (!subcategoriaId) {
       setProductos([]);
       setError(false);
@@ -54,7 +54,7 @@ export function useProductosPorSubcategoria() {
     setCargando(true);
     try {
       setProductos(
-        await catalogoService.buscarProductos('', { subcategoria: subcategoriaId, page: 1, pageSize: 5 }),
+        await catalogoService.buscarProductos('', { subcategoria: subcategoriaId, page: 1, pageSize }),
       );
       setError(false);
     } catch {

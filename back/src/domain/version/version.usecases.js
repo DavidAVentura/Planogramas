@@ -15,6 +15,7 @@ const {
   validarNoArchivada,
   calcularTransicionGuardar,
   validarTransicionPromover,
+  validarTransicionArchivar,
 } = require('./version.entity');
 
 // ─── Helpers privados ────────────────────────────────────────────────────────
@@ -92,8 +93,9 @@ async function crearVersionEspecial(versionRepo, planograma, datos) {
     throw errorNotFound(`Versión base ${datos.versionBaseId} no encontrada en este planograma`);
   }
 
-  await validarSinBorradorDeTipo(versionRepo, planograma.id, datos.tipo);
-
+  // Sin llamada a validarSinBorradorDeTipo: la unicidad "una por estado" es una
+  // regla de la línea base — las especiales por tienda no compiten entre sí ni
+  // con la base por ningún estado.
   const yaClonada = await versionRepo.tiendaTieneVersionEspecialDeBase(datos.versionBaseId, datos.tiendaId);
   if (yaClonada) {
     throw errorConflict('La tienda ya tiene una versión especial derivada de esta versión base');
@@ -261,6 +263,25 @@ async function promoverVersion(versionRepo, id, datos) {
   return { ...actualizada, versionAnteriorArchivada };
 }
 
+// ─── Archivar ────────────────────────────────────────────────────────────────
+
+/**
+ * Archiva la versión manualmente (borrador/en_desarrollo/piloto → archivado), sin
+ * esperar a que otra versión la reemplace.
+ * @param {object} versionRepo
+ * @param {number} id
+ * @returns {Promise<object>}
+ */
+async function archivarVersion(versionRepo, id) {
+  const version = await versionRepo.buscarPorId(id);
+  if (!version) throw errorVersionNoEncontrada(id);
+
+  validarTransicionArchivar(version.estado);
+
+  await versionRepo.actualizarEstado(id, ESTADOS.ARCHIVADO);
+  return versionRepo.buscarPorId(id);
+}
+
 // ─── Tiendas ─────────────────────────────────────────────────────────────────
 
 /**
@@ -300,6 +321,7 @@ module.exports = {
   editarMetadatos,
   guardarVersion,
   promoverVersion,
+  archivarVersion,
   listarTiendasVersion,
   reemplazarTiendasVersion,
 };

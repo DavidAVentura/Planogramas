@@ -10,7 +10,8 @@ import './ExploradorSubcategorias.css';
 interface ExploradorSubcategoriasProps {
   /** Id de departamento (CATI) ya elegido en la columna del formulario; vacío deshabilita el explorador. */
   departamentoId: string;
-  onAgregar: (subcategoriaNombre: string) => void;
+  /** Recibe "(id) nombre" para que el id de la subcategoría quede disponible en otras partes. */
+  onAgregar: (subcategoriaConId: string) => void;
 }
 
 export function ExploradorSubcategorias({ departamentoId, onAgregar }: ExploradorSubcategoriasProps) {
@@ -157,7 +158,7 @@ export function ExploradorSubcategorias({ departamentoId, onAgregar }: Explorado
           <Button
             type="button"
             className="explorador-subcategorias__agregar"
-            onClick={() => onAgregar(subcategoriaNombre)}
+            onClick={() => onAgregar(`(${subcategoriaId}) ${subcategoriaNombre}`)}
           >
             + Añadir subcat al planograma
           </Button>

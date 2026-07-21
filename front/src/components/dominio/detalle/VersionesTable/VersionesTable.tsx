@@ -13,6 +13,7 @@ interface VersionesTableProps {
   onPromoverPiloto: (v: VersionListItem) => void;
   onTiendas: (v: VersionListItem) => void;
   onPublicar: (v: VersionListItem) => void;
+  onArchivar: (v: VersionListItem) => void;
 }
 
 export function VersionesTable({
@@ -23,6 +24,7 @@ export function VersionesTable({
   onPromoverPiloto,
   onTiendas,
   onPublicar,
+  onArchivar,
 }: VersionesTableProps) {
   const columnas: TableColumn<VersionListItem>[] = [
     {
@@ -70,6 +72,11 @@ export function VersionesTable({
           {v.estado === 'publicado' && (
             <button type="button" onClick={() => onTiendas(v)}>
               Tiendas asignadas
+            </button>
+          )}
+          {v.estado !== 'publicado' && (
+            <button type="button" className="versiones-table__accion-peligro" onClick={() => onArchivar(v)}>
+              Archivar
             </button>
           )}
         </span>

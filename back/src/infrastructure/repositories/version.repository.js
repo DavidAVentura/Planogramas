@@ -367,10 +367,13 @@ async function actualizarEstado(id, estado) {
 // ─── buscarVersionEnEstado ───────────────────────────────────────────────────
 
 async function buscarVersionEnEstado(planogramaId, tipo, estado, excluirId) {
+  // La unicidad por estado solo aplica a la línea base — las versiones especiales
+  // por tienda (version_base_id NOT NULL) quedan fuera de esta búsqueda.
   const query = db(TABLA_VERSION)
     .where('planograma_id', planogramaId)
     .where('tipo', tipo)
-    .where('estado', estado);
+    .where('estado', estado)
+    .whereNull('version_base_id');
 
   if (excluirId !== undefined) query.whereNot('id', excluirId);
 
@@ -463,15 +466,20 @@ async function reemplazarTiendas(id, tiendaIds) {
 
 async function promoverAPiloto(id, tiendaIds) {
   return db.transaction(async (trx) => {
-    const version = await trx(TABLA_VERSION).where('id', id).select('planograma_id', 'tipo').first();
+    const version = await trx(TABLA_VERSION).where('id', id).select('planograma_id', 'tipo', 'version_base_id').first();
 
-    const anterior = await trx(TABLA_VERSION)
-      .where('planograma_id', version.planograma_id)
-      .where('tipo', version.tipo)
-      .where('estado', ESTADOS.PILOTO)
-      .whereNot('id', id)
-      .select('id', 'codigo')
-      .first();
+    // El archivado automático de la "anterior" es una regla de la línea base — las
+    // versiones especiales por tienda no compiten por el estado con nadie.
+    const anterior = version.version_base_id === null
+      ? await trx(TABLA_VERSION)
+          .where('planograma_id', version.planograma_id)
+          .where('tipo', version.tipo)
+          .where('estado', ESTADOS.PILOTO)
+          .whereNull('version_base_id')
+          .whereNot('id', id)
+          .select('id', 'codigo')
+          .first()
+      : undefined;
 
     if (anterior) {
       await trx(TABLA_VERSION).where('id', anterior.id).update({ estado: ESTADOS.ARCHIVADO, updated_at: trx.fn.now() });
@@ -498,15 +506,19 @@ async function promoverAPiloto(id, tiendaIds) {
 
 async function promoverAPublicado(id) {
   return db.transaction(async (trx) => {
-    const version = await trx(TABLA_VERSION).where('id', id).select('planograma_id', 'tipo').first();
+    const version = await trx(TABLA_VERSION).where('id', id).select('planograma_id', 'tipo', 'version_base_id').first();
 
-    const anterior = await trx(TABLA_VERSION)
-      .where('planograma_id', version.planograma_id)
-      .where('tipo', version.tipo)
-      .where('estado', ESTADOS.PUBLICADO)
-      .whereNot('id', id)
-      .select('id', 'codigo')
-      .first();
+    // Ver nota en promoverAPiloto: solo la línea base archiva a su anterior.
+    const anterior = version.version_base_id === null
+      ? await trx(TABLA_VERSION)
+          .where('planograma_id', version.planograma_id)
+          .where('tipo', version.tipo)
+          .where('estado', ESTADOS.PUBLICADO)
+          .whereNull('version_base_id')
+          .whereNot('id', id)
+          .select('id', 'codigo')
+          .first()
+      : undefined;
 
     if (anterior) {
       await trx(TABLA_VERSION).where('id', anterior.id).update({ estado: ESTADOS.ARCHIVADO, updated_at: trx.fn.now() });
@@ -522,15 +534,19 @@ async function promoverAPublicado(id) {
 
 async function guardarComoEnDesarrollo(id) {
   return db.transaction(async (trx) => {
-    const version = await trx(TABLA_VERSION).where('id', id).select('planograma_id', 'tipo').first();
+    const version = await trx(TABLA_VERSION).where('id', id).select('planograma_id', 'tipo', 'version_base_id').first();
 
-    const anterior = await trx(TABLA_VERSION)
-      .where('planograma_id', version.planograma_id)
-      .where('tipo', version.tipo)
-      .where('estado', ESTADOS.EN_DESARROLLO)
-      .whereNot('id', id)
-      .select('id', 'codigo')
-      .first();
+    // Ver nota en promoverAPiloto: solo la línea base archiva a su anterior.
+    const anterior = version.version_base_id === null
+      ? await trx(TABLA_VERSION)
+          .where('planograma_id', version.planograma_id)
+          .where('tipo', version.tipo)
+          .where('estado', ESTADOS.EN_DESARROLLO)
+          .whereNull('version_base_id')
+          .whereNot('id', id)
+          .select('id', 'codigo')
+          .first()
+      : undefined;
 
     if (anterior) {
       await trx(TABLA_VERSION).where('id', anterior.id).update({ estado: ESTADOS.ARCHIVADO, updated_at: trx.fn.now() });

@@ -7,6 +7,7 @@ import { SubcategoriasCard } from '../../components/dominio/detalle/Subcategoria
 import { VersionesTable } from '../../components/dominio/detalle/VersionesTable/VersionesTable';
 import { PlanogramaFormModal } from '../../components/dominio/modales/PlanogramaFormModal/PlanogramaFormModal';
 import { ArchivarModal } from '../../components/dominio/modales/ArchivarModal/ArchivarModal';
+import { ArchivarVersionModal } from '../../components/dominio/modales/ArchivarVersionModal/ArchivarVersionModal';
 import { CrearVersionModal } from '../../components/dominio/modales/CrearVersionModal/CrearVersionModal';
 import { VersionEspecialWizard } from '../../components/dominio/modales/VersionEspecialWizard/VersionEspecialWizard';
 import { PromoverPilotoModal } from '../../components/dominio/modales/PromoverPilotoModal/PromoverPilotoModal';
@@ -37,6 +38,7 @@ export function PlanogramaDetalle() {
   const [versionAPromover, setVersionAPromover] = useState<VersionListItem | null>(null);
   const [versionATiendas, setVersionATiendas] = useState<VersionListItem | null>(null);
   const [versionAPublicar, setVersionAPublicar] = useState<VersionListItem | null>(null);
+  const [versionAArchivar, setVersionAArchivar] = useState<VersionListItem | null>(null);
 
   async function onMarcarEnDesarrollo(v: VersionListItem) {
     const actualizada = await marcarEnDesarrollo(v.id);
@@ -124,6 +126,7 @@ export function PlanogramaDetalle() {
                 onPromoverPiloto={setVersionAPromover}
                 onTiendas={setVersionATiendas}
                 onPublicar={setVersionAPublicar}
+                onArchivar={setVersionAArchivar}
               />
             )}
           </div>
@@ -204,6 +207,17 @@ export function PlanogramaDetalle() {
           onClose={() => setVersionAPublicar(null)}
           onPublicada={() => {
             setVersionAPublicar(null);
+            recargarVersiones();
+          }}
+        />
+      )}
+
+      {versionAArchivar && (
+        <ArchivarVersionModal
+          version={versionAArchivar}
+          onClose={() => setVersionAArchivar(null)}
+          onArchivada={() => {
+            setVersionAArchivar(null);
             recargarVersiones();
           }}
         />

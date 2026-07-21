@@ -32,6 +32,8 @@ export const versionesService = {
       estadoDestino: 'publicado',
     }),
 
+  archivar: (id: number) => httpClient.post<Version>(`/versiones/${id}/archivar`),
+
   obtenerTiendas: (id: number) => httpClient.get<TiendasDeVersion>(`/versiones/${id}/tiendas`),
 
   reemplazarTiendas: (id: number, tiendaIds: number[]) =>

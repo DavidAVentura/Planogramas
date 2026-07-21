@@ -4,6 +4,7 @@ import { Button } from '../../../ui/Button/Button';
 import { Wizard } from '../../../ui/Wizard/Wizard';
 import { useTiendas } from '../../../../hooks/useTiendas';
 import { useCrearVersion } from '../../../../hooks/useVersiones';
+import { ESTADO_META } from '../../EstadoBadge/EstadoBadge';
 import type { Version, VersionListItem } from '../../../../types/version';
 import './VersionEspecialWizard.css';
 
@@ -28,7 +29,11 @@ export function VersionEspecialWizard({
   const [notas, setNotas] = useState('');
   const { crear, enviando } = useCrearVersion();
 
-  const versionBase = versionesBase.find((v) => v.id === versionBaseId) ?? null;
+  const versionesBaseDisponibles = useMemo(
+    () => versionesBase.filter((v) => v.estado !== 'archivado'),
+    [versionesBase],
+  );
+  const versionBase = versionesBaseDisponibles.find((v) => v.id === versionBaseId) ?? null;
 
   const filtrosTiendas = useMemo(
     () =>
@@ -79,9 +84,9 @@ export function VersionEspecialWizard({
             <span>Versión base</span>
             <select value={versionBaseId ?? ''} onChange={(e) => setVersionBaseId(Number(e.target.value) || null)}>
               <option value="">Seleccionar versión</option>
-              {versionesBase.map((v) => (
+              {versionesBaseDisponibles.map((v) => (
                 <option key={v.id} value={v.id}>
-                  {v.codigo} ({v.tipo})
+                  {v.codigo} ({v.tipo}) — {ESTADO_META[v.estado]?.label ?? v.estado}
                 </option>
               ))}
             </select>

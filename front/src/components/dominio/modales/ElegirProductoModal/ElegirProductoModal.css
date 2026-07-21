@@ -1,0 +1,41 @@
+.elegir-producto-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.elegir-producto-modal__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.elegir-producto-modal__chip {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 8px 14px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #fff;
+  color: var(--fg-1);
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.elegir-producto-modal__chip:hover {
+  border-color: var(--border-strong);
+}
+
+.elegir-producto-modal__chip--activa {
+  background: var(--cemaco-indigo);
+  border-color: var(--cemaco-indigo);
+  color: var(--white);
+}
+
+.elegir-producto-modal__ayuda {
+  margin: 0;
+  font-size: 13px;
+  color: var(--fg-3);
+}

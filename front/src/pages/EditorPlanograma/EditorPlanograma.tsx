@@ -272,6 +272,7 @@ export function EditorPlanograma() {
                 niveles={niveles}
                 puedeEscribir={puedeEscribir}
                 extendido={nivelesExtendido}
+                subcategorias={planograma?.subcategorias ?? []}
                 onToggleExtender={() => setNivelesExtendido((v) => !v)}
                 onAgregar={() => setModalNivel('crear')}
                 onEditar={setModalNivel}

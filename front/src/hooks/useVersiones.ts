@@ -140,6 +140,27 @@ export function usePublicarVersion() {
   return { publicar, enviando };
 }
 
+export function useArchivarVersion() {
+  const [enviando, setEnviando] = useState(false);
+  const { mostrarToast } = useToast();
+
+  async function archivar(id: number): Promise<Version | null> {
+    setEnviando(true);
+    try {
+      const version = await versionesService.archivar(id);
+      mostrarToast(`Versión ${version.codigo} archivada`, 'success');
+      return version;
+    } catch (err) {
+      mostrarToast(mensajeDeError(err, 'No se pudo archivar la versión'), 'error');
+      return null;
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  return { archivar, enviando };
+}
+
 export function useTiendasVersion(id: number) {
   const [tiendas, setTiendas] = useState<TiendasDeVersion | null>(null);
   const [cargando, setCargando] = useState(true);

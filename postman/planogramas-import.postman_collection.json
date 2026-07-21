@@ -185,6 +185,18 @@
       "value": "SKU-FIXTURE-SIN-DIMENSIONES",
       "type": "string",
       "description": "SKU de un Producto local sembrado a mano via SQL sin ancho_cm/alto_cm/profundidad_cm, requerido para probar el 422 de 'Validar dimensiones de producto' (no hay endpoint que cree un Producto sin dimensiones -- POST /niveles/:id/posiciones siempre trae las 3 medidas reales desde CATI via asegurarExistencia). Script SQL minimo para recrearlo si la BD se limpia: INSERT INTO Producto (sku, nombre) VALUES ('SKU-FIXTURE-SIN-DIMENSIONES', 'Producto fixture sin dimensiones')."
+    },
+    {
+      "key": "planogramaIdDosEspeciales",
+      "value": "",
+      "type": "string",
+      "description": "Id del planograma temporal creado por el Setup para probar que dos versiones especiales de tiendas distintas coexisten en borrador. Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "versionIdBaseDosEspeciales",
+      "value": "",
+      "type": "string",
+      "description": "Id de la version base MEDIANA (borrador) creada por el Setup, usada para clonar las dos especiales de T004 y T007."
     }
   ],
   "item": [
@@ -2235,6 +2247,400 @@
                 }
               ],
               "response": []
+            },
+            {
+              "name": "201 - Crear planograma para dos especiales del mismo tipo (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Autos - Rack Dos Especiales {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\n    \"Aceites\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('planogramaIdDosEspeciales', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear version base MEDIANA para dos especiales (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdDosEspeciales}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdDosEspeciales}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"MEDIANA\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdBaseDosEspeciales', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear planograma para archivar version (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Autos - Rack Archivar {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\n    \"Aceites\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Planograma dedicado a los escenarios de exito de \"Archivar version\" -- una version por tipo (GRANDE/MEDIANA/EXPRESS) para dejar cada una en un estado archivable distinto sin chocar con la unicidad por tipo."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('planogramaIdArchivar', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear version GRANDE, queda en borrador (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdArchivar}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdArchivar}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Lista para el escenario \"200 - Archivar version en borrador\"."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdArchivarBorrador', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear version MEDIANA para archivar en desarrollo (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdArchivar}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdArchivar}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"MEDIANA\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdArchivarEnDesarrollo', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Guardar version MEDIANA, avanza a en_desarrollo (setup)",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdArchivarEnDesarrollo}}/guardar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdArchivarEnDesarrollo}}",
+                    "guardar"
+                  ]
+                },
+                "description": "Lista para el escenario \"200 - Archivar version en en_desarrollo\"."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.expect(pm.response.json().estado).to.eql('en_desarrollo');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear version EXPRESS para archivar en piloto (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdArchivar}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdArchivar}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"EXPRESS\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdArchivarPiloto', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Guardar version EXPRESS, avanza a en_desarrollo (setup)",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdArchivarPiloto}}/guardar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdArchivarPiloto}}",
+                    "guardar"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.expect(pm.response.json().estado).to.eql('en_desarrollo');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Promover version EXPRESS a piloto (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdArchivarPiloto}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdArchivarPiloto}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Lista para el escenario \"200 - Archivar version en piloto\"."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
             }
           ]
         },
@@ -2531,6 +2937,102 @@
                       "  const body = pm.response.json();",
                       "  pm.expect(body.versionBaseId).to.eql(Number(pm.collectionVariables.get('versionIdBaseClonar')));",
                       "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear version especial para tienda T004 (primera de dos especiales del mismo tipo)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdDosEspeciales}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdDosEspeciales}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"MEDIANA\",\n  \"versionBaseId\": \"{{versionIdBaseDosEspeciales}}\",\n  \"tiendaId\": 2,\n  \"notas\": \"Especial Cemaco Zona Cuatro (T004)\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "tiendaId 2 = T004 (Cemaco Zona Cuatro), tienda MEDIANA sembrada en el entorno de referencia."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.test('Queda en borrador', () => pm.expect(pm.response.json().estado).to.eql('borrador'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear version especial para tienda T007, coexiste en borrador con la especial de T004 del mismo tipo",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdDosEspeciales}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdDosEspeciales}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"MEDIANA\",\n  \"versionBaseId\": \"{{versionIdBaseDosEspeciales}}\",\n  \"tiendaId\": 3,\n  \"notas\": \"Especial Cemaco Zona Siete (T007)\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "tiendaId 3 = T007 (Cemaco Zona Siete). Regresión: la version especial de T004 (request anterior) ya quedo en borrador del mismo tipo MEDIANA — esto NO debe bloquear la creacion de esta segunda especial de otra tienda. La regla de \"una en borrador por tipo\" aplica solo a la linea base, nunca entre especiales."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.test('Queda en borrador, no choca con la especial de otra tienda', () => pm.expect(pm.response.json().estado).to.eql('borrador'));"
                     ]
                   }
                 }
@@ -3659,6 +4161,226 @@
                       "  const body = pm.response.json();",
                       "  pm.expect(body.error.code).to.eql('UNPROCESSABLE');",
                       "  pm.expect(body.error.details).to.be.an('array').that.is.not.empty;",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Archivar version (POST /versiones/:id/archivar)",
+          "item": [
+            {
+              "name": "200 - Archivar version en borrador",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdArchivarBorrador}}/archivar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdArchivarBorrador}}",
+                    "archivar"
+                  ]
+                },
+                "description": "Archivado manual directo desde borrador, sin pasar por promover/guardar."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Queda en estado archivado', () => {",
+                      "  pm.expect(pm.response.json().estado).to.eql('archivado');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Archivar version en en_desarrollo",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdArchivarEnDesarrollo}}/archivar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdArchivarEnDesarrollo}}",
+                    "archivar"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Queda en estado archivado', () => {",
+                      "  pm.expect(pm.response.json().estado).to.eql('archivado');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Archivar version en piloto",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdArchivarPiloto}}/archivar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdArchivarPiloto}}",
+                    "archivar"
+                  ]
+                },
+                "description": "No desasigna las tiendas piloto que ya tenia asignadas -- quedan como registro historico."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Queda en estado archivado', () => {",
+                      "  pm.expect(pm.response.json().estado).to.eql('archivado');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - version no encontrada",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdInexistente}}/archivar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdInexistente}}",
+                    "archivar"
+                  ]
+                },
+                "description": "Id numericamente valido pero inexistente en la BD."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Code NOT_FOUND', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - no se puede archivar una version publicada",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdPublicada}}/archivar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdPublicada}}",
+                    "archivar"
+                  ]
+                },
+                "description": "Una version publicada solo se archiva automaticamente cuando otra la reemplaza via /promover -- este endpoint la rechaza."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.test('Code UNPROCESSABLE', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - la version ya esta archivada",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdArchivada}}/archivar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdArchivada}}",
+                    "archivar"
+                  ]
+                },
+                "description": "No existe operacion \"desarchivar\"."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.test('Code UNPROCESSABLE', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE');",
                       "});"
                     ]
                   }

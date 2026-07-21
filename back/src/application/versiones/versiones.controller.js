@@ -131,6 +131,16 @@ async function promover(req, res, next) {
   }
 }
 
+async function archivar(req, res, next) {
+  try {
+    const id      = parsearId(req.params.id);
+    const version = await usecases.archivarVersion(versionRepo, id);
+    res.json(version);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function obtenerTiendas(req, res, next) {
   try {
     const id        = parsearId(req.params.id);
@@ -170,6 +180,7 @@ module.exports = {
   editar,
   guardar,
   promover,
+  archivar,
   obtenerTiendas,
   reemplazarTiendas,
   obtenerEstructura,

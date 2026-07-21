@@ -8,7 +8,7 @@ interface EstadoMeta {
 
 // Superset de estados de Planograma (borrador/activo/archivado) y de Version
 // (agrega en_desarrollo/piloto/publicado) — ambos se muestran con este mismo badge.
-const ESTADO_META: Record<string, EstadoMeta> = {
+export const ESTADO_META: Record<string, EstadoMeta> = {
   borrador:       { label: 'Borrador',       bg: 'var(--ink-100)',           color: 'var(--ink-700)' },
   activo:         { label: 'Activo',         bg: 'var(--cemaco-green-50)',   color: 'var(--cemaco-green-700)' },
   publicado:      { label: 'Publicado',      bg: 'var(--cemaco-green-50)',   color: 'var(--cemaco-green-700)' },

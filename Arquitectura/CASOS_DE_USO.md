@@ -29,6 +29,7 @@ Actores:
 | CU-02-04 | Promover versión a publicado | Analista | Aprueba el piloto y publica la versión; la versión anterior pasa a `archivado`. |
 | CU-02-05 | Asignar tiendas a versión | Analista | Agrega o quita tiendas del listado de tiendas que usan una versión. |
 | CU-02-06 | Consultar versiones de un planograma | Analista | Ve el historial de versiones con sus estados y tiendas asignadas. |
+| CU-02-07 | Archivar versión manualmente | Analista | Retira una versión en `borrador`, `en_desarrollo` o `piloto` sin esperar a que otra la reemplace. |
 
 ---
 

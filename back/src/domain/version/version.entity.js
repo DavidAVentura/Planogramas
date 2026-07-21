@@ -30,6 +30,14 @@ const TRANSICION_PROMOVER = Object.freeze({
   [ESTADOS.PILOTO]:        ESTADOS.PUBLICADO,
 });
 
+/**
+ * Estados desde los que se puede archivar una versión manualmente vía `archivar`.
+ * `publicado` queda fuera a propósito: solo se archiva automáticamente cuando otra
+ * versión la reemplaza (ver `promoverVersion`), para no retirar por error una versión
+ * que las tiendas puedan estar usando activamente.
+ */
+const ESTADOS_ARCHIVABLES = Object.freeze([ESTADOS.BORRADOR, ESTADOS.EN_DESARROLLO, ESTADOS.PILOTO]);
+
 function errorUnprocessable(mensaje) {
   const err = new Error(mensaje);
   err.status = 422;
@@ -107,6 +115,16 @@ function validarTransicionPromover(estadoActual, estadoDestino) {
   }
 }
 
+/**
+ * Valida que la versión se pueda archivar manualmente desde su estado actual.
+ * @param {string} estadoActual
+ */
+function validarTransicionArchivar(estadoActual) {
+  if (!ESTADOS_ARCHIVABLES.includes(estadoActual)) {
+    throw errorUnprocessable(`No se puede archivar una versión en estado '${estadoActual}'`);
+  }
+}
+
 module.exports = {
   TIPOS,
   ESTADOS,
@@ -116,4 +134,5 @@ module.exports = {
   validarNoArchivada,
   calcularTransicionGuardar,
   validarTransicionPromover,
+  validarTransicionArchivar,
 };

@@ -1,17 +1,22 @@
 import { useState, type DragEvent } from 'react';
 import { CapacityBar } from '../CapacityBar/CapacityBar';
 import { PosicionCard } from '../PosicionCard/PosicionCard';
+import { SeleccionarModoPosicionModal } from '../../modales/SeleccionarModoPosicionModal/SeleccionarModoPosicionModal';
 import { PosicionFormModal } from '../../modales/PosicionFormModal/PosicionFormModal';
+import { ElegirProductoModal } from '../../modales/ElegirProductoModal/ElegirProductoModal';
 import { leerDatosArrastre, type DatosArrastrePosicion } from '../../../../utils/dragPosicion';
 import type { Nivel } from '../../../../types/nivel';
 import type { PosicionConProducto, PosicionesDeNivel } from '../../../../types/posicion';
 import './PosicionesPanel.css';
+
+type ModoAgregarPosicion = 'seleccion' | 'manual' | 'producto' | null;
 
 interface PosicionesPanelProps {
   nivel: Nivel;
   datos: PosicionesDeNivel | undefined;
   cargando: boolean;
   puedeEscribir: boolean;
+  subcategorias: string[];
   onCambio: () => void;
   seleccionadaId: number | null;
   onSeleccionar: (posicionId: number) => void;
@@ -25,6 +30,7 @@ export function PosicionesPanel({
   datos,
   cargando,
   puedeEscribir,
+  subcategorias,
   onCambio,
   seleccionadaId,
   onSeleccionar,
@@ -32,7 +38,7 @@ export function PosicionesPanel({
   onAbrirFicha,
   onSoltarPosicion,
 }: PosicionesPanelProps) {
-  const [mostrarFormAgregar, setMostrarFormAgregar] = useState(false);
+  const [modoAgregar, setModoAgregar] = useState<ModoAgregarPosicion>(null);
 
   const posiciones = datos?.posiciones ?? [];
 
@@ -69,7 +75,7 @@ export function PosicionesPanel({
             type="button"
             className="posiciones-panel__agregar"
             title="Agregar posición"
-            onClick={() => setMostrarFormAgregar(true)}
+            onClick={() => setModoAgregar('seleccion')}
           >
             +
           </button>
@@ -87,13 +93,34 @@ export function PosicionesPanel({
         </div>
       )}
 
-      {mostrarFormAgregar && (
+      {modoAgregar === 'seleccion' && (
+        <SeleccionarModoPosicionModal
+          onClose={() => setModoAgregar(null)}
+          onSeleccionarManual={() => setModoAgregar('manual')}
+          onSeleccionarProducto={() => setModoAgregar('producto')}
+        />
+      )}
+
+      {modoAgregar === 'manual' && (
         <PosicionFormModal
           nivelId={nivel.id}
           proximoOrden={posiciones.length + 1}
-          onClose={() => setMostrarFormAgregar(false)}
+          onClose={() => setModoAgregar(null)}
           onGuardada={() => {
-            setMostrarFormAgregar(false);
+            setModoAgregar(null);
+            onCambio();
+          }}
+        />
+      )}
+
+      {modoAgregar === 'producto' && (
+        <ElegirProductoModal
+          nivelId={nivel.id}
+          proximoOrden={posiciones.length + 1}
+          subcategorias={subcategorias}
+          onClose={() => setModoAgregar(null)}
+          onAgregada={() => {
+            setModoAgregar(null);
             onCambio();
           }}
         />

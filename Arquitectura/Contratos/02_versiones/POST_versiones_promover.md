@@ -11,11 +11,13 @@
 
 Avanza el estado de la versión al siguiente en el ciclo de vida: `en_desarrollo → piloto` o `piloto → publicado`. El body determina el estado destino y, cuando aplica, las tiendas piloto.
 
+El archivado automático de la "anterior" descrito abajo solo aplica cuando la versión promovida es de la **línea base** (sin `versionBaseId`) — las versiones especiales por tienda nunca archivan ninguna anterior, ni compiten por el estado con otras especiales ni con la base.
+
 Cuando pasa a `piloto`:
-- Archiva automáticamente la versión en `piloto` anterior del mismo planograma + tipo (mismo mecanismo que el archivado al publicar).
+- Si es línea base, archiva automáticamente la versión base en `piloto` anterior del mismo planograma + tipo (mismo mecanismo que el archivado al publicar).
 
 Cuando pasa a `publicado`:
-- Archiva automáticamente la versión publicada anterior del mismo planograma + tipo.
+- Si es línea base, archiva automáticamente la versión base publicada anterior del mismo planograma + tipo.
 - Valida errores bloqueantes antes de proceder.
 
 ---
@@ -43,13 +45,13 @@ Cuando pasa a `publicado`:
 2. `tiendaIds` requerido, al menos 1 tienda.
 3. Las tiendas deben ser del mismo `tipo` que la versión.
 4. Reemplaza el listado completo de tiendas asignadas en la operación.
-5. Archiva la versión `piloto` anterior del mismo `planograma_id + tipo` (si existe). Operación atómica (transacción).
+5. Si la versión es de línea base, archiva la versión base `piloto` anterior del mismo `planograma_id + tipo` (si existe). Las versiones especiales por tienda no archivan ninguna anterior. Operación atómica (transacción).
 
 ## Reglas de negocio — promover a publicado
 
 1. El estado actual debe ser `piloto` → `422` si no.
 2. Valida errores bloqueantes: posiciones con `min_final > max_final`. Si hay errores, retorna `422` con el detalle.
-3. Archiva la versión `publicado` anterior del mismo `planograma_id + tipo` (si existe).
+3. Si la versión es de línea base, archiva la versión base `publicado` anterior del mismo `planograma_id + tipo` (si existe). Las versiones especiales por tienda no archivan ninguna anterior.
 4. Operación atómica (transacción).
 
 ---

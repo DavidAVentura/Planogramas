@@ -77,7 +77,9 @@ module.exports = {
   actualizarEstado: async (_id, _estado) => { throw new Error('No implementado'); },
 
   /**
-   * Busca una versión del mismo tipo en el planograma que esté en el estado indicado.
+   * Busca una versión de línea base (version_base_id IS NULL) del mismo tipo en el
+   * planograma que esté en el estado indicado. Las versiones especiales por tienda
+   * quedan fuera de esta búsqueda — no compiten por la unicidad de estado.
    * @param {number} planogramaId
    * @param {string} tipo
    * @param {string} estado
@@ -127,8 +129,10 @@ module.exports = {
   reemplazarTiendas: async (_id, _tiendaIds) => { throw new Error('No implementado'); },
 
   /**
-   * Promueve la versión a `piloto` reemplazando sus tiendas asignadas, archivando la
-   * versión en `piloto` anterior del mismo planograma+tipo (si existe). Transaccional.
+   * Promueve la versión a `piloto` reemplazando sus tiendas asignadas. Si la versión
+   * es de línea base (version_base_id IS NULL), archiva la versión en `piloto`
+   * anterior del mismo planograma+tipo (si existe); las versiones especiales por
+   * tienda no archivan ninguna anterior. Transaccional.
    * @param {number} id
    * @param {number[]} tiendaIds
    * @returns {Promise<{ tiendas: object[], versionAnteriorArchivada: object|null }>}
@@ -136,16 +140,20 @@ module.exports = {
   promoverAPiloto: async (_id, _tiendaIds) => { throw new Error('No implementado'); },
 
   /**
-   * Promueve la versión a `publicado`, archivando la versión publicada anterior
-   * del mismo planograma+tipo (si existe). Transaccional.
+   * Promueve la versión a `publicado`. Si la versión es de línea base
+   * (version_base_id IS NULL), archiva la versión publicada anterior del mismo
+   * planograma+tipo (si existe); las versiones especiales por tienda no archivan
+   * ninguna anterior. Transaccional.
    * @param {number} id
    * @returns {Promise<{ versionAnteriorArchivada: object|null }>}
    */
   promoverAPublicado: async (_id) => { throw new Error('No implementado'); },
 
   /**
-   * Marca la versión como `en_desarrollo`, archivando la versión en `en_desarrollo`
-   * anterior del mismo planograma+tipo (si existe). Transaccional.
+   * Marca la versión como `en_desarrollo`. Si la versión es de línea base
+   * (version_base_id IS NULL), archiva la versión en `en_desarrollo` anterior del
+   * mismo planograma+tipo (si existe); las versiones especiales por tienda no
+   * archivan ninguna anterior. Transaccional.
    * @param {number} id
    * @returns {Promise<{ versionAnteriorArchivada: object|null }>}
    */

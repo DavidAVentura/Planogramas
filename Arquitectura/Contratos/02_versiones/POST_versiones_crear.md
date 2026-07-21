@@ -35,7 +35,7 @@ Crea una nueva versión de planograma. Si se incluye `versionBaseId`, crea una *
 ## Reglas de negocio
 
 1. No se pueden crear versiones en un planograma `archivado` → `422`.
-2. Solo puede existir **una versión en `borrador`** del mismo `tipo` por planograma. Si ya existe, retorna `409`. Sí puede coexistir con versiones del mismo `tipo` en `en_desarrollo`, `piloto` o `publicado` — cada estado admite como máximo una versión por `tipo`, y avanzar una versión de estado archiva automáticamente a la que ocupaba el estado destino (ver `PATCH_versiones_guardar.md` y `POST_versiones_promover.md`).
+2. Solo puede existir **una versión en `borrador`** del mismo `tipo` en la **línea base** (versión vacía, sin `versionBaseId`) por planograma. Si ya existe, retorna `409`. Sí puede coexistir con versiones de la línea base del mismo `tipo` en `en_desarrollo`, `piloto` o `publicado` — cada estado admite como máximo una versión base por `tipo`, y avanzar una versión de estado archiva automáticamente a la que ocupaba el estado destino (ver `PATCH_versiones_guardar.md` y `POST_versiones_promover.md`). Esta regla **no aplica a las versiones especiales por tienda**: cada tienda puede tener su propia versión especial en cualquier estado, sin chocar entre sí ni con la línea base.
 3. El `codigo` se genera automáticamente con el patrón: `{NOMBRE_PLANOGRAMA}-T{INICIAL_TIPO}` para una versión vacía, y `{NOMBRE_PLANOGRAMA}-T{INICIAL_TIPO}-{CODIGO_TIENDA}` para una versión especial por tienda. Ej: `AUTOS 01-TG` y `AUTOS 01-TG-T010`.
 4. Si se envía `versionBaseId`:
    - La versión base debe existir y pertenecer al mismo planograma.
@@ -108,7 +108,7 @@ Crea una nueva versión de planograma. Si se incluye `versionBaseId`, crea una *
 | `401 Unauthorized` | JWT ausente o inválido. |
 | `403 Forbidden` | Usuario sin rol de Analista. |
 | `404 Not Found` | Planograma o `versionBaseId` no encontrado. |
-| `409 Conflict` | Ya existe una versión en borrador del mismo tipo. |
+| `409 Conflict` | Ya existe una versión en borrador del mismo tipo en la línea base (no aplica a versiones especiales por tienda). |
 | `422 Unprocessable Entity` | El planograma está archivado. |
 
 ```json

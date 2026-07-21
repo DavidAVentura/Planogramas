@@ -30,14 +30,18 @@ erDiagram
         datetime    created_at          "agregado en migración 002"
         datetime    updated_at          "agregado en migración 002"
     }
-    %% solo una versión por planograma+tipo puede estar en cada uno de los 4 estados no archivados
-    %% a la vez (borrador/en_desarrollo/piloto/publicado) — 4 índices únicos filtrados, uno por
-    %% estado, ver migraciones 001 (publicado) y 006 (borrador/en_desarrollo/piloto):
-    %% CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='publicado'
-    %% CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='borrador'
-    %% CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='en_desarrollo'
-    %% CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='piloto'
-    %% avanzar una versión de estado archiva automáticamente a la que ocupaba el estado destino
+    %% solo una versión DE LÍNEA BASE (version_base_id IS NULL) por planograma+tipo puede estar en
+    %% cada uno de los 4 estados no archivados a la vez (borrador/en_desarrollo/piloto/publicado) —
+    %% 4 índices únicos filtrados, uno por estado, ver migraciones 001+007 (publicado) y 006
+    %% (borrador/en_desarrollo/piloto). Las versiones especiales por tienda (version_base_id NOT
+    %% NULL) quedan fuera de esta unicidad: cada tienda puede tener su propia especial en cualquier
+    %% estado, sin chocar entre sí ni con la base.
+    %% CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='publicado' AND version_base_id IS NULL
+    %% CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='borrador' AND version_base_id IS NULL
+    %% CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='en_desarrollo' AND version_base_id IS NULL
+    %% CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='piloto' AND version_base_id IS NULL
+    %% avanzar una versión base de estado archiva automáticamente a la versión base que ocupaba el
+    %% estado destino — las especiales por tienda no archivan ninguna anterior
 
     Gondola {
         int         id                      PK
