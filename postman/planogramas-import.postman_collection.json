@@ -8159,6 +8159,10 @@
                       "  pm.expect(body.capacidad.ancho_disponible_cm).to.eql(120);",
                       "  pm.expect(body.capacidad.ancho_ocupado_cm).to.eql(80);",
                       "  pm.expect(body.capacidad.ancho_libre_cm).to.eql(40);",
+                      "});",
+                      "pm.test('Cada posicion incluye el campo producto (null o con datos locales)', () => {",
+                      "  const body = pm.response.json();",
+                      "  body.posiciones.forEach((p) => pm.expect(p).to.have.property('producto'));",
                       "});"
                     ]
                   }

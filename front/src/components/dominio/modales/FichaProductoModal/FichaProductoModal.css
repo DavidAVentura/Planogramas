@@ -1,0 +1,43 @@
+.ficha-producto-modal__vacio {
+  color: var(--fg-3);
+  font-size: 14px;
+}
+
+.ficha-producto-modal__contenido {
+  display: flex;
+  gap: 14px;
+}
+
+.ficha-producto-modal__imagen {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--ink-50);
+  flex-shrink: 0;
+}
+
+.ficha-producto-modal__imagen--vacia {
+  background: var(--ink-100);
+}
+
+.ficha-producto-modal__datos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--fg-2);
+}
+
+.ficha-producto-modal__nombre {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--fg-1);
+}
+
+.ficha-producto-modal__sku {
+  font-family: var(--font-mono);
+  color: var(--fg-3);
+}

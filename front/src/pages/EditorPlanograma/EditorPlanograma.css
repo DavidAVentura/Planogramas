@@ -8,6 +8,9 @@
 }
 
 .editor-planograma__gondola-activa {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 24px;
@@ -15,5 +18,14 @@
 
 .editor-planograma__acciones {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.editor-planograma__acciones-proximamente {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }

@@ -1,8 +1,8 @@
 import { Button } from '../../../ui/Button/Button';
 import { PosicionesPanel } from '../PosicionesPanel/PosicionesPanel';
-import type { GondolaListItem } from '../../../../types/gondola';
 import type { Nivel } from '../../../../types/nivel';
-import type { PosicionesDeNivel } from '../../../../types/posicion';
+import type { PosicionConProducto, PosicionesDeNivel } from '../../../../types/posicion';
+import type { DatosArrastrePosicion } from '../../../../utils/dragPosicion';
 import './NivelRow.css';
 
 interface NivelRowProps {
@@ -12,11 +12,14 @@ interface NivelRowProps {
   onEditar: (nivel: Nivel) => void;
   onEliminar: (nivel: Nivel) => void;
   onMover: (nivel: Nivel, direccion: 'subir' | 'bajar') => void;
-  gondolas: GondolaListItem[];
-  gondolaActualId: number;
   posicionesPorNivel: Record<number, PosicionesDeNivel>;
   cargandoPosiciones: boolean;
   onCambioPosiciones: () => void;
+  seleccionadaId: number | null;
+  onSeleccionarPosicion: (posicionId: number) => void;
+  onDetallePosicion: (posicion: PosicionConProducto) => void;
+  onAbrirFicha: (sku: string) => void;
+  onSoltarPosicion: (datos: DatosArrastrePosicion, nivelDestinoId: number, ordenDestino: number) => void;
 }
 
 export function NivelRow({
@@ -26,11 +29,14 @@ export function NivelRow({
   onEditar,
   onEliminar,
   onMover,
-  gondolas,
-  gondolaActualId,
   posicionesPorNivel,
   cargandoPosiciones,
   onCambioPosiciones,
+  seleccionadaId,
+  onSeleccionarPosicion,
+  onDetallePosicion,
+  onAbrirFicha,
+  onSoltarPosicion,
 }: NivelRowProps) {
   return (
     <div className="nivel-row-lista">
@@ -45,7 +51,7 @@ export function NivelRow({
 
       {niveles.map((nivel, indice) => (
         <div key={nivel.id} className="nivel-row">
-          <div className="nivel-row__encabezado">
+          <div className="nivel-row__nombre-col">
             {puedeEscribir && (
               <span className="nivel-row__mover">
                 <button
@@ -66,28 +72,13 @@ export function NivelRow({
                 </button>
               </span>
             )}
-
-            <div className="nivel-row__info">
-              <span className="nivel-row__nombre">Nivel {nivel.orden}</span>
-              <span className="nivel-row__detalle">
-                {nivel.tipo_accesorio} · {nivel.altura_desde_piso_cm} cm desde el piso · {nivel.ancho_disponible_cm} cm
-                disponibles
-                {nivel.accesorio && ` · ${nivel.accesorio.nombre}`}
-                {nivel.tamano_accesorio_pulgadas ? ` (${nivel.tamano_accesorio_pulgadas}")` : ''}
-              </span>
-              {nivel.notas && <span className="nivel-row__notas">{nivel.notas}</span>}
-            </div>
-
-            {puedeEscribir && (
-              <span className="nivel-row__acciones">
-                <button type="button" onClick={() => onEditar(nivel)}>
-                  Editar
-                </button>
-                <button type="button" onClick={() => onEliminar(nivel)}>
-                  Eliminar
-                </button>
-              </span>
-            )}
+            <span className="nivel-row__nombre">Nivel {nivel.orden}</span>
+            <span className="nivel-row__detalle">
+              {nivel.altura_desde_piso_cm} cm · {nivel.tipo_accesorio}
+              {nivel.accesorio && ` ${nivel.accesorio.nombre}`}
+              {nivel.tamano_accesorio_pulgadas ? ` (${nivel.tamano_accesorio_pulgadas}")` : ''}
+            </span>
+            {nivel.notas && <span className="nivel-row__notas">{nivel.notas}</span>}
           </div>
 
           <PosicionesPanel
@@ -95,10 +86,24 @@ export function NivelRow({
             datos={posicionesPorNivel[nivel.id]}
             cargando={cargandoPosiciones}
             puedeEscribir={puedeEscribir}
-            gondolas={gondolas}
-            gondolaActualId={gondolaActualId}
             onCambio={onCambioPosiciones}
+            seleccionadaId={seleccionadaId}
+            onSeleccionar={onSeleccionarPosicion}
+            onDetalle={onDetallePosicion}
+            onAbrirFicha={onAbrirFicha}
+            onSoltarPosicion={onSoltarPosicion}
           />
+
+          {puedeEscribir && (
+            <span className="nivel-row__acciones-nivel">
+              <button type="button" title="Editar nivel" aria-label="Editar nivel" onClick={() => onEditar(nivel)}>
+                ✎
+              </button>
+              <button type="button" title="Eliminar nivel" aria-label="Eliminar nivel" onClick={() => onEliminar(nivel)}>
+                ×
+              </button>
+            </span>
+          )}
         </div>
       ))}
     </div>

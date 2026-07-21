@@ -43,6 +43,18 @@ export interface PosicionDetalle extends Posicion {
   accesorios: PosicionAccesorioEmbebido[];
 }
 
+/** Datos livianos del producto (mirror local, sin llamar a CATI) — ver GET_niveles_posiciones.md. */
+export interface ProductoResumenPosicion {
+  nombre: string | null;
+  imagen_url: string | null;
+  ancho_cm: number | null;
+}
+
+/** Posición enriquecida con `producto`, tal como la devuelve `GET /niveles/{id}/posiciones`. */
+export interface PosicionConProducto extends Posicion {
+  producto: ProductoResumenPosicion | null;
+}
+
 export interface PosicionEditada extends Posicion {
   advertencia?: string;
 }
@@ -83,7 +95,7 @@ export interface Capacidad {
 }
 
 export interface PosicionesDeNivel {
-  posiciones: Posicion[];
+  posiciones: PosicionConProducto[];
   capacidad: Capacidad;
 }
 

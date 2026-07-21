@@ -58,6 +58,26 @@ function mapPosicion(row) {
   };
 }
 
+/**
+ * Adjunta datos livianos de `Producto` (nombre/imagen/ancho) a una posición ya mapeada — usado
+ * únicamente por `listarPorNivel` para pintar tarjetas sin un request por SKU. A diferencia de
+ * GET /posiciones/{id} (vista Analista, ver GET_posiciones_detalle_analista.md), este listado no
+ * tiene la restricción de "sin enriquecimiento": solo lee la tabla local `Producto` ya
+ * sincronizada, sin llamar a CATI.
+ */
+function mapPosicionConProducto(row) {
+  return {
+    ...mapPosicion(row),
+    producto: row.producto_nombre != null || row.producto_imagen_url != null || row.producto_ancho_cm != null
+      ? {
+          nombre:     row.producto_nombre ?? null,
+          imagen_url: row.producto_imagen_url ?? null,
+          ancho_cm:   row.producto_ancho_cm != null ? Number(row.producto_ancho_cm) : null,
+        }
+      : null,
+  };
+}
+
 /** Forma "embebida" de accesorio usada en GET /posiciones/{id} — ver GET_posiciones_detalle_analista.md. */
 function mapAccesorioEmbebido(row) {
   return {
@@ -108,8 +128,17 @@ function accesoriosDePosicionQuery(posicionId) {
 // ─── listarPorNivel ──────────────────────────────────────────────────────────
 
 async function listarPorNivel(nivelId) {
-  const rows = await db(TABLA_POSICION).where('nivel_id', nivelId).orderBy('orden_horizontal', 'asc');
-  return rows.map(mapPosicion);
+  const rows = await db(TABLA_POSICION)
+    .leftJoin(TABLA_PRODUCTO, `${TABLA_POSICION}.sku`, `${TABLA_PRODUCTO}.sku`)
+    .where(`${TABLA_POSICION}.nivel_id`, nivelId)
+    .orderBy(`${TABLA_POSICION}.orden_horizontal`, 'asc')
+    .select(
+      `${TABLA_POSICION}.*`,
+      `${TABLA_PRODUCTO}.nombre as producto_nombre`,
+      `${TABLA_PRODUCTO}.imagen_url as producto_imagen_url`,
+      `${TABLA_PRODUCTO}.ancho_cm as producto_ancho_cm`,
+    );
+  return rows.map(mapPosicionConProducto);
 }
 
 // ─── buscarPorId ─────────────────────────────────────────────────────────────

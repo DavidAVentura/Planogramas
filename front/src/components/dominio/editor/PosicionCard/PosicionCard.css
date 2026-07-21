@@ -1,76 +1,34 @@
 .posicion-card {
+  position: relative;
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
+  flex: none;
+  padding: 7px;
+  border: 2px solid var(--border);
   border-radius: var(--radius-md);
-  background: #fff;
+  background: var(--ink-50);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.posicion-card--seleccionada {
+  border-color: var(--cemaco-green);
+  box-shadow: 0 0 0 3px rgb(148 213 0 / 25%);
+}
+
+.posicion-card__badge-facings {
+  position: absolute;
+  top: -9px;
+  right: -6px;
+  z-index: 1;
+  background: var(--cemaco-green);
+  color: var(--cemaco-indigo);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
 }
 
 .posicion-card__facings {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  max-width: 200px;
-}
-
-.posicion-card__info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-  min-width: 0;
-}
-
-.posicion-card__sku {
-  align-self: flex-start;
-  background: transparent;
-  border: 0;
-  padding: 0;
-  font-family: var(--font-mono);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--fg-1);
-  cursor: pointer;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
-.posicion-card__detalle {
-  font-size: 12px;
-  color: var(--fg-3);
-}
-
-.posicion-card__badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 2px;
-}
-
-.posicion-card__acciones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  justify-content: flex-end;
-  max-width: 180px;
-
-  button {
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 4px 8px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--fg-1);
-    cursor: pointer;
-    white-space: nowrap;
-
-    &:hover {
-      background: var(--ink-50);
-    }
-  }
+  gap: 3px;
 }

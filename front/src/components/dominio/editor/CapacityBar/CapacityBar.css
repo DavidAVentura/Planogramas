@@ -6,7 +6,7 @@
 
 .capacity-bar__track {
   flex: 1;
-  height: 8px;
+  height: 4px;
   border-radius: var(--radius-pill);
   background: var(--ink-100);
   overflow: hidden;

@@ -14,6 +14,7 @@ import {
   useValidarDimensionesProducto,
 } from '../../../../hooks/useCatalogo';
 import { useAccesorios } from '../../../../hooks/useAccesorios';
+import { calcularAnchoAsignado } from '../../../../utils/posicionCalculos';
 import {
   DECISIONES_POSICION,
   MODOS_POSICION,
@@ -209,8 +210,7 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
     setFacings(valor);
     const facingsNuevoNum = Number(valor) || 0;
     const dimAnchoNum = Number(dimAnchoCm) || 0;
-    if (facingsNuevoNum === 0 || dimAnchoNum === 0) return;
-    setAnchoCm(String(facingsNuevoNum * dimAnchoNum));
+    setAnchoCm(String(calcularAnchoAsignado(facingsNuevoNum, dimAnchoNum || null, Number(anchoCm))));
   }
 
   async function onAgregarAccesorio() {

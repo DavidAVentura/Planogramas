@@ -2,9 +2,20 @@
   position: relative;
   min-width: 44px;
   height: 44px;
+}
+
+.facing-tile__imagen {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
-  background: var(--ink-50);
+  background: #fff;
+  display: block;
+}
+
+.facing-tile__imagen--vacia {
+  background: var(--ink-100);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -13,7 +24,7 @@
 
 .facing-tile__sku {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 9px;
   color: var(--fg-2);
   overflow: hidden;
   text-overflow: ellipsis;

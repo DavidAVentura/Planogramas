@@ -1,29 +1,41 @@
 .posiciones-panel {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px;
-}
-
-.posiciones-panel__header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-
-  .capacity-bar {
-    flex: 1;
-  }
+  gap: 8px;
+  padding: 10px 0;
+  min-width: 0;
 }
 
 .posiciones-panel__vacio {
-  text-align: center;
   font-size: 13px;
   color: var(--fg-3);
-  padding: 8px 0;
 }
 
 .posiciones-panel__lista {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 68px;
+}
+
+.posiciones-panel__agregar {
+  width: 44px;
+  height: 64px;
+  flex: none;
+  background: transparent;
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--fg-3);
+  font-size: 18px;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--ink-50);
+    color: var(--fg-1);
+  }
+}
+
+.posiciones-panel__capacidad {
+  max-width: 320px;
 }
