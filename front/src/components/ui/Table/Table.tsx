@@ -12,10 +12,11 @@ interface TableProps<T> {
   rows: T[];
   rowKey: (row: T) => string | number;
   onRowClick?: (row: T) => void;
+  rowClassName?: (row: T) => string | undefined;
   vacio?: ReactNode;
 }
 
-export function Table<T>({ columns, rows, rowKey, onRowClick, vacio }: TableProps<T>) {
+export function Table<T>({ columns, rows, rowKey, onRowClick, rowClassName, vacio }: TableProps<T>) {
   if (rows.length === 0 && vacio) return <>{vacio}</>;
 
   return (
@@ -31,7 +32,11 @@ export function Table<T>({ columns, rows, rowKey, onRowClick, vacio }: TableProp
         {rows.map((row) => (
           <tr
             key={rowKey(row)}
-            className={onRowClick ? 'table__fila--clickeable' : undefined}
+            className={
+              [onRowClick ? 'table__fila--clickeable' : '', rowClassName?.(row) ?? '']
+                .filter(Boolean)
+                .join(' ') || undefined
+            }
             onClick={onRowClick ? () => onRowClick(row) : undefined}
           >
             {columns.map((col) => (

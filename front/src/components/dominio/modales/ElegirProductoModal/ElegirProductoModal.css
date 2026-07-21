@@ -39,3 +39,8 @@
   font-size: 13px;
   color: var(--fg-3);
 }
+
+.elegir-producto-modal__fila--seleccionada td {
+  background: var(--cemaco-green);
+  color: var(--ink-900);
+}

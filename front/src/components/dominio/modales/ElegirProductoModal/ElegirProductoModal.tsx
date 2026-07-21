@@ -36,30 +36,47 @@ export function ElegirProductoModal({
   onAgregada,
 }: ElegirProductoModalProps) {
   const { productos, cargando, error, buscar } = useProductosPorSubcategoria();
-  const { agregar, enviando } = useAgregarPosicion();
+  const { agregar } = useAgregarPosicion();
   const [subcategoriaActiva, setSubcategoriaActiva] = useState('');
+  const [seleccionados, setSeleccionados] = useState<Map<string, ProductoCatalogo>>(new Map());
+  const [guardando, setGuardando] = useState(false);
 
   function onElegirSubcategoria(raw: string) {
     setSubcategoriaActiva(raw);
     buscar(parseSubcategoria(raw).filtro, PAGE_SIZE_PRODUCTOS);
   }
 
-  async function onElegirProducto(producto: ProductoCatalogo) {
-    if (enviando) return;
-    const datos: PosicionInput = {
-      sku: producto.sku,
-      orden_horizontal: proximoOrden,
-      ancho_asignado_cm: 1,
-      capacidad_maxima: 1,
-      facings_horizontal: 1,
-      cantidad_apilable: 1,
-      unidades_por_facing: 1,
-      perfil_redondeo: 'MRP',
-      modo: 'PLANOGRAMA',
-      decision: 'ACTIVO',
-    };
-    const resultado = await agregar(nivelId, datos);
-    if (resultado) onAgregada();
+  function onToggleProducto(producto: ProductoCatalogo) {
+    setSeleccionados((actual) => {
+      const copia = new Map(actual);
+      if (copia.has(producto.sku)) copia.delete(producto.sku);
+      else copia.set(producto.sku, producto);
+      return copia;
+    });
+  }
+
+  async function onAgregarSeleccionados() {
+    if (guardando || seleccionados.size === 0) return;
+    setGuardando(true);
+    let orden = proximoOrden;
+    for (const producto of seleccionados.values()) {
+      const datos: PosicionInput = {
+        sku: producto.sku,
+        orden_horizontal: orden,
+        ancho_asignado_cm: 1,
+        capacidad_maxima: 1,
+        facings_horizontal: 1,
+        cantidad_apilable: 1,
+        unidades_por_facing: 1,
+        perfil_redondeo: 'MRP',
+        modo: 'PLANOGRAMA',
+        decision: 'ACTIVO',
+      };
+      const resultado = await agregar(nivelId, datos);
+      if (resultado) orden += 1;
+    }
+    setGuardando(false);
+    onAgregada();
   }
 
   return (
@@ -68,9 +85,18 @@ export function ElegirProductoModal({
       onClose={onClose}
       ancho="xl"
       footer={
-        <Button variante="outline" onClick={onClose} disabled={enviando}>
-          Cancelar
-        </Button>
+        <>
+          <Button variante="outline" onClick={onClose} disabled={guardando}>
+            Cancelar
+          </Button>
+          <Button
+            variante="primary"
+            onClick={onAgregarSeleccionados}
+            disabled={guardando || seleccionados.size === 0}
+          >
+            {guardando ? 'Añadiendo…' : `Añadir (${seleccionados.size})`}
+          </Button>
+        </>
       }
     >
       <div className="elegir-producto-modal">
@@ -115,7 +141,10 @@ export function ElegirProductoModal({
                 ]}
                 rows={productos}
                 rowKey={(p) => p.sku}
-                onRowClick={onElegirProducto}
+                rowClassName={(p) =>
+                  seleccionados.has(p.sku) ? 'elegir-producto-modal__fila--seleccionada' : undefined
+                }
+                onRowClick={onToggleProducto}
                 vacio={
                   <p className="elegir-producto-modal__ayuda">
                     {cargando ? 'Cargando productos…' : 'Sin productos en esta subcategoría.'}
