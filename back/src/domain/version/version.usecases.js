@@ -60,14 +60,18 @@ async function listarVersiones(versionRepo, planogramaRepo, planogramaId, filtro
   return { versiones };
 }
 
-async function crearVersionVacia(versionRepo, planograma, datos) {
-  const activa = await versionRepo.buscarVersionActivaDeTipo(planograma.id, datos.tipo);
-  if (activa) {
+async function validarSinBorradorDeTipo(versionRepo, planogramaId, tipo) {
+  const borrador = await versionRepo.buscarVersionEnEstado(planogramaId, tipo, ESTADOS.BORRADOR);
+  if (borrador) {
     throw errorConflict(
-      `Ya existe una versión activa de tipo ${datos.tipo}. Archívala antes de crear una nueva.`,
-      { versionActiva: activa },
+      `Ya existe una versión en borrador de tipo ${tipo}. Archívala o promuévela antes de crear una nueva.`,
+      { versionActiva: borrador },
     );
   }
+}
+
+async function crearVersionVacia(versionRepo, planograma, datos) {
+  await validarSinBorradorDeTipo(versionRepo, planograma.id, datos.tipo);
 
   const codigo = generarCodigo(planograma.nombre, datos.tipo);
 
@@ -87,6 +91,8 @@ async function crearVersionEspecial(versionRepo, planograma, datos) {
   if (!versionBase || versionBase.planogramaId !== planograma.id) {
     throw errorNotFound(`Versión base ${datos.versionBaseId} no encontrada en este planograma`);
   }
+
+  await validarSinBorradorDeTipo(versionRepo, planograma.id, datos.tipo);
 
   const yaClonada = await versionRepo.tiendaTieneVersionEspecialDeBase(datos.versionBaseId, datos.tiendaId);
   if (yaClonada) {
@@ -209,8 +215,14 @@ async function guardarVersion(versionRepo, id) {
   if (!version) throw errorVersionNoEncontrada(id);
 
   const nuevoEstado = calcularTransicionGuardar(version.estado);
-  await versionRepo.actualizarEstado(id, nuevoEstado);
 
+  if (version.estado === ESTADOS.BORRADOR && nuevoEstado === ESTADOS.EN_DESARROLLO) {
+    const { versionAnteriorArchivada } = await versionRepo.guardarComoEnDesarrollo(id);
+    const actualizada = await versionRepo.buscarPorId(id);
+    return { ...actualizada, versionAnteriorArchivada };
+  }
+
+  await versionRepo.actualizarEstado(id, nuevoEstado);
   return versionRepo.buscarPorId(id);
 }
 
@@ -230,9 +242,9 @@ async function promoverVersion(versionRepo, id, datos) {
   validarTransicionPromover(version.estado, datos.estadoDestino);
 
   if (datos.estadoDestino === ESTADOS.PILOTO) {
-    const { tiendas } = await versionRepo.promoverAPiloto(id, datos.tiendaIds);
+    const { tiendas, versionAnteriorArchivada } = await versionRepo.promoverAPiloto(id, datos.tiendaIds);
     const actualizada = await versionRepo.buscarPorId(id);
-    return { ...actualizada, tiendas };
+    return { ...actualizada, tiendas, versionAnteriorArchivada };
   }
 
   const errores = await versionRepo.buscarErroresBloqueantes(id);

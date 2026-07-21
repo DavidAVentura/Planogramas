@@ -35,7 +35,7 @@ Ciclo de vida de una versión de planograma: creación, promoción de estado y a
 | `POST` | `/planogramas/{id}/versiones` | Analista | CU-02-01 / CU-02-02 | Crea una nueva versión. Si lleva `version_base_id`, crea una versión especial por tienda derivada de esa base. |
 | `GET` | `/versiones/{id}` | Analista / Implementador | CU-01-05 | Retorna el detalle completo de una versión: góndolas, niveles y posiciones anidadas. |
 | `PATCH` | `/versiones/{id}` | Analista | — | Modifica metadatos de la versión (notas, código). |
-| `POST` | `/versiones/{id}/promover` | Analista | CU-02-03 / CU-02-04 | Avanza el estado de la versión al siguiente (`en_desarrollo` → `piloto` → `publicado`). El body indica tiendas piloto cuando el estado destino es `piloto`. Cuando pasa a `publicado`, archiva automáticamente la versión publicada anterior del mismo planograma+tipo. |
+| `POST` | `/versiones/{id}/promover` | Analista | CU-02-03 / CU-02-04 | Avanza el estado de la versión al siguiente (`en_desarrollo` → `piloto` → `publicado`). El body indica tiendas piloto cuando el estado destino es `piloto`. Cada paso archiva automáticamente la versión que ocupaba el estado destino para el mismo planograma+tipo (piloto anterior al promover a piloto, publicada anterior al promover a publicado). |
 | `GET` | `/versiones/{id}/tiendas` | Analista | CU-02-05 | Lista las tiendas asignadas a una versión. |
 | `PUT` | `/versiones/{id}/tiendas` | Analista | CU-02-05 | Reemplaza el listado completo de tiendas asignadas a la versión. |
 | `PATCH` | `/versiones/{id}/guardar` | Analista | CU-06-01 | Persiste el estado actual del planograma sin cambiar su estado. Partial update de posiciones, góndolas y niveles en un solo request. |

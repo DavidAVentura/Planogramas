@@ -4,7 +4,7 @@
  */
 
 const db = require('../db/connection');
-const { ESTADOS, ESTADOS_ACTIVOS } = require('../../domain/version/version.entity');
+const { ESTADOS } = require('../../domain/version/version.entity');
 
 const TABLA_VERSION            = 'PlanogramaVersion';
 const TABLA_VERSION_TIENDA     = 'VersionTienda';
@@ -364,13 +364,13 @@ async function actualizarEstado(id, estado) {
   await db(TABLA_VERSION).where('id', id).update({ estado, updated_at: db.fn.now() });
 }
 
-// ─── buscarVersionActivaDeTipo ───────────────────────────────────────────────
+// ─── buscarVersionEnEstado ───────────────────────────────────────────────────
 
-async function buscarVersionActivaDeTipo(planogramaId, tipo, excluirId) {
+async function buscarVersionEnEstado(planogramaId, tipo, estado, excluirId) {
   const query = db(TABLA_VERSION)
     .where('planograma_id', planogramaId)
     .where('tipo', tipo)
-    .whereIn('estado', ESTADOS_ACTIVOS);
+    .where('estado', estado);
 
   if (excluirId !== undefined) query.whereNot('id', excluirId);
 
@@ -462,9 +462,36 @@ async function reemplazarTiendas(id, tiendaIds) {
 // ─── promoverAPiloto ─────────────────────────────────────────────────────────
 
 async function promoverAPiloto(id, tiendaIds) {
-  const { tiendas } = await reemplazarTiendas(id, tiendaIds);
-  await db(TABLA_VERSION).where('id', id).update({ estado: ESTADOS.PILOTO, updated_at: db.fn.now() });
-  return { tiendas };
+  return db.transaction(async (trx) => {
+    const version = await trx(TABLA_VERSION).where('id', id).select('planograma_id', 'tipo').first();
+
+    const anterior = await trx(TABLA_VERSION)
+      .where('planograma_id', version.planograma_id)
+      .where('tipo', version.tipo)
+      .where('estado', ESTADOS.PILOTO)
+      .whereNot('id', id)
+      .select('id', 'codigo')
+      .first();
+
+    if (anterior) {
+      await trx(TABLA_VERSION).where('id', anterior.id).update({ estado: ESTADOS.ARCHIVADO, updated_at: trx.fn.now() });
+    }
+
+    await trx(TABLA_VERSION_TIENDA).where('planograma_version_id', id).delete();
+
+    let tiendasValidas = [];
+    if (tiendaIds.length > 0) {
+      tiendasValidas = await trx(TABLA_TIENDA).whereIn('id', tiendaIds).select('id', 'codigo', 'nombre');
+      if (tiendasValidas.length > 0) {
+        const filas = tiendasValidas.map((t) => ({ planograma_version_id: id, tienda_id: t.id }));
+        await trx(TABLA_VERSION_TIENDA).insert(filas);
+      }
+    }
+
+    await trx(TABLA_VERSION).where('id', id).update({ estado: ESTADOS.PILOTO, updated_at: trx.fn.now() });
+
+    return { tiendas: tiendasValidas, versionAnteriorArchivada: anterior ?? null };
+  });
 }
 
 // ─── promoverAPublicado ──────────────────────────────────────────────────────
@@ -486,6 +513,30 @@ async function promoverAPublicado(id) {
     }
 
     await trx(TABLA_VERSION).where('id', id).update({ estado: ESTADOS.PUBLICADO, updated_at: trx.fn.now() });
+
+    return { versionAnteriorArchivada: anterior ?? null };
+  });
+}
+
+// ─── guardarComoEnDesarrollo ─────────────────────────────────────────────────
+
+async function guardarComoEnDesarrollo(id) {
+  return db.transaction(async (trx) => {
+    const version = await trx(TABLA_VERSION).where('id', id).select('planograma_id', 'tipo').first();
+
+    const anterior = await trx(TABLA_VERSION)
+      .where('planograma_id', version.planograma_id)
+      .where('tipo', version.tipo)
+      .where('estado', ESTADOS.EN_DESARROLLO)
+      .whereNot('id', id)
+      .select('id', 'codigo')
+      .first();
+
+    if (anterior) {
+      await trx(TABLA_VERSION).where('id', anterior.id).update({ estado: ESTADOS.ARCHIVADO, updated_at: trx.fn.now() });
+    }
+
+    await trx(TABLA_VERSION).where('id', id).update({ estado: ESTADOS.EN_DESARROLLO, updated_at: trx.fn.now() });
 
     return { versionAnteriorArchivada: anterior ?? null };
   });
@@ -528,7 +579,7 @@ module.exports = {
   obtenerEstructuraPublicada,
   actualizarMetadatos,
   actualizarEstado,
-  buscarVersionActivaDeTipo,
+  buscarVersionEnEstado,
   existeCodigoEnPlanograma,
   buscarTiendaPorId,
   tiendaTieneVersionEspecialDeBase,
@@ -536,5 +587,6 @@ module.exports = {
   reemplazarTiendas,
   promoverAPiloto,
   promoverAPublicado,
+  guardarComoEnDesarrollo,
   buscarErroresBloqueantes,
 };

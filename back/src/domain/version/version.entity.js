@@ -18,9 +18,6 @@ const ESTADOS = Object.freeze({
   ARCHIVADO:      'archivado',
 });
 
-/** Estados en los que una versión cuenta como "activa" para la regla de unicidad por tipo. */
-const ESTADOS_ACTIVOS = Object.freeze([ESTADOS.BORRADOR, ESTADOS.EN_DESARROLLO, ESTADOS.PILOTO]);
-
 const INICIALES_TIPO = Object.freeze({
   [TIPOS.GRANDE]:  'G',
   [TIPOS.MEDIANA]: 'M',
@@ -113,7 +110,6 @@ function validarTransicionPromover(estadoActual, estadoDestino) {
 module.exports = {
   TIPOS,
   ESTADOS,
-  ESTADOS_ACTIVOS,
   generarCodigo,
   generarCodigoEspecial,
   validarPlanogramaNoArchivado,

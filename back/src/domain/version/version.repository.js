@@ -77,13 +77,14 @@ module.exports = {
   actualizarEstado: async (_id, _estado) => { throw new Error('No implementado'); },
 
   /**
-   * Busca una versión "activa" (borrador/en_desarrollo/piloto) del mismo tipo en el planograma.
+   * Busca una versión del mismo tipo en el planograma que esté en el estado indicado.
    * @param {number} planogramaId
    * @param {string} tipo
+   * @param {string} estado
    * @param {number} [excluirId]
    * @returns {Promise<object|null>}
    */
-  buscarVersionActivaDeTipo: async (_planogramaId, _tipo, _excluirId) => { throw new Error('No implementado'); },
+  buscarVersionEnEstado: async (_planogramaId, _tipo, _estado, _excluirId) => { throw new Error('No implementado'); },
 
   /**
    * Verifica si el código ya existe en otra versión del mismo planograma.
@@ -126,10 +127,11 @@ module.exports = {
   reemplazarTiendas: async (_id, _tiendaIds) => { throw new Error('No implementado'); },
 
   /**
-   * Promueve la versión a `piloto` reemplazando sus tiendas asignadas. Transaccional.
+   * Promueve la versión a `piloto` reemplazando sus tiendas asignadas, archivando la
+   * versión en `piloto` anterior del mismo planograma+tipo (si existe). Transaccional.
    * @param {number} id
    * @param {number[]} tiendaIds
-   * @returns {Promise<{ tiendas: object[] }>}
+   * @returns {Promise<{ tiendas: object[], versionAnteriorArchivada: object|null }>}
    */
   promoverAPiloto: async (_id, _tiendaIds) => { throw new Error('No implementado'); },
 
@@ -140,6 +142,14 @@ module.exports = {
    * @returns {Promise<{ versionAnteriorArchivada: object|null }>}
    */
   promoverAPublicado: async (_id) => { throw new Error('No implementado'); },
+
+  /**
+   * Marca la versión como `en_desarrollo`, archivando la versión en `en_desarrollo`
+   * anterior del mismo planograma+tipo (si existe). Transaccional.
+   * @param {number} id
+   * @returns {Promise<{ versionAnteriorArchivada: object|null }>}
+   */
+  guardarComoEnDesarrollo: async (_id) => { throw new Error('No implementado'); },
 
   /**
    * Retorna las posiciones con errores bloqueantes (min_final > max_final) de la versión.

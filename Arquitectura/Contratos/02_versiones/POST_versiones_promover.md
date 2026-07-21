@@ -11,6 +11,9 @@
 
 Avanza el estado de la versión al siguiente en el ciclo de vida: `en_desarrollo → piloto` o `piloto → publicado`. El body determina el estado destino y, cuando aplica, las tiendas piloto.
 
+Cuando pasa a `piloto`:
+- Archiva automáticamente la versión en `piloto` anterior del mismo planograma + tipo (mismo mecanismo que el archivado al publicar).
+
 Cuando pasa a `publicado`:
 - Archiva automáticamente la versión publicada anterior del mismo planograma + tipo.
 - Valida errores bloqueantes antes de proceder.
@@ -40,6 +43,7 @@ Cuando pasa a `publicado`:
 2. `tiendaIds` requerido, al menos 1 tienda.
 3. Las tiendas deben ser del mismo `tipo` que la versión.
 4. Reemplaza el listado completo de tiendas asignadas en la operación.
+5. Archiva la versión `piloto` anterior del mismo `planograma_id + tipo` (si existe). Operación atómica (transacción).
 
 ## Reglas de negocio — promover a publicado
 
@@ -78,9 +82,12 @@ Cuando pasa a `publicado`:
   "tiendas": [
     { "id": 1, "nombre": "Cemaco Pradera" },
     { "id": 3, "nombre": "Cemaco Miraflores" }
-  ]
+  ],
+  "versionAnteriorArchivada": { "id": 9, "codigo": "AUTOS 01-TG" }
 }
 ```
+
+`versionAnteriorArchivada` es `null` cuando no había ninguna versión en `piloto` que archivar.
 
 ## Response — 200 OK (a publicado)
 

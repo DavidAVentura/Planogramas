@@ -30,8 +30,14 @@ erDiagram
         datetime    created_at          "agregado en migración 002"
         datetime    updated_at          "agregado en migración 002"
     }
-    %% solo una versión por planograma+tipo puede estar en 'publicado' simultáneamente
-    %% índice único filtrado: CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='publicado'
+    %% solo una versión por planograma+tipo puede estar en cada uno de los 4 estados no archivados
+    %% a la vez (borrador/en_desarrollo/piloto/publicado) — 4 índices únicos filtrados, uno por
+    %% estado, ver migraciones 001 (publicado) y 006 (borrador/en_desarrollo/piloto):
+    %% CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='publicado'
+    %% CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='borrador'
+    %% CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='en_desarrollo'
+    %% CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='piloto'
+    %% avanzar una versión de estado archiva automáticamente a la que ocupaba el estado destino
 
     Gondola {
         int         id                      PK

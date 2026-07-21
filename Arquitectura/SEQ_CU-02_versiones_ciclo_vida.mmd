@@ -8,7 +8,9 @@ sequenceDiagram
     %% CU-02 no consume CATI. Toda la data es del modelo SQL:
     %%   PlanogramaVersion, Gondola, Nivel, Posicion, PosicionAccesorio, VersionTienda, Tienda
     %% Ciclo de estados: borrador → en_desarrollo → piloto → publicado → archivado
-    %% Índice único filtrado garantiza una sola versión 'publicado' por planograma+tipo.
+    %% Índices únicos filtrados garantizan una sola versión por planograma+tipo en cada uno de
+    %% los 4 estados no archivados (borrador/en_desarrollo/piloto/publicado). Cada promoción de
+    %% estado archiva automáticamente a la versión que ocupaba el estado destino.
     %% ────────────────────────────────────────────────────────────────────────────
 
     %% ════════════════════════════════════════════════════════
@@ -33,11 +35,11 @@ sequenceDiagram
             API-->>FE: 422 Unprocessable { error: "No se pueden crear versiones en un planograma archivado" }
             FE-->>Analista: Muestra error
         else
-            API->>DB: SELECT COUNT(*) FROM PlanogramaVersion<br/>WHERE planograma_id=@planogramaId AND tipo=@tipo<br/>AND estado IN ('borrador','en_desarrollo','piloto')
-            DB-->>API: countActivas
+            API->>DB: SELECT COUNT(*) FROM PlanogramaVersion<br/>WHERE planograma_id=@planogramaId AND tipo=@tipo<br/>AND estado = 'borrador'
+            DB-->>API: countBorrador
 
-            alt Ya existe versión activa del mismo tipo
-                API-->>FE: 409 Conflict<br/>{ error: "Ya existe una versión activa de tipo {tipo}.<br/>Archívala antes de crear una nueva." }
+            alt Ya existe versión en borrador del mismo tipo
+                API-->>FE: 409 Conflict<br/>{ error: "Ya existe una versión en borrador de tipo {tipo}.<br/>Archívala o promuévela antes de crear una nueva." }
                 FE-->>Analista: Muestra error
             else
                 API->>DB: INSERT INTO PlanogramaVersion<br/>(planograma_id, tipo, codigo=AUTO, version_base_id=NULL,<br/>estado='borrador', notas, created_at, created_by)

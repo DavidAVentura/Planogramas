@@ -42,12 +42,22 @@ export interface CrearVersionInput {
   tiendaId?: number;
 }
 
+export interface VersionAnteriorArchivada {
+  id: number;
+  codigo: string;
+}
+
 export interface PromoverAPilotoResultado extends Version {
   tiendas: TiendaResumen[];
+  versionAnteriorArchivada: VersionAnteriorArchivada | null;
 }
 
 export interface PromoverAPublicadoResultado extends Version {
-  versionAnteriorArchivada: { id: number; codigo: string } | null;
+  versionAnteriorArchivada: VersionAnteriorArchivada | null;
+}
+
+export interface GuardarVersionResultado extends Version {
+  versionAnteriorArchivada: VersionAnteriorArchivada | null;
 }
 
 export interface TiendasDeVersion {

@@ -5,13 +5,21 @@ import { useToast } from '../context/ToastContext';
 import { mensajeDeError } from '../utils/errors';
 import type {
   ErrorBloqueante,
+  GuardarVersionResultado,
   PromoverAPilotoResultado,
   PromoverAPublicadoResultado,
   TiendaResumen,
   TiendasDeVersion,
   Version,
+  VersionAnteriorArchivada,
   VersionListItem,
 } from '../types/version';
+
+function conVersionArchivada(mensaje: string, versionAnteriorArchivada?: VersionAnteriorArchivada | null): string {
+  return versionAnteriorArchivada
+    ? `${mensaje} (se archivó ${versionAnteriorArchivada.codigo})`
+    : mensaje;
+}
 
 export function useVersionesDePlanograma(planogramaId: number) {
   const [versiones, setVersiones] = useState<VersionListItem[]>([]);
@@ -65,11 +73,11 @@ export function useGuardarVersion() {
   const [enviando, setEnviando] = useState(false);
   const { mostrarToast } = useToast();
 
-  async function guardar(id: number): Promise<Version | null> {
+  async function guardar(id: number): Promise<GuardarVersionResultado | null> {
     setEnviando(true);
     try {
       const version = await versionesService.guardar(id);
-      mostrarToast('Versión marcada en desarrollo', 'success');
+      mostrarToast(conVersionArchivada('Versión marcada en desarrollo', version.versionAnteriorArchivada), 'success');
       return version;
     } catch (err) {
       mostrarToast(mensajeDeError(err, 'No se pudo actualizar la versión'), 'error');
@@ -90,7 +98,7 @@ export function usePromoverAPiloto() {
     setEnviando(true);
     try {
       const version = await versionesService.promoverAPiloto(id, tiendaIds);
-      mostrarToast('Versión promovida a piloto', 'success');
+      mostrarToast(conVersionArchivada('Versión promovida a piloto', version.versionAnteriorArchivada), 'success');
       return version;
     } catch (err) {
       mostrarToast(mensajeDeError(err, 'No se pudo promover la versión'), 'error');
@@ -116,7 +124,7 @@ export function usePublicarVersion() {
     setEnviando(true);
     try {
       const version = await versionesService.promoverAPublicado(id);
-      mostrarToast(`Versión ${version.codigo} publicada`, 'success');
+      mostrarToast(conVersionArchivada(`Versión ${version.codigo} publicada`, version.versionAnteriorArchivada), 'success');
       return { version };
     } catch (err) {
       if (err instanceof ApiError && Array.isArray(err.details)) {

@@ -1,6 +1,7 @@
 import { httpClient } from './httpClient';
 import type {
   CrearVersionInput,
+  GuardarVersionResultado,
   PromoverAPilotoResultado,
   PromoverAPublicadoResultado,
   TiendaResumen,
@@ -18,7 +19,7 @@ export const versionesService = {
   crear: (planogramaId: number, datos: CrearVersionInput) =>
     httpClient.post<Version>(`/planogramas/${planogramaId}/versiones`, datos),
 
-  guardar: (id: number) => httpClient.patch<Version>(`/versiones/${id}/guardar`),
+  guardar: (id: number) => httpClient.patch<GuardarVersionResultado>(`/versiones/${id}/guardar`),
 
   promoverAPiloto: (id: number, tiendaIds: number[]) =>
     httpClient.post<PromoverAPilotoResultado>(`/versiones/${id}/promover`, {
