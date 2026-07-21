@@ -19,4 +19,7 @@ router.get('/productos/:sku', controller.obtenerProducto);
 // GET /catalog/productos/:sku/stock — stock SAP por centro (proxy a CATI, sin filtrar)
 router.get('/productos/:sku/stock', controller.obtenerStock);
 
+// GET /catalog/productos/:sku/ficha-tecnica — ficha técnica (proxy a CATI, HTML traducido a pares etiqueta/valor)
+router.get('/productos/:sku/ficha-tecnica', controller.obtenerFichaTecnica);
+
 module.exports = router;

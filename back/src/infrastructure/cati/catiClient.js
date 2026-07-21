@@ -261,6 +261,72 @@ async function obtenerStockSap(sku, { timeoutMs = 5000 } = {}) {
   return (items ?? []).map(mapInventarioSap);
 }
 
+// ─── Ficha técnica (ver Arquitectura/Contratos/08_catalogo/GET_productos_fichaTecnica.md) ─
+
+/**
+ * CATI devuelve la ficha técnica como un fragmento HTML de una tabla (`<tr><th>etiqueta</th>
+ * <td>valor</td></tr>` por fila) dentro de `data`, no como JSON estructurado. Estas funciones
+ * son la capa anti-corrupción: traducen ese HTML a pares { etiqueta, valor } de texto plano,
+ * para que el frontend no tenga que hacer `dangerouslySetInnerHTML` sobre contenido externo.
+ */
+function decodificarEntidadesHtml(texto) {
+  return texto
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'");
+}
+
+function limpiarEtiquetaFichaTecnica(html) {
+  return decodificarEntidadesHtml(html.replace(/<[^>]+>/g, '')).trim();
+}
+
+function limpiarValorFichaTecnica(html) {
+  const texto = html
+    .replace(/<li>/gi, '• ')
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<\/?(ul|ol)>/gi, '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/\r\n/g, '\n')
+    .replace(/\n{2,}/g, '\n');
+  return decodificarEntidadesHtml(texto).trim();
+}
+
+const FILA_FICHA_TECNICA_REGEX = /<tr>\s*<th>([\s\S]*?)<\/th>\s*<td>([\s\S]*?)<\/td>\s*<\/tr>/gi;
+
+function mapFichaTecnica(raw) {
+  const html = raw?.data;
+  if (!html) return [];
+
+  const filas = [];
+  let coincidencia;
+  while ((coincidencia = FILA_FICHA_TECNICA_REGEX.exec(html)) !== null) {
+    filas.push({
+      etiqueta: limpiarEtiquetaFichaTecnica(coincidencia[1]),
+      valor:    limpiarValorFichaTecnica(coincidencia[2]),
+    });
+  }
+  return filas;
+}
+
+/**
+ * Obtiene la ficha técnica de un producto (proxy a CATI GET /Product/fichaTecnica/{sku}).
+ * Sin cache — a diferencia de catálogo/jerarquía, no hay indicio de que este endpoint sea
+ * costoso, y cachear ficha técnica junto con búsqueda complicaría la invalidación sin
+ * beneficio claro. Retorna `[]` si CATI no tiene ficha técnica para ese SKU (responde 200 con
+ * `data: ""`, no 404 — ver nota de implementación en el contrato).
+ * @param {string} sku
+ * @param {{ timeoutMs?: number }} [opciones]
+ * @returns {Promise<Array<{ etiqueta: string, valor: string }>>}
+ */
+async function obtenerFichaTecnica(sku, { timeoutMs = 5000 } = {}) {
+  const raw = await get(`/Product/fichaTecnica/${encodeURIComponent(sku)}`, {}, { timeoutMs });
+  return mapFichaTecnica(raw);
+}
+
 module.exports = {
   get,
   obtenerAreas,
@@ -268,4 +334,5 @@ module.exports = {
   buscarProductos,
   obtenerProducto,
   obtenerStockSap,
+  obtenerFichaTecnica,
 };

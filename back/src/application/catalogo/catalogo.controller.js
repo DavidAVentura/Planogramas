@@ -83,4 +83,14 @@ async function obtenerStock(req, res, next) {
   }
 }
 
-module.exports = { buscarProductos, obtenerProducto, obtenerStock };
+async function obtenerFichaTecnica(req, res, next) {
+  try {
+    const { sku }       = req.params;
+    const fichaTecnica  = await catiClient.obtenerFichaTecnica(sku);
+    res.json(fichaTecnica);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { buscarProductos, obtenerProducto, obtenerStock, obtenerFichaTecnica };

@@ -33,3 +33,8 @@ export interface InventarioSap {
   stockBloqueado: string | null;
   stockAlterno: string | null;
 }
+
+export interface FichaTecnicaCampo {
+  etiqueta: string;
+  valor: string;
+}

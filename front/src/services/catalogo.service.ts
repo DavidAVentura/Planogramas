@@ -1,5 +1,11 @@
 import { httpClient } from './httpClient';
-import type { DimensionesProducto, InventarioSap, ProductoCatalogo, ProductoDetalle } from '../types/catalogo';
+import type {
+  DimensionesProducto,
+  FichaTecnicaCampo,
+  InventarioSap,
+  ProductoCatalogo,
+  ProductoDetalle,
+} from '../types/catalogo';
 
 export const catalogoService = {
   buscarProductos: (q: string, opts: { subcategoria?: string; page?: number; pageSize?: number } = {}) =>
@@ -10,6 +16,9 @@ export const catalogoService = {
 
   obtenerStock: (sku: string) =>
     httpClient.get<InventarioSap[]>(`/catalog/productos/${encodeURIComponent(sku)}/stock`),
+
+  obtenerFichaTecnica: (sku: string) =>
+    httpClient.get<FichaTecnicaCampo[]>(`/catalog/productos/${encodeURIComponent(sku)}/ficha-tecnica`),
 
   actualizarDimensiones: (sku: string, dimensiones: DimensionesProducto) =>
     httpClient.patch<ProductoDetalle>(`/catalog/productos/${encodeURIComponent(sku)}/dimensiones`, dimensiones),

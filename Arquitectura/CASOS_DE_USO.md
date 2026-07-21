@@ -65,6 +65,7 @@ Actores:
 | CU-04-12 | Actualizar dimensiones de producto | Analista | Corrige el ancho, alto y profundidad físicos de un producto en la tabla local; el sistema marca la fuente como `MANUAL` y las dimensiones como validadas. |
 | CU-04-13 | Validar dimensiones de producto | Analista | Confirma que las dimensiones físicas ya guardadas de un producto son correctas, sin modificarlas. Requiere que las tres medidas sean mayores a 0. |
 | CU-04-14 | Ver inventario de producto en ficha | Analista | Al abrir la ficha de un producto en el editor, el sistema consulta el stock SAP por centro (vía CATI) y lo muestra como bloque adicional, sin filtrar por tienda. |
+| CU-04-15 | Ver ficha técnica de producto en ficha | Analista | Al abrir la ficha de un producto en el editor, el sistema consulta la ficha técnica enriquecida por CATI (descripción, características, advertencias de uso) y la muestra como bloque adicional, colapsable igual que el resto de bloques de la ficha. |
 
 ---
 

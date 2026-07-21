@@ -2,7 +2,13 @@ import { useCallback, useEffect, useState } from 'react';
 import { catalogoService } from '../services/catalogo.service';
 import { useToast } from '../context/ToastContext';
 import { mensajeDeError } from '../utils/errors';
-import type { DimensionesProducto, InventarioSap, ProductoCatalogo, ProductoDetalle } from '../types/catalogo';
+import type {
+  DimensionesProducto,
+  FichaTecnicaCampo,
+  InventarioSap,
+  ProductoCatalogo,
+  ProductoDetalle,
+} from '../types/catalogo';
 
 // El catálogo CATI es un proxy externo que puede no estar disponible en desarrollo — a
 // diferencia del resto de los hooks del proyecto, estos NO muestran toast en error: la UI que
@@ -92,6 +98,36 @@ export function useStockProducto(sku: string | null) {
   }, [cargar]);
 
   return { inventario, cargando, error, recargar: cargar };
+}
+
+export function useFichaTecnicaProducto(sku: string | null) {
+  const [fichaTecnica, setFichaTecnica] = useState<FichaTecnicaCampo[]>([]);
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState(false);
+
+  const cargar = useCallback(async () => {
+    if (!sku) {
+      setFichaTecnica([]);
+      setError(false);
+      return;
+    }
+    setCargando(true);
+    try {
+      setFichaTecnica(await catalogoService.obtenerFichaTecnica(sku));
+      setError(false);
+    } catch {
+      setError(true);
+      setFichaTecnica([]);
+    } finally {
+      setCargando(false);
+    }
+  }, [sku]);
+
+  useEffect(() => {
+    cargar();
+  }, [cargar]);
+
+  return { fichaTecnica, cargando, error, recargar: cargar };
 }
 
 // A diferencia de los hooks de lectura de arriba, los siguientes SÍ muestran toast: escriben en

@@ -5,12 +5,12 @@
 
 .ficha-producto-modal__contenido {
   display: flex;
-  gap: 14px;
+  gap: 20px;
 }
 
 .ficha-producto-modal__imagen {
-  width: 96px;
-  height: 96px;
+  width: 140px;
+  height: 140px;
   object-fit: contain;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -23,11 +23,18 @@
 }
 
 .ficha-producto-modal__datos {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 24px;
+  row-gap: 6px;
+  align-content: start;
   font-size: 13px;
   color: var(--fg-2);
+}
+
+.ficha-producto-modal__nombre,
+.ficha-producto-modal__sku {
+  grid-column: 1 / -1;
 }
 
 .ficha-producto-modal__nombre {
@@ -42,20 +49,69 @@
   color: var(--fg-3);
 }
 
-.ficha-producto-modal__inventarios {
+.ficha-producto-modal__bloques {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+}
+
+.ficha-producto-modal__bloque + .ficha-producto-modal__bloque {
   margin-top: 16px;
   padding-top: 12px;
   border-top: 1px solid var(--border);
 }
 
-.ficha-producto-modal__inventarios-titulo {
+.ficha-producto-modal__bloque-titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
   font-family: var(--font-display);
   font-size: 13px;
   font-weight: 700;
   color: var(--fg-1);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ficha-producto-modal__bloque-flecha {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--fg-3);
+  transform: rotate(-90deg);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.ficha-producto-modal__bloque-flecha--abierto {
+  transform: rotate(0deg);
+}
+
+.ficha-producto-modal__bloque-contenido {
+  margin-top: 10px;
+}
+
+.ficha-producto-modal__ficha-tecnica {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 24px;
+  row-gap: 8px;
+  font-size: 13px;
+}
+
+.ficha-producto-modal__ficha-tecnica-fila dt {
+  font-weight: 600;
+  color: var(--fg-2);
+}
+
+.ficha-producto-modal__ficha-tecnica-fila dd {
+  margin: 2px 0 0;
+  color: var(--fg-3);
+  white-space: pre-line;
 }
 
 .ficha-producto-modal__tabla-inventarios {

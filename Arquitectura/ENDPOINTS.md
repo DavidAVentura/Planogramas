@@ -135,6 +135,7 @@ no `catalogo`).
 | `PATCH` | `/catalog/productos/{sku}/dimensiones` | Analista | CU-04-12 | Actualiza `ancho_cm`/`alto_cm`/`profundidad_cm` del producto local; marca `fuente_dimensiones='MANUAL'` y `dimensiones_validadas=true`. |
 | `PATCH` | `/catalog/productos/{sku}/dimensiones/validar` | Analista | CU-04-13 | Marca `dimensiones_validadas=true` sin modificar las medidas; requiere que las tres sean mayores a 0 (`422` si no). |
 | `GET` | `/catalog/productos/{sku}/stock` | Analista | CU-04-14 | Retorna el stock SAP del producto por centro (proxy a CATI, sin filtrar ni cachear). Arreglo vacío si no tiene inventario registrado. |
+| `GET` | `/catalog/productos/{sku}/ficha-tecnica` | Analista | CU-04-15 | Retorna la ficha técnica del producto enriquecida por CATI, como pares `etiqueta`/`valor` (proxy a CATI, HTML traducido a texto plano, sin cachear). Arreglo vacío si no tiene ficha técnica registrada. |
 
 ---
 
