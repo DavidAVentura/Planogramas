@@ -11,10 +11,11 @@ interface FichaProductoModalProps {
 interface BloqueColapsableProps {
   titulo: string;
   children: ReactNode;
+  abiertoInicial?: boolean;
 }
 
-function BloqueColapsable({ titulo, children }: BloqueColapsableProps) {
-  const [abierto, setAbierto] = useState(true);
+function BloqueColapsable({ titulo, children, abiertoInicial = true }: BloqueColapsableProps) {
+  const [abierto, setAbierto] = useState(abiertoInicial);
 
   return (
     <div className="ficha-producto-modal__bloque">
@@ -86,7 +87,7 @@ export function FichaProductoModal({ sku, onClose }: FichaProductoModalProps) {
           )}
         </BloqueColapsable>
 
-        <BloqueColapsable titulo="Ficha técnica">
+        <BloqueColapsable titulo="Ficha técnica" abiertoInicial={false}>
           {cargandoFicha && <p className="ficha-producto-modal__vacio">Cargando ficha técnica…</p>}
           {!cargandoFicha && errorFicha && (
             <p className="ficha-producto-modal__vacio">
@@ -108,7 +109,7 @@ export function FichaProductoModal({ sku, onClose }: FichaProductoModalProps) {
           )}
         </BloqueColapsable>
 
-        <BloqueColapsable titulo="Inventarios">
+        <BloqueColapsable titulo="Inventarios" abiertoInicial={false}>
           {cargandoStock && <p className="ficha-producto-modal__vacio">Cargando inventario…</p>}
           {!cargandoStock && errorStock && (
             <p className="ficha-producto-modal__vacio">
@@ -122,6 +123,7 @@ export function FichaProductoModal({ sku, onClose }: FichaProductoModalProps) {
             <table className="ficha-producto-modal__tabla-inventarios">
               <thead>
                 <tr>
+                  <th>Código</th>
                   <th>Centro</th>
                   <th>Disponible</th>
                   <th>Dañado</th>
@@ -132,7 +134,8 @@ export function FichaProductoModal({ sku, onClose }: FichaProductoModalProps) {
               <tbody>
                 {inventario.map((item, i) => (
                   <tr key={`${item.centroId ?? item.centro ?? 'centro'}-${i}`}>
-                    <td>{item.centro ?? item.centroId ?? '—'}</td>
+                    <td>{item.centroId ?? '—'}</td>
+                    <td>{item.centro ?? '—'}</td>
                     <td>{item.stock ?? '—'}</td>
                     <td>{item.stockDaniado ?? '—'}</td>
                     <td>{item.stockBloqueado ?? '—'}</td>
