@@ -37,9 +37,7 @@ export function VersionEspecialWizard({
 
   const filtrosTiendas = useMemo(
     () =>
-      versionBase
-        ? { sinVersionEspecial: true, planogramaId, versionBaseId: versionBase.id, tipo: versionBase.tipo }
-        : null,
+      versionBase ? { sinVersionEspecial: true, planogramaId, versionBaseId: versionBase.id } : null,
     [versionBase, planogramaId],
   );
   const { tiendas, cargando: cargandoTiendas } = useTiendas(filtrosTiendas);
@@ -113,7 +111,7 @@ export function VersionEspecialWizard({
             </select>
             {!cargandoTiendas && tiendas.length === 0 && (
               <span className="version-especial-wizard__hint">
-                Todas las tiendas de tipo {versionBase?.tipo} ya tienen una versión especial de esta base.
+                Todas las tiendas ya tienen una versión especial de esta base.
               </span>
             )}
           </label>
