@@ -1,0 +1,42 @@
+/** Redimensiona una imagen (ej. foto de celular, varios MB) a un lado máximo de `maxDimension` px
+ * y la recodifica a JPEG antes de mandarla en base64 al backend — evita pegarle al agente de
+ * visión con archivos enormes y mantiene el body de la request liviano. */
+export function redimensionarImagenABase64(
+  file: File,
+  maxDimension = 2000,
+  calidad = 0.85,
+): Promise<{ base64: string; mimeType: string }> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+
+      const escala = Math.min(1, maxDimension / Math.max(img.width, img.height));
+      const ancho = Math.round(img.width * escala);
+      const alto = Math.round(img.height * escala);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = ancho;
+      canvas.height = alto;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('No se pudo preparar la imagen para enviarla.'));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, ancho, alto);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', calidad);
+      const base64 = dataUrl.split(',')[1] ?? '';
+      resolve({ base64, mimeType: 'image/jpeg' });
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('No se pudo leer la imagen seleccionada.'));
+    };
+
+    img.src = url;
+  });
+}

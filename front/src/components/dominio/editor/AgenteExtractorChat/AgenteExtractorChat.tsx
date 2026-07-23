@@ -10,6 +10,7 @@ interface AgenteExtractorChatProps {
   listoParaConfirmar: boolean;
   enviando: boolean;
   onEnviar: (texto: string) => void;
+  onExtraerImagen: () => void;
   onRevisar: () => void;
   onClose: () => void;
 }
@@ -20,6 +21,7 @@ export function AgenteExtractorChat({
   listoParaConfirmar,
   enviando,
   onEnviar,
+  onExtraerImagen,
   onRevisar,
   onClose,
 }: AgenteExtractorChatProps) {
@@ -84,6 +86,9 @@ export function AgenteExtractorChat({
             disabled={enviando}
             rows={2}
           />
+          <Button variante="outline" onClick={onExtraerImagen} disabled={enviando}>
+            Extraer de otra fuente
+          </Button>
           <Button variante="primary" onClick={enviarTexto} disabled={enviando || !texto.trim()}>
             Enviar
           </Button>

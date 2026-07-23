@@ -1,0 +1,27 @@
+.extractor-imagen-numerada-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.extractor-imagen-numerada-modal__ayuda {
+  margin: 0;
+  font-size: 13px;
+  color: var(--fg-3);
+}
+
+.extractor-imagen-numerada-modal__preview {
+  max-width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  align-self: flex-start;
+}
+
+.extractor-imagen-numerada-modal__advertencias {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: var(--warning);
+}

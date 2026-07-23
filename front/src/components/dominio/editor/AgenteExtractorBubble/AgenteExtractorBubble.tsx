@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AgenteExtractorChat } from '../AgenteExtractorChat/AgenteExtractorChat';
 import { ResumenBorradorModal } from '../../modales/ResumenBorradorModal/ResumenBorradorModal';
+import { ExtractorImagenNumeradaModal } from '../../modales/ExtractorImagenNumeradaModal/ExtractorImagenNumeradaModal';
 import { useAgenteExtractor } from '../../../../hooks/useAgenteExtractor';
 import { useNivelesDeVersion } from '../../../../hooks/useNiveles';
 import { usePosicionesDeNiveles } from '../../../../hooks/usePosiciones';
@@ -28,6 +29,7 @@ export function AgenteExtractorBubble({
 }: AgenteExtractorBubbleProps) {
   const [abierto, setAbierto] = useState(false);
   const [mostrarResumen, setMostrarResumen] = useState(false);
+  const [mostrarExtractorImagen, setMostrarExtractorImagen] = useState(false);
 
   // Carga perezosa: solo se pide el detalle de niveles/posiciones de toda la versión cuando el
   // chat está abierto, para no pegarle a la API de cada góndola en cada carga del editor.
@@ -58,8 +60,19 @@ export function AgenteExtractorBubble({
           listoParaConfirmar={agente.listoParaConfirmar}
           enviando={agente.enviando}
           onEnviar={agente.enviar}
+          onExtraerImagen={() => setMostrarExtractorImagen(true)}
           onRevisar={() => setMostrarResumen(true)}
           onClose={() => setAbierto(false)}
+        />
+      )}
+
+      {mostrarExtractorImagen && (
+        <ExtractorImagenNumeradaModal
+          onClose={() => setMostrarExtractorImagen(false)}
+          onAceptar={(mensaje) => {
+            setMostrarExtractorImagen(false);
+            agente.enviar(mensaje);
+          }}
         />
       )}
 
