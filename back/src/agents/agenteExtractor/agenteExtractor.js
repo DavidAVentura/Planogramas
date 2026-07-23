@@ -1,19 +1,19 @@
 /**
  * agenteExtractor.js
  * Agente Extractor del Planograma: conversa con el analista para recolectar, mensaje a
- * mensaje, una lista ordenada de acciones a aplicar al planograma abierto en el editor —
- * agregar productos y/o crear niveles nuevos. Sin persistencia — el historial y el borrador
- * acumulado viajan completos en cada request (ver agenteExtractor.controller.js), este módulo
- * solo orquesta la conversación con OpenAI y normaliza el resultado.
+ * mensaje, una lista ordenada de acciones a aplicar sobre toda la versión abierta en el editor
+ * (góndolas, niveles, posiciones, accesorios de montaje y medidas de producto) — no solo agregar
+ * productos/niveles. Sin persistencia — el historial y el borrador acumulado viajan completos en
+ * cada request (ver agenteExtractor.controller.js), este módulo solo orquesta la conversación con
+ * OpenAI y normaliza el resultado.
  */
 
 const { TIPOS_ACCESORIO } = require('../../domain/nivel/nivel.entity');
+const { PERFILES_REDONDEO, MODOS, DECISIONES } = require('../../domain/posicion/posicion.entity');
 
 // Mismos valores por defecto que usa "Elegir producto" desde catálogo
 // (ver front/src/components/dominio/modales/ElegirProductoModal/ElegirProductoModal.tsx).
 const DEFAULTS = {
-  ancho_asignado_cm: 1,
-  capacidad_maxima: 1,
   facings_horizontal: 1,
   cantidad_apilable: 1,
   unidades_por_facing: 1,
@@ -42,40 +42,78 @@ const TOOL_BUSCAR_PRODUCTO = {
 
 /**
  * Schema plano de una acción del borrador: el discriminador `tipo_accion` determina cuáles de
- * los demás campos aplican (los del otro tipo van en null). Se mantiene plano (sin anyOf/unión
+ * los demás campos aplican (los del resto van en null). Se mantiene plano (sin anyOf/unión
  * discriminada) porque OpenAI Structured Outputs en modo strict exige que cada rama de un anyOf
  * declare igual `required`/`additionalProperties:false`, así que no ahorra código frente a esto,
- * y la normalización de más abajo necesita el mismo switch por tipo de cualquier forma.
+ * y la normalización de más abajo necesita el mismo switch por tipo de cualquier forma. Varios
+ * campos se comparten entre tipos con significado distinto según `tipo_accion` (ej. `ancho_cm`
+ * es de la góndola en `crear_gondola`/`editar_gondola` y del producto en
+ * `actualizar_medidas_producto`) — mismo criterio ya usado para `nivel_orden` antes de esta
+ * ampliación.
  */
 const ACCION_SCHEMA = {
   type: 'object',
   properties: {
-    tipo_accion: { type: 'string', enum: ['agregar_nivel', 'agregar_producto'] },
-    // Campos de "agregar_nivel" (null si tipo_accion === 'agregar_producto').
-    // nivel_orden se comparte entre ambos tipos: para agregar_nivel es el orden del nivel a
-    // crear; para agregar_producto es el orden del nivel destino donde insertar el producto.
-    nivel_orden: { type: ['integer', 'null'] },
-    altura_desde_piso_cm: { type: ['number', 'null'] },
-    tipo_accesorio: { type: ['string', 'null'], enum: [...TIPOS_ACCESORIO, null] },
-    codigo_accesorio_id: { type: ['integer', 'null'] },
+    tipo_accion: {
+      type: 'string',
+      enum: [
+        'crear_gondola', 'editar_gondola', 'eliminar_gondola', 'reordenar_gondolas',
+        'agregar_nivel', 'editar_nivel', 'eliminar_nivel', 'reordenar_niveles',
+        'agregar_producto', 'editar_producto', 'mover_producto', 'duplicar_producto', 'eliminar_producto',
+        'agregar_accesorio_posicion', 'quitar_accesorio_posicion',
+        'actualizar_medidas_producto', 'validar_dimensiones_producto',
+      ],
+    },
+    // Góndola.
+    gondola_orden:         { type: ['integer', 'null'] },
+    gondola_orden_destino: { type: ['integer', 'null'] },
+    nombre:                { type: ['string', 'null'] },
+    ancho_cm:              { type: ['number', 'null'] },
+    alto_cm:               { type: ['number', 'null'] },
+    profundidad_cm:        { type: ['number', 'null'] },
+    posicion_en_tienda:    { type: ['string', 'null'] },
+    orden_gondolas:        { type: ['array', 'null'], items: { type: 'integer' } },
+    // Nivel.
+    nivel_orden:               { type: ['integer', 'null'] },
+    nivel_orden_destino:       { type: ['integer', 'null'] },
+    altura_desde_piso_cm:      { type: ['number', 'null'] },
+    tipo_accesorio:            { type: ['string', 'null'], enum: [...TIPOS_ACCESORIO, null] },
+    codigo_accesorio_id:       { type: ['integer', 'null'] },
     tamano_accesorio_pulgadas: { type: ['number', 'null'] },
-    ancho_disponible_cm: { type: ['number', 'null'] },
-    notas: { type: ['string', 'null'] },
-    // Campos de "agregar_producto" (null si tipo_accion === 'agregar_nivel').
-    sku: { type: ['string', 'null'] },
-    espacio_orden: { type: ['integer', 'null'] },
-    facings_horizontal: { type: ['integer', 'null'] },
-    cantidad_apilable: { type: ['integer', 'null'] },
-    unidades_por_facing: { type: ['integer', 'null'] },
-    perfil_redondeo: { type: ['string', 'null'], enum: ['MRP', 'ZSRE', null] },
-    modo: { type: ['string', 'null'], enum: ['PLANOGRAMA', 'CROSS', null] },
-    decision: { type: ['string', 'null'], enum: ['ACTIVO', 'INACTIVO', null] },
+    ancho_disponible_cm:       { type: ['number', 'null'] },
+    notas:                     { type: ['string', 'null'] },
+    orden_niveles:             { type: ['array', 'null'], items: { type: 'integer' } },
+    // Producto / posición ("espacio").
+    sku:                  { type: ['string', 'null'] },
+    espacio_orden:        { type: ['integer', 'null'] },
+    espacio_orden_destino: { type: ['integer', 'null'] },
+    facings_horizontal:   { type: ['integer', 'null'] },
+    cantidad_apilable:    { type: ['integer', 'null'] },
+    unidades_por_facing:  { type: ['integer', 'null'] },
+    perfil_redondeo:      { type: ['string', 'null'], enum: [...PERFILES_REDONDEO, null] },
+    modo:                 { type: ['string', 'null'], enum: [...MODOS, null] },
+    decision:             { type: ['string', 'null'], enum: [...DECISIONES, null] },
+    min_final:            { type: ['number', 'null'] },
+    max_final:            { type: ['number', 'null'] },
+    cross_externo:        { type: ['boolean', 'null'] },
+    montar_en_display:    { type: ['boolean', 'null'] },
+    desborda_gondola:     { type: ['boolean', 'null'] },
+    nota_desborde:        { type: ['string', 'null'] },
+    observaciones:        { type: ['string', 'null'] },
+    // Accesorios de montaje de una posición.
+    accesorio_codigo: { type: ['string', 'null'] },
+    nota_libre:       { type: ['string', 'null'] },
   },
   required: [
-    'tipo_accion', 'nivel_orden', 'altura_desde_piso_cm', 'tipo_accesorio', 'codigo_accesorio_id',
-    'tamano_accesorio_pulgadas', 'ancho_disponible_cm', 'notas', 'sku', 'espacio_orden',
-    'facings_horizontal', 'cantidad_apilable', 'unidades_por_facing', 'perfil_redondeo', 'modo',
-    'decision',
+    'tipo_accion',
+    'gondola_orden', 'gondola_orden_destino', 'nombre', 'ancho_cm', 'alto_cm', 'profundidad_cm',
+    'posicion_en_tienda', 'orden_gondolas',
+    'nivel_orden', 'nivel_orden_destino', 'altura_desde_piso_cm', 'tipo_accesorio',
+    'codigo_accesorio_id', 'tamano_accesorio_pulgadas', 'ancho_disponible_cm', 'notas', 'orden_niveles',
+    'sku', 'espacio_orden', 'espacio_orden_destino', 'facings_horizontal', 'cantidad_apilable',
+    'unidades_por_facing', 'perfil_redondeo', 'modo', 'decision', 'min_final', 'max_final',
+    'cross_externo', 'montar_en_display', 'desborda_gondola', 'nota_desborde', 'observaciones',
+    'accesorio_codigo', 'nota_libre',
   ],
   additionalProperties: false,
 };
@@ -94,63 +132,145 @@ const SCHEMA_RESPUESTA = {
   },
 };
 
+// ─── Prompt de sistema ───────────────────────────────────────────────────────
+
 function construirPromptSistema(contexto) {
+  const gondolas = contexto?.gondolas ?? [];
   const niveles = contexto?.niveles ?? [];
+  const posiciones = contexto?.posiciones ?? [];
+  const accesorios = contexto?.accesorios ?? [];
   const subcategorias = contexto?.subcategorias ?? [];
+
+  const gondolasTexto = gondolas.length > 0
+    ? gondolas.map((g) => `góndola ${g.gondola_orden} "${g.nombre}" (${g.total_niveles} nivel(es))`).join('; ')
+    : 'sin góndolas registradas todavía';
+
   const nivelesTexto = niveles.length > 0
-    ? niveles.map((n) => `nivel ${n.orden}${n.nombre ? ` (${n.nombre})` : ''}`).join(', ')
+    ? niveles.map((n) => `nivel ${n.nivel_orden} de góndola ${n.gondola_orden} (${n.tipo_accesorio})`).join('; ')
     : 'sin niveles registrados todavía';
+
+  const posicionesTexto = posiciones.length > 0
+    ? posiciones
+        .map((p) => `góndola ${p.gondola_orden}/nivel ${p.nivel_orden}/espacio ${p.espacio_orden}: SKU ${p.sku}${p.nombre ? ` (${p.nombre})` : ''}`)
+        .join('; ')
+    : 'sin posiciones registradas todavía';
+
+  const accesoriosTexto = accesorios.length > 0
+    ? accesorios.map((a) => `${a.codigo} (${a.nombre}, ${a.tipo})`).join('; ')
+    : 'sin accesorios en el catálogo';
+
   const subcategoriasTexto = subcategorias.length > 0 ? subcategorias.join(', ') : 'sin subcategorías definidas';
   const tiposAccesorioTexto = TIPOS_ACCESORIO.join(', ');
 
   return `Eres el "Agente Extractor del Planograma" de Cemaco. Conversas con un analista para
-recolectar, mensaje a mensaje, la lista de acciones que quiere aplicar al planograma que tiene
-abierto en el editor.
+recolectar, mensaje a mensaje, la lista ordenada de acciones que quiere aplicar al planograma que
+tiene abierto en el editor — sobre toda la versión (todas sus góndolas), no solo una góndola.
 
-Cada acción del borrador tiene un tipo (tipo_accion):
-- "agregar_producto": agrega un producto (por SKU) a un nivel de la góndola.
-- "agregar_nivel": crea un nivel nuevo en la góndola (por ejemplo cuando hace falta un nivel que
-  todavía no existe para poder insertarle productos).
+## Direccionamiento
 
-El array "borrador" representa el ORDEN REAL en que se van a ejecutar las acciones. Si hace falta
-insertar productos en un nivel que no existe todavía (ni está en la lista de niveles disponibles ni
-en una acción "agregar_nivel" que ya hayas puesto antes en este mismo borrador), primero agrega la
-acción "agregar_nivel" para ese nivel, y recién después las acciones "agregar_producto" que lo
-referencian — siempre en ese orden dentro del array, nunca al revés.
+Nunca uses ids internos de base de datos — no los conoces. Referencia todo por coordenadas legibles:
+- Góndola: \`gondola_orden\`.
+- Nivel: \`nivel_orden\` (dentro de su góndola).
+- Posición/espacio: \`espacio_orden\` (dentro de su nivel).
+- Producto: \`sku\`.
+- Accesorio: \`accesorio_codigo\` (contra el catálogo de accesorios listado abajo).
 
-Reglas para "agregar_producto":
-- Cada producto necesita un SKU válido. Si el usuario no da un SKU exacto sino una descripción
-  (nombre, marca), usa la herramienta buscar_producto para resolverlo; si hay varios candidatos,
-  pregúntale cuál es antes de darlo por confirmado. Nunca inventes un SKU.
-- Si el usuario da un SKU pero no da atributos (facings, apilable, unidades por facing, perfil de
-  redondeo, modo, decisión), pregúntale en tu mensaje si quiere usar los valores por defecto (1
-  facing, 1 apilable, 1 unidad por facing, perfil MRP, modo PLANOGRAMA, decisión ACTIVO — los
-  mismos que usa "Elegir producto" desde catálogo). Si en su siguiente respuesta no da valores
-  distintos, asume que sí quiere los valores por defecto.
-- Si el usuario da nivel y/o espacio para un producto, guárdalos en nivel_orden/espacio_orden. Si
-  no los da, déjalos en null — se completan automáticamente con el nivel 1 y el siguiente espacio
-  libre al momento de confirmar.
+Cuando creas un elemento nuevo (góndola o nivel) y en el MISMO mensaje vas a referenciarlo después
+(ej. crear un nivel y agregarle un producto en la misma respuesta), asigna vos mismo el
+\`gondola_orden\`/\`nivel_orden\` que va a tener: es la cantidad de elementos que ya existen en su
+padre (contando también los que ya pusiste antes en este mismo borrador) más 1. Ejemplo: si la
+góndola ya tiene 2 niveles y este es el primer nivel nuevo que agregas en este borrador, su
+nivel_orden es 3 — usa ese mismo número en la acción que crea el nivel y en las que lo referencian
+después, en ese mismo array.
 
-Reglas para "agregar_nivel":
-- altura_desde_piso_cm, tipo_accesorio (uno de: ${tiposAccesorioTexto}) y ancho_disponible_cm son
-  obligatorios y NO tienen un valor por defecto razonable — son medidas físicas del mueble real. Si
-  el usuario no te los da explícitamente, PREGÚNTASELOS antes de dar la acción por completa; nunca
-  los inventes ni asumas un valor por defecto para estos tres campos.
-- codigo_accesorio_id, tamano_accesorio_pulgadas y notas son opcionales — dejalos en null si no
-  aplican o el usuario no los mencionó.
-- Si el usuario no especifica en qué posición (nivel_orden) va el nivel nuevo, no hace falta que se
-  lo preguntes: dejalo en null y el sistema lo coloca automáticamente al final.
+## Acciones disponibles (tipo_accion)
 
-Reglas generales:
-- El borrador se acumula: en cada respuesta debes incluir TODAS las acciones ya recolectadas en la
+Góndola:
+- "crear_gondola": nombre, ancho_cm (≤500), alto_cm (≤300), profundidad_cm (≤200), posicion_en_tienda
+  opcional. Son medidas físicas reales — nunca las inventes, pregúntalas si el usuario no las da.
+- "editar_gondola": gondola_orden (la góndola a editar) + cualquiera de los campos de arriba (parcial).
+- "eliminar_gondola": gondola_orden. Borra en cascada sus niveles y posiciones — es irreversible.
+  Nunca la agregues al borrador sin que el usuario haya confirmado explícitamente que quiere
+  eliminarla; si no lo dijo, pregúntaselo primero.
+- "reordenar_gondolas": orden_gondolas = lista de gondola_orden ya existentes, en la secuencia nueva
+  deseada.
+
+Nivel (dentro de una góndola):
+- "agregar_nivel": gondola_orden (opcional — si falta, cae en la primera góndola de la versión),
+  nivel_orden (opcional — si falta, va al final de la góndola), altura_desde_piso_cm, tipo_accesorio
+  (uno de: ${tiposAccesorioTexto}) y ancho_disponible_cm son obligatorios y sin default razonable —
+  son medidas físicas del mueble real, pregúntalas siempre si faltan. codigo_accesorio_id,
+  tamano_accesorio_pulgadas y notas son opcionales.
+- "editar_nivel": gondola_orden + nivel_orden (el nivel a editar) + cualquiera de los campos de
+  arriba (parcial).
+- "eliminar_nivel": gondola_orden + nivel_orden. Borra en cascada sus posiciones — irreversible,
+  igual criterio que eliminar_gondola: pide confirmación explícita antes de agregarla.
+- "reordenar_niveles": gondola_orden + orden_niveles = lista de nivel_orden ya existentes en esa
+  góndola, en la secuencia nueva deseada.
+
+Producto / posición ("espacio", dentro de un nivel):
+- "agregar_producto": sku obligatorio (nunca lo inventes — si el usuario da una descripción en vez
+  de un SKU exacto, usa buscar_producto). gondola_orden/nivel_orden/espacio_orden opcionales (si
+  faltan: primera góndola, nivel 1, siguiente espacio libre). Si el usuario da el SKU pero no los
+  atributos (facings, apilable, unidades por facing, perfil, modo, decisión), pregúntale si quiere
+  los valores por defecto (1 facing, 1 apilable, 1 unidad por facing, perfil MRP, modo PLANOGRAMA,
+  decisión ACTIVO — los mismos que usa "Elegir producto" desde catálogo); si no responde con
+  valores distintos, asume que sí los quiere.
+- "editar_producto": gondola_orden + nivel_orden + espacio_orden (la posición a editar, siempre
+  obligatorios y explícitos — nunca asumas cuál) + cualquiera de: facings_horizontal,
+  cantidad_apilable, unidades_por_facing, perfil_redondeo, min_final, max_final, modo, decision,
+  cross_externo, montar_en_display, observaciones, desborda_gondola (si es true, nota_desborde es
+  obligatoria).
+- "mover_producto" / "duplicar_producto": gondola_orden + nivel_orden + espacio_orden de origen (la
+  posición ya existente, siempre obligatorios) + gondola_orden_destino + nivel_orden_destino
+  (obligatorios) + espacio_orden_destino (opcional — siguiente libre si falta). "mover_producto"
+  saca el producto de su posición actual; "duplicar_producto" deja el original y crea una copia en
+  el destino.
+- "eliminar_producto": gondola_orden + nivel_orden + espacio_orden. Irreversible — pide
+  confirmación explícita antes de agregarla.
+
+Nunca calculas capacidad_maxima ni min_estetico — el sistema los deriva siempre de facings ×
+apilable × unidades_por_facing, igual que en el editor.
+
+Accesorios de montaje de una posición:
+- "agregar_accesorio_posicion": gondola_orden + nivel_orden + espacio_orden (la posición) +
+  accesorio_codigo (contra el catálogo listado abajo) + nota_libre opcional.
+- "quitar_accesorio_posicion": gondola_orden + nivel_orden + espacio_orden + accesorio_codigo (el
+  que ya tiene asignado esa posición).
+
+Catálogo de producto (medidas físicas del SKU — no de una posición puntual):
+- "actualizar_medidas_producto": sku + ancho_cm/alto_cm/profundidad_cm (las tres, sin default —
+  pregúntalas si faltan).
+- "validar_dimensiones_producto": sku (confirma que las medidas ya guardadas están bien, sin
+  cambiarlas).
+
+## Orden de ejecución
+
+El array "borrador" representa el ORDEN REAL en que se van a ejecutar las acciones. Regla general:
+una acción que crea o necesita un elemento (góndola/nivel/producto) siempre va, en el array, ANTES
+que cualquier acción que lo referencia — nunca al revés. Ejemplo típico: góndola nueva → nivel
+nuevo en ella → producto en ese nivel → accesorio en esa posición, en ese orden dentro del array.
+
+## Reglas generales
+
+- El borrador se acumula: en cada respuesta incluye TODAS las acciones ya recolectadas en la
   conversación (las de antes + las nuevas o corregidas en este mensaje), no solo las nuevas.
-- Pregunta explícitamente si el usuario quiere seguir agregando acciones o si ya quiere confirmar la
-  lista. Marca listo_para_confirmar=true únicamente cuando el usuario diga explícitamente que ya
+- "eliminar_gondola", "eliminar_nivel" y "eliminar_producto" son irreversibles (incluyen cascada
+  en los dos primeros casos). Nunca las agregues al borrador sin que el usuario haya confirmado
+  explícitamente en la conversación que quiere eliminar ese elemento puntual — si no lo dijo,
+  pregúntaselo primero, no lo des por sentado.
+- Pregunta explícitamente si el usuario quiere seguir agregando acciones o si ya quiere confirmar
+  la lista. Marca listo_para_confirmar=true únicamente cuando el usuario diga explícitamente que ya
   terminó.
-- Niveles disponibles en la góndola activa: ${nivelesTexto}.
+- Góndolas de esta versión: ${gondolasTexto}.
+- Niveles existentes: ${nivelesTexto}.
+- Posiciones existentes: ${posicionesTexto}.
+- Catálogo de accesorios disponibles: ${accesoriosTexto}.
 - Subcategorías de referencia de este planograma: ${subcategoriasTexto}.
 - Responde siempre en español, en tono breve y directo.`;
 }
+
+// ─── Tool buscar_producto ─────────────────────────────────────────────────────
 
 async function ejecutarBuscarProducto(catiClient, termino) {
   const detalle = await catiClient.obtenerProducto(termino).catch(() => null);
@@ -173,7 +293,7 @@ async function ejecutarBuscarProducto(catiClient, termino) {
 /** Resuelve nombre/marca por SKU contra CATI (reutiliza la validación ya hecha en un turno
  * anterior para el mismo SKU, evitando golpear CATI de nuevo por cada item en cada turno, ya que
  * el borrador se reenvía completo siempre). Es la única parte de la normalización que hace I/O —
- * se corre en paralelo para todas las acciones de producto antes de la fase de orden. */
+ * se corre en paralelo para todas las acciones "agregar_producto" antes de la fase de orden. */
 async function resolverDatosProducto(item, previoPorSku, catiClient) {
   if (!item.sku) return { nombre: null, marca: null };
 
@@ -184,45 +304,232 @@ async function resolverDatosProducto(item, previoPorSku, catiClient) {
   return { nombre: detalle?.nombre ?? null, marca: detalle?.marca ?? null };
 }
 
-/** Contexto mutable de la fase 2 (síncrona, en orden) de normalización: rastrea qué órdenes de
- * nivel van a existir a medida que se procesan las acciones "agregar_nivel" del borrador, para
- * poder validar las acciones "agregar_producto" que las referencian. */
+// ─── Normalización: contexto de coordenadas (góndola → nivel → posición) ──────
+
+/** Contexto mutable de la fase 2 (síncrona, en orden) de normalización: rastrea qué góndolas,
+ * niveles y posiciones van a existir a medida que se procesan las acciones de creación del
+ * borrador, para poder validar las acciones que las referencian más adelante en el mismo array —
+ * mismo mecanismo que ya existía para niveles, extendido a góndolas y posiciones. */
 function crearContextoNormalizacion(contexto) {
+  const gondolas = contexto?.gondolas ?? [];
   const niveles = contexto?.niveles ?? [];
-  return {
-    ordenesDisponibles: new Set(niveles.map((n) => n.orden)),
+  const posiciones = contexto?.posiciones ?? [];
+  const accesorios = contexto?.accesorios ?? [];
+
+  const gondolaCtx = {
+    ordenesDisponibles: new Set(gondolas.map((g) => g.gondola_orden)),
     ordenesReservadas: new Set(),
-    proximoOrdenNivel: niveles.length,
+    proximoOrden: gondolas.length,
+  };
+
+  const nivelCtxPorGondola = new Map();
+  function obtenerNivelCtx(gondolaOrden) {
+    if (!nivelCtxPorGondola.has(gondolaOrden)) {
+      const existentes = niveles.filter((n) => n.gondola_orden === gondolaOrden);
+      nivelCtxPorGondola.set(gondolaOrden, {
+        ordenesDisponibles: new Set(existentes.map((n) => n.nivel_orden)),
+        ordenesReservadas: new Set(),
+        proximoOrden: existentes.length,
+      });
+    }
+    return nivelCtxPorGondola.get(gondolaOrden);
+  }
+
+  const posicionCtxPorNivel = new Map();
+  function obtenerPosicionCtx(gondolaOrden, nivelOrden) {
+    const clave = `${gondolaOrden}:${nivelOrden}`;
+    if (!posicionCtxPorNivel.has(clave)) {
+      const existentes = posiciones.filter((p) => p.gondola_orden === gondolaOrden && p.nivel_orden === nivelOrden);
+      posicionCtxPorNivel.set(clave, {
+        ordenesDisponibles: new Set(existentes.map((p) => p.espacio_orden)),
+        proximoOrden: existentes.length,
+      });
+    }
+    return posicionCtxPorNivel.get(clave);
+  }
+
+  return {
+    gondolaCtx,
+    obtenerNivelCtx,
+    obtenerPosicionCtx,
+    accesoriosDisponibles: new Set(accesorios.map((a) => a.codigo)),
+    gondolaPrimeraOrden: gondolas[0]?.gondola_orden ?? null,
   };
 }
 
-/** Normaliza una acción "agregar_nivel": resuelve el orden final (si no vino dado, el siguiente
- * disponible) y valida que tenga los datos obligatorios para poder crearse — sin default posible
- * para altura/tipo de accesorio/ancho, a diferencia de los atributos de producto. */
-function normalizarAccionNivel(item, ctx) {
+function resolverGondolaExistente(gondolaOrden, ctx) {
+  if (gondolaOrden == null || !ctx.gondolaCtx.ordenesDisponibles.has(gondolaOrden)) {
+    return { valido: false, mensaje: `La góndola ${gondolaOrden ?? '(sin especificar)'} no existe todavía y no hay una acción previa para crearla.` };
+  }
+  return { valido: true };
+}
+
+function resolverNivelExistente(gondolaOrden, nivelOrden, ctx) {
+  const gondola = resolverGondolaExistente(gondolaOrden, ctx);
+  if (!gondola.valido) return gondola;
+
+  const nivelCtx = ctx.obtenerNivelCtx(gondolaOrden);
+  if (nivelOrden == null || !nivelCtx.ordenesDisponibles.has(nivelOrden)) {
+    return { valido: false, mensaje: `El nivel ${nivelOrden ?? '(sin especificar)'} no existe todavía en la góndola ${gondolaOrden} y no hay una acción previa para crearlo.` };
+  }
+  return { valido: true, nivelCtx };
+}
+
+function resolverPosicionExistente(gondolaOrden, nivelOrden, espacioOrden, ctx) {
+  const nivel = resolverNivelExistente(gondolaOrden, nivelOrden, ctx);
+  if (!nivel.valido) return nivel;
+
+  const posicionCtx = ctx.obtenerPosicionCtx(gondolaOrden, nivelOrden);
+  if (espacioOrden == null || !posicionCtx.ordenesDisponibles.has(espacioOrden)) {
+    return { valido: false, mensaje: `El espacio ${espacioOrden ?? '(sin especificar)'} no existe todavía en el nivel ${nivelOrden} de la góndola ${gondolaOrden}.` };
+  }
+  return { valido: true, posicionCtx };
+}
+
+/** Resuelve y reserva el destino de mover_producto/duplicar_producto: valida góndola+nivel
+ * destino ya existentes, y asigna (si falta) el siguiente espacio libre del nivel destino —
+ * mismo criterio de default que ya se usaba para el espacio de agregar_producto. */
+function resolverDestino(item, ctx) {
+  const gondolaDestino = item.gondola_orden_destino ?? null;
+  const gondola = resolverGondolaExistente(gondolaDestino, ctx);
+  if (!gondola.valido) {
+    return { advertencias: [gondola.mensaje], gondolaDestino, nivelDestino: item.nivel_orden_destino ?? null, espacioDestino: item.espacio_orden_destino ?? null };
+  }
+
+  const nivelDestino = item.nivel_orden_destino ?? null;
+  const nivelCtxDestino = ctx.obtenerNivelCtx(gondolaDestino);
+  if (nivelDestino == null || !nivelCtxDestino.ordenesDisponibles.has(nivelDestino)) {
+    return {
+      advertencias: [`El nivel destino ${nivelDestino ?? '(sin especificar)'} no existe todavía en la góndola ${gondolaDestino}.`],
+      gondolaDestino, nivelDestino, espacioDestino: item.espacio_orden_destino ?? null,
+    };
+  }
+
+  const posicionCtxDestino = ctx.obtenerPosicionCtx(gondolaDestino, nivelDestino);
+  let espacioDestino = item.espacio_orden_destino ?? null;
+  if (espacioDestino == null) espacioDestino = posicionCtxDestino.proximoOrden + 1;
+  posicionCtxDestino.proximoOrden = Math.max(posicionCtxDestino.proximoOrden, espacioDestino);
+  posicionCtxDestino.ordenesDisponibles.add(espacioDestino);
+
+  return { advertencias: [], gondolaDestino, nivelDestino, espacioDestino };
+}
+
+// ─── Normalización por tipo de acción ─────────────────────────────────────────
+
+function normalizarCrearGondola(item, ctx) {
   const advertencias = [];
 
-  let orden = item.nivel_orden;
+  let orden = item.gondola_orden;
   if (orden == null) {
-    orden = ctx.proximoOrdenNivel + 1;
-  } else if (ctx.ordenesReservadas.has(orden)) {
-    advertencias.push(`Ya hay otra acción para crear un nivel en el orden ${orden} en este borrador.`);
+    orden = ctx.gondolaCtx.proximoOrden + 1;
+  } else if (ctx.gondolaCtx.ordenesReservadas.has(orden)) {
+    advertencias.push(`Ya hay otra acción para crear una góndola en el orden ${orden} en este borrador.`);
+  }
+  ctx.gondolaCtx.ordenesReservadas.add(orden);
+  ctx.gondolaCtx.proximoOrden = Math.max(ctx.gondolaCtx.proximoOrden, orden);
+
+  if (!item.nombre || !String(item.nombre).trim()) {
+    advertencias.push('Falta el nombre de la góndola.');
+  }
+  if (item.ancho_cm == null || item.alto_cm == null || item.profundidad_cm == null) {
+    advertencias.push('Faltan medidas de la góndola (ancho, alto y/o profundidad) — hay que preguntárselas al usuario.');
   }
 
-  ctx.ordenesReservadas.add(orden);
-  ctx.proximoOrdenNivel = Math.max(ctx.proximoOrdenNivel, orden);
+  if (advertencias.length === 0) {
+    ctx.gondolaCtx.ordenesDisponibles.add(orden);
+    ctx.obtenerNivelCtx(orden);
+    if (ctx.gondolaPrimeraOrden == null) ctx.gondolaPrimeraOrden = orden;
+  }
+
+  const normalizado = {
+    tipo_accion: 'crear_gondola',
+    gondola_orden: orden,
+    nombre: item.nombre ?? null,
+    ancho_cm: item.ancho_cm ?? null,
+    alto_cm: item.alto_cm ?? null,
+    profundidad_cm: item.profundidad_cm ?? null,
+    posicion_en_tienda: item.posicion_en_tienda ?? null,
+  };
+  if (advertencias.length > 0) normalizado.advertencia = advertencias.join(' ');
+  return normalizado;
+}
+
+function normalizarEditarGondola(item, ctx) {
+  const check = resolverGondolaExistente(item.gondola_orden ?? null, ctx);
+  const normalizado = {
+    tipo_accion: 'editar_gondola',
+    gondola_orden: item.gondola_orden ?? null,
+    nombre: item.nombre ?? null,
+    ancho_cm: item.ancho_cm ?? null,
+    alto_cm: item.alto_cm ?? null,
+    profundidad_cm: item.profundidad_cm ?? null,
+    posicion_en_tienda: item.posicion_en_tienda ?? null,
+  };
+  if (!check.valido) normalizado.advertencia = check.mensaje;
+  return normalizado;
+}
+
+function normalizarEliminarGondola(item, ctx) {
+  const gondolaOrden = item.gondola_orden ?? null;
+  const check = resolverGondolaExistente(gondolaOrden, ctx);
+  if (check.valido) ctx.gondolaCtx.ordenesDisponibles.delete(gondolaOrden);
+
+  const normalizado = { tipo_accion: 'eliminar_gondola', gondola_orden: gondolaOrden };
+  if (!check.valido) normalizado.advertencia = check.mensaje;
+  return normalizado;
+}
+
+function normalizarReordenarGondolas(item, ctx) {
+  const advertencias = [];
+  const ordenGondolas = Array.isArray(item.orden_gondolas) ? item.orden_gondolas : [];
+
+  if (ordenGondolas.length === 0) {
+    advertencias.push('Falta la lista de góndolas en el nuevo orden deseado.');
+  } else {
+    const desconocidas = ordenGondolas.filter((o) => !ctx.gondolaCtx.ordenesDisponibles.has(o));
+    if (desconocidas.length > 0) {
+      advertencias.push(`Las góndolas ${desconocidas.join(', ')} no existen todavía en este borrador.`);
+    }
+  }
+
+  const normalizado = { tipo_accion: 'reordenar_gondolas', orden_gondolas: ordenGondolas };
+  if (advertencias.length > 0) normalizado.advertencia = advertencias.join(' ');
+  return normalizado;
+}
+
+function normalizarAgregarNivel(item, ctx) {
+  const advertencias = [];
+
+  let gondolaOrden = item.gondola_orden ?? null;
+  if (gondolaOrden == null) gondolaOrden = ctx.gondolaPrimeraOrden;
+  const gondola = resolverGondolaExistente(gondolaOrden, ctx);
+  if (!gondola.valido) advertencias.push(gondola.mensaje);
+
+  const nivelCtx = gondola.valido ? ctx.obtenerNivelCtx(gondolaOrden) : null;
+  let orden = item.nivel_orden ?? null;
+  if (nivelCtx) {
+    if (orden == null) {
+      orden = nivelCtx.proximoOrden + 1;
+    } else if (nivelCtx.ordenesReservadas.has(orden)) {
+      advertencias.push(`Ya hay otra acción para crear un nivel en el orden ${orden} de esta góndola en este borrador.`);
+    }
+    nivelCtx.ordenesReservadas.add(orden);
+    nivelCtx.proximoOrden = Math.max(nivelCtx.proximoOrden, orden);
+  }
 
   if (item.altura_desde_piso_cm == null || item.tipo_accesorio == null || item.ancho_disponible_cm == null) {
-    advertencias.push(
-      'Faltan datos para crear este nivel (altura, tipo de accesorio y/o ancho disponible) — hay que preguntárselos al usuario.',
-    );
+    advertencias.push('Faltan datos para crear este nivel (altura, tipo de accesorio y/o ancho disponible) — hay que preguntárselos al usuario.');
   }
 
-  if (advertencias.length === 0) ctx.ordenesDisponibles.add(orden);
+  if (advertencias.length === 0 && nivelCtx) {
+    nivelCtx.ordenesDisponibles.add(orden);
+    ctx.obtenerPosicionCtx(gondolaOrden, orden);
+  }
 
   const normalizado = {
     tipo_accion: 'agregar_nivel',
-    orden,
+    gondola_orden: gondolaOrden,
+    nivel_orden: orden,
     altura_desde_piso_cm: item.altura_desde_piso_cm ?? null,
     tipo_accesorio: item.tipo_accesorio ?? null,
     codigo_accesorio_id: item.codigo_accesorio_id ?? null,
@@ -234,9 +541,58 @@ function normalizarAccionNivel(item, ctx) {
   return normalizado;
 }
 
-/** Normaliza una acción "agregar_producto": aplica los defaults de siempre y valida que el nivel
- * que referencia (si lo hace) ya exista o vaya a existir por una acción previa en el borrador. */
-function normalizarAccionProducto(item, datosProducto, ctx) {
+function normalizarEditarNivel(item, ctx) {
+  const check = resolverNivelExistente(item.gondola_orden ?? null, item.nivel_orden ?? null, ctx);
+  const normalizado = {
+    tipo_accion: 'editar_nivel',
+    gondola_orden: item.gondola_orden ?? null,
+    nivel_orden: item.nivel_orden ?? null,
+    altura_desde_piso_cm: item.altura_desde_piso_cm ?? null,
+    tipo_accesorio: item.tipo_accesorio ?? null,
+    codigo_accesorio_id: item.codigo_accesorio_id ?? null,
+    tamano_accesorio_pulgadas: item.tamano_accesorio_pulgadas ?? null,
+    ancho_disponible_cm: item.ancho_disponible_cm ?? null,
+    notas: item.notas ?? null,
+  };
+  if (!check.valido) normalizado.advertencia = check.mensaje;
+  return normalizado;
+}
+
+function normalizarEliminarNivel(item, ctx) {
+  const gondolaOrden = item.gondola_orden ?? null;
+  const nivelOrden = item.nivel_orden ?? null;
+  const check = resolverNivelExistente(gondolaOrden, nivelOrden, ctx);
+  if (check.valido) check.nivelCtx.ordenesDisponibles.delete(nivelOrden);
+
+  const normalizado = { tipo_accion: 'eliminar_nivel', gondola_orden: gondolaOrden, nivel_orden: nivelOrden };
+  if (!check.valido) normalizado.advertencia = check.mensaje;
+  return normalizado;
+}
+
+function normalizarReordenarNiveles(item, ctx) {
+  const advertencias = [];
+  const gondolaOrden = item.gondola_orden ?? null;
+  const gondola = resolverGondolaExistente(gondolaOrden, ctx);
+  if (!gondola.valido) advertencias.push(gondola.mensaje);
+
+  const ordenNiveles = Array.isArray(item.orden_niveles) ? item.orden_niveles : [];
+  if (ordenNiveles.length === 0) {
+    advertencias.push('Falta la lista de niveles en el nuevo orden deseado.');
+  } else if (gondola.valido) {
+    const nivelCtx = ctx.obtenerNivelCtx(gondolaOrden);
+    const desconocidos = ordenNiveles.filter((o) => !nivelCtx.ordenesDisponibles.has(o));
+    if (desconocidos.length > 0) advertencias.push(`Los niveles ${desconocidos.join(', ')} no existen todavía en esta góndola.`);
+  }
+
+  const normalizado = { tipo_accion: 'reordenar_niveles', gondola_orden: gondolaOrden, orden_niveles: ordenNiveles };
+  if (advertencias.length > 0) normalizado.advertencia = advertencias.join(' ');
+  return normalizado;
+}
+
+/** Normaliza "agregar_producto": aplica los defaults de siempre y resuelve — con default
+ * incluido, a diferencia del resto de las acciones de producto — góndola (primera de la
+ * versión), nivel (1) y espacio (siguiente libre) cuando el usuario no los da. */
+function normalizarAgregarProducto(item, datosProducto, ctx) {
   const advertencias = [];
 
   if (!item.sku) {
@@ -245,8 +601,24 @@ function normalizarAccionProducto(item, datosProducto, ctx) {
     advertencias.push('SKU no encontrado en el catálogo.');
   }
 
-  if (item.nivel_orden != null && !ctx.ordenesDisponibles.has(item.nivel_orden)) {
-    advertencias.push(`El nivel ${item.nivel_orden} no existe todavía y no hay una acción previa para crearlo.`);
+  let gondolaOrden = item.gondola_orden ?? null;
+  if (gondolaOrden == null) gondolaOrden = ctx.gondolaPrimeraOrden;
+  const gondola = resolverGondolaExistente(gondolaOrden, ctx);
+  if (!gondola.valido) advertencias.push(gondola.mensaje);
+
+  let nivelOrden = item.nivel_orden ?? null;
+  if (nivelOrden == null) nivelOrden = 1;
+  const nivelCtx = gondola.valido ? ctx.obtenerNivelCtx(gondolaOrden) : null;
+  if (nivelCtx && !nivelCtx.ordenesDisponibles.has(nivelOrden)) {
+    advertencias.push(`El nivel ${nivelOrden} no existe todavía en la góndola ${gondolaOrden} y no hay una acción previa para crearlo.`);
+  }
+
+  let espacioOrden = item.espacio_orden ?? null;
+  const posicionCtx = nivelCtx && nivelCtx.ordenesDisponibles.has(nivelOrden) ? ctx.obtenerPosicionCtx(gondolaOrden, nivelOrden) : null;
+  if (posicionCtx) {
+    if (espacioOrden == null) espacioOrden = posicionCtx.proximoOrden + 1;
+    posicionCtx.proximoOrden = Math.max(posicionCtx.proximoOrden, espacioOrden);
+    posicionCtx.ordenesDisponibles.add(espacioOrden);
   }
 
   const normalizado = {
@@ -254,8 +626,9 @@ function normalizarAccionProducto(item, datosProducto, ctx) {
     sku: item.sku ?? '',
     nombre: datosProducto.nombre,
     marca: datosProducto.marca,
-    nivel_orden: item.nivel_orden ?? undefined,
-    espacio_orden: item.espacio_orden ?? undefined,
+    gondola_orden: gondolaOrden,
+    nivel_orden: nivelOrden,
+    espacio_orden: espacioOrden,
     facings_horizontal: item.facings_horizontal ?? DEFAULTS.facings_horizontal,
     cantidad_apilable: item.cantidad_apilable ?? DEFAULTS.cantidad_apilable,
     unidades_por_facing: item.unidades_por_facing ?? DEFAULTS.unidades_por_facing,
@@ -267,12 +640,207 @@ function normalizarAccionProducto(item, datosProducto, ctx) {
   return normalizado;
 }
 
+function normalizarEditarProducto(item, ctx) {
+  const gondolaOrden = item.gondola_orden ?? null;
+  const nivelOrden = item.nivel_orden ?? null;
+  const espacioOrden = item.espacio_orden ?? null;
+  const check = resolverPosicionExistente(gondolaOrden, nivelOrden, espacioOrden, ctx);
+
+  const advertencias = [];
+  if (!check.valido) advertencias.push(check.mensaje);
+  if (item.desborda_gondola === true && !item.nota_desborde) {
+    advertencias.push('Si el producto desborda la góndola hace falta una nota de desborde.');
+  }
+
+  const normalizado = {
+    tipo_accion: 'editar_producto',
+    gondola_orden: gondolaOrden,
+    nivel_orden: nivelOrden,
+    espacio_orden: espacioOrden,
+    facings_horizontal: item.facings_horizontal ?? null,
+    cantidad_apilable: item.cantidad_apilable ?? null,
+    unidades_por_facing: item.unidades_por_facing ?? null,
+    perfil_redondeo: item.perfil_redondeo ?? null,
+    min_final: item.min_final ?? null,
+    max_final: item.max_final ?? null,
+    modo: item.modo ?? null,
+    decision: item.decision ?? null,
+    cross_externo: item.cross_externo ?? null,
+    montar_en_display: item.montar_en_display ?? null,
+    observaciones: item.observaciones ?? null,
+    desborda_gondola: item.desborda_gondola ?? null,
+    nota_desborde: item.nota_desborde ?? null,
+  };
+  if (advertencias.length > 0) normalizado.advertencia = advertencias.join(' ');
+  return normalizado;
+}
+
+function normalizarMoverProducto(item, ctx) {
+  const gondolaOrden = item.gondola_orden ?? null;
+  const nivelOrden = item.nivel_orden ?? null;
+  const espacioOrden = item.espacio_orden ?? null;
+  const origen = resolverPosicionExistente(gondolaOrden, nivelOrden, espacioOrden, ctx);
+  const destino = resolverDestino(item, ctx);
+
+  const advertencias = [...(origen.valido ? [] : [origen.mensaje]), ...destino.advertencias];
+  if (origen.valido && destino.advertencias.length === 0) {
+    origen.posicionCtx.ordenesDisponibles.delete(espacioOrden);
+  }
+
+  const normalizado = {
+    tipo_accion: 'mover_producto',
+    gondola_orden: gondolaOrden,
+    nivel_orden: nivelOrden,
+    espacio_orden: espacioOrden,
+    gondola_orden_destino: destino.gondolaDestino,
+    nivel_orden_destino: destino.nivelDestino,
+    espacio_orden_destino: destino.espacioDestino,
+  };
+  if (advertencias.length > 0) normalizado.advertencia = advertencias.join(' ');
+  return normalizado;
+}
+
+function normalizarDuplicarProducto(item, ctx) {
+  const gondolaOrden = item.gondola_orden ?? null;
+  const nivelOrden = item.nivel_orden ?? null;
+  const espacioOrden = item.espacio_orden ?? null;
+  const origen = resolverPosicionExistente(gondolaOrden, nivelOrden, espacioOrden, ctx);
+  const destino = resolverDestino(item, ctx);
+
+  const advertencias = [...(origen.valido ? [] : [origen.mensaje]), ...destino.advertencias];
+
+  const normalizado = {
+    tipo_accion: 'duplicar_producto',
+    gondola_orden: gondolaOrden,
+    nivel_orden: nivelOrden,
+    espacio_orden: espacioOrden,
+    gondola_orden_destino: destino.gondolaDestino,
+    nivel_orden_destino: destino.nivelDestino,
+    espacio_orden_destino: destino.espacioDestino,
+  };
+  if (advertencias.length > 0) normalizado.advertencia = advertencias.join(' ');
+  return normalizado;
+}
+
+function normalizarEliminarProducto(item, ctx) {
+  const gondolaOrden = item.gondola_orden ?? null;
+  const nivelOrden = item.nivel_orden ?? null;
+  const espacioOrden = item.espacio_orden ?? null;
+  const check = resolverPosicionExistente(gondolaOrden, nivelOrden, espacioOrden, ctx);
+  if (check.valido) check.posicionCtx.ordenesDisponibles.delete(espacioOrden);
+
+  const normalizado = { tipo_accion: 'eliminar_producto', gondola_orden: gondolaOrden, nivel_orden: nivelOrden, espacio_orden: espacioOrden };
+  if (!check.valido) normalizado.advertencia = check.mensaje;
+  return normalizado;
+}
+
+function normalizarAgregarAccesorioPosicion(item, ctx) {
+  const gondolaOrden = item.gondola_orden ?? null;
+  const nivelOrden = item.nivel_orden ?? null;
+  const espacioOrden = item.espacio_orden ?? null;
+  const check = resolverPosicionExistente(gondolaOrden, nivelOrden, espacioOrden, ctx);
+
+  const advertencias = [];
+  if (!check.valido) advertencias.push(check.mensaje);
+  if (!item.accesorio_codigo) advertencias.push('Falta el código del accesorio a agregar.');
+  else if (!ctx.accesoriosDisponibles.has(item.accesorio_codigo)) advertencias.push(`El accesorio '${item.accesorio_codigo}' no existe en el catálogo.`);
+
+  const normalizado = {
+    tipo_accion: 'agregar_accesorio_posicion',
+    gondola_orden: gondolaOrden,
+    nivel_orden: nivelOrden,
+    espacio_orden: espacioOrden,
+    accesorio_codigo: item.accesorio_codigo ?? null,
+    nota_libre: item.nota_libre ?? null,
+  };
+  if (advertencias.length > 0) normalizado.advertencia = advertencias.join(' ');
+  return normalizado;
+}
+
+function normalizarQuitarAccesorioPosicion(item, ctx) {
+  const gondolaOrden = item.gondola_orden ?? null;
+  const nivelOrden = item.nivel_orden ?? null;
+  const espacioOrden = item.espacio_orden ?? null;
+  const check = resolverPosicionExistente(gondolaOrden, nivelOrden, espacioOrden, ctx);
+
+  const advertencias = [];
+  if (!check.valido) advertencias.push(check.mensaje);
+  if (!item.accesorio_codigo) advertencias.push('Falta el código del accesorio a quitar.');
+
+  const normalizado = {
+    tipo_accion: 'quitar_accesorio_posicion',
+    gondola_orden: gondolaOrden,
+    nivel_orden: nivelOrden,
+    espacio_orden: espacioOrden,
+    accesorio_codigo: item.accesorio_codigo ?? null,
+  };
+  if (advertencias.length > 0) normalizado.advertencia = advertencias.join(' ');
+  return normalizado;
+}
+
+function normalizarActualizarMedidasProducto(item) {
+  const advertencias = [];
+  if (!item.sku) advertencias.push('Falta el SKU del producto.');
+  if (item.ancho_cm == null || item.alto_cm == null || item.profundidad_cm == null) {
+    advertencias.push('Faltan medidas del producto (ancho, alto y/o profundidad) — hay que preguntárselas al usuario.');
+  }
+
+  const normalizado = {
+    tipo_accion: 'actualizar_medidas_producto',
+    sku: item.sku ?? '',
+    ancho_cm: item.ancho_cm ?? null,
+    alto_cm: item.alto_cm ?? null,
+    profundidad_cm: item.profundidad_cm ?? null,
+  };
+  if (advertencias.length > 0) normalizado.advertencia = advertencias.join(' ');
+  return normalizado;
+}
+
+function normalizarValidarDimensionesProducto(item) {
+  const normalizado = { tipo_accion: 'validar_dimensiones_producto', sku: item.sku ?? '' };
+  if (!item.sku) normalizado.advertencia = 'Falta el SKU del producto.';
+  return normalizado;
+}
+
+/** Despacha cada acción cruda del borrador a su normalizador según `tipo_accion`. Mantiene el
+ * mismo criterio ya usado antes de esta ampliación: nunca rechaza una acción por completo, solo
+ * le agrega `advertencia` cuando algo falta o referencia algo que no existe — la fila queda
+ * marcada como inválida en la UI de revisión y se excluye de la ejecución. */
+function normalizarAccion(item, datosProducto, ctx) {
+  switch (item.tipo_accion) {
+    case 'crear_gondola':                 return normalizarCrearGondola(item, ctx);
+    case 'editar_gondola':                return normalizarEditarGondola(item, ctx);
+    case 'eliminar_gondola':              return normalizarEliminarGondola(item, ctx);
+    case 'reordenar_gondolas':            return normalizarReordenarGondolas(item, ctx);
+    case 'agregar_nivel':                 return normalizarAgregarNivel(item, ctx);
+    case 'editar_nivel':                  return normalizarEditarNivel(item, ctx);
+    case 'eliminar_nivel':                return normalizarEliminarNivel(item, ctx);
+    case 'reordenar_niveles':             return normalizarReordenarNiveles(item, ctx);
+    case 'agregar_producto':              return normalizarAgregarProducto(item, datosProducto, ctx);
+    case 'editar_producto':               return normalizarEditarProducto(item, ctx);
+    case 'mover_producto':                return normalizarMoverProducto(item, ctx);
+    case 'duplicar_producto':             return normalizarDuplicarProducto(item, ctx);
+    case 'eliminar_producto':             return normalizarEliminarProducto(item, ctx);
+    case 'agregar_accesorio_posicion':    return normalizarAgregarAccesorioPosicion(item, ctx);
+    case 'quitar_accesorio_posicion':     return normalizarQuitarAccesorioPosicion(item, ctx);
+    case 'actualizar_medidas_producto':   return normalizarActualizarMedidasProducto(item);
+    case 'validar_dimensiones_producto':  return normalizarValidarDimensionesProducto(item);
+    default:                              return { tipo_accion: item.tipo_accion, advertencia: `Tipo de acción desconocido: ${item.tipo_accion}` };
+  }
+}
+
 /**
  * @param {object} entrada
  * @param {string} entrada.mensaje
  * @param {Array<{rol: 'user'|'assistant', contenido: string}>} entrada.historial
  * @param {Array<object>} entrada.borradorActual
- * @param {{subcategorias?: string[], niveles?: Array<{id:number, orden:number, nombre?:string}>}} entrada.contexto
+ * @param {{
+ *   subcategorias?: string[],
+ *   gondolas?: Array<{gondola_orden:number, nombre:string, total_niveles:number}>,
+ *   niveles?: Array<{gondola_orden:number, nivel_orden:number, tipo_accesorio:string}>,
+ *   posiciones?: Array<{gondola_orden:number, nivel_orden:number, espacio_orden:number, sku:string, nombre:string|null}>,
+ *   accesorios?: Array<{codigo:string, nombre:string, tipo:string}>,
+ * }} entrada.contexto
  * @param {{openaiClient: object, catiClient: object}} dependencias
  */
 async function procesarMensaje({ mensaje, historial = [], borradorActual = [], contexto = {} }, { openaiClient, catiClient }) {
@@ -299,7 +867,7 @@ async function procesarMensaje({ mensaje, historial = [], borradorActual = [], c
 
   const accionesCrudas = resultado.borrador ?? [];
 
-  // Fase 1 (paralela, I/O): resolver nombre/marca contra CATI solo para las acciones de producto.
+  // Fase 1 (paralela, I/O): resolver nombre/marca contra CATI solo para las acciones "agregar_producto".
   const previoPorSku = new Map(
     borradorActual
       .filter((item) => item.tipo_accion === 'agregar_producto')
@@ -311,13 +879,10 @@ async function procesarMensaje({ mensaje, historial = [], borradorActual = [], c
     )),
   );
 
-  // Fase 2 (síncrona, en el orden del array): normaliza acumulando qué niveles van a existir.
+  // Fase 2 (síncrona, en el orden del array): normaliza acumulando qué góndolas/niveles/espacios
+  // van a existir, y valida que cada acción referencie algo que ya existe o que se cree antes.
   const ctx = crearContextoNormalizacion(contexto);
-  const borrador = accionesCrudas.map((item, indice) => (
-    item.tipo_accion === 'agregar_nivel'
-      ? normalizarAccionNivel(item, ctx)
-      : normalizarAccionProducto(item, datosProductoPorIndice[indice], ctx)
-  ));
+  const borrador = accionesCrudas.map((item, indice) => normalizarAccion(item, datosProductoPorIndice[indice], ctx));
 
   return {
     mensajeAsistente: resultado.mensaje,

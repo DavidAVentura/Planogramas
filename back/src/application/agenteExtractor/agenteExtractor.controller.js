@@ -23,11 +23,34 @@ const schemaMensaje = Joi.object({
   borrador_actual: Joi.array().items(Joi.object().unknown(true)).default([]),
   contexto: Joi.object({
     subcategorias: Joi.array().items(Joi.string()).default([]),
+    gondolas: Joi.array()
+      .items(Joi.object({
+        gondola_orden: Joi.number().integer().positive().required(),
+        nombre:        Joi.string().allow('').required(),
+        total_niveles: Joi.number().integer().min(0).required(),
+      }))
+      .default([]),
     niveles: Joi.array()
       .items(Joi.object({
-        id:     Joi.number().integer().positive().required(),
-        orden:  Joi.number().integer().positive().required(),
-        nombre: Joi.string().allow(null, '').optional(),
+        gondola_orden:  Joi.number().integer().positive().required(),
+        nivel_orden:    Joi.number().integer().positive().required(),
+        tipo_accesorio: Joi.string().required(),
+      }))
+      .default([]),
+    posiciones: Joi.array()
+      .items(Joi.object({
+        gondola_orden: Joi.number().integer().positive().required(),
+        nivel_orden:   Joi.number().integer().positive().required(),
+        espacio_orden: Joi.number().integer().positive().required(),
+        sku:           Joi.string().required(),
+        nombre:        Joi.string().allow(null, '').optional(),
+      }))
+      .default([]),
+    accesorios: Joi.array()
+      .items(Joi.object({
+        codigo: Joi.string().required(),
+        nombre: Joi.string().allow('').required(),
+        tipo:   Joi.string().required(),
       }))
       .default([]),
   }).default({}),

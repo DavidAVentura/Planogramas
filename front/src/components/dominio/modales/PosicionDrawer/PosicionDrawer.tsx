@@ -14,7 +14,7 @@ import {
   useValidarDimensionesProducto,
 } from '../../../../hooks/useCatalogo';
 import { useAccesorios } from '../../../../hooks/useAccesorios';
-import { calcularAnchoAsignado } from '../../../../utils/posicionCalculos';
+import { calcularAnchoAsignado, calcularCapacidadMaxima, calcularMinEstetico } from '../../../../utils/posicionCalculos';
 import {
   DECISIONES_POSICION,
   MODOS_POSICION,
@@ -126,15 +126,12 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
   const facingsNum = Number(facings) || 0;
   const cantidadApilableNum = Number(cantidadApilable) || 0;
   const unidadesPorFacingNum = Number(unidadesPorFacing) || 0;
-  const capacidadMaximaCalculada = facingsNum * cantidadApilableNum * unidadesPorFacingNum;
+  const capacidadMaximaCalculada = calcularCapacidadMaxima(facingsNum, cantidadApilableNum, unidadesPorFacingNum);
   const minEsteticoBloqueado = unidadesPorFacingNum >= 4;
 
-  // Capacidad máxima y mínimo estético son calculados, no ingresados a mano (ver PosicionDrawer):
-  // capacidad_maxima = facings × apilable × unidades_por_facing siempre; min_estetico = 3×facings+1
-  // si unidades_por_facing >= 4, o si no, el mismo valor que capacidad_maxima (pero editable en ese caso).
   useEffect(() => {
-    setMinEstetico(String(minEsteticoBloqueado ? facingsNum * 3 + 1 : capacidadMaximaCalculada));
-  }, [facingsNum, cantidadApilableNum, unidadesPorFacingNum, minEsteticoBloqueado, capacidadMaximaCalculada]);
+    setMinEstetico(String(calcularMinEstetico(facingsNum, unidadesPorFacingNum, capacidadMaximaCalculada)));
+  }, [facingsNum, unidadesPorFacingNum, capacidadMaximaCalculada]);
 
   if (cargando || !posicion) {
     return (

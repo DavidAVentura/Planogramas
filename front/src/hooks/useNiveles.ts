@@ -3,6 +3,7 @@ import { nivelesService } from '../services/niveles.service';
 import { useToast } from '../context/ToastContext';
 import { mensajeDeError } from '../utils/errors';
 import type { Nivel, NivelCambios, NivelEditado, NivelInput, NivelResumen, OrdenNivel } from '../types/nivel';
+import type { GondolaListItem } from '../types/gondola';
 
 export function useNivelesDeGondola(gondolaId: number) {
   const [niveles, setNiveles] = useState<Nivel[]>([]);
@@ -24,6 +25,40 @@ export function useNivelesDeGondola(gondolaId: number) {
       setCargando(false);
     }
   }, [gondolaId, mostrarToast]);
+
+  useEffect(() => {
+    cargar();
+  }, [cargar]);
+
+  return { niveles, cargando, recargar: cargar };
+}
+
+/** Niveles de TODAS las góndolas dadas (no solo la activa) — usado por el Agente Extractor, que
+ * opera sobre la versión completa. Se gatea con `activo` para no pegarle a la API de cada góndola
+ * mientras el chat del agente está cerrado (mismo criterio de carga perezosa que el resto de los
+ * hooks de detalle de este archivo). */
+export function useNivelesDeVersion(gondolas: GondolaListItem[], activo: boolean) {
+  const [niveles, setNiveles] = useState<Nivel[]>([]);
+  const [cargando, setCargando] = useState(false);
+  const { mostrarToast } = useToast();
+  const idsKey = gondolas.map((g) => g.id).join(',');
+
+  const cargar = useCallback(async () => {
+    if (!activo || !idsKey) {
+      setNiveles([]);
+      return;
+    }
+    setCargando(true);
+    try {
+      const ids = idsKey.split(',').map(Number);
+      const resultados = await Promise.all(ids.map((id) => nivelesService.listarPorGondola(id)));
+      setNiveles(resultados.flat());
+    } catch (err) {
+      mostrarToast(mensajeDeError(err, 'No se pudieron cargar los niveles de la versión'), 'error');
+    } finally {
+      setCargando(false);
+    }
+  }, [activo, idsKey, mostrarToast]);
 
   useEffect(() => {
     cargar();
