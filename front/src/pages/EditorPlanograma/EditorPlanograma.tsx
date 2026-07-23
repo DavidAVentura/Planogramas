@@ -408,10 +408,15 @@ export function EditorPlanograma() {
       {!cargandoInicial && gondolaActiva && (
         <AgenteExtractorBubble
           puedeEscribir={puedeEscribir}
+          gondolaId={gondolaActiva.id}
           niveles={niveles}
           posicionesPorNivel={posicionesPorNivel}
           subcategorias={planograma?.subcategorias ?? []}
-          onConfirmado={recargarPosiciones}
+          onConfirmado={() => {
+            recargarNiveles();
+            recargarGondolas();
+            recargarPosiciones();
+          }}
         />
       )}
     </div>

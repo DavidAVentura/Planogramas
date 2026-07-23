@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Drawer } from '../../../ui/Drawer/Drawer';
 import { Button } from '../../../ui/Button/Button';
-import type { ItemBorrador, MensajeChat } from '../../../../types/agenteExtractor';
+import type { AccionBorrador, MensajeChat } from '../../../../types/agenteExtractor';
 import './AgenteExtractorChat.css';
 
 interface AgenteExtractorChatProps {
   mensajes: MensajeChat[];
-  borrador: ItemBorrador[];
+  borrador: AccionBorrador[];
   listoParaConfirmar: boolean;
   enviando: boolean;
   onEnviar: (texto: string) => void;

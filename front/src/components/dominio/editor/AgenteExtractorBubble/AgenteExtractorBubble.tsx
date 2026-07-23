@@ -8,6 +8,7 @@ import './AgenteExtractorBubble.css';
 
 interface AgenteExtractorBubbleProps {
   puedeEscribir: boolean;
+  gondolaId: number;
   niveles: Nivel[];
   posicionesPorNivel: Record<number, PosicionesDeNivel>;
   subcategorias: string[];
@@ -16,6 +17,7 @@ interface AgenteExtractorBubbleProps {
 
 export function AgenteExtractorBubble({
   puedeEscribir,
+  gondolaId,
   niveles,
   posicionesPorNivel,
   subcategorias,
@@ -29,7 +31,7 @@ export function AgenteExtractorBubble({
     niveles: niveles.map((n) => ({ id: n.id, orden: n.orden })),
   });
 
-  if (!puedeEscribir || niveles.length === 0) return null;
+  if (!puedeEscribir) return null;
 
   return (
     <>
@@ -57,6 +59,7 @@ export function AgenteExtractorBubble({
       {mostrarResumen && (
         <ResumenBorradorModal
           borrador={agente.borrador}
+          gondolaId={gondolaId}
           niveles={niveles}
           posicionesPorNivel={posicionesPorNivel}
           onClose={() => setMostrarResumen(false)}
