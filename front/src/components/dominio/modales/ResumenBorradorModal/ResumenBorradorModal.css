@@ -1,0 +1,16 @@
+.resumen-borrador-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.resumen-borrador-modal__ayuda {
+  margin: 0;
+  font-size: 13px;
+  color: var(--fg-3);
+}
+
+.resumen-borrador-modal__fila--advertencia td {
+  background: var(--warning-bg);
+  color: var(--warning);
+}

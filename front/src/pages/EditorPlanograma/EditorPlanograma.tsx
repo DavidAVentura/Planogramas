@@ -15,6 +15,7 @@ import { PosicionDrawer } from '../../components/dominio/modales/PosicionDrawer/
 import { MoverPosicionModal } from '../../components/dominio/modales/MoverPosicionModal/MoverPosicionModal';
 import { CopiarPosicionModal } from '../../components/dominio/modales/CopiarPosicionModal/CopiarPosicionModal';
 import { EliminarPosicionModal } from '../../components/dominio/modales/EliminarPosicionModal/EliminarPosicionModal';
+import { AgenteExtractorBubble } from '../../components/dominio/editor/AgenteExtractorBubble/AgenteExtractorBubble';
 import { EmptyState } from '../../components/ui/EmptyState/EmptyState';
 import { Button } from '../../components/ui/Button/Button';
 import { usePlanogramaDetalle } from '../../hooks/usePlanogramas';
@@ -401,6 +402,16 @@ export function EditorPlanograma() {
             setSelectedPosicionId(null);
             recargarPosiciones();
           }}
+        />
+      )}
+
+      {!cargandoInicial && gondolaActiva && (
+        <AgenteExtractorBubble
+          puedeEscribir={puedeEscribir}
+          niveles={niveles}
+          posicionesPorNivel={posicionesPorNivel}
+          subcategorias={planograma?.subcategorias ?? []}
+          onConfirmado={recargarPosiciones}
         />
       )}
     </div>

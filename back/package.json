@@ -22,6 +22,7 @@
     "joi": "*",
     "jsonwebtoken": "*",
     "knex": "*",
+    "openai": "^6.48.0",
     "tedious": "*"
   },
   "devDependencies": {

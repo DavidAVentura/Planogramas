@@ -43,4 +43,10 @@ module.exports = {
     baseUrl: process.env.CATI_BASE_URL,
     apiKey:  process.env.CATI_API_KEY,
   },
+
+  // OpenAI — usado por los agentes de back/src/agents/
+  openai: {
+    apiKey: process.env.OPENIA_TOKEN,
+    model:  process.env.OPENAI_MODEL || 'gpt-4o-mini',
+  },
 };
