@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Modal } from '../../../ui/Modal/Modal';
 import { Button } from '../../../ui/Button/Button';
 import { useAgregarGondola, useEditarGondola } from '../../../../hooks/useGondolas';
+import { GONDOLA_DEFAULTS } from '../../../../constants/valoresPorDefecto';
 import type { Gondola, GondolaInput } from '../../../../types/gondola';
 import './GondolaModal.css';
 
@@ -19,9 +20,9 @@ export function GondolaModal({ versionId, gondola, onClose, onGuardada }: Gondol
   const enviando = agregando || editando;
 
   const [nombre, setNombre] = useState(gondola?.nombre ?? '');
-  const [anchoCm, setAnchoCm] = useState(gondola ? String(gondola.ancho_cm) : '');
-  const [altoCm, setAltoCm] = useState(gondola ? String(gondola.alto_cm) : '');
-  const [profundidadCm, setProfundidadCm] = useState(gondola ? String(gondola.profundidad_cm) : '');
+  const [anchoCm, setAnchoCm] = useState(String(gondola?.ancho_cm ?? GONDOLA_DEFAULTS.ancho_cm));
+  const [altoCm, setAltoCm] = useState(String(gondola?.alto_cm ?? GONDOLA_DEFAULTS.alto_cm));
+  const [profundidadCm, setProfundidadCm] = useState(String(gondola?.profundidad_cm ?? GONDOLA_DEFAULTS.profundidad_cm));
   const [posicionEnTienda, setPosicionEnTienda] = useState(gondola?.posicion_en_tienda ?? '');
 
   async function onSubmit(e: FormEvent) {

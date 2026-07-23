@@ -15,6 +15,9 @@ export interface ContextoGondola {
   gondola_orden: number;
   nombre: string;
   total_niveles: number;
+  /** Usado por el agente para defaultear `ancho_disponible_cm` de un nivel nuevo al ancho de su
+   * góndola cuando el usuario no lo da (ver DEFAULTS en agenteExtractor.js del backend). */
+  ancho_cm: number;
 }
 
 export interface ContextoNivel {

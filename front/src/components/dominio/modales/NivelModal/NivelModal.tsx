@@ -3,6 +3,7 @@ import { Modal } from '../../../ui/Modal/Modal';
 import { Button } from '../../../ui/Button/Button';
 import { useAgregarNivel, useEditarNivel } from '../../../../hooks/useNiveles';
 import { useAccesorios } from '../../../../hooks/useAccesorios';
+import { NIVEL_DEFAULTS } from '../../../../constants/valoresPorDefecto';
 import { TIPOS_ACCESORIO, type Nivel, type NivelCampos, type TipoAccesorio } from '../../../../types/nivel';
 import './NivelModal.css';
 
@@ -16,26 +17,29 @@ const ETIQUETAS_TIPO_ACCESORIO: Record<TipoAccesorio, string> = {
 
 interface NivelModalProps {
   gondolaId: number;
+  /** Ancho de la góndola dueña de este nivel — precarga el ancho disponible por defecto al crear
+   * un nivel nuevo (los niveles nuevos toman el ancho de su góndola). */
+  gondolaAnchoCm: number;
   nivel?: Nivel | null;
   proximoOrden: number;
   onClose: () => void;
   onGuardada: (nivel: Nivel) => void;
 }
 
-export function NivelModal({ gondolaId, nivel, proximoOrden, onClose, onGuardada }: NivelModalProps) {
+export function NivelModal({ gondolaId, gondolaAnchoCm, nivel, proximoOrden, onClose, onGuardada }: NivelModalProps) {
   const esEdicion = Boolean(nivel);
   const { agregar, enviando: agregando } = useAgregarNivel();
   const { editar, enviando: editando } = useEditarNivel();
   const enviando = agregando || editando;
 
   const [orden, setOrden] = useState(String(proximoOrden));
-  const [alturaCm, setAlturaCm] = useState(nivel ? String(nivel.altura_desde_piso_cm) : '');
-  const [tipoAccesorio, setTipoAccesorio] = useState<TipoAccesorio>(nivel?.tipo_accesorio ?? 'GANCHO');
+  const [alturaCm, setAlturaCm] = useState(String(nivel?.altura_desde_piso_cm ?? NIVEL_DEFAULTS.altura_desde_piso_cm));
+  const [tipoAccesorio, setTipoAccesorio] = useState<TipoAccesorio>(nivel?.tipo_accesorio ?? NIVEL_DEFAULTS.tipo_accesorio);
   const [codigoAccesorioId, setCodigoAccesorioId] = useState(nivel?.accesorio ? String(nivel.accesorio.id) : '');
   const [tamanoPulgadas, setTamanoPulgadas] = useState(
     nivel?.tamano_accesorio_pulgadas != null ? String(nivel.tamano_accesorio_pulgadas) : '',
   );
-  const [anchoCm, setAnchoCm] = useState(nivel ? String(nivel.ancho_disponible_cm) : '');
+  const [anchoCm, setAnchoCm] = useState(String(nivel?.ancho_disponible_cm ?? gondolaAnchoCm));
   const [notas, setNotas] = useState(nivel?.notas ?? '');
 
   const { accesorios, cargando: cargandoAccesorios } = useAccesorios(tipoAccesorio);

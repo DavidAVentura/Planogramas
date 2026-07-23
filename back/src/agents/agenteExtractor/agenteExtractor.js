@@ -20,6 +20,14 @@ const DEFAULTS = {
   perfil_redondeo: 'MRP',
   modo: 'PLANOGRAMA',
   decision: 'ACTIVO',
+  // Mismos valores por defecto de góndola/nivel que usan GondolaModal/NivelModal en el frontend
+  // (ver front/src/constants/valoresPorDefecto.ts — misma fuente de verdad, duplicada acá porque
+  // el backend no puede importar del frontend).
+  gondola_ancho_cm: 200,
+  gondola_alto_cm: 230,
+  gondola_profundidad_cm: 50,
+  nivel_altura_desde_piso_cm: 5,
+  nivel_tipo_accesorio: 'BANDEJA',
 };
 
 const TOOL_BUSCAR_PRODUCTO = {
@@ -142,7 +150,7 @@ function construirPromptSistema(contexto) {
   const subcategorias = contexto?.subcategorias ?? [];
 
   const gondolasTexto = gondolas.length > 0
-    ? gondolas.map((g) => `góndola ${g.gondola_orden} "${g.nombre}" (${g.total_niveles} nivel(es))`).join('; ')
+    ? gondolas.map((g) => `góndola ${g.gondola_orden} "${g.nombre}" (${g.total_niveles} nivel(es), ${g.ancho_cm} cm de ancho)`).join('; ')
     : 'sin góndolas registradas todavía';
 
   const nivelesTexto = niveles.length > 0
@@ -186,8 +194,11 @@ después, en ese mismo array.
 ## Acciones disponibles (tipo_accion)
 
 Góndola:
-- "crear_gondola": nombre, ancho_cm (≤500), alto_cm (≤300), profundidad_cm (≤200), posicion_en_tienda
-  opcional. Son medidas físicas reales — nunca las inventes, pregúntalas si el usuario no las da.
+- "crear_gondola": nombre (obligatorio, sin default — pregúntalo siempre si falta), ancho_cm,
+  alto_cm, profundidad_cm y posicion_en_tienda opcional. Las medidas tienen default de Cemaco
+  (${DEFAULTS.gondola_ancho_cm}×${DEFAULTS.gondola_alto_cm}×${DEFAULTS.gondola_profundidad_cm} cm,
+  ancho×alto×profundidad) — si el usuario no las da, asumilas y avisale en tu respuesta que usaste
+  esos valores por si quiere cambiarlos.
 - "editar_gondola": gondola_orden (la góndola a editar) + cualquiera de los campos de arriba (parcial).
 - "eliminar_gondola": gondola_orden. Borra en cascada sus niveles y posiciones — es irreversible.
   Nunca la agregues al borrador sin que el usuario haya confirmado explícitamente que quiere
@@ -197,10 +208,12 @@ Góndola:
 
 Nivel (dentro de una góndola):
 - "agregar_nivel": gondola_orden (opcional — si falta, cae en la primera góndola de la versión),
-  nivel_orden (opcional — si falta, va al final de la góndola), altura_desde_piso_cm, tipo_accesorio
-  (uno de: ${tiposAccesorioTexto}) y ancho_disponible_cm son obligatorios y sin default razonable —
-  son medidas físicas del mueble real, pregúntalas siempre si faltan. codigo_accesorio_id,
-  tamano_accesorio_pulgadas y notas son opcionales.
+  nivel_orden (opcional — si falta, va al final de la góndola). altura_desde_piso_cm, tipo_accesorio
+  (uno de: ${tiposAccesorioTexto}) y ancho_disponible_cm tienen default de Cemaco: altura
+  ${DEFAULTS.nivel_altura_desde_piso_cm} cm, tipo_accesorio "${DEFAULTS.nivel_tipo_accesorio}", y
+  ancho_disponible_cm = el ancho de la góndola que lo contiene (ver "cm de ancho" de cada góndola
+  más abajo) — si el usuario no los da, asumilos y avisale en tu respuesta que usaste esos valores
+  por si quiere cambiarlos. codigo_accesorio_id, tamano_accesorio_pulgadas y notas son opcionales.
 - "editar_nivel": gondola_orden + nivel_orden (el nivel a editar) + cualquiera de los campos de
   arriba (parcial).
 - "eliminar_nivel": gondola_orden + nivel_orden. Borra en cascada sus posiciones — irreversible,
@@ -354,6 +367,9 @@ function crearContextoNormalizacion(contexto) {
     obtenerPosicionCtx,
     accesoriosDisponibles: new Set(accesorios.map((a) => a.codigo)),
     gondolaPrimeraOrden: gondolas[0]?.gondola_orden ?? null,
+    // Ancho de cada góndola (existente o creada en este mismo borrador) — default de
+    // ancho_disponible_cm para los niveles que no lo especifiquen (ver normalizarAgregarNivel).
+    anchoCmPorGondola: new Map(gondolas.map((g) => [g.gondola_orden, g.ancho_cm])),
   };
 }
 
@@ -431,13 +447,13 @@ function normalizarCrearGondola(item, ctx) {
   if (!item.nombre || !String(item.nombre).trim()) {
     advertencias.push('Falta el nombre de la góndola.');
   }
-  if (item.ancho_cm == null || item.alto_cm == null || item.profundidad_cm == null) {
-    advertencias.push('Faltan medidas de la góndola (ancho, alto y/o profundidad) — hay que preguntárselas al usuario.');
-  }
+
+  const anchoCm = item.ancho_cm ?? DEFAULTS.gondola_ancho_cm;
 
   if (advertencias.length === 0) {
     ctx.gondolaCtx.ordenesDisponibles.add(orden);
     ctx.obtenerNivelCtx(orden);
+    ctx.anchoCmPorGondola.set(orden, anchoCm);
     if (ctx.gondolaPrimeraOrden == null) ctx.gondolaPrimeraOrden = orden;
   }
 
@@ -445,9 +461,9 @@ function normalizarCrearGondola(item, ctx) {
     tipo_accion: 'crear_gondola',
     gondola_orden: orden,
     nombre: item.nombre ?? null,
-    ancho_cm: item.ancho_cm ?? null,
-    alto_cm: item.alto_cm ?? null,
-    profundidad_cm: item.profundidad_cm ?? null,
+    ancho_cm: anchoCm,
+    alto_cm: item.alto_cm ?? DEFAULTS.gondola_alto_cm,
+    profundidad_cm: item.profundidad_cm ?? DEFAULTS.gondola_profundidad_cm,
     posicion_en_tienda: item.posicion_en_tienda ?? null,
   };
   if (advertencias.length > 0) normalizado.advertencia = advertencias.join(' ');
@@ -517,24 +533,27 @@ function normalizarAgregarNivel(item, ctx) {
     nivelCtx.proximoOrden = Math.max(nivelCtx.proximoOrden, orden);
   }
 
-  if (item.altura_desde_piso_cm == null || item.tipo_accesorio == null || item.ancho_disponible_cm == null) {
-    advertencias.push('Faltan datos para crear este nivel (altura, tipo de accesorio y/o ancho disponible) — hay que preguntárselos al usuario.');
-  }
-
   if (advertencias.length === 0 && nivelCtx) {
     nivelCtx.ordenesDisponibles.add(orden);
     ctx.obtenerPosicionCtx(gondolaOrden, orden);
   }
 
+  // Default de ancho_disponible_cm: el ancho de la góndola que contiene este nivel (ver
+  // ctx.anchoCmPorGondola en crearContextoNormalizacion) — si por algo no se pudo resolver la
+  // góndola, cae al default general de Cemaco.
+  const anchoDisponibleCm = item.ancho_disponible_cm
+    ?? (gondola.valido ? ctx.anchoCmPorGondola.get(gondolaOrden) : undefined)
+    ?? DEFAULTS.gondola_ancho_cm;
+
   const normalizado = {
     tipo_accion: 'agregar_nivel',
     gondola_orden: gondolaOrden,
     nivel_orden: orden,
-    altura_desde_piso_cm: item.altura_desde_piso_cm ?? null,
-    tipo_accesorio: item.tipo_accesorio ?? null,
+    altura_desde_piso_cm: item.altura_desde_piso_cm ?? DEFAULTS.nivel_altura_desde_piso_cm,
+    tipo_accesorio: item.tipo_accesorio ?? DEFAULTS.nivel_tipo_accesorio,
     codigo_accesorio_id: item.codigo_accesorio_id ?? null,
     tamano_accesorio_pulgadas: item.tamano_accesorio_pulgadas ?? null,
-    ancho_disponible_cm: item.ancho_disponible_cm ?? null,
+    ancho_disponible_cm: anchoDisponibleCm,
     notas: item.notas ?? null,
   };
   if (advertencias.length > 0) normalizado.advertencia = advertencias.join(' ');
@@ -836,7 +855,7 @@ function normalizarAccion(item, datosProducto, ctx) {
  * @param {Array<object>} entrada.borradorActual
  * @param {{
  *   subcategorias?: string[],
- *   gondolas?: Array<{gondola_orden:number, nombre:string, total_niveles:number}>,
+ *   gondolas?: Array<{gondola_orden:number, nombre:string, total_niveles:number, ancho_cm:number}>,
  *   niveles?: Array<{gondola_orden:number, nivel_orden:number, tipo_accesorio:string}>,
  *   posiciones?: Array<{gondola_orden:number, nivel_orden:number, espacio_orden:number, sku:string, nombre:string|null}>,
  *   accesorios?: Array<{codigo:string, nombre:string, tipo:string}>,

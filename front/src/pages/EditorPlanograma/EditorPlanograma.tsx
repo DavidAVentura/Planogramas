@@ -324,9 +324,10 @@ export function EditorPlanograma() {
         />
       )}
 
-      {modalNivel && activaId !== null && (
+      {modalNivel && activaId !== null && gondolaActiva && (
         <NivelModal
           gondolaId={activaId}
+          gondolaAnchoCm={gondolaActiva.ancho_cm}
           nivel={modalNivel === 'crear' ? null : modalNivel}
           proximoOrden={niveles.length + 1}
           onClose={() => setModalNivel(null)}

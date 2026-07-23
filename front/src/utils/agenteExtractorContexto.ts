@@ -23,6 +23,7 @@ export function construirContextoAgente(
       gondola_orden: g.orden,
       nombre: g.nombre,
       total_niveles: g.totalNiveles,
+      ancho_cm: g.ancho_cm,
     })),
     niveles: niveles.flatMap((n) => {
       const gondola = gondolaPorId.get(n.gondolaId);

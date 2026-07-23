@@ -28,6 +28,7 @@ const schemaMensaje = Joi.object({
         gondola_orden: Joi.number().integer().positive().required(),
         nombre:        Joi.string().allow('').required(),
         total_niveles: Joi.number().integer().min(0).required(),
+        ancho_cm:      Joi.number().positive().required(),
       }))
       .default([]),
     niveles: Joi.array()
