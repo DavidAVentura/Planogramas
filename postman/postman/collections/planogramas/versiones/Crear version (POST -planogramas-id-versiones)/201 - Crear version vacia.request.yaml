@@ -1,0 +1,25 @@
+$kind: http-request
+description: Usa tipo MEDIANA (distinto al GRANDE del setup) para no chocar con la regla de version activa unica por tipo.
+url: "{{HOST}}/api/v1/planogramas/{{planogramaIdVersiones}}/versiones"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "tipo": "MEDIANA",
+      "notas": "Version vacia de prueba"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 201', () => pm.response.to.have.status(201));
+      pm.test('Version nueva en borrador con version_base_id null', () => {
+        const body = pm.response.json();
+        pm.expect(body.estado).to.eql('borrador');
+        pm.expect(body.versionBaseId).to.be.null;
+      });
+      pm.collectionVariables.set('versionIdSecundariaMismoPlanograma', pm.response.json().id);
+    language: text/javascript
+order: 1000

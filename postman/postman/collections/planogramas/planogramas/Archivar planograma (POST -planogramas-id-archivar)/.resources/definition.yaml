@@ -1,0 +1,3 @@
+$kind: collection
+name: Archivar planograma (POST /planogramas/:id/archivar)
+order: 6000

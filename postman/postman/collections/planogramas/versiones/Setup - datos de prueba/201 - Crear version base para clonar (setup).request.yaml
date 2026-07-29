@@ -1,0 +1,19 @@
+$kind: http-request
+description: Version base que se clonara como version especial por tienda en la carpeta "Crear version".
+url: "{{HOST}}/api/v1/planogramas/{{planogramaIdClonar}}/versiones"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "tipo": "GRANDE"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 201', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('versionIdBaseClonar', pm.response.json().id);
+    language: text/javascript
+order: 16000

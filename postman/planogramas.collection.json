@@ -1,0 +1,592 @@
+{
+  "info": {
+    "name": "Planogramas API — Cemaco",
+    "description": "Colección de pruebas para el módulo Planogramas. Cubre casos 2xx y errores 4xx.\n\nAntes de ejecutar: asegúrate que el servidor esté corriendo (`npm run dev` en /back) y que la variable `base_url` apunte al host correcto.\n\nEjecuta las carpetas en orden — la carpeta 'Crear' guarda el ID del planograma creado para que los tests siguientes lo usen.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api/v1",
+      "type": "string",
+      "description": "URL base de la API"
+    },
+    {
+      "key": "planograma_id",
+      "value": "",
+      "type": "string",
+      "description": "Se setea automáticamente al crear un planograma"
+    },
+    {
+      "key": "planograma_id_archivado",
+      "value": "",
+      "type": "string",
+      "description": "ID del planograma que se archivará en los tests de archivar"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 — Health Check",
+      "item": [
+        {
+          "name": "GET /health → 200 OK",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Tiene status ok', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.status).to.eql('ok');",
+                  "  pm.expect(body.timestamp).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01 — Listar planogramas",
+      "item": [
+        {
+          "name": "GET /planogramas → 200 lista vacía o con datos",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/planogramas",
+              "host": ["{{base_url}}"],
+              "path": ["planogramas"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Estructura paginada', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('data').that.is.an('array');",
+                  "  pm.expect(body).to.have.property('total').that.is.a('number');",
+                  "  pm.expect(body).to.have.property('page').that.eql(1);",
+                  "  pm.expect(body).to.have.property('pageSize').that.eql(20);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /planogramas?estado=borrador → 200 filtrado",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/planogramas?estado=borrador&page=1&pageSize=5",
+              "host": ["{{base_url}}"],
+              "path": ["planogramas"],
+              "query": [
+                { "key": "estado", "value": "borrador" },
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "5" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respeta pageSize', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.data.length).to.be.at.most(5);",
+                  "  pm.expect(body.pageSize).to.eql(5);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /planogramas?estado=INVALIDO → 400 validación",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/planogramas?estado=INVALIDO",
+              "host": ["{{base_url}}"],
+              "path": ["planogramas"],
+              "query": [{ "key": "estado", "value": "INVALIDO" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Formato de error correcto', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('error');",
+                  "  pm.expect(body.error).to.have.property('code');",
+                  "  pm.expect(body.error).to.have.property('message');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 — Crear planograma",
+      "item": [
+        {
+          "name": "POST /planogramas → 201 creado (guarda ID)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/planogramas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Planograma Test Autos 01\",\n  \"departamento\": \"Autos y Motos\",\n  \"subcategorias\": [\"Ceras y Pulidores\", \"Aceites\"]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Retorna planograma completo', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('id').that.is.a('number');",
+                  "  pm.expect(body.nombre).to.eql('Planograma Test Autos 01');",
+                  "  pm.expect(body.departamento).to.eql('Autos y Motos');",
+                  "  pm.expect(body.estado).to.eql('borrador');",
+                  "  pm.expect(body.subcategorias).to.be.an('array').with.lengthOf(2);",
+                  "});",
+                  "// Guardar ID para requests siguientes",
+                  "const id = pm.response.json().id;",
+                  "pm.collectionVariables.set('planograma_id', id);",
+                  "console.log('planograma_id seteado a:', id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /planogramas → 201 (segundo para test archivar)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/planogramas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Planograma Para Archivar\",\n  \"departamento\": \"Ferretería\",\n  \"subcategorias\": [\"Herramientas\"]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const id = pm.response.json().id;",
+                  "pm.collectionVariables.set('planograma_id_archivado', id);",
+                  "console.log('planograma_id_archivado seteado a:', id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /planogramas → 409 nombre duplicado",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/planogramas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Planograma Test Autos 01\",\n  \"departamento\": \"Autos y Motos\",\n  \"subcategorias\": [\"Ceras y Pulidores\"]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 409 Conflict', () => pm.response.to.have.status(409));",
+                  "pm.test('Code CONFLICT', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.error.code).to.eql('CONFLICT');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /planogramas → 400 sin nombre",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/planogramas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"departamento\": \"Autos y Motos\",\n  \"subcategorias\": [\"Ceras\"]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Code VALIDATION_ERROR', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.error.code).to.eql('VALIDATION_ERROR');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /planogramas → 400 subcategorias vacías",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/planogramas",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Test\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": []\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Falla por array vacío', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.error.code).to.eql('VALIDATION_ERROR');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /planogramas → 400 body vacío",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/planogramas",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Error de validación', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.error).to.exist;",
+                  "  pm.expect(body.error.details).to.be.an('array').that.is.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 — Obtener planograma",
+      "item": [
+        {
+          "name": "GET /planogramas/:id → 200 detalle completo",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/planogramas/{{planograma_id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Detalle completo con subcategorias y versiones', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.id).to.be.a('number');",
+                  "  pm.expect(body.nombre).to.be.a('string');",
+                  "  pm.expect(body.subcategorias).to.be.an('array');",
+                  "  pm.expect(body.versiones).to.be.an('array');",
+                  "  pm.expect(body.estado).to.be.oneOf(['borrador', 'activo', 'archivado']);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /planogramas/9999 → 404 no encontrado",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/planogramas/9999"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Code NOT_FOUND', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.error.code).to.eql('NOT_FOUND');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /planogramas/abc → 400 id inválido",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/planogramas/abc"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Code VALIDATION_ERROR', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.error.code).to.eql('VALIDATION_ERROR');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 — Editar planograma",
+      "item": [
+        {
+          "name": "PATCH /planogramas/:id → 200 solo nombre",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/planogramas/{{planograma_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Planograma Test Autos 01 (editado)\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Nombre actualizado', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.nombre).to.include('editado');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /planogramas/:id → 200 actualiza subcategorias",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/planogramas/{{planograma_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subcategorias\": [\"Ceras\", \"Aceites\", \"Filtros\"]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Subcategorias actualizadas', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.subcategorias).to.have.lengthOf(3);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /planogramas/:id → 400 body vacío",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/planogramas/{{planograma_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 — al menos un campo requerido', () => pm.response.to.have.status(400));",
+                  "pm.test('Code VALIDATION_ERROR', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.error.code).to.eql('VALIDATION_ERROR');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /planogramas/9999 → 404 no encontrado",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/planogramas/9999",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"No existe\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Code NOT_FOUND', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.error.code).to.eql('NOT_FOUND');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 — Archivar planograma",
+      "item": [
+        {
+          "name": "POST /planogramas/:id/archivar → 200 archivado",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/planogramas/{{planograma_id_archivado}}/archivar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Estado es archivado', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.estado).to.eql('archivado');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /planogramas/:id/archivar → 409 ya archivado",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/planogramas/{{planograma_id_archivado}}/archivar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 409 — ya archivado', () => pm.response.to.have.status(409));",
+                  "pm.test('Code CONFLICT', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.error.code).to.eql('CONFLICT');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /planogramas/9999/archivar → 404 no encontrado",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/planogramas/9999/archivar"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Code NOT_FOUND', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.error.code).to.eql('NOT_FOUND');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 — Rutas no encontradas",
+      "item": [
+        {
+          "name": "GET /ruta-inexistente → 404 not found",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/ruta-que-no-existe"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                  "pm.test('Code NOT_FOUND', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.error.code).to.eql('NOT_FOUND');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

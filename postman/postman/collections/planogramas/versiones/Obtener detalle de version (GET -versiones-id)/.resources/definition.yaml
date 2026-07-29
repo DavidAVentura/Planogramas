@@ -1,0 +1,3 @@
+$kind: collection
+name: Obtener detalle de version (GET /versiones/:id)
+order: 4000

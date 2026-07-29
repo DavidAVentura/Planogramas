@@ -1,0 +1,23 @@
+$kind: http-request
+description: Planograma dedicado al ciclo de promoción (en_desarrollo -> piloto -> publicado) para no chocar con la regla de version activa unica por tipo del planograma de setup principal.
+url: "{{HOST}}/api/v1/planogramas"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombre": "Autos - Rack Promover {{$timestamp}}",
+      "departamento": "Autos",
+      "subcategorias": [
+        "Aceites"
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 201', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('planogramaIdPromover', pm.response.json().id);
+    language: text/javascript
+order: 3000

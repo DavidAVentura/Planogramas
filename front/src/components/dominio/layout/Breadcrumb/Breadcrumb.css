@@ -1,0 +1,19 @@
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--fg-3);
+
+  a {
+    color: var(--fg-3);
+    text-decoration: none;
+
+    &:hover { color: var(--cemaco-indigo); }
+  }
+}
+
+.breadcrumb__separador {
+  margin-left: 6px;
+  color: var(--fg-4);
+}

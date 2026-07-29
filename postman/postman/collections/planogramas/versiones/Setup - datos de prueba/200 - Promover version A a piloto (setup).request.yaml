@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{HOST}}/api/v1/versiones/{{versionIdArchivada}}/promover"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "estadoDestino": "piloto",
+      "tiendaIds": [
+        1
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: pm.test('Status 200', () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 9000

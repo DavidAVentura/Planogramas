@@ -1,0 +1,23 @@
+$kind: http-request
+description: Corre justo despues del escenario anterior, cuando versionIdPromover ya esta en piloto.
+url: "{{HOST}}/api/v1/versiones/{{versionIdPromover}}/promover"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "estadoDestino": "publicado"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200', () => pm.response.to.have.status(200));
+      pm.test('Estado publicado, sin version anterior que archivar', () => {
+        const body = pm.response.json();
+        pm.expect(body.estado).to.eql('publicado');
+        pm.expect(body.versionAnteriorArchivada).to.be.null;
+      });
+    language: text/javascript
+order: 2000

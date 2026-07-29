@@ -1,0 +1,19 @@
+$kind: http-request
+description: versionCodigo es el codigo de versionId (misma planograma que versionIdSecundariaMismoPlanograma).
+url: "{{HOST}}/api/v1/versiones/{{versionIdSecundariaMismoPlanograma}}"
+method: PATCH
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "codigo": "{{versionCodigo}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 409', () => pm.response.to.have.status(409));
+      pm.expect(pm.response.json().error.code).to.eql('CONFLICT');
+    language: text/javascript
+order: 4000

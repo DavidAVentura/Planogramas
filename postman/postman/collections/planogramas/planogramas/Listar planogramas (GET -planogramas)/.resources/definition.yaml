@@ -1,0 +1,3 @@
+$kind: collection
+name: Listar planogramas (GET /planogramas)
+order: 2000

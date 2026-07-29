@@ -1,0 +1,3 @@
+$kind: collection
+name: Editar metadatos de version (PATCH /versiones/:id)
+order: 5000

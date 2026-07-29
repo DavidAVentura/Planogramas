@@ -1,0 +1,17 @@
+$kind: http-request
+description: Lista paginada con los valores default (page=1, pageSize=20).
+url: "{{HOST}}/api/v1/planogramas"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200', () => pm.response.to.have.status(200));
+      pm.test('Estructura paginada', () => {
+        const body = pm.response.json();
+        pm.expect(body).to.have.property('data').that.is.an('array');
+        pm.expect(body).to.have.property('total').that.is.a('number');
+        pm.expect(body.page).to.eql(1);
+        pm.expect(body.pageSize).to.eql(20);
+      });
+    language: text/javascript
+order: 1000

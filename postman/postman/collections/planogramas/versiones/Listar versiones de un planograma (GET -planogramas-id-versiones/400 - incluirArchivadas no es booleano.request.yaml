@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{HOST}}/api/v1/planogramas/{{planogramaIdVersiones}}/versiones?incluirArchivadas=noesbooleano"
+method: GET
+queryParams:
+  incluirArchivadas: noesbooleano
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 400', () => pm.response.to.have.status(400));
+      pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');
+    language: text/javascript
+order: 4000

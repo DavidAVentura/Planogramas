@@ -1,0 +1,4 @@
+name: LOCAL
+values:
+  - key: HOST
+    value: ''

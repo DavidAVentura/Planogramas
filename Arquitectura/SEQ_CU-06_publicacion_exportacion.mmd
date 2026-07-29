@@ -1,0 +1,143 @@
+sequenceDiagram
+    actor Analista
+    participant FE as Frontend (React)
+    participant API as Backend (Node.js)
+    participant DB as SQL Server
+
+    %% ─── NOTA ──────────────────────────────────────────────────────────────────
+    %% CU-06 no consume CATI.
+    %% Guardar borrador = persiste el estado actual sin cambiar estado de la versión.
+    %%   Cada operación CRUD individual (CU-03, CU-04) ya persiste en tiempo real,
+    %%   por lo que "guardar borrador" actualiza el campo 'estado' a 'en_desarrollo'
+    %%   cuando la versión estaba en 'borrador'.
+    %% Publicar = cambia estado a 'publicado' tras validar errores bloqueantes.
+    %%   Archiva automáticamente la versión publicada anterior del mismo tipo.
+    %% Exportar JSON/CSV: genera y descarga el archivo directamente desde el backend.
+    %% ────────────────────────────────────────────────────────────────────────────
+
+    %% ════════════════════════════════════════════════════════
+    %% CU-06-01 — Guardar borrador
+    %% ════════════════════════════════════════════════════════
+
+    rect rgba(89, 89, 89, 1)
+        Note over Analista,DB: CU-06-01 — Guardar borrador
+
+        Analista->>FE: Selecciona "Guardar" en el editor
+
+        FE->>API: PATCH /api/versiones/{id}/guardar
+
+        API->>DB: SELECT estado FROM PlanogramaVersion WHERE id = @id
+        DB-->>API: estado
+
+        alt Estado = 'borrador'
+            Note over API,DB: Primera vez que el analista guarda — avanza a en_desarrollo
+            API->>DB: UPDATE PlanogramaVersion<br/>SET estado='en_desarrollo', updated_at=NOW()<br/>WHERE id=@id AND estado='borrador'
+            DB-->>API: OK
+            API-->>FE: 200 OK { id, estado:'en_desarrollo', updatedAt }
+            FE-->>Analista: Muestra confirmación "Borrador guardado — versión en desarrollo"
+        else Estado ya es 'en_desarrollo' o 'piloto'
+            Note over API,DB: Solo actualiza timestamp de última modificación
+            API->>DB: UPDATE PlanogramaVersion SET updated_at=NOW() WHERE id=@id
+            DB-->>API: OK
+            API-->>FE: 200 OK { id, estado, updatedAt }
+            FE-->>Analista: Muestra confirmación "Cambios guardados"
+        else Estado 'publicado' o 'archivado'
+            API-->>FE: 422 Unprocessable { error: "La versión no está en modo editable" }
+            FE-->>Analista: Muestra error
+        end
+    end
+
+    %% ════════════════════════════════════════════════════════
+    %% CU-06-02 — Publicar versión
+    %% ════════════════════════════════════════════════════════
+
+    rect rgba(89, 89, 89, 1)
+        Note over Analista,DB: CU-06-02 — Publicar versión
+
+        Analista->>FE: Selecciona "Publicar versión"
+
+        Note over FE,DB: Solicita validación previa al backend antes de mostrar confirmación
+        FE->>API: GET /api/versiones/{id}/validar-publicacion
+
+        API->>DB: SELECT estado, tipo, planograma_id<br/>FROM PlanogramaVersion WHERE id = @id
+        DB-->>API: { estado, tipo, planogramaId }
+
+        API->>DB: SELECT p.id, p.sku,<br/>'min_final > max_final' AS tipo_error<br/>FROM Posicion p<br/>JOIN Nivel n ON n.id = p.nivel_id<br/>JOIN Gondola g ON g.id = n.gondola_id<br/>WHERE g.planograma_version_id = @id AND p.min_final > p.max_final
+        DB-->>API: errores_bloqueantes[]
+
+        API->>DB: SELECT p.id, p.sku,<br/>'SKU no existe en catálogo activo' AS tipo_error<br/>FROM Posicion p<br/>JOIN Nivel n ON n.id = p.nivel_id<br/>JOIN Gondola g ON g.id = n.gondola_id<br/>LEFT JOIN Producto prod ON prod.sku = p.sku<br/>WHERE g.planograma_version_id = @id<br/>AND (prod.sku IS NULL OR prod.estado != 'ACTIVO')
+        DB-->>API: errores_sku[]
+
+        API-->>FE: 200 OK<br/>{ valida: bool, erroresBloqueantes: [...],<br/>advertencias: [...] }
+
+        alt Hay errores bloqueantes
+            FE-->>Analista: Muestra lista de errores a corregir antes de publicar<br/>(no puede continuar hasta resolverlos)
+        else Sin errores bloqueantes
+            FE-->>Analista: Muestra resumen de validación y solicita confirmación<br/>(advertencias visibles pero no bloquean)
+
+            Analista->>FE: Confirma publicación
+
+            FE->>API: POST /api/versiones/{id}/promover<br/>Body: { estado: "publicado" }
+
+            API->>DB: SELECT estado, tipo, planograma_id<br/>FROM PlanogramaVersion WHERE id = @id
+            DB-->>API: { estado, tipo, planogramaId }
+
+            alt Estado no es 'piloto'
+                API-->>FE: 422 Unprocessable<br/>{ error: "Solo versiones en piloto pueden publicarse directamente.<br/>Use promover-piloto primero." }
+                FE-->>Analista: Muestra error de flujo
+            else
+                API->>DB: BEGIN TRANSACTION
+                API->>DB: UPDATE PlanogramaVersion SET estado='archivado'<br/>WHERE planograma_id=@planogramaId AND tipo=@tipo<br/>AND estado='publicado' AND id != @id
+                API->>DB: UPDATE PlanogramaVersion<br/>SET estado='publicado', updated_at=NOW()<br/>WHERE id=@id
+                API->>DB: COMMIT
+                DB-->>API: OK
+                API-->>FE: 200 OK { id, estado:'publicado', updatedAt }
+                FE-->>Analista: Muestra confirmación — versión publicada y activa en tiendas asignadas
+            end
+        end
+    end
+
+    %% ════════════════════════════════════════════════════════
+    %% CU-06-03 — Exportar planograma a JSON
+    %% ════════════════════════════════════════════════════════
+
+    rect rgba(89, 89, 89, 1)
+        Note over Analista,DB: CU-06-03 — Exportar planograma a JSON
+
+        Analista->>FE: Selecciona "Exportar → JSON"
+
+        FE->>API: GET /api/versiones/{id}/exportar/json<br/>Headers: Accept: application/json
+
+        API->>DB: SELECT pv.*, p.nombre AS planograma_nombre, p.departamento<br/>FROM PlanogramaVersion pv JOIN Planograma p ON p.id = pv.planograma_id<br/>WHERE pv.id = @id
+        DB-->>API: version + planograma
+
+        API->>DB: SELECT g.*, n.*, pos.*,<br/>pa.accesorio_id, pa.nota_libre, pa.orden AS acc_orden,<br/>a.codigo AS acc_codigo, a.nombre AS acc_nombre<br/>FROM Gondola g<br/>JOIN Nivel n ON n.gondola_id = g.id<br/>LEFT JOIN Posicion pos ON pos.nivel_id = n.id<br/>LEFT JOIN PosicionAccesorio pa ON pa.posicion_id = pos.id<br/>LEFT JOIN Accesorio a ON a.id = pa.accesorio_id<br/>WHERE g.planograma_version_id = @id<br/>ORDER BY g.orden, n.orden, pos.orden_horizontal, pa.orden
+        DB-->>API: estructura completa
+
+        API->>API: Construye JSON con estructura estable:<br/>{ version: { id, codigo, tipo, estado },<br/>planograma: { nombre, departamento },<br/>gondolas: [{ nombre, medidas,<br/>  niveles: [{ orden, altura_piso,<br/>    posiciones: [{ sku, facings, capacidad, accesorios[] }] }] }] }
+
+        API-->>FE: 200 OK<br/>Content-Type: application/json<br/>Content-Disposition: attachment: filename="AUTOS 01-TG.json"<br/>Body: { ...estructura JSON del planograma }
+
+        FE-->>Analista: Descarga automática del archivo JSON
+    end
+
+    %% ════════════════════════════════════════════════════════
+    %% CU-06-04 — Exportar planograma a CSV
+    %% ════════════════════════════════════════════════════════
+
+    rect rgba(89, 89, 89, 1)
+        Note over Analista,DB: CU-06-04 — Exportar planograma a CSV
+
+        Analista->>FE: Selecciona "Exportar → CSV"
+
+        FE->>API: GET /api/versiones/{id}/exportar/csv<br/>Headers: Accept: text/csv
+
+        API->>DB: SELECT<br/>  pv.codigo AS version,<br/>  g.nombre AS gondola,<br/>  g.ancho_cm AS gondola_ancho,<br/>  n.orden AS nivel,<br/>  n.altura_desde_piso_cm,<br/>  n.tipo_accesorio,<br/>  pos.orden_horizontal AS posicion,<br/>  pos.sku,<br/>  pos.facings_horizontal,<br/>  pos.ancho_asignado_cm,<br/>  pos.cantidad_apilable,<br/>  pos.unidades_por_facing,<br/>  pos.capacidad_maxima,<br/>  pos.min_estetico,<br/>  pos.min_final,<br/>  pos.max_final,<br/>  pos.perfil_redondeo,<br/>  pos.modo,<br/>  pos.decision,<br/>  pos.cross_externo,<br/>  pos.montar_en_display,<br/>  pos.desborda_gondola,<br/>  pos.nota_desborde,<br/>  pos.observaciones<br/>FROM PlanogramaVersion pv<br/>JOIN Gondola g ON g.planograma_version_id = pv.id<br/>JOIN Nivel n ON n.gondola_id = g.id<br/>LEFT JOIN Posicion pos ON pos.nivel_id = n.id<br/>WHERE pv.id = @id<br/>ORDER BY g.orden, n.orden, pos.orden_horizontal
+        DB-->>API: rows (una fila por posición)
+
+        API->>API: Serializa a CSV con encabezados<br/>version,gondola,gondola_ancho_cm,nivel,altura_piso_cm,<br/>tipo_accesorio,posicion,sku,facings_h,ancho_cm,...
+
+        API-->>FE: 200 OK<br/>Content-Type: text/csv: charset=utf-8<br/>Content-Disposition: attachment filename="AUTOS 01-TG.csv"<br/>Body: datos CSV
+
+        FE-->>Analista: Descarga automática del archivo CSV compatible con Excel
+    end

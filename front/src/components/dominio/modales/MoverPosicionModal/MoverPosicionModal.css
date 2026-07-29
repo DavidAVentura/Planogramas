@@ -1,0 +1,42 @@
+.mover-posicion-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mover-posicion-form__ayuda {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--fg-3);
+}
+
+.mover-posicion-form__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--fg-2);
+  font-weight: 600;
+
+  input,
+  select {
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--fg-1);
+    background: #fff;
+
+    &:focus {
+      outline: 0;
+      border-color: var(--cemaco-indigo);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+    }
+  }
+}

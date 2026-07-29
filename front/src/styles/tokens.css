@@ -1,0 +1,82 @@
+/* Tokens del Cemaco Design System, copiados de front/design/_ds/.../colors_and_type.css.
+   No se incluye "Chalet NY" en los font stacks: es una fuente de uso interno con licencia
+   (ver nota en el archivo fuente) — acá se usa directamente el fallback web-safe en producción. */
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --cemaco-green: #94d500;
+  --cemaco-green-600: #7fb800;
+  --cemaco-green-700: #689600;
+  --cemaco-green-100: #e8f7c2;
+  --cemaco-green-50: #f4fbe3;
+
+  --ink-900: #111811;
+  --ink-800: #1c2320;
+  --ink-700: #2e3631;
+  --ink-600: #4a524d;
+  --ink-500: #6b7370;
+  --ink-400: #9aa19d;
+  --ink-300: #c5cac6;
+  --ink-200: #e2e5e1;
+  --ink-100: #f1f3ef;
+  --ink-50: #f8f9f6;
+  --white: #fff;
+
+  --cemaco-indigo: #101e8e;
+  --cemaco-indigo-950: #060a3d;
+  --cemaco-indigo-900: #0a1258;
+  --cemaco-indigo-800: #101e8e;
+  --cemaco-indigo-700: #1e2fb5;
+  --cemaco-indigo-600: #3447d6;
+  --cemaco-indigo-500: #5465e8;
+  --cemaco-indigo-400: #7886f0;
+  --cemaco-indigo-300: #9fa9f5;
+  --cemaco-indigo-200: #c4caf8;
+  --cemaco-indigo-100: #e2e5fb;
+  --cemaco-indigo-50: #f0f2fd;
+
+  --accent-sun: #f5b324;
+
+  --success: var(--cemaco-green-700);
+  --success-bg: var(--cemaco-green-50);
+  --warning: #b8860b;
+  --warning-bg: #fff6d6;
+  --danger: #c4321a;
+  --danger-bg: #fdeae5;
+  --info: var(--cemaco-indigo);
+  --info-bg: #e5eef7;
+
+  --bg: var(--ink-50);
+  --bg-elevated: var(--white);
+  --bg-sunken: var(--ink-100);
+
+  --fg-1: var(--ink-900);
+  --fg-2: var(--ink-600);
+  --fg-3: var(--ink-500);
+  --fg-4: var(--ink-400);
+
+  --border: var(--ink-200);
+  --border-strong: var(--ink-300);
+  --border-subtle: var(--ink-100);
+
+  --font-display: 'Hanken Grotesk', 'Helvetica Neue', arial, sans-serif;
+  --font-body: 'Hanken Grotesk', 'Helvetica Neue', arial, sans-serif;
+  --font-mono: 'DM Mono', 'SFMono-Regular', menlo, consolas, monospace;
+
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+
+  --shadow-xs: 0 1px 2px rgb(17 24 17 / 4%);
+  --shadow-sm: 0 1px 3px rgb(17 24 17 / 6%), 0 1px 2px rgb(17 24 17 / 4%);
+  --shadow-md: 0 4px 12px rgb(17 24 17 / 8%), 0 2px 4px rgb(17 24 17 / 4%);
+  --shadow-lg: 0 12px 28px rgb(17 24 17 / 10%), 0 4px 8px rgb(17 24 17 / 5%);
+
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 360ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}

@@ -1,0 +1,3 @@
+$kind: collection
+name: Obtener estructura de version (GET /versiones/:id/estructura)
+order: 10000

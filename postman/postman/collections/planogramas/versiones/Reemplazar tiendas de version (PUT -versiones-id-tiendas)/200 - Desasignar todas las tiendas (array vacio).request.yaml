@@ -1,0 +1,19 @@
+$kind: http-request
+description: Corre despues del escenario anterior -- confirma que enviar un array vacio desasigna todas las tiendas.
+url: "{{HOST}}/api/v1/versiones/{{versionId}}/tiendas"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "tiendaIds": []
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200', () => pm.response.to.have.status(200));
+      pm.expect(pm.response.json().tiendas).to.be.an('array').that.is.empty;
+    language: text/javascript
+order: 2000

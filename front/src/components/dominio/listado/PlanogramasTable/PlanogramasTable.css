@@ -1,0 +1,22 @@
+.planogramas-table__acciones {
+  display: inline-flex;
+  gap: 8px;
+
+  button {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--fg-1);
+    cursor: pointer;
+
+    &:hover:not(:disabled) { background: var(--ink-50); }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+}

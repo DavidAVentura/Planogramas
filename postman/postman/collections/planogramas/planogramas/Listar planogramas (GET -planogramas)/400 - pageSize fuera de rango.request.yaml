@@ -1,0 +1,16 @@
+$kind: http-request
+description: page debe ser >= 1 y pageSize <= 100.
+url: "{{HOST}}/api/v1/planogramas?page=0&pageSize=500"
+method: GET
+queryParams:
+  page: "0"
+  pageSize: "500"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 400', () => pm.response.to.have.status(400));
+      pm.test('Code VALIDATION_ERROR', () => {
+        pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');
+      });
+    language: text/javascript
+order: 4000

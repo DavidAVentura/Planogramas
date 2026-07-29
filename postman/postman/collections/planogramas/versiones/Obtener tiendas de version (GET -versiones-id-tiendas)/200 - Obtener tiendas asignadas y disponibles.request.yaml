@@ -1,0 +1,15 @@
+$kind: http-request
+description: versionId todavia no tiene tiendas asignadas en este punto de la coleccion.
+url: "{{HOST}}/api/v1/versiones/{{versionId}}/tiendas"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200', () => pm.response.to.have.status(200));
+      pm.test('Sin asignadas, con disponibles del mismo tipo', () => {
+        const body = pm.response.json();
+        pm.expect(body.asignadas).to.be.an('array').that.is.empty;
+        pm.expect(body.disponibles).to.be.an('array').that.is.not.empty;
+      });
+    language: text/javascript
+order: 1000

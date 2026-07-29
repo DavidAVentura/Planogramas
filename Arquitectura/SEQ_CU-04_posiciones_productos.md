@@ -1,0 +1,292 @@
+# Posiciones y Productos
+
+Cubre el ciclo completo de gestión de posiciones de SKUs en los niveles del planograma: agregar, editar, mover (drag & drop), copiar/pegar, eliminar, gestionar accesorios de montaje, visualizar capacidad en tiempo real y deshacer/rehacer acciones.
+
+```mermaid
+sequenceDiagram
+    actor Analista
+    participant FE as Frontend (React)
+    participant API as Backend (Node.js)
+    participant CATI as CATI (API.Catalogo)
+    participant DB as SQL Server
+
+    %% ─── NOTA DE ARQUITECTURA ──────────────────────────────────────────────────
+    %% Las llamadas a CATI usan un Bearer JWT obtenido en dos saltos internos:
+    %%
+    %%   Salto 1 — CAO (CemacoAllInOne):
+    %%     POST https://cemacoallinone.azurewebsites.net/api/auth
+    %%     Body: { user, password }  (credenciales de servicio en .env)
+    %%     Respuesta: { data: { token } }  → tokenCAO
+    %%
+    %%   Salto 2 — CATI exchange:
+    %%     POST http://10.20.12.9:8881/api/Auth/exchange
+    %%     Body: { tokenCemacoAllInOne: tokenCAO }
+    %%     Respuesta: { data: { accessToken, accessTokenExpiresAt,
+    %%                          refreshToken, refreshTokenExpiresAt } }
+    %%
+    %%   Todas las llamadas a CATI envían ambas credenciales:
+    %%     Authorization: Bearer {accessToken}  (JWT — para endpoints que lo requieren)
+    %%     x-api-key: {CATI_API_KEY}            (para endpoints que lo requieren)
+    %%   El tokenManager cachea el accessToken en memoria y lo refresca antes de expirar.
+    %%   El frontend nunca llama a CAO ni a CATI directamente.
+    %%
+    %%   Endpoints de catálogo usados en este CU:
+    %%     GET /api/Product/search  (búsqueda de SKUs)
+    %%     GET /api/Product/{sku}   (detalle de producto)
+    %% ────────────────────────────────────────────────────────────────────────────
+
+    rect rgba(89, 89, 89, 1)
+        Note over Analista,DB: CU-04-01 — Agregar posición
+
+        Analista->>FE: Selecciona "Agregar posición" en un nivel
+        FE-->>Analista: Abre buscador de SKU
+
+        Analista->>FE: Ingresa texto de búsqueda (SKU, nombre o marca)
+        FE->>API: GET /api/catalog/productos/buscar<br/>Query: ?q={texto}&subcategoria={sub?}&page=1&pageSize=20
+
+        API->>CATI: GET /api/Product/search?Sku={q}&Descripcion={q}&Marca={q}<br/>&Subcategoria={sub}&Profile=CEMACO&PageNumber=1&PageSize=20  [Bearer]
+        CATI-->>API: { productos: [{ id, name, erpInformation, assets[], regularPrice }] }
+        API-->>FE: 200 OK [ { sku, nombre, marca, subcategoria,<br/>ancho_cm, alto_cm, profundidad_cm, imagen_url, precio }, ... ]
+        FE-->>Analista: Muestra resultados de búsqueda con imagen y datos
+
+        Analista->>FE: Selecciona un SKU del resultado
+        FE->>API: GET /api/catalog/productos/{sku}
+        API->>CATI: GET /api/Product/{sku}?profile=CEMACO  [Bearer]
+        CATI-->>API: Product { id, name, erpInformation, assets[], internalAttributes }
+        API-->>FE: 200 OK { sku, nombre, marca, ancho_cm, alto_cm,<br/>profundidad_cm, imagen_url, precio, subcategoria, sku_sustituto? }
+        FE-->>Analista: Muestra ficha del producto.<br/>Solicita — facings_horizontal o ancho_asignado_cm (sincronizados),<br/>cantidad_apilable,<br/>unidades_por_facing (sugerido = accesorio.longitud / producto.profundidad)
+        Analista->>FE: Ingresa facings/ancho y confirma
+        FE->>FE: Calcula sincronización ancho facings<br/>Calcula capacidad_maxima, min_estetico<br/>Verifica espacio disponible en nivel
+
+        FE->>API: POST /api/niveles/{nivelId}/posiciones<br/>Body: { sku, orden_horizontal, ancho_asignado_cm,<br/>facings_horizontal, cantidad_apilable, unidades_por_facing,<br/>capacidad_maxima, min_estetico, min_final, max_final,<br/>perfil_redondeo, modo, decision }
+
+        API->>DB: SELECT ancho_disponible_cm,<br/>COALESCE(SUM(p.ancho_asignado_cm),0) AS ancho_ocupado<br/>FROM Nivel n LEFT JOIN Posicion p ON p.nivel_id = n.id<br/>WHERE n.id = @nivelId GROUP BY n.ancho_disponible_cm
+        DB-->>API: { ancho_disponible_cm, ancho_ocupado }
+
+        API->>DB: INSERT INTO Posicion<br/>(nivel_id, orden_horizontal, sku, ancho_asignado_cm,<br/>facings_horizontal, cantidad_apilable, unidades_por_facing,<br/>capacidad_maxima, min_estetico, min_final, max_final,<br/>perfil_redondeo, modo, decision)
+        DB-->>API: { id }
+
+        alt Ancho ocupado + nuevo ancho > ancho_disponible
+            API-->>FE: 201 Created { ...posicion,<br/>advertencia: "El nivel supera su ancho disponible" }
+        else
+            API-->>FE: 201 Created { id, nivelId, sku, orden_horizontal,<br/>ancho_asignado_cm, facings_horizontal, capacidad_maxima }
+        end
+        FE-->>Analista: Renderiza posición en el nivel con imagen y datos del producto
+    end
+
+    %% ════════════════════════════════════════════════════════
+    %% CU-04-02 — Editar posición
+    %% ════════════════════════════════════════════════════════
+
+    rect rgba(89, 89, 89, 1)
+        Note over Analista,DB: CU-04-02 — Editar posición
+
+        Analista->>FE: Hace clic en una posición
+        FE->>API: GET /api/posiciones/{id}
+        API->>DB: SELECT p.*, a.id AS acc_id, a.codigo, a.nombre AS acc_nombre, a.nota_libre<br/>FROM Posicion p LEFT JOIN PosicionAccesorio pa ON pa.posicion_id = p.id<br/>LEFT JOIN Accesorio a ON a.id = pa.accesorio_id<br/>WHERE p.id = @id ORDER BY pa.orden
+        DB-->>API: posicion + accesorios[]
+        API-->>FE: 200 OK { ...posicion, accesorios: [{ accesorio_id, codigo, nombre, nota_libre, orden }] }
+        FE-->>Analista: Abre panel lateral con todos los atributos editables
+
+        Analista->>FE: Modifica atributos (facings, apilable, modo, flags, observaciones, etc.)
+        FE->>FE: Recalcula en tiempo real:<br/>· ancho_asignado_cm ↔ facings_horizontal (bidireccional)<br/>· capacidad_maxima, min_estetico<br/>· Valida min_final <= max_final (bloqueante si no)
+
+        Analista->>FE: Guarda cambios
+        FE->>API: PUT /api/posiciones/{id}<br/>Body: { facings_horizontal, ancho_asignado_cm, cantidad_apilable,<br/>unidades_por_facing, capacidad_maxima, min_estetico,<br/>min_final, max_final, perfil_redondeo, modo, cross_externo,<br/>montar_en_display, desborda_gondola, nota_desborde,<br/>decision, observaciones }
+
+        API->>DB: UPDATE Posicion SET ... WHERE id = @id
+        DB-->>API: OK
+        API-->>FE: 200 OK { ...posicion actualizada }
+        FE-->>Analista: Actualiza panel y visualización en el editor
+    end
+
+    %% ════════════════════════════════════════════════════════
+    %% CU-04-03 — Mover posición (drag & drop)
+    %% ════════════════════════════════════════════════════════
+
+    rect rgba(89, 89, 89, 1)
+        Note over Analista,DB: CU-04-03 — Mover posición (drag y drop)
+
+        Analista->>FE: Arrastra posición a nuevo nivel / columna
+        FE->>FE: Actualiza posición visualmente (optimistic update)<br/>Recalcula espacio disponible de nivel origen y destino
+
+        alt Nivel destino sin espacio suficiente
+            FE-->>Analista: Muestra alerta de espacio insuficiente<br/>(no bloquea — el analista puede aceptar)
+        end
+
+        FE->>API: PATCH /api/posiciones/{id}/mover<br/>Body: { nivel_id: int, orden_horizontal: int }
+
+        API->>DB: UPDATE Posicion<br/>SET nivel_id=@nivelId, orden_horizontal=@orden<br/>WHERE id=@id
+        DB-->>API: OK
+
+        Note over API,DB: Reajusta orden_horizontal de las demás posiciones en nivel origen y destino
+        API->>DB: UPDATE Posicion SET orden_horizontal = orden_horizontal - 1<br/>WHERE nivel_id = @nivelOrigenId AND orden_horizontal > @ordenOrigen
+        API->>DB: UPDATE Posicion SET orden_horizontal = orden_horizontal + 1<br/>WHERE nivel_id = @nivelDestinoId AND orden_horizontal >= @ordenDestino AND id != @id
+        DB-->>API: OK
+
+        API-->>FE: 200 OK { id, nivel_id, orden_horizontal }
+        FE-->>Analista: Confirma nueva posición en el editor
+    end
+
+    %% ════════════════════════════════════════════════════════
+    %% CU-04-04 — Copiar posición
+    %% ════════════════════════════════════════════════════════
+
+    rect rgba(89, 89, 89, 1)
+        Note over Analista,DB: CU-04-04 — Copiar posición (Ctrl+C)
+
+        Analista->>FE: Selecciona posición y presiona Ctrl+C
+        FE->>FE: Guarda copia completa de la posición en memoria de la app<br/>{ sku, todos los atributos, accesorios[] }<br/>No se realiza llamada HTTP — solo estado del cliente
+        FE-->>Analista: Muestra indicador visual de "posición copiada"
+    end
+
+    %% ════════════════════════════════════════════════════════
+    %% CU-04-05 — Pegar posición (Ctrl+V)
+    %% ════════════════════════════════════════════════════════
+
+    rect rgba(89, 89, 89, 1)
+        Note over Analista,DB: CU-04-05 — Pegar posición (Ctrl+V)
+
+        Analista->>FE: Presiona Ctrl+V
+        FE->>FE: Determina nivel destino:<br/>1. Nivel inmediatamente superior al nivel de la posición copiada<br/>2. Si no existe, nivel inferior<br/>3. Si solo hay un nivel, mismo nivel al final
+
+        alt Mismo SKU ya existe en nivel destino
+            FE-->>Analista: Muestra advertencia "SKU ya existe en el nivel destino"<br/>(no bloquea — facing vertical intencional es válido)
+        end
+
+        FE->>API: POST /api/niveles/{nivelDestinoId}/posiciones<br/>Body: { ...atributos_copiados, orden_horizontal: ultimo+1,<br/>accesorios: [...] }
+
+        API->>DB: INSERT INTO Posicion (todos los atributos copiados, nivel_id=@nivelDestino)
+        DB-->>API: { id: nuevaId }
+        API->>DB: INSERT INTO PosicionAccesorio<br/>(posicion_id=nuevaId, accesorio_id, nota_libre, orden)<br/>— por cada accesorio de la posición original
+        DB-->>API: OK
+
+        API-->>FE: 201 Created { id: nuevaId, nivelId, sku, orden_horizontal, ... }
+        FE-->>Analista: Renderiza posición pegada en el nivel destino
+    end
+
+    %% ════════════════════════════════════════════════════════
+    %% CU-04-06 — Eliminar posición
+    %% ════════════════════════════════════════════════════════
+
+    rect rgba(89, 89, 89, 1)
+        Note over Analista,DB: CU-04-06 — Eliminar posición
+
+        Analista->>FE: Selecciona "Eliminar" en la posición
+        FE-->>Analista: Solicita confirmación
+
+        alt Analista confirma
+            FE->>API: DELETE /api/posiciones/{id}
+
+            API->>DB: BEGIN TRANSACTION
+            API->>DB: DELETE FROM PosicionAccesorio WHERE posicion_id = @id
+            API->>DB: DELETE FROM Posicion WHERE id = @id
+            API->>DB: UPDATE Posicion SET orden_horizontal = orden_horizontal - 1<br/>WHERE nivel_id = @nivelId AND orden_horizontal > @ordenEliminado
+            API->>DB: COMMIT
+            DB-->>API: OK
+
+            API-->>FE: 204 No Content
+            FE-->>Analista: Elimina posición y recalcula espacio disponible del nivel
+        end
+    end
+
+    %% ════════════════════════════════════════════════════════
+    %% CU-04-07 — Ver capacidad en tiempo real
+    %% ════════════════════════════════════════════════════════
+
+    rect rgba(89, 89, 89, 1)
+        Note over Analista,DB: CU-04-07 — Ver capacidad en tiempo real
+
+        Note over FE: Cálculo 100% en cliente — no requiere llamada HTTP
+        Analista->>FE: Agrega, edita o mueve una posición
+        FE->>FE: Por cada nivel visible:<br/>  ancho_ocupado = SUM(posicion.ancho_asignado_cm)<br/>  ancho_libre = nivel.ancho_disponible_cm - ancho_ocupado<br/>  pct_libre = ancho_libre / nivel.ancho_disponible_cm × 100
+
+        FE-->>Analista: Muestra barra de capacidad y cm libres en tiempo real<br/>· Verde: espacio disponible<br/>· Amarillo: < 10% libre<br/>· Rojo: superado (ancho_libre < 0)
+
+        opt Analista solicita refrescar desde base de datos
+            FE->>API: GET /api/versiones/{versionId}/capacidad
+            API->>DB: SELECT n.id, n.ancho_disponible_cm,<br/>COALESCE(SUM(p.ancho_asignado_cm),0) AS ancho_ocupado<br/>FROM Nivel n<br/>JOIN Gondola g ON g.id = n.gondola_id<br/>LEFT JOIN Posicion p ON p.nivel_id = n.id<br/>WHERE g.planograma_version_id = @versionId<br/>GROUP BY n.id, n.ancho_disponible_cm
+            DB-->>API: capacidad por nivel
+            API-->>FE: 200 OK [ { nivelId, ancho_disponible_cm, ancho_ocupado, ancho_libre }, ... ]
+            FE-->>Analista: Actualiza barras de capacidad con datos de la BD
+        end
+    end
+
+    %% ════════════════════════════════════════════════════════
+    %% CU-04-08 — Aceptar alerta de desborde
+    %% ════════════════════════════════════════════════════════
+
+    rect rgba(89, 89, 89, 1)
+        Note over Analista,DB: CU-04-08 — Aceptar alerta de desborde
+
+        FE-->>Analista: Muestra alerta: "El producto cruza el límite físico de la góndola.<br/>¿Aceptar desborde?"
+
+        Analista->>FE: Acepta alerta e ingresa nota de desborde<br/>Ej. "continúa en góndola 2, nivel 3"
+
+        FE->>API: PATCH /api/posiciones/{id}<br/>Body: { desborda_gondola: true, nota_desborde: "..." }
+
+        API->>DB: UPDATE Posicion<br/>SET desborda_gondola=1, nota_desborde=@nota<br/>WHERE id=@id
+        DB-->>API: OK
+
+        API-->>FE: 200 OK { id, desborda_gondola: true, nota_desborde }
+        FE-->>Analista: Muestra icono de desborde en la posición dentro del editor
+    end
+
+    %% ════════════════════════════════════════════════════════
+    %% CU-04-09 — Agregar accesorio de montaje a posición
+    %% ════════════════════════════════════════════════════════
+
+    rect rgba(89, 89, 89, 1)
+        Note over Analista,DB: CU-04-09 — Agregar accesorio de montaje a posición
+
+        Analista->>FE: Abre lista de accesorios de la posición<br/>y selecciona "Agregar accesorio"
+
+        FE->>API: GET /api/accesorios?tipo={tipo_opcional}
+        API->>DB: SELECT id, codigo, nombre, tipo, longitud_cm<br/>FROM Accesorio ORDER BY tipo, nombre
+        DB-->>API: accesorios[]
+        API-->>FE: 200 OK [ { id, codigo, nombre, tipo }, ... ]
+        FE-->>Analista: Muestra selector de accesorios + campo nota libre
+
+        Analista->>FE: Selecciona accesorio, ingresa nota ("a la derecha") y agrega
+
+        FE->>API: POST /api/posiciones/{posicionId}/accesorios<br/>Body: { accesorio_id, nota_libre, orden }
+
+        API->>DB: SELECT COALESCE(MAX(orden),0) + 1 AS siguiente_orden<br/>FROM PosicionAccesorio WHERE posicion_id = @posicionId
+        DB-->>API: siguiente_orden
+
+        API->>DB: INSERT INTO PosicionAccesorio<br/>(posicion_id, accesorio_id, nota_libre, orden=siguiente_orden)
+        DB-->>API: { id }
+
+        API-->>FE: 201 Created { id, posicionId, accesorio: { id, codigo, nombre }, nota_libre, orden }
+        FE-->>Analista: Muestra accesorio agregado en la lista de montaje de la posición
+    end
+
+    %% ════════════════════════════════════════════════════════
+    %% CU-04-10 — Deshacer / Rehacer acción (Ctrl+Z / Ctrl+Y)
+    %% ════════════════════════════════════════════════════════
+
+    rect rgba(89, 89, 89, 1)
+        Note over Analista,DB: CU-04-10 — Deshacer / Rehacer (Ctrl+Z / Ctrl+Y)
+
+        Note over FE: El frontend mantiene un stack de acciones reversibles en memoria.<br/>Cada operación exitosa (agregar, editar, mover, eliminar posición)<br/>empuja un snapshot delta al stack antes de persistir.
+
+        Analista->>FE: Presiona Ctrl+Z (deshacer)
+        FE->>FE: Extrae último delta del undo-stack<br/>Construye la operación inversa (ej si fue POST → DELETE, si fue PUT → PUT con valores anteriores)
+        FE->>API: Llamada inversa según el tipo de operación<br/>Ej. DELETE /api/posiciones/{id} si la acción fue crear<br/>    PUT /api/posiciones/{id} con valores anteriores si fue editar<br/>    PATCH /api/posiciones/{id}/mover con nivel/orden previo si fue mover
+
+        API->>DB: Ejecuta la operación inversa correspondiente
+        DB-->>API: OK
+        API-->>FE: 200/204
+        FE->>FE: Mueve delta al redo-stack
+        FE-->>Analista: Muestra estado anterior en el editor
+
+        Analista->>FE: Presiona Ctrl+Y (rehacer)
+        FE->>FE: Extrae último delta del redo-stack<br/>Re-ejecuta la operación original
+        FE->>API: Llamada original restaurada<br/>Ej. POST /api/niveles/{id}/posiciones, PUT /api/posiciones/{id}, etc.
+        API->>DB: Ejecuta la operación
+        DB-->>API: OK
+        API-->>FE: 200/201
+        FE->>FE: Devuelve delta al undo-stack
+        FE-->>Analista: Muestra estado rehecho en el editor
+    end
+```

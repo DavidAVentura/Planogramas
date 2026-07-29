@@ -1,0 +1,24 @@
+$kind: http-request
+url: "{{HOST}}/api/v1/planogramas/{{planogramaIdClonar}}/versiones"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "tipo": "GRANDE",
+      "versionBaseId": "{{versionIdBaseClonar}}",
+      "tiendaId": 1,
+      "notas": "Version especial Cemaco Pradera"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 201', () => pm.response.to.have.status(201));
+      pm.test('Version especial referencia la base', () => {
+        const body = pm.response.json();
+        pm.expect(body.versionBaseId).to.eql(Number(pm.collectionVariables.get('versionIdBaseClonar')));
+      });
+    language: text/javascript
+order: 2000

@@ -1,0 +1,19 @@
+$kind: http-request
+description: Se puede crear porque la version A ya esta en estado publicado (no cuenta como "activa" para la regla de unicidad por tipo).
+url: "{{HOST}}/api/v1/planogramas/{{planogramaIdPublicar}}/versiones"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "tipo": "GRANDE"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 201', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('versionIdPublicada', pm.response.json().id);
+    language: text/javascript
+order: 11000

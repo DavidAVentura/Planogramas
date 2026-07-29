@@ -1,0 +1,13 @@
+$kind: http-request
+description: El planograma referenciado ya se encuentra en estado archivado.
+url: "{{HOST}}/api/v1/planogramas/{{planogramaIdArchivado}}/archivar"
+method: POST
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 409', () => pm.response.to.have.status(409));
+      pm.test('Code CONFLICT', () => {
+        pm.expect(pm.response.json().error.code).to.eql('CONFLICT');
+      });
+    language: text/javascript
+order: 3000

@@ -1,0 +1,35 @@
+.versiones-table__codigo {
+  color: var(--cemaco-indigo);
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+}
+
+.versiones-table__acciones {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  button,
+  a {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--fg-1);
+    cursor: pointer;
+    white-space: nowrap;
+    text-decoration: none;
+
+    &:hover { background: var(--ink-50); }
+  }
+
+  .versiones-table__accion-peligro {
+    border-color: var(--danger);
+    color: var(--danger);
+
+    &:hover { background: var(--danger); color: #fff; }
+  }
+}

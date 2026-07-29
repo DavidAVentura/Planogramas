@@ -1,0 +1,26 @@
+$kind: http-request
+description: Partial update — requiere que el planograma esté en estado borrador o activo.
+url: "{{HOST}}/api/v1/planogramas/{{planogramaId}}"
+method: PATCH
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombre": "Autos - Rack Frontal A (actualizado) {{$timestamp}}",
+      "subcategorias": [
+        "Aceites",
+        "Filtros",
+        "Bujias"
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200', () => pm.response.to.have.status(200));
+      pm.test('Nombre actualizado', () => {
+        pm.expect(pm.response.json().nombre).to.include('actualizado');
+      });
+    language: text/javascript
+order: 1000

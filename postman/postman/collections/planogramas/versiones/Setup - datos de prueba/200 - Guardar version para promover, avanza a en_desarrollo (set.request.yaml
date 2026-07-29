@@ -1,0 +1,12 @@
+$kind: http-request
+name: 200 - Guardar version para promover, avanza a en_desarrollo (setup)
+description: Avanza versionIdPromover de borrador a en_desarrollo -- precondicion de la transicion promover(en_desarrollo -> piloto).
+url: "{{HOST}}/api/v1/versiones/{{versionIdPromover}}/guardar"
+method: PATCH
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200', () => pm.response.to.have.status(200));
+      pm.expect(pm.response.json().estado).to.eql('en_desarrollo');
+    language: text/javascript
+order: 5000

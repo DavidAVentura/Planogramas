@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{HOST}}/api/v1/versiones/{{versionIdArchivada}}/guardar"
+method: PATCH
+scripts:
+  - type: afterResponse
+    code: pm.test('Status 200', () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 8000

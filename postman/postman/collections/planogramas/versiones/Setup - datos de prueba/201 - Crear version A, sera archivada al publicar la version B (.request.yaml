@@ -1,0 +1,19 @@
+$kind: http-request
+name: 201 - Crear version A, sera archivada al publicar la version B (setup)
+url: "{{HOST}}/api/v1/planogramas/{{planogramaIdPublicar}}/versiones"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "tipo": "GRANDE"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 201', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('versionIdArchivada', pm.response.json().id);
+    language: text/javascript
+order: 7000

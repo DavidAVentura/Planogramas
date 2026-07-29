@@ -1,0 +1,23 @@
+$kind: http-request
+description: Planograma base para los escenarios de listar/crear/detalle/metadatos/tiendas/guardar que no requieren estados especiales (publicado/archivado).
+url: "{{HOST}}/api/v1/planogramas"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombre": "Autos - Rack Versiones {{$timestamp}}",
+      "departamento": "Autos",
+      "subcategorias": [
+        "Aceites"
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 201', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('planogramaIdVersiones', pm.response.json().id);
+    language: text/javascript
+order: 1000

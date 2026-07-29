@@ -1,0 +1,78 @@
+.resumen-borrador-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.resumen-borrador-modal__ayuda {
+  margin: 0;
+  font-size: 13px;
+  color: var(--fg-3);
+}
+
+.resumen-borrador-modal__fila--advertencia td {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.resumen-borrador-modal__fila--en-curso td {
+  background: var(--info-bg);
+  transition: background var(--dur-base) var(--ease-out);
+}
+
+.resumen-borrador-modal__icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.resumen-borrador-modal__icono--pendiente {
+  border: 2px solid var(--border-strong);
+}
+
+.resumen-borrador-modal__icono--cargando {
+  border: 2px solid var(--border);
+  border-top-color: var(--cemaco-indigo);
+  animation: resumen-borrador-girar 700ms linear infinite;
+}
+
+.resumen-borrador-modal__icono--ok {
+  background: var(--success-bg);
+  color: var(--success);
+  animation: resumen-borrador-aparecer var(--dur-base) var(--ease-out);
+}
+
+.resumen-borrador-modal__icono--error {
+  background: var(--danger-bg);
+  color: var(--danger);
+  animation: resumen-borrador-aparecer var(--dur-base) var(--ease-out);
+}
+
+.resumen-borrador-modal__icono--omitida {
+  background: var(--warning-bg);
+  color: var(--warning);
+  animation: resumen-borrador-aparecer var(--dur-base) var(--ease-out);
+}
+
+@keyframes resumen-borrador-girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes resumen-borrador-aparecer {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
