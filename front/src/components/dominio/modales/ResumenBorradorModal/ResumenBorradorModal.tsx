@@ -380,6 +380,7 @@ export function ResumenBorradorModal({
   onConfirmado,
 }: ResumenBorradorModalProps) {
   const [confirmando, setConfirmando] = useState(false);
+  const [progreso, setProgreso] = useState<ResultadoAccion[]>([]);
   const [resultados, setResultados] = useState<ResultadoAccion[] | null>(null);
 
   const filas: FilaPreview[] = borrador.map((accion, indice) => ({ indice, accion }));
@@ -388,36 +389,42 @@ export function ResumenBorradorModal({
   async function onConfirmar() {
     if (confirmando || filasValidas.length === 0) return;
     setConfirmando(true);
+    setProgreso([]);
 
     const maps = construirMapasIniciales(gondolas, niveles, posicionesPorNivel);
     const nuevosResultados: ResultadoAccion[] = [];
 
     // Recorre TODO el borrador (no solo las filas válidas) en orden, para que el índice y el
     // resumen de cada fila de resultados coincidan uno a uno con lo que el usuario revisó arriba.
+    // Cada resultado se agrega a `progreso` apenas se conoce (no al final del for) para que la
+    // tabla de abajo anime fila por fila: spinner en la que se está ejecutando, check al terminar.
     for (const { indice, accion } of filas) {
       const resumen = describirAccion(accion);
+      let resultado: ResultadoAccion;
 
       if (accion.advertencia) {
-        nuevosResultados.push({ indice, tipoAccion: accion.tipo_accion, resumen, estado: 'omitida', motivo: accion.advertencia });
-        continue;
-      }
-
-      try {
-        await ejecutarAccion(accion, versionId, accesorios, maps);
-        nuevosResultados.push({ indice, tipoAccion: accion.tipo_accion, resumen, estado: 'ejecutada' });
-      } catch (err) {
-        if (err instanceof DependenciaNoResueltaError) {
-          nuevosResultados.push({ indice, tipoAccion: accion.tipo_accion, resumen, estado: 'omitida', motivo: err.message });
-        } else {
-          nuevosResultados.push({
-            indice,
-            tipoAccion: accion.tipo_accion,
-            resumen,
-            estado: 'fallida',
-            motivo: mensajeDeError(err, 'No se pudo aplicar esta acción'),
-          });
+        resultado = { indice, tipoAccion: accion.tipo_accion, resumen, estado: 'omitida', motivo: accion.advertencia };
+      } else {
+        try {
+          await ejecutarAccion(accion, versionId, accesorios, maps);
+          resultado = { indice, tipoAccion: accion.tipo_accion, resumen, estado: 'ejecutada' };
+        } catch (err) {
+          if (err instanceof DependenciaNoResueltaError) {
+            resultado = { indice, tipoAccion: accion.tipo_accion, resumen, estado: 'omitida', motivo: err.message };
+          } else {
+            resultado = {
+              indice,
+              tipoAccion: accion.tipo_accion,
+              resumen,
+              estado: 'fallida',
+              motivo: mensajeDeError(err, 'No se pudo aplicar esta acción'),
+            };
+          }
         }
       }
+
+      nuevosResultados.push(resultado);
+      setProgreso((prev) => [...prev, resultado]);
     }
 
     setResultados(nuevosResultados);
@@ -425,7 +432,33 @@ export function ResumenBorradorModal({
     onConfirmado();
   }
 
+  /** Ícono de progreso de una fila mientras se aplica el borrador: pendiente (sin iniciar),
+   * cargando (es la fila que se está ejecutando ahora mismo) o el resultado final una vez que
+   * `ejecutarAccion` resuelve para esa fila — se apoya en que `progreso` acumula un resultado por
+   * fila en el mismo orden que `filas`, así que su longitud indica cuál es la fila "en curso". */
+  function iconoEstadoFila(fila: FilaPreview) {
+    const resultado = progreso.find((r) => r.indice === fila.indice);
+    if (resultado) {
+      const variante =
+        resultado.estado === 'ejecutada' ? 'ok' : resultado.estado === 'fallida' ? 'error' : 'omitida';
+      const simbolo = resultado.estado === 'ejecutada' ? '✓' : resultado.estado === 'fallida' ? '✕' : '!';
+      return (
+        <span
+          className={`resumen-borrador-modal__icono resumen-borrador-modal__icono--${variante}`}
+          title={resultado.motivo ?? ETIQUETAS_ESTADO[resultado.estado]}
+        >
+          {simbolo}
+        </span>
+      );
+    }
+    if (confirmando && fila.indice === progreso.length) {
+      return <span className="resumen-borrador-modal__icono resumen-borrador-modal__icono--cargando" aria-label="Ejecutando" />;
+    }
+    return <span className="resumen-borrador-modal__icono resumen-borrador-modal__icono--pendiente" aria-hidden="true" />;
+  }
+
   const columnasPreview: TableColumn<FilaPreview>[] = [
+    { key: 'estado', header: '', render: iconoEstadoFila },
     { key: 'indice', header: '#', render: (f) => f.indice + 1 },
     { key: 'detalle', header: 'Acción', render: (f) => describirAccion(f.accion) },
     { key: 'advertencia', header: 'Advertencia', render: (f) => f.accion.advertencia ?? '—' },
@@ -493,7 +526,10 @@ export function ResumenBorradorModal({
             columns={columnasPreview}
             rows={filas}
             rowKey={(f) => f.indice}
-            rowClassName={(f) => (f.accion.advertencia ? 'resumen-borrador-modal__fila--advertencia' : undefined)}
+            rowClassName={(f) => {
+              if (confirmando && f.indice === progreso.length) return 'resumen-borrador-modal__fila--en-curso';
+              return f.accion.advertencia ? 'resumen-borrador-modal__fila--advertencia' : undefined;
+            }}
           />
         )}
       </div>
