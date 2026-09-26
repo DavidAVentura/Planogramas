@@ -40,3 +40,39 @@
   color: var(--fg-3);
   letter-spacing: 0.03em;
 }
+
+.app-topbar__nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+}
+
+.app-topbar__nav-opcion {
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-2);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.app-topbar__nav-opcion:hover {
+  background: var(--ink-100);
+  color: var(--fg-1);
+}
+
+.app-topbar__nav-opcion--activa,
+.app-topbar__nav-opcion--activa:hover {
+  background: var(--cemaco-indigo-50);
+  color: var(--cemaco-indigo);
+}
+
+.app-topbar__nav-opcion--deshabilitada,
+.app-topbar__nav-opcion--deshabilitada:hover {
+  background: transparent;
+  color: var(--fg-4);
+  cursor: not-allowed;
+}
