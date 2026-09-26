@@ -9,6 +9,7 @@ import type {
   ListarPlanogramasFiltros,
   ListarPlanogramasResultado,
   PlanogramaDetalle,
+  PlanogramaListItem,
 } from '../types/planograma';
 
 const FILTROS_INICIALES: ListarPlanogramasFiltros = { page: 1, pageSize: 20 };
@@ -42,6 +43,47 @@ export function usePlanogramasListado() {
   }
 
   return { filtros, setFiltros, resultado, cargando, recargar: () => cargar(filtros) };
+}
+
+const PAGINA_MAXIMA = 100;
+
+/**
+ * Todos los planogramas no archivados, sin paginar: recorre las páginas de GET /planogramas con el
+ * tamaño máximo que acepta el backend. Lo usa el filtro por planograma de la vista /productos.
+ */
+export function usePlanogramasVigentes() {
+  const [planogramas, setPlanogramas] = useState<PlanogramaListItem[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const { mostrarToast } = useToast();
+
+  useEffect(() => {
+    let vigente = true;
+    async function cargarTodos() {
+      const primera = await planogramasService.listar({ page: 1, pageSize: PAGINA_MAXIMA });
+      const totalPaginas = Math.ceil(primera.total / PAGINA_MAXIMA);
+      const resto = await Promise.all(
+        Array.from({ length: Math.max(totalPaginas - 1, 0) }, (_, i) =>
+          planogramasService.listar({ page: i + 2, pageSize: PAGINA_MAXIMA }),
+        ),
+      );
+      return [primera, ...resto].flatMap((r) => r.data).filter((p) => p.estado !== 'archivado');
+    }
+    cargarTodos()
+      .then((lista) => {
+        if (vigente) setPlanogramas(lista);
+      })
+      .catch((err) => {
+        if (vigente) mostrarToast(mensajeDeError(err, 'No se pudieron cargar los planogramas'), 'error');
+      })
+      .finally(() => {
+        if (vigente) setCargando(false);
+      });
+    return () => {
+      vigente = false;
+    };
+  }, [mostrarToast]);
+
+  return { planogramas, cargando };
 }
 
 /** `id` en `null` omite la carga — útil cuando el mismo hook sirve tanto al modal de crear (sin id) como al de editar/detalle (con id). */

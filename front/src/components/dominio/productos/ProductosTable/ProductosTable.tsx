@@ -121,7 +121,7 @@ export function ProductosTable({ rows, orden, onOrdenar, buscarPorSku }: Product
     return (
       <EmptyState
         titulo="No hay productos con esos filtros"
-        hint="Ajusta la jerarquía, la búsqueda o el tipo de aparición."
+        hint="Ajusta la jerarquía, la búsqueda, los planogramas o el tipo de aparición."
       />
     );
   }

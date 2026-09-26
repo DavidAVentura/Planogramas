@@ -58,6 +58,9 @@ departamento > área): un nivel ya pertenece a todos sus niveles superiores.
    solo posiciones con SKU dentro de versiones **y** planogramas no archivados. Un planograma puede
    contar en más de un modo (ej. el mismo SKU como `PLANOGRAMA` en una góndola y `CROSS` en otra).
    Las posiciones `PENDIENTE` no tienen SKU y no cuentan.
+   `planograma_ids` lista esos mismos planogramas distintos (su largo es igual a `planogramas`);
+   alimenta el filtro multiselección por planograma de la vista `/productos`, que se resuelve en
+   el cliente e incluye cualquier modo (`PLANOGRAMA`, `CROSS` o `IMPULSO`).
 6. `categoria_nivel1`, `categoria_nivel2` y `subcategoria` se devuelven tal como están en la tabla
    local, con el código de CATI al final (ej. `"FERRETERIA (01)"`); son solo para mostrar.
 
@@ -86,7 +89,8 @@ Arreglo sin paginar (mismo criterio que `GET /tiendas`).
     "estado": "activo",
     "sku_sustituto": null,
     "planogramas": 5,
-    "apariciones": { "PLANOGRAMA": 4, "CROSS": 1, "IMPULSO": 0 }
+    "apariciones": { "PLANOGRAMA": 4, "CROSS": 1, "IMPULSO": 0 },
+    "planograma_ids": [165, 167, 169, 170, 171]
   }
 ]
 ```

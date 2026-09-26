@@ -40,4 +40,5 @@ export const FILTROS_PRODUCTOS_INICIALES: FiltrosListadoProductos = {
   busqueda: '',
   modo: '',
   estado: '',
+  planogramas: [],
 };

@@ -34,8 +34,15 @@ export function ProductosListado() {
 
   const porSku = useMemo(() => new Map(productos.map((p) => [p.sku, p])), [productos]);
 
+  const productosPorPlanograma = useMemo(() => {
+    const conteo = new Map<number, number>();
+    productos.forEach((p) => p.planograma_ids.forEach((id) => conteo.set(id, (conteo.get(id) ?? 0) + 1)));
+    return conteo;
+  }, [productos]);
+
   const visibles = useMemo(() => {
     const q = filtros.busqueda.trim().toLowerCase();
+    const planogramasElegidos = new Set(filtros.planogramas.map((pl) => pl.id));
     const filtrados = productos.filter(
       (p) =>
         (!q ||
@@ -43,6 +50,8 @@ export function ProductosListado() {
           p.nombre.toLowerCase().includes(q) ||
           (p.marca ?? '').toLowerCase().includes(q)) &&
         (!filtros.estado || p.estado === filtros.estado) &&
+        // Cualquier modo cuenta (planograma, cross o impulso): basta con que el SKU esté en uno elegido.
+        (planogramasElegidos.size === 0 || p.planograma_ids.some((id) => planogramasElegidos.has(id))) &&
         (!filtros.modo ||
           (filtros.modo === 'NINGUNO' ? p.planogramas === 0 : p.apariciones[filtros.modo] > 0)),
     );
@@ -84,6 +93,7 @@ export function ProductosListado() {
           jerarquia={jerarquia}
           onChange={(parciales) => setFiltros((f) => ({ ...f, ...parciales }))}
           onJerarquiaChange={setJerarquia}
+          productosPorPlanograma={productosPorPlanograma}
         />
 
         {/* Al cambiar la jerarquía se mantiene la tabla anterior mientras llega la nueva. */}

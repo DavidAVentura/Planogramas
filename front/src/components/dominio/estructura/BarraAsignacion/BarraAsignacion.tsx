@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Modal } from '../../../ui/Modal/Modal';
 import type { Pincel } from '../../../../domain/estructura/asignaciones';
 import type { TipoTienda } from '../../../../types/tienda';
 import './BarraAsignacion.css';
@@ -37,6 +40,20 @@ function ayudaPincel(id: Pincel, nombre: string | undefined, modoPiloto: boolean
   return `Versión ${nombre} ${modoPiloto ? 'en piloto' : 'publicada'}`;
 }
 
+function ModalAyudaAsignar({ onClose }: { onClose: () => void }) {
+  return createPortal(
+    <Modal titulo="Cómo asignar" onClose={onClose} ancho="sm">
+      <ul className="barra-asignacion__ayuda-lista">
+        <li>Elige una versión y haz clic o arrastra sobre las celdas que quieras cambiar.</li>
+        <li>Cada tienda monta una sola versión por planograma.</li>
+        <li>Clic derecho en una celda para ver su historial o su versión.</li>
+        <li>En modo Piloto, TG, TM, TE y Especial asignan la versión en piloto de ese tipo, en vez de la publicada.</li>
+      </ul>
+    </Modal>,
+    document.body,
+  );
+}
+
 export function BarraAsignacion({
   pincel,
   modoPiloto,
@@ -47,6 +64,8 @@ export function BarraAsignacion({
   onModoPiloto,
   onFiltros,
 }: BarraAsignacionProps) {
+  const [ayudaAbierta, setAyudaAbierta] = useState(false);
+
   return (
     <div className="barra-asignacion">
       {editable && (
@@ -73,7 +92,21 @@ export function BarraAsignacion({
               ))}
             </div>
 
-            <span id="barra-asignacion-lbl" className="barra-asignacion__etiqueta">Asignar</span>
+            <button
+              type="button"
+              id="barra-asignacion-lbl"
+              className="barra-asignacion__etiqueta"
+              title="Cómo asignar"
+              aria-haspopup="dialog"
+              onClick={() => setAyudaAbierta(true)}
+            >
+              Asignar
+              <svg className="barra-asignacion__info" viewBox="0 0 16 16" aria-hidden="true">
+                <circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M8 7.2v3.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                <circle cx="8" cy="4.9" r="0.9" fill="currentColor" />
+              </svg>
+            </button>
             <div role="group" aria-labelledby="barra-asignacion-lbl" className="barra-asignacion__pinceles">
               {PINCELES.map((b) => {
                 const muestra = modoPiloto && b.nombre ? 'piloto' : b.id.toLowerCase();
@@ -93,12 +126,6 @@ export function BarraAsignacion({
               })}
             </div>
           </div>
-          <span className="barra-asignacion__ayuda">
-            {modoPiloto
-              ? 'Piloto: TG, TM, TE y Especial asignan la versión en piloto de ese tipo, en vez de la publicada.'
-              : 'Elige una versión y haz clic o arrastra sobre las celdas que quieras cambiar.'}{' '}
-            Cada tienda monta una sola versión por planograma. Clic derecho en una celda para ver su historial o su versión.
-          </span>
         </div>
       )}
 
@@ -133,6 +160,8 @@ export function BarraAsignacion({
           </select>
         </label>
       </div>
+
+      {ayudaAbierta && <ModalAyudaAsignar onClose={() => setAyudaAbierta(false)} />}
     </div>
   );
 }

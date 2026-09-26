@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Button } from '../../../ui/Button/Button';
+import { FiltroPlanogramasModal } from '../../modales/FiltroPlanogramasModal/FiltroPlanogramasModal';
 import { useJerarquia, useJerarquiaExploracion } from '../../../../hooks/useJerarquia';
 import {
   FILTROS_PRODUCTOS_INICIALES,
@@ -23,9 +25,18 @@ interface ProductosFiltrosProps {
   jerarquia: FiltroJerarquia;
   onChange: (parciales: Partial<FiltrosListadoProductos>) => void;
   onJerarquiaChange: (jerarquia: FiltroJerarquia) => void;
+  /** Productos de la lista actual por planograma; se muestra en el modal de planogramas. */
+  productosPorPlanograma: Map<number, number>;
 }
 
-export function ProductosFiltros({ filtros, jerarquia, onChange, onJerarquiaChange }: ProductosFiltrosProps) {
+export function ProductosFiltros({
+  filtros,
+  jerarquia,
+  onChange,
+  onJerarquiaChange,
+  productosPorPlanograma,
+}: ProductosFiltrosProps) {
+  const [modalPlanogramas, setModalPlanogramas] = useState(false);
   const { areas, departamentos, cargandoDepartamentos, cargarDepartamentos } = useJerarquia();
   const exploracion = useJerarquiaExploracion();
 
@@ -75,6 +86,7 @@ export function ProductosFiltros({ filtros, jerarquia, onChange, onJerarquiaChan
     filtros.busqueda !== FILTROS_PRODUCTOS_INICIALES.busqueda ||
     filtros.modo !== FILTROS_PRODUCTOS_INICIALES.modo ||
     filtros.estado !== FILTROS_PRODUCTOS_INICIALES.estado ||
+    filtros.planogramas.length > 0 ||
     NIVELES.some(({ campo }) => jerarquia[campo] !== '');
 
   return (
@@ -89,6 +101,23 @@ export function ProductosFiltros({ filtros, jerarquia, onChange, onJerarquiaChan
             onChange={(e) => onChange({ busqueda: e.target.value })}
           />
         </label>
+
+        <div className="productos-filtros__campo">
+          <span id="productos-filtros-planograma">Planograma</span>
+          <button
+            type="button"
+            className={`productos-filtros__disparador${filtros.planogramas.length > 0 ? ' productos-filtros__disparador--activo' : ''}`}
+            aria-labelledby="productos-filtros-planograma"
+            aria-haspopup="dialog"
+            onClick={() => setModalPlanogramas(true)}
+          >
+            {filtros.planogramas.length === 0
+              ? 'Todos'
+              : filtros.planogramas.length === 1
+                ? filtros.planogramas[0].nombre
+                : `${filtros.planogramas.length} planogramas`}
+          </button>
+        </div>
 
         <label className="productos-filtros__campo">
           <span>Aparece como</span>
@@ -122,6 +151,23 @@ export function ProductosFiltros({ filtros, jerarquia, onChange, onJerarquiaChan
         )}
       </div>
 
+      {filtros.planogramas.length > 1 && (
+        <div className="productos-filtros__chips" aria-label="Planogramas seleccionados">
+          {filtros.planogramas.map((p) => (
+            <span key={p.id} className="productos-filtros__chip">
+              {p.nombre}
+              <button
+                type="button"
+                aria-label={`Quitar ${p.nombre}`}
+                onClick={() => onChange({ planogramas: filtros.planogramas.filter((s) => s.id !== p.id) })}
+              >
+                &times;
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
       <div className="productos-filtros__jerarquia">
         {NIVELES.map((nivel, i) => {
           const padreSinElegir = i > 0 && !jerarquia[NIVELES[i - 1].campo];
@@ -151,6 +197,15 @@ export function ProductosFiltros({ filtros, jerarquia, onChange, onJerarquiaChan
           );
         })}
       </div>
+
+      {modalPlanogramas && (
+        <FiltroPlanogramasModal
+          seleccionados={filtros.planogramas}
+          productosPorPlanograma={productosPorPlanograma}
+          onAplicar={(planogramas) => onChange({ planogramas })}
+          onClose={() => setModalPlanogramas(false)}
+        />
+      )}
     </div>
   );
 }

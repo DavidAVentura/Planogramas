@@ -27,6 +27,8 @@ export interface ProductoListado {
   planogramas: number;
   /** Planogramas distintos por modo; un planograma puede contar en más de un modo. */
   apariciones: Record<ModoAparicion, number>;
+  /** Ids de los planogramas (no archivados) en los que aparece, en cualquier modo. */
+  planograma_ids: number[];
 }
 
 /** Fila de GET /catalog/productos/:sku/planogramas: una posición del producto. */
@@ -63,4 +65,11 @@ export interface FiltrosListadoProductos {
   /** `NINGUNO` = productos que no aparecen en ningún planograma. */
   modo: ModoAparicion | 'NINGUNO' | '';
   estado: string;
+  /** Planogramas elegidos en el modal; vacío = sin filtrar. El nombre solo se usa para mostrarlo. */
+  planogramas: PlanogramaFiltro[];
+}
+
+export interface PlanogramaFiltro {
+  id: number;
+  nombre: string;
 }

@@ -48,7 +48,7 @@ function consultaApariciones() {
     .whereNot(`${TABLA_PLANOGRAMA}.estado`, ESTADO_ARCHIVADO);
 }
 
-function mapProductoListado(row, totales, porModo) {
+function mapProductoListado(row, porModo, idsPorSku) {
   const apariciones = Object.fromEntries(MODOS_APARICION.map((modo) => [modo, porModo[`${row.sku}|${modo}`] ?? 0]));
   return {
     sku:                   row.sku,
@@ -66,8 +66,9 @@ function mapProductoListado(row, totales, porModo) {
     imagen_url:            row.imagen_url,
     estado:                row.estado,
     sku_sustituto:         row.sku_sustituto,
-    planogramas:           totales[row.sku] ?? 0,
+    planogramas:           idsPorSku.get(row.sku)?.length ?? 0,
     apariciones,
+    planograma_ids:        idsPorSku.get(row.sku) ?? [],
   };
 }
 
@@ -152,12 +153,13 @@ async function asegurarExistencia(sku) {
 // ─── listarConApariciones ────────────────────────────────────────────────────
 
 /**
- * Tres consultas en vez de un solo GROUP BY con pivot: los conteos por modo se arman en memoria.
+ * Tres consultas en vez de un solo GROUP BY con pivot: los conteos por modo y los ids de
+ * planogramas (que alimentan el filtro por planograma de la vista /productos) se arman en memoria.
  * La tabla local solo tiene los SKUs que alguien ya usó en una posición, así que el volumen es
  * acotado.
  */
 async function listarConApariciones() {
-  const [productos, totales, porModo] = await Promise.all([
+  const [productos, planogramasPorSku, porModo] = await Promise.all([
     db(TABLA_PRODUCTO)
       .select(
         'sku', 'nombre', 'marca', 'categoria_nivel1', 'categoria_nivel2', 'subcategoria', 'precio',
@@ -166,9 +168,7 @@ async function listarConApariciones() {
       )
       .orderBy('nombre', 'asc'),
     consultaApariciones()
-      .groupBy(`${TABLA_POSICION}.sku`)
-      .select(`${TABLA_POSICION}.sku`)
-      .countDistinct(`${TABLA_VERSION}.planograma_id as planogramas`),
+      .distinct(`${TABLA_POSICION}.sku`, `${TABLA_VERSION}.planograma_id`),
     consultaApariciones()
       .whereIn(`${TABLA_POSICION}.modo`, MODOS_APARICION)
       .groupBy(`${TABLA_POSICION}.sku`, `${TABLA_POSICION}.modo`)
@@ -176,10 +176,15 @@ async function listarConApariciones() {
       .countDistinct(`${TABLA_VERSION}.planograma_id as planogramas`),
   ]);
 
-  const totalesPorSku = Object.fromEntries(totales.map((r) => [r.sku, Number(r.planogramas)]));
+  const idsPorSku = new Map();
+  planogramasPorSku.forEach((r) => {
+    const ids = idsPorSku.get(r.sku);
+    if (ids) ids.push(r.planograma_id);
+    else idsPorSku.set(r.sku, [r.planograma_id]);
+  });
   const conteoPorModo = Object.fromEntries(porModo.map((r) => [`${r.sku}|${r.modo}`, Number(r.planogramas)]));
 
-  return productos.map((row) => mapProductoListado(row, totalesPorSku, conteoPorModo));
+  return productos.map((row) => mapProductoListado(row, conteoPorModo, idsPorSku));
 }
 
 // ─── listarApariciones ───────────────────────────────────────────────────────

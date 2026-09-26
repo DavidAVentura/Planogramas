@@ -74,11 +74,31 @@
 .barra-asignacion__modo-opcion--activa .barra-asignacion__punto--piloto { background: #7a4bc0; }
 
 .barra-asignacion__etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--fg-3);
+  cursor: pointer;
+
+  &:hover { color: var(--cemaco-indigo); }
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 2px;
+  }
+}
+
+.barra-asignacion__info {
+  width: 14px;
+  height: 14px;
 }
 
 .barra-asignacion__pinceles {
@@ -156,10 +176,15 @@
   border-color: #5b2d91;
 }
 
-.barra-asignacion__ayuda {
-  font-size: 12px;
-  line-height: 1.35;
-  color: var(--fg-3);
+.barra-asignacion__ayuda-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--fg-2);
 }
 
 .barra-asignacion__filtros {
