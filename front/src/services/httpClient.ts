@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '../config/env';
+import { authInterceptor } from './authInterceptor.service';
 
 export class ApiError extends Error {
   status: number;
@@ -30,13 +31,18 @@ function buildUrl(path: string, query?: RequestOptions['query']): string {
 }
 
 function enviar(method: string, path: string, options: RequestOptions): Promise<Response> {
+  const headers: Record<string, string> =
+    options.body !== undefined ? { 'Content-Type': 'application/json' } : {};
+
   return fetch(buildUrl(path, options.query), {
     method,
-    headers: options.body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+    headers: authInterceptor.alEnviar(headers),
     body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
-  }).catch(() => {
-    throw new ApiError(0, 'NETWORK_ERROR', 'No se pudo conectar con el servidor');
-  });
+  })
+    .catch(() => {
+      throw new ApiError(0, 'NETWORK_ERROR', 'No se pudo conectar con el servidor');
+    })
+    .then(authInterceptor.alRecibir);
 }
 
 function errorDeRespuesta(response: Response, payload: { error?: Record<string, unknown> } | null): ApiError {
@@ -63,8 +69,8 @@ async function request<T>(method: string, path: string, options: RequestOptions 
 
 /** POST con body JSON y respuesta binaria (ej. audio del TTS). Los errores siguen llegando como
  * JSON `{ error }` y se convierten en ApiError igual que en `request`. */
-async function requestBinario(path: string, body: unknown): Promise<Blob> {
-  const response = await enviar('POST', path, { body });
+async function requestBinario(method: string, path: string, body?: unknown): Promise<Blob> {
+  const response = await enviar(method, path, { body });
 
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
@@ -77,7 +83,8 @@ async function requestBinario(path: string, body: unknown): Promise<Blob> {
 export const httpClient = {
   get:    <T>(path: string, query?: RequestOptions['query']) => request<T>('GET', path, { query }),
   post:   <T>(path: string, body?: unknown) => request<T>('POST', path, { body }),
-  postBinario: (path: string, body?: unknown) => requestBinario(path, body),
+  getBinario: (path: string) => requestBinario('GET', path),
+  postBinario: (path: string, body?: unknown) => requestBinario('POST', path, body),
   patch:  <T>(path: string, body?: unknown) => request<T>('PATCH', path, { body }),
   put:    <T>(path: string, body?: unknown) => request<T>('PUT', path, { body }),
   delete: <T>(path: string, query?: RequestOptions['query']) => request<T>('DELETE', path, { query }),

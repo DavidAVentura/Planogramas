@@ -1,0 +1,104 @@
+.barra-cambios-asignacion {
+  position: sticky;
+  bottom: 14px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 60px;
+  margin-top: 12px;
+  padding: 10px 12px 10px 18px;
+  box-sizing: border-box;
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--fg-2);
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+.barra-cambios-asignacion--pendiente {
+  background: var(--ink-900);
+  color: var(--white);
+  box-shadow: 0 12px 28px rgb(17 24 17 / 22%);
+}
+
+.barra-cambios-asignacion__estado {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+
+  strong {
+    font-size: 14px;
+    font-weight: 800;
+  }
+}
+
+.barra-cambios-asignacion__especiales {
+  font-weight: 600;
+  color: #ffd9b8;
+}
+
+.barra-cambios-asignacion__guardado {
+  font-weight: 600;
+  color: var(--cemaco-green-700);
+}
+
+.barra-cambios-asignacion__leyenda {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  opacity: 0.8;
+
+  svg {
+    margin-left: 10px;
+    fill: none;
+    stroke: #9a4a00;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+  }
+}
+
+.barra-cambios-asignacion--pendiente .barra-cambios-asignacion__leyenda svg { stroke: #ffd9b8; }
+
+.barra-cambios-asignacion__punto {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--cemaco-indigo);
+}
+
+.barra-cambios-asignacion--pendiente .barra-cambios-asignacion__punto { background: var(--cemaco-green); }
+
+.barra-cambios-asignacion__acciones {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.barra-cambios-asignacion__secundario {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: inherit;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-green);
+    outline-offset: 2px;
+  }
+}
+
+.barra-cambios-asignacion__secundario--borde { border: 1px solid var(--border); }
+.barra-cambios-asignacion--pendiente .barra-cambios-asignacion__secundario--borde { border-color: rgb(255 255 255 / 28%); }
+
+.barra-cambios-asignacion__guardar.button {
+  background: var(--cemaco-green);
+  color: #0b1a0b;
+  font-weight: 800;
+}

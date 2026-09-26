@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import { RoleSwitch } from '../RoleSwitch/RoleSwitch';
+import { SesionUsuario } from '../SesionUsuario/SesionUsuario';
 import './AppTopbar.css';
 
 interface AppTopbarProps {
@@ -18,7 +19,7 @@ interface OpcionNavegacion {
 const OPCIONES_NAVEGACION: OpcionNavegacion[] = [
   { etiqueta: 'Planogramas', ruta: '/planogramas', disponible: true },
   { etiqueta: 'Tiendas', ruta: '/tiendas', disponible: true },
-  { etiqueta: 'Estructura', ruta: '/estructura', disponible: false },
+  { etiqueta: 'Estructura', ruta: '/estructura', disponible: true },
   { etiqueta: 'Productos', ruta: '/productos', disponible: true },
 ];
 
@@ -57,6 +58,7 @@ export function AppTopbar({ titulo, breadcrumb }: AppTopbarProps) {
         )}
       </nav>
       <RoleSwitch />
+      <SesionUsuario />
     </header>
   );
 }

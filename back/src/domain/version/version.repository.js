@@ -61,6 +61,15 @@ module.exports = {
   obtenerEstructuraPublicada: async (_id, _opciones) => { throw new Error('No implementado'); },
 
   /**
+   * Ficha de solo lectura de la versión: datos de la versión (con su base y la publicada que
+   * reemplazará si es piloto), su planograma con subcategorías, conteos de estructura
+   * (góndolas, niveles, posiciones por modo, productos distintos, metros lineales) y tiendas.
+   * @param {number} id
+   * @returns {Promise<{ version, planograma, estructura, tiendas }>}
+   */
+  obtenerResumen: async (_id) => { throw new Error('No implementado'); },
+
+  /**
    * Aplica un partial update de notas y/o código.
    * @param {number} id
    * @param {{ notas?, codigo? }} cambios
@@ -120,34 +129,41 @@ module.exports = {
   listarTiendas: async (_id) => { throw new Error('No implementado'); },
 
   /**
-   * Reemplaza el listado completo de tiendas asignadas a la versión (DELETE + INSERT transaccional).
-   * Ignora silenciosamente ids que no existan o no sean del tipo de la versión.
+   * Reemplaza el listado completo de tiendas asignadas a la versión (transaccional).
+   * Ignora silenciosamente ids que no existan. Si la versión está publicada o en piloto, cada
+   * tienda agregada desmonta la versión que tenía del planograma, y todo cambio se audita.
    * @param {number} id
    * @param {number[]} tiendaIds
+   * @param {{ numero, nombre }} usuario
    * @returns {Promise<{ tiendas: object[], ignorados: number[] }>}
    */
-  reemplazarTiendas: async (_id, _tiendaIds) => { throw new Error('No implementado'); },
+  reemplazarTiendas: async (_id, _tiendaIds, _usuario) => { throw new Error('No implementado'); },
 
   /**
    * Promueve la versión a `piloto` reemplazando sus tiendas asignadas. Si la versión
    * es de línea base (version_base_id IS NULL), archiva la versión en `piloto`
    * anterior del mismo planograma+tipo (si existe); las versiones especiales por
-   * tienda no archivan ninguna anterior. Transaccional.
+   * tienda no archivan ninguna anterior. Las tiendas piloto desmontan la versión que tenían;
+   * las de la piloto archivada que no siguen vuelven a la publicada del mismo tipo. Auditado.
+   * Transaccional.
    * @param {number} id
    * @param {number[]} tiendaIds
+   * @param {{ numero, nombre }} usuario
    * @returns {Promise<{ tiendas: object[], versionAnteriorArchivada: object|null }>}
    */
-  promoverAPiloto: async (_id, _tiendaIds) => { throw new Error('No implementado'); },
+  promoverAPiloto: async (_id, _tiendaIds, _usuario) => { throw new Error('No implementado'); },
 
   /**
    * Promueve la versión a `publicado`. Si la versión es de línea base
    * (version_base_id IS NULL), archiva la versión publicada anterior del mismo
    * planograma+tipo (si existe); las versiones especiales por tienda no archivan
-   * ninguna anterior. Transaccional.
+   * ninguna anterior. Las tiendas en piloto quedan con esta versión publicada y las de la
+   * publicada anterior pasan a esta. Auditado. Transaccional.
    * @param {number} id
+   * @param {{ numero, nombre }} usuario
    * @returns {Promise<{ versionAnteriorArchivada: object|null }>}
    */
-  promoverAPublicado: async (_id) => { throw new Error('No implementado'); },
+  promoverAPublicado: async (_id, _usuario) => { throw new Error('No implementado'); },
 
   /**
    * Marca la versión como `en_desarrollo`. Si la versión es de línea base

@@ -1,0 +1,207 @@
+.resumen-asignacion .modal__footer { align-items: center; }
+
+.resumen-asignacion__pie {
+  margin-right: auto;
+  max-width: 360px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--fg-3);
+}
+
+.resumen-asignacion__resumen {
+  margin: 0;
+  font-size: 14px;
+  color: var(--fg-2);
+}
+
+.resumen-asignacion__conteos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.resumen-asignacion__conteo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.resumen-asignacion__conteo-numero {
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.resumen-asignacion__conteo-texto {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--fg-2);
+}
+
+.resumen-asignacion__conteo--quita {
+  background: #fdf0ee;
+  border-color: #f6d2cc;
+  color: #b42318;
+}
+
+.resumen-asignacion__conteo--cambio {
+  background: var(--cemaco-indigo-50);
+  border-color: var(--cemaco-indigo-100);
+  color: var(--cemaco-indigo);
+}
+
+.resumen-asignacion__conteo--esp-nueva {
+  background: #fff6ee;
+  border-color: #f7dcc3;
+  color: #9a4a00;
+}
+
+.resumen-asignacion__conteo--nueva {
+  background: var(--cemaco-green-50);
+  border-color: #dcedb4;
+  color: var(--cemaco-green-700);
+}
+
+.resumen-asignacion__conteo--piloto-entra,
+.resumen-asignacion__conteo--piloto-sale {
+  background: #f7f2fd;
+  border-color: #e3d5f5;
+  color: #5b2d91;
+}
+
+.resumen-asignacion__aviso {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff1e5;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #7a3a00;
+}
+
+.resumen-asignacion__grupos {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.resumen-asignacion__titulo {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 800;
+
+  span {
+    font-weight: 700;
+    color: var(--fg-3);
+  }
+}
+
+.resumen-asignacion__titulo--quita { color: #b42318; }
+.resumen-asignacion__titulo--cambio { color: var(--cemaco-indigo); }
+.resumen-asignacion__titulo--esp-nueva { color: #9a4a00; }
+.resumen-asignacion__titulo--nueva { color: var(--cemaco-green-700); }
+
+.resumen-asignacion__titulo--piloto-entra,
+.resumen-asignacion__titulo--piloto-sale { color: #5b2d91; }
+
+.resumen-asignacion__implicacion {
+  margin: 4px 0 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--fg-2);
+}
+
+.resumen-asignacion__lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--ink-100);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.resumen-asignacion__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.3fr) 280px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  font-size: 13px;
+
+  & + & { border-top: 1px solid var(--ink-100); }
+}
+
+.resumen-asignacion__planograma {
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resumen-asignacion__tienda {
+  overflow: hidden;
+  color: var(--fg-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  .mono { color: var(--fg-1); }
+}
+
+.resumen-asignacion__transicion {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  color: var(--fg-3);
+}
+
+.resumen-asignacion__distinta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #9a4a00;
+  border-radius: var(--radius-pill);
+  font-size: 10px;
+  font-weight: 800;
+  color: #9a4a00;
+}
+
+.resumen-asignacion__motivo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-2);
+
+  textarea {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    color: var(--fg-1);
+    resize: none;
+
+    &:focus {
+      outline: 0;
+      border-color: var(--cemaco-indigo);
+      box-shadow: 0 0 0 3px var(--cemaco-indigo-100);
+    }
+  }
+}
+
+.resumen-asignacion__opcional {
+  font-weight: 500;
+  color: var(--fg-3);
+}

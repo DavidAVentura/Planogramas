@@ -31,11 +31,12 @@ module.exports = {
     audience: process.env.JWT_AUDIENCE,
   },
 
-  // CAO — CemacoAllInOne (primer salto de autenticación hacia CATI)
+  // CAO — CemacoAllInOne: emite el JWT del usuario (el login ocurre en otra aplicación) y lo
+  // valida vía GET {baseUrl}/auth/validar_token?cod_modulo={codModulo}. Ese mismo JWT es el que
+  // se intercambia por el accessToken de CATI (ver infrastructure/cati/tokenManager.js).
   cao: {
-    baseUrl:  process.env.CAO_BASE_URL,
-    user:     process.env.CAO_USER,
-    password: process.env.CAO_PASSWORD,
+    baseUrl:   process.env.CAO_BASE_URL,
+    codModulo: process.env.CAO_COD_MODULO || 'SCRAPING',
   },
 
   // CATI — catálogo y jerarquía (segundo salto)

@@ -1,0 +1,53 @@
+# Build y deploy del frontend (front/) a Azure Static Web Apps.
+# El build se hace aqui (no con Oryx) porque las variables VITE_* se incrustan en tiempo de
+# compilacion: se leen de las Variables del repo (Settings → Secrets and variables → Actions → Variables).
+#
+# Requiere:
+#   - Secret   AZURE_STATIC_WEB_APPS_API_TOKEN  (token de despliegue del recurso Static Web App)
+#   - Variable VITE_API_URL                      (ej. https://planogramas-api-prod-....azurewebsites.net/api/v1)
+#   - Variable VITE_N8N_VISION_WEBHOOK_URL       (opcional, webhook n8n del extractor visual)
+
+name: Build and deploy front to Azure Static Web Apps
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'front/**'
+      - '.github/workflows/main_planogramas-front-prod.yml'
+  workflow_dispatch:
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: npm
+          cache-dependency-path: front/package-lock.json
+
+      - name: npm ci y build
+        working-directory: front
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+          VITE_N8N_VISION_WEBHOOK_URL: ${{ vars.VITE_N8N_VISION_WEBHOOK_URL }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Deploy a Static Web App
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          action: upload
+          app_location: front/dist
+          skip_app_build: true
+          skip_api_build: true

@@ -1,5 +1,4 @@
 import { httpClient } from './httpClient';
-import { API_BASE_URL } from '../config/env';
 import type { Adjunto, AgregarAdjuntoInput } from '../types/adjunto';
 
 export const adjuntosService = {
@@ -14,6 +13,7 @@ export const adjuntosService = {
   eliminar: (id: number) => httpClient.delete<void>(`/adjuntos/${id}`),
 
   /** El contenedor de Azure es privado — la descarga siempre pasa por este endpoint del backend,
-   * nunca por `blobUrl` directo. */
-  urlDescarga: (id: number) => `${API_BASE_URL}/adjuntos/${id}/descargar`,
+   * nunca por `blobUrl` directo. Se pide vía httpClient (no con un `<a href>`) porque el
+   * endpoint exige el header Authorization. */
+  descargar: (id: number) => httpClient.getBinario(`/adjuntos/${id}/descargar`),
 };

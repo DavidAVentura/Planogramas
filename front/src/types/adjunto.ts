@@ -10,7 +10,7 @@ export interface Adjunto {
   blobContainer: string;
   blobPath: string;
   /** URL del blob sin SAS — el contenedor es privado, no sirve para descarga directa. Usar
-   * `adjuntosService.urlDescarga(id)` para descargar. */
+   * `adjuntosService.descargar(id)` para descargar. */
   blobUrl: string;
   subidoPor: string;
   createdAt: string;

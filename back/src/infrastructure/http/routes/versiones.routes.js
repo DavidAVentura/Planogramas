@@ -44,6 +44,9 @@ router.patch('/:id/guardar',        controller.guardar);
 // GET   /versiones/:id/estructura     — estructura reducida de solo lectura (Implementador)
 router.get('/:id/estructura',       controller.obtenerEstructura);
 
+// GET   /versiones/:id/resumen        — ficha de solo lectura: datos, conteos de estructura y tiendas
+router.get('/:id/resumen',          controller.obtenerResumen);
+
 // GET   /versiones/:id/adjuntos       — lista los adjuntos de la versión (módulo adjuntos)
 router.get('/:id/adjuntos',         adjuntosController.listar);
 

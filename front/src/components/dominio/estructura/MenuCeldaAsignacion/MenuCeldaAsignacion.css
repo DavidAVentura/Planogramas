@@ -1,0 +1,86 @@
+.menu-celda-asignacion {
+  position: fixed;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 244px;
+  padding: 6px;
+  box-sizing: border-box;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 12px 28px rgb(17 24 17 / 16%), 0 2px 6px rgb(17 24 17 / 6%);
+}
+
+.menu-celda-asignacion__encabezado {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 10px 8px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.menu-celda-asignacion__planograma {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--fg-1);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-celda-asignacion__estado {
+  font-size: 12px;
+  color: var(--fg-3);
+}
+
+.menu-celda-asignacion__opcion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg-1);
+  text-align: left;
+  cursor: pointer;
+
+  svg {
+    flex: none;
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &:disabled {
+    color: var(--fg-4);
+    cursor: not-allowed;
+  }
+
+  &:focus-visible,
+  &:hover:not(:disabled) {
+    outline: 0;
+    background: var(--cemaco-indigo-50);
+    color: var(--cemaco-indigo);
+  }
+}
+
+.menu-celda-asignacion__texto {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.menu-celda-asignacion__nota {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--fg-3);
+}

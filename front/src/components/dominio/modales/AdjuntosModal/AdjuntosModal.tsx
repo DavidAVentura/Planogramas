@@ -5,7 +5,9 @@ import { Table, type TableColumn } from '../../../ui/Table/Table';
 import { EmptyState } from '../../../ui/EmptyState/EmptyState';
 import { adjuntosService } from '../../../../services/adjuntos.service';
 import { useAdjuntosDeVersion } from '../../../../hooks/useAdjuntos';
+import { useToast } from '../../../../context/ToastContext';
 import { formatearFecha } from '../../../../utils/formatters';
+import { mensajeDeError } from '../../../../utils/errors';
 import type { Adjunto } from '../../../../types/adjunto';
 import type { VersionListItem } from '../../../../types/version';
 import './AdjuntosModal.css';
@@ -62,6 +64,7 @@ interface AdjuntosModalProps {
 
 export function AdjuntosModal({ version, onClose }: AdjuntosModalProps) {
   const { adjuntos, cargando, enviando, agregar, reemplazar, eliminar } = useAdjuntosDeVersion(version.id);
+  const { mostrarToast } = useToast();
   const inputReemplazoRef = useRef<HTMLInputElement>(null);
   const [idAReemplazar, setIdAReemplazar] = useState<number | null>(null);
 
@@ -85,6 +88,22 @@ export function AdjuntosModal({ version, onClose }: AdjuntosModalProps) {
     setIdAReemplazar(null);
   }
 
+  // La ventana se abre antes del await para que el navegador no la bloquee como popup; luego se
+  // le carga el archivo ya descargado con el token de sesión.
+  async function onDescargarClick(a: Adjunto) {
+    const ventana = window.open('', '_blank');
+    try {
+      const archivo = await adjuntosService.descargar(a.id);
+      const url = URL.createObjectURL(archivo);
+      if (ventana) ventana.location.href = url;
+      else window.location.assign(url);
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (err) {
+      ventana?.close();
+      mostrarToast(mensajeDeError(err, 'No se pudo descargar el adjunto'), 'error');
+    }
+  }
+
   async function onEliminarClick(a: Adjunto) {
     if (window.confirm(`¿Eliminar "${a.nombreOriginal}"? Esta acción no se puede deshacer.`)) {
       await eliminar(a.id);
@@ -100,16 +119,15 @@ export function AdjuntosModal({ version, onClose }: AdjuntosModalProps) {
       header: 'Acciones',
       render: (a) => (
         <span className="adjuntos-modal__acciones">
-          <a
-            className="button button--outline adjuntos-modal__accion-icono"
-            href={adjuntosService.urlDescarga(a.id)}
-            target="_blank"
-            rel="noreferrer"
+          <Button
+            variante="outline"
+            className="adjuntos-modal__accion-icono"
+            onClick={() => onDescargarClick(a)}
             title="Descargar"
             aria-label="Descargar"
           >
             <IconoDescargar />
-          </a>
+          </Button>
           {editable && (
             <>
               <Button

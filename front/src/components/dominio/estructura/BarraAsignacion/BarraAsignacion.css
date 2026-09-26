@@ -1,0 +1,198 @@
+.barra-asignacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.barra-asignacion__herramientas {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.barra-asignacion__fila {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.barra-asignacion__modo {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--ink-100);
+}
+
+.barra-asignacion__modo--piloto { background: #ece2f9; }
+
+.barra-asignacion__modo-opcion {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--fg-2);
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 2px;
+  }
+}
+
+.barra-asignacion__modo-opcion--activa {
+  background: var(--white);
+  color: var(--fg-1);
+  box-shadow: var(--shadow-sm);
+}
+
+.barra-asignacion__modo--piloto .barra-asignacion__modo-opcion--activa { color: #5b2d91; }
+
+.barra-asignacion__punto {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--ink-300);
+}
+
+.barra-asignacion__modo-opcion--activa .barra-asignacion__punto--publicado { background: var(--cemaco-green-700); }
+.barra-asignacion__modo-opcion--activa .barra-asignacion__punto--piloto { background: #7a4bc0; }
+
+.barra-asignacion__etiqueta {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+.barra-asignacion__pinceles {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--ink-100);
+}
+
+.barra-asignacion__pincel {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--fg-2);
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover { background: var(--white); }
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 2px;
+  }
+}
+
+.barra-asignacion__pincel--activo {
+  background: var(--white);
+  color: var(--fg-1);
+  box-shadow: var(--shadow-sm), 0 0 0 1px var(--border);
+}
+
+.barra-asignacion__muestra {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border: 1px solid;
+  border-radius: 3px;
+}
+
+.barra-asignacion__muestra--tg {
+  background: var(--cemaco-indigo-50);
+  border-color: var(--cemaco-indigo);
+}
+
+.barra-asignacion__muestra--tm {
+  background: var(--cemaco-green-50);
+  border-color: var(--cemaco-green-700);
+}
+
+.barra-asignacion__muestra--te {
+  background: var(--warning-bg);
+  border-color: #7a5900;
+}
+
+.barra-asignacion__muestra--esp {
+  background: #fff1e5;
+  border-color: #9a4a00;
+}
+
+.barra-asignacion__muestra--quitar {
+  background: var(--white);
+  border-color: var(--fg-4);
+}
+
+.barra-asignacion__muestra--piloto {
+  background: #f3edfb;
+  border-color: #5b2d91;
+}
+
+.barra-asignacion__ayuda {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--fg-3);
+}
+
+.barra-asignacion__filtros {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+
+  input,
+  select {
+    height: 38px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    font-size: 14px;
+    color: var(--fg-1);
+
+    &:focus {
+      outline: 0;
+      border-color: var(--cemaco-indigo);
+      box-shadow: 0 0 0 3px var(--cemaco-indigo-100);
+    }
+  }
+}
+
+.barra-asignacion__buscar input { width: 190px; }
+
+.barra-asignacion__oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

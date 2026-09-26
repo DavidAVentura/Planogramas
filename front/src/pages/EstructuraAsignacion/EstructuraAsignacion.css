@@ -1,0 +1,44 @@
+.estructura-asignacion__contenido {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 16px 24px 24px;
+}
+
+.estructura-asignacion__cabecera {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.estructura-asignacion__eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+.estructura-asignacion__titulo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px;
+
+  h1 {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  span {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--fg-2);
+  }
+}
+
+.estructura-asignacion__cargando {
+  font-size: 14px;
+  color: var(--fg-2);
+}
