@@ -162,3 +162,12 @@
   justify-content: center;
   border-radius: 50%;
 }
+
+/* Aspecto de deshabilitado sin usar `disabled`: el clic tiene que llegar para mostrar el aviso de
+ * por qué no está disponible (ver `extraerDeshabilitado`). */
+.agente-extractor-chat__extraer--deshabilitado {
+  cursor: not-allowed;
+  opacity: 0.5;
+
+  &.button--outline:hover:not(:disabled) { background: transparent; }
+}

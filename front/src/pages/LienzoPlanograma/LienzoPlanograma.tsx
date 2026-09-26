@@ -594,7 +594,7 @@ export function LienzoPlanograma() {
 
       {fichaSku && <FichaProductoModal sku={fichaSku} onClose={() => setFichaSku(null)} />}
 
-      {!cargandoInicial && gondolaActivaParaAgente && (
+      {!cargandoInicial && (
         <AgenteExtractorBubble
           puedeEscribir={puedeEscribir}
           versionId={versionIdNumerico}
@@ -603,6 +603,7 @@ export function LienzoPlanograma() {
           categoria={planograma?.departamento ?? ''}
           subcategorias={planograma?.subcategorias ?? []}
           onConfirmado={onRecargarTodo}
+          onCrearGondola={() => setModalGondola('crear')}
         />
       )}
     </div>

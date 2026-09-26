@@ -17,8 +17,8 @@ export function PlanogramasTable({ rows, puedeEscribir, onEditar, onArchivar }: 
   const navigate = useNavigate();
 
   const columnas: TableColumn<PlanogramaListItem>[] = [
-    { key: 'nombre', header: 'Nombre', render: (r) => r.nombre },
     { key: 'departamento', header: 'Departamento', render: (r) => r.departamento },
+    { key: 'nombre', header: 'Nombre', render: (r) => r.nombre },
     { key: 'estado', header: 'Estado', render: (r) => <EstadoBadge estado={r.estado} /> },
     { key: 'versiones', header: 'Versiones', render: (r) => r.totalVersiones },
     { key: 'creado', header: 'Creado', render: (r) => formatearFecha(r.created_at) },

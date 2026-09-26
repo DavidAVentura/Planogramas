@@ -406,7 +406,7 @@ export function EditorPlanograma() {
         />
       )}
 
-      {!cargandoInicial && gondolaActiva && (
+      {!cargandoInicial && (
         <AgenteExtractorBubble
           puedeEscribir={puedeEscribir}
           versionId={versionIdNumerico}
@@ -419,6 +419,7 @@ export function EditorPlanograma() {
             recargarGondolas();
             recargarPosiciones();
           }}
+          onCrearGondola={() => setModalGondola('crear')}
         />
       )}
     </div>

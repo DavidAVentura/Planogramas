@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ConfirmDialog } from '../../../ui/ConfirmDialog/ConfirmDialog';
 import { AgenteExtractorChat } from '../AgenteExtractorChat/AgenteExtractorChat';
 import { ResumenBorradorModal } from '../../modales/ResumenBorradorModal/ResumenBorradorModal';
 import { ExtractorImagenNumeradaModal } from '../../modales/ExtractorImagenNumeradaModal/ExtractorImagenNumeradaModal';
@@ -29,11 +30,15 @@ interface AgenteExtractorBubbleProps {
    * góndola activa en pantalla. */
   gondolas: GondolaListItem[];
   /** Góndola visible en pantalla — es la que se usa como "fixture" para el extractor por fotos
-   * (IA visual), ya que las fotos que suba el usuario son de ese mueble puntual. */
-  gondolaActiva: GondolaListItem;
+   * (IA visual), ya que las fotos que suba el usuario son de ese mueble puntual. Sin góndolas en
+   * la versión no hay ninguna: el chat sigue disponible pero la extracción queda bloqueada. */
+  gondolaActiva?: GondolaListItem | null;
   categoria: string;
   subcategorias: string[];
   onConfirmado: () => void;
+  /** Abre el modal de crear góndola de la página — se ofrece cuando el usuario intenta extraer
+   * de otra fuente sin tener todavía ninguna góndola. */
+  onCrearGondola: () => void;
 }
 
 export function AgenteExtractorBubble({
@@ -44,10 +49,12 @@ export function AgenteExtractorBubble({
   categoria,
   subcategorias,
   onConfirmado,
+  onCrearGondola,
 }: AgenteExtractorBubbleProps) {
   const [abierto, setAbierto] = useState(false);
   const [mostrarResumen, setMostrarResumen] = useState(false);
   const [metodoExtraccion, setMetodoExtraccion] = useState<MetodoExtraccion>('ninguno');
+  const [avisoSinGondola, setAvisoSinGondola] = useState(false);
 
   // Carga perezosa: solo se pide el detalle de niveles/posiciones de toda la versión cuando el
   // chat está abierto, para no pegarle a la API de cada góndola en cada carga del editor.
@@ -72,6 +79,14 @@ export function AgenteExtractorBubble({
     setAbierto(!abierto);
   }
 
+  function extraerDeOtraFuente() {
+    if (!gondolaActiva) {
+      setAvisoSinGondola(true);
+      return;
+    }
+    setMetodoExtraccion('elegir');
+  }
+
   return (
     <>
       <div className="agente-extractor-widget" style={{ left: pos.x, top: pos.y }}>
@@ -82,7 +97,8 @@ export function AgenteExtractorBubble({
             listoParaConfirmar={agente.listoParaConfirmar}
             enviando={agente.enviando}
             onEnviar={agente.enviar}
-            onExtraerImagen={() => setMetodoExtraccion('elegir')}
+            onExtraerImagen={extraerDeOtraFuente}
+            extraerDeshabilitado={!gondolaActiva}
             onRevisar={() => setMostrarResumen(true)}
             onColapsar={alternar}
             onArrastreHeader={(e) => iniciarArrastre(e, ANCHO_PANEL, ALTO_PANEL)}
@@ -99,6 +115,19 @@ export function AgenteExtractorBubble({
           </button>
         )}
       </div>
+
+      {avisoSinGondola && (
+        <ConfirmDialog
+          titulo="Sin góndolas"
+          mensaje="Debes crear una góndola primero."
+          confirmarLabel="Crear góndola"
+          onClose={() => setAvisoSinGondola(false)}
+          onConfirm={() => {
+            setAvisoSinGondola(false);
+            onCrearGondola();
+          }}
+        />
+      )}
 
       {metodoExtraccion === 'elegir' && (
         <SeleccionarMetodoExtraccionModal
@@ -120,7 +149,7 @@ export function AgenteExtractorBubble({
         />
       )}
 
-      {metodoExtraccion === 'vision-catalogo' && (
+      {metodoExtraccion === 'vision-catalogo' && gondolaActiva && (
         <ExtractorVisionCatalogoModal
           subcategorias={subcategorias}
           gondola={gondolaActiva}
@@ -133,7 +162,7 @@ export function AgenteExtractorBubble({
         />
       )}
 
-      {metodoExtraccion === 'lienzo' && (
+      {metodoExtraccion === 'lienzo' && gondolaActiva && (
         <ExtractorLienzoModal
           subcategorias={subcategorias}
           gondolas={gondolas}
@@ -150,7 +179,7 @@ export function AgenteExtractorBubble({
         />
       )}
 
-      {metodoExtraccion === 'jcv2' && (
+      {metodoExtraccion === 'jcv2' && gondolaActiva && (
         <ExtractorJCv2Modal
           subcategorias={subcategorias}
           gondolas={gondolas}

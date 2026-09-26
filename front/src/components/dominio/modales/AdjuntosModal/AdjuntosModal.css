@@ -22,6 +22,15 @@
   flex-wrap: wrap;
 }
 
+.adjuntos-modal__accion-icono {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 50%;
+}
+
 /* .button ya define :disabled para <button>/<input> — un <label> no tiene ese pseudo-estado,
    así que el estilo "subiendo…" se aplica a mano con esta clase. */
 .button--disabled {

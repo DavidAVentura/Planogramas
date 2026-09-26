@@ -11,6 +11,9 @@ interface AgenteExtractorChatProps {
   enviando: boolean;
   onEnviar: (texto: string) => void;
   onExtraerImagen: () => void;
+  /** Muestra "Extraer de otra fuente" como deshabilitado (p. ej. la versión aún no tiene góndolas).
+   * El botón sigue recibiendo el clic para que el padre pueda explicar por qué no está disponible. */
+  extraerDeshabilitado?: boolean;
   onRevisar: () => void;
   /** Colapsa el panel sobre la burbuja — no borra la conversación ni el borrador, esos viven en
    * el componente padre (ver useAgenteExtractor). */
@@ -26,6 +29,7 @@ export function AgenteExtractorChat({
   enviando,
   onEnviar,
   onExtraerImagen,
+  extraerDeshabilitado = false,
   onRevisar,
   onColapsar,
   onArrastreHeader,
@@ -122,7 +126,13 @@ export function AgenteExtractorChat({
               </svg>
             </Button>
           </div>
-          <Button variante="outline" onClick={onExtraerImagen} disabled={enviando}>
+          <Button
+            variante="outline"
+            className={extraerDeshabilitado ? 'agente-extractor-chat__extraer--deshabilitado' : undefined}
+            aria-disabled={extraerDeshabilitado}
+            onClick={onExtraerImagen}
+            disabled={enviando}
+          >
             Extraer de otra fuente
           </Button>
         </div>
