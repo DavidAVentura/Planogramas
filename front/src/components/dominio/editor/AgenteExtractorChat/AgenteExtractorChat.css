@@ -129,6 +129,106 @@
   color: var(--fg-1);
 }
 
+/* Mensajes del agente renderizados como Markdown: espaciado compacto para el panel angosto. */
+.agente-extractor-chat__markdown {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.agente-extractor-chat__markdown > :first-child {
+  margin-top: 0;
+}
+
+.agente-extractor-chat__markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.agente-extractor-chat__markdown p,
+.agente-extractor-chat__markdown ul,
+.agente-extractor-chat__markdown ol,
+.agente-extractor-chat__markdown table {
+  margin: 0 0 6px;
+}
+
+.agente-extractor-chat__markdown ul,
+.agente-extractor-chat__markdown ol {
+  padding-left: 18px;
+}
+
+.agente-extractor-chat__markdown li + li {
+  margin-top: 2px;
+}
+
+.agente-extractor-chat__markdown h1,
+.agente-extractor-chat__markdown h2,
+.agente-extractor-chat__markdown h3 {
+  margin: 8px 0 4px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.agente-extractor-chat__markdown strong {
+  font-weight: 700;
+  color: var(--cemaco-indigo-900);
+}
+
+.agente-extractor-chat__markdown a {
+  color: var(--cemaco-indigo);
+}
+
+.agente-extractor-chat__markdown code {
+  padding: 0 3px;
+  border-radius: 3px;
+  background: var(--border-subtle);
+  font-size: 12px;
+}
+
+/* Un mensaje con tabla ocupa todo el ancho del panel para aprovechar el espacio antes del scroll. */
+.agente-extractor-chat__mensaje:has(.agente-extractor-chat__tabla-scroll) {
+  width: 100%;
+  max-width: 100%;
+}
+
+.agente-extractor-chat__tabla-scroll {
+  max-width: 100%;
+  margin: 0 0 6px;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.agente-extractor-chat__markdown .agente-extractor-chat__tabla-scroll table {
+  margin: 0;
+  min-width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+/* Sin corte de línea en celdas: la tabla desborda y se lee con el scroll horizontal. */
+.agente-extractor-chat__markdown th,
+.agente-extractor-chat__markdown td {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: left;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
+.agente-extractor-chat__markdown th {
+  background: var(--bg-sunken);
+  color: var(--fg-2);
+  font-weight: 700;
+}
+
+.agente-extractor-chat__markdown tbody tr:nth-child(even) {
+  background: var(--bg-sunken);
+}
+
+.agente-extractor-chat__markdown tbody tr:last-child td {
+  border-bottom: none;
+}
+
 .agente-extractor-chat__mensaje--pensando {
   color: var(--fg-3);
   font-style: italic;
@@ -249,4 +349,38 @@
   background: var(--cemaco-indigo);
   color: var(--white);
   animation: agente-extractor-mic-pulso 1.6s ease-in-out infinite;
+}
+
+/* ─── Reenviar mensaje del usuario ─────────────────────────────────────────── */
+
+.agente-extractor-chat__acciones-usuario {
+  display: flex;
+  justify-content: flex-end;
+  margin: 2px -6px -4px 0;
+}
+
+.agente-extractor-chat__reenviar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--white);
+  opacity: 0.6;
+  cursor: pointer;
+  transition: opacity var(--dur-fast), background var(--dur-fast);
+}
+
+.agente-extractor-chat__reenviar:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.agente-extractor-chat__reenviar:hover:not(:disabled) {
+  opacity: 1;
+  background: rgb(255 255 255 / 15%);
 }

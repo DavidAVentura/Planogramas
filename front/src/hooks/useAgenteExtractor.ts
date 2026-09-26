@@ -66,10 +66,10 @@ export function useAgenteExtractor(contexto: ContextoAgenteExtractor, versionId:
 
   const { mensajes, borrador, listoParaConfirmar } = estado;
 
-  async function enviar(texto: string) {
-    const historialPrevio = mensajes;
+  /** `historialPrevio` es lo que el agente ve antes de `texto`; el mensaje del usuario ya debe
+   * estar (o quedar) al final de `mensajes`. */
+  async function solicitar(texto: string, historialPrevio: MensajeChat[]) {
     const borradorPrevio = borrador;
-    setEstado((actual) => ({ ...actual, mensajes: [...actual.mensajes, { rol: 'user', contenido: texto }] }));
     setEnviando(true);
     try {
       const respuesta = await agenteExtractorService.enviarMensaje({
@@ -79,7 +79,7 @@ export function useAgenteExtractor(contexto: ContextoAgenteExtractor, versionId:
         contexto,
       });
       setEstado((actual) => ({
-        mensajes: [...actual.mensajes, { rol: 'assistant', contenido: respuesta.mensaje_asistente }],
+        mensajes: [...actual.mensajes, { rol: 'assistant', contenido: respuesta.mensaje_asistente, narracion: respuesta.narracion_asistente }],
         borrador: respuesta.borrador,
         listoParaConfirmar: respuesta.listo_para_confirmar,
       }));
@@ -88,6 +88,21 @@ export function useAgenteExtractor(contexto: ContextoAgenteExtractor, versionId:
     } finally {
       setEnviando(false);
     }
+  }
+
+  function enviar(texto: string) {
+    const historialPrevio = mensajes;
+    setEstado((actual) => ({ ...actual, mensajes: [...actual.mensajes, { rol: 'user', contenido: texto }] }));
+    return solicitar(texto, historialPrevio);
+  }
+
+  /** Reenvía un mensaje del usuario. Si es el último (falló y quedó sin respuesta), se reintenta en
+   * su lugar sin duplicar la burbuja; si no, se vuelve a enviar al final de la conversación. */
+  function reenviar(indice: number) {
+    const mensaje = mensajes[indice];
+    if (!mensaje || mensaje.rol !== 'user' || enviando) return;
+    if (indice === mensajes.length - 1) return solicitar(mensaje.contenido, mensajes.slice(0, indice));
+    return enviar(mensaje.contenido);
   }
 
   /** Tras confirmar el borrador: vacía el borrador ya aplicado pero conserva la conversación como histórico. */
@@ -105,5 +120,5 @@ export function useAgenteExtractor(contexto: ContextoAgenteExtractor, versionId:
     setEstado(estadoInicial());
   }
 
-  return { mensajes, borrador, listoParaConfirmar, enviando, enviar, limpiarBorrador, reestablecer };
+  return { mensajes, borrador, listoParaConfirmar, enviando, enviar, reenviar, limpiarBorrador, reestablecer };
 }

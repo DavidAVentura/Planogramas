@@ -7,9 +7,31 @@ import { OndaVoz } from '../OndaVoz/OndaVoz';
 import { AjustesVozModal } from '../AjustesVozModal/AjustesVozModal';
 import { useVozATexto } from '../../../../hooks/useVozATexto';
 import { useTextoAVoz } from '../../../../hooks/useTextoAVoz';
+import ReactMarkdown from 'react-markdown';
+import type { Components } from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useToast } from '../../../../context/ToastContext';
+import { markdownATexto } from '../../../../utils/markdownATexto';
 import type { AccionBorrador, MensajeChat } from '../../../../types/agenteExtractor';
 import './AgenteExtractorChat.css';
+
+// react-markdown no renderiza HTML crudo por defecto (seguro ante contenido del modelo); solo se
+// fuerza que los enlaces abran fuera del editor para no perder el planograma abierto.
+const COMPONENTES_MARKDOWN: Components = {
+  a: ({ node: _node, ...props }) => <a {...props} target="_blank" rel="noopener noreferrer" />,
+  // Contenedor con scroll horizontal: las tablas de productos suelen ser más anchas que el panel.
+  table: ({ node: _node, ...props }) => (
+    <div className="agente-extractor-chat__tabla-scroll">
+      <table {...props} />
+    </div>
+  ),
+};
+
+// Lo que se lee en voz alta: la narración corta que escribe el agente o, en mensajes guardados
+// antes de que existiera, el contenido completo sin Markdown.
+function textoALeer(m: MensajeChat): string {
+  return m.narracion?.trim() ? m.narracion : markdownATexto(m.contenido);
+}
 
 interface AgenteExtractorChatProps {
   mensajes: MensajeChat[];
@@ -17,6 +39,8 @@ interface AgenteExtractorChatProps {
   listoParaConfirmar: boolean;
   enviando: boolean;
   onEnviar: (texto: string) => void;
+  /** Reenvía el mensaje del usuario en ese índice (ej. el agente devolvió un error). */
+  onReenviar: (indice: number) => void;
   onExtraerImagen: () => void;
   /** Muestra "Extraer de otra fuente" como deshabilitado (p. ej. la versión aún no tiene góndolas).
    * El botón sigue recibiendo el clic para que el padre pueda explicar por qué no está disponible. */
@@ -39,6 +63,7 @@ export function AgenteExtractorChat({
   listoParaConfirmar,
   enviando,
   onEnviar,
+  onReenviar,
   onExtraerImagen,
   extraerDeshabilitado = false,
   onRevisar,
@@ -97,7 +122,7 @@ export function AgenteExtractorChat({
     const ultimo = mensajes[indice];
     if (ultimo.rol === 'assistant' && ultimoEnvioPorVozRef.current) {
       ultimoEnvioPorVozRef.current = false;
-      reproducir(String(indice), ultimo.contenido, toggleDictado);
+      reproducir(String(indice), textoALeer(ultimo), toggleDictado);
     }
   }, [mensajes, reproducir, toggleDictado]);
 
@@ -123,9 +148,17 @@ export function AgenteExtractorChat({
     return lectura.cargando ? 'cargando' : 'reproduciendo';
   }
 
-  function alternarLectura(id: string, contenido: string) {
+  function alternarLectura(id: string, mensaje: MensajeChat) {
     if (lectura.reproduciendoId === id) detenerLectura();
-    else reproducir(id, contenido);
+    else reproducir(id, textoALeer(mensaje));
+  }
+
+  function reenviar(indice: number) {
+    if (enviando) return;
+    // Un reenvío es un clic, no dictado: la respuesta no se lee sola.
+    ultimoEnvioPorVozRef.current = false;
+    detenerLectura();
+    onReenviar(indice);
   }
 
   function reestablecer() {
@@ -168,10 +201,35 @@ export function AgenteExtractorChat({
               key={i}
               className={`agente-extractor-chat__mensaje agente-extractor-chat__mensaje--${m.rol}`}
             >
-              {m.contenido}
+              {m.rol === 'assistant' ? (
+                <div className="agente-extractor-chat__markdown">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={COMPONENTES_MARKDOWN}>
+                    {m.contenido}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                <>
+                  {m.contenido}
+                  <div className="agente-extractor-chat__acciones-usuario">
+                    <button
+                      type="button"
+                      className="agente-extractor-chat__reenviar"
+                      onClick={() => reenviar(i)}
+                      disabled={enviando}
+                      aria-label="Reenviar mensaje"
+                      title="Reenviar mensaje"
+                    >
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <polyline points="23 4 23 10 17 10" />
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                      </svg>
+                    </button>
+                  </div>
+                </>
+              )}
               {modoVoz && m.rol === 'assistant' && (
                 <div className="agente-extractor-chat__lectura">
-                  <BotonTextoAVoz estado={estadoLecturaDe(String(i))} onClick={() => alternarLectura(String(i), m.contenido)} />
+                  <BotonTextoAVoz estado={estadoLecturaDe(String(i))} onClick={() => alternarLectura(String(i), m)} />
                 </div>
               )}
             </div>

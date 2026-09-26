@@ -12,6 +12,10 @@
 > - Tocar el mic mientras se lee una respuesta corta la lectura y empieza a dictar.
 > - El modo voz solo se muestra en el **Lienzo** (`LienzoPlanograma`): prop `modoVoz` en `AgenteExtractorBubble`
 >   → `AgenteExtractorChat`, por defecto `false`. El Editor usa el mismo chat sin micrófono ni botón ▶.
+> - **Narración separada del mensaje**: el agente devuelve `narracion_asistente` (1–2 oraciones habladas) además
+>   de `mensaje_asistente`. El TTS (autolectura y ▶) lee la narración; los mensajes guardados sin ella caen a
+>   `markdownATexto(contenido)`. Se agregó al prompt la regla "nunca anuncies una tabla que no incluyes"
+>   (gpt-4o-mini a veces decía "aquí están los detalles" sin tabla, también antes de este cambio).
 > Este archivo es solo documentación: se commitea aparte de los cambios de código (convención de `CLAUDE.md`).
 
 ## Contexto

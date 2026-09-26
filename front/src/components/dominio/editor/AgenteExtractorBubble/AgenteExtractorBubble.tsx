@@ -101,6 +101,7 @@ export function AgenteExtractorBubble({
             listoParaConfirmar={agente.listoParaConfirmar}
             enviando={agente.enviando}
             onEnviar={agente.enviar}
+            onReenviar={agente.reenviar}
             onExtraerImagen={extraerDeOtraFuente}
             extraerDeshabilitado={!gondolaActiva}
             onRevisar={() => setMostrarResumen(true)}
