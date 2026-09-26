@@ -77,7 +77,7 @@ anterior de este documento (ver gap correspondiente en §5).
 /productos
 └─ Listado de productos (jerarquía CATI en cascada, búsqueda, tipo de aparición, estado; orden
    anidado por columna) — cada fila se expande a sus posiciones en planogramas, con enlace
-   "Abrir versión" a /planogramas/:id/versiones/:versionId/editor
+   "Abrir versión" al lienzo, /planogramas/:id/versiones/:versionId/lienzo
 ```
 
 ### Piloto de captura (ya construido, ciclo separado)
@@ -186,8 +186,8 @@ Diseño en el canvas de prototipado (artboard "Listado de productos (interactivo
 
 | Código | Pantalla | Actor | Propósito | CU | Endpoints | Estado | Componentes clave |
 |---|---|---|---|---|---|---|---|
-| PANT-10-01 | Listado de productos (`/productos`) | Analista | Tabla con SKU, producto (marca, dimensiones y si están validadas), jerarquía, precio, cantidad de planogramas, "Aparece como" (Planograma/Cross/Impulso con conteo) y estado. Filtros: jerarquía CATI en cascada de 5 niveles (se resuelve en el backend contra CATI), búsqueda, tipo de aparición (incluye "Sin planograma") y estado; orden anidado por columna igual que Tiendas | CU-10-01 | `GET /catalog/productos`, `GET /jerarquia/*` | Implementado | `ProductosFiltros`, `ProductosTable`, `Badge`, `EmptyState` |
-| ACC-10-02 | Planogramas de un producto | Analista | Fila expandible: una línea por posición con planograma, versión (tipo y estado), góndola/nivel, modo y tiendas; enlace "Abrir versión" al editor; aviso si el producto está inactivo y sigue en una versión publicada o en piloto, con su sustituto recomendado | CU-10-02 | `GET /catalog/productos/{sku}/planogramas` | Implementado | `ProductoApariciones`, `EstadoBadge` |
+| PANT-10-01 | Listado de productos (`/productos`) | Analista | Tabla con SKU, producto (marca, dimensiones y si están validadas), jerarquía, cantidad de planogramas, "Aparece como" (Planograma/Cross/Impulso con conteo) y estado. Filtros: jerarquía CATI en cascada de 5 niveles (se resuelve en el backend contra CATI), búsqueda, tipo de aparición (incluye "Sin planograma") y estado; orden anidado por columna igual que Tiendas | CU-10-01 | `GET /catalog/productos`, `GET /jerarquia/*` | Implementado | `ProductosFiltros`, `ProductosTable`, `Badge`, `EmptyState` |
+| ACC-10-02 | Planogramas de un producto | Analista | Fila expandible: una línea por posición con planograma, versión (tipo y estado), góndola/nivel, modo y tiendas; enlace "Abrir versión" al lienzo; aviso si el producto está inactivo y sigue en una versión publicada o en piloto, con su sustituto recomendado | CU-10-02 | `GET /catalog/productos/{sku}/planogramas` | Implementado | `ProductoApariciones`, `EstadoBadge` |
 
 ---
 

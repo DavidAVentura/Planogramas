@@ -13,11 +13,6 @@ function sinCodigo(nivel: string | null): string | null {
   return nivel ? nivel.replace(/\s*\([^)]*\)\s*$/, '') : null;
 }
 
-function formatearPrecio(precio: number | null): string {
-  if (precio === null) return '—';
-  return `Q ${precio.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
 function formatearDimensiones(p: ProductoListado): string {
   const medidas = [p.ancho_cm, p.alto_cm, p.profundidad_cm];
   if (medidas.every((m) => m === null)) return 'Sin dimensiones';
@@ -68,7 +63,6 @@ const COLUMNAS: ColumnaOrdenable[] = [
       );
     },
   },
-  { campo: 'precio', header: 'Precio', alinear: 'right', render: (p) => formatearPrecio(p.precio) },
   {
     campo: 'planogramas',
     header: 'Planogramas',

@@ -100,7 +100,7 @@ export function ProductoApariciones({ producto, sustituto }: ProductoApariciones
                 <td className="producto-apariciones__derecha">
                   <Link
                     className="producto-apariciones__abrir"
-                    to={`/planogramas/${a.planogramaId}/versiones/${a.versionId}/editor`}
+                    to={`/planogramas/${a.planogramaId}/versiones/${a.versionId}/lienzo`}
                   >
                     Abrir versión
                   </Link>

@@ -92,5 +92,5 @@ vista `/productos` (detalle de `GET_productos_listar.md`).
 > `VersionTienda`.
 
 > **[FRONTEND]**  
-> El frontend arma el enlace al editor con `planogramaId` + `versionId`
-> (`/planogramas/{planogramaId}/versiones/{versionId}/editor`).
+> El frontend arma el enlace al lienzo con `planogramaId` + `versionId`
+> (`/planogramas/{planogramaId}/versiones/{versionId}/lienzo`).
