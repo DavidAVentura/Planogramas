@@ -3,7 +3,12 @@ import './Table.css';
 
 export interface TableColumn<T> {
   key: string;
+  /** Texto del encabezado; también es la etiqueta de cada celda en la vista móvil. */
   header: string;
+  /** Contenido del `<th>` en lugar de `header` (ej. un botón para ordenar la columna). */
+  headerContent?: ReactNode;
+  ariaSort?: 'ascending' | 'descending' | 'none';
+  alinear?: 'left' | 'right';
   render: (row: T) => ReactNode;
 }
 
@@ -24,7 +29,13 @@ export function Table<T>({ columns, rows, rowKey, onRowClick, rowClassName, vaci
       <thead>
         <tr>
           {columns.map((col) => (
-            <th key={col.key}>{col.header}</th>
+            <th
+              key={col.key}
+              aria-sort={col.ariaSort}
+              className={col.alinear === 'right' ? 'table__celda--derecha' : undefined}
+            >
+              {col.headerContent ?? col.header}
+            </th>
           ))}
         </tr>
       </thead>
@@ -40,7 +51,11 @@ export function Table<T>({ columns, rows, rowKey, onRowClick, rowClassName, vaci
             onClick={onRowClick ? () => onRowClick(row) : undefined}
           >
             {columns.map((col) => (
-              <td key={col.key} data-label={col.header}>
+              <td
+                key={col.key}
+                data-label={col.header}
+                className={col.alinear === 'right' ? 'table__celda--derecha' : undefined}
+              >
                 {col.render(row)}
               </td>
             ))}

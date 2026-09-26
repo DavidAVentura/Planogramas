@@ -153,11 +153,13 @@ Catálogo de accesorios de gondolería disponibles para asignar a niveles y posi
 
 ## 10. Tiendas
 
-Lookup de tiendas de la cadena para asignarlas a versiones de planograma.
+Tiendas de la cadena: lookup para asignarlas a versiones de planograma y administración (alta, edición, activar/desactivar) desde la vista `/tiendas`.
 
 | Método | Ruta | Actor | CU | Descripción |
 |--------|------|-------|----|-------------|
-| `GET` | `/tiendas` | Analista | CU-02-05 | Lista todas las tiendas activas con código, nombre y tipo (GRANDE, MEDIANA, EXPRESS). |
+| `GET` | `/tiendas` | Analista | CU-02-05 | Lista las tiendas (por defecto solo activas; `estado=todos` incluye inactivas) con código, nombre, tipo (GRANDE, MEDIANA, EXPRESS), marca, estado y cantidad de planogramas asignados. |
+| `POST` | `/tiendas` | Analista | CU-02-05 | Crea una tienda (queda activa). El código es único en la cadena. |
+| `PATCH` | `/tiendas/{id}` | Analista | CU-02-05 | Edita los datos de una tienda y la activa/desactiva vía `estado`. Desactivar no toca sus asignaciones. |
 | `GET` | `/tiendas/{id}/planogramas` | Implementador | CU-07-01 | Lista los planogramas activos de una tienda. Filtros: `departamento`, `estado` (por defecto `publicado`). |
 
 ---

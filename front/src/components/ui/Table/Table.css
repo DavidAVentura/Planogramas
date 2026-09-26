@@ -24,6 +24,11 @@
   }
 }
 
+/* Más específico que `.table th` para ganarle al text-align: left del encabezado. */
+.table .table__celda--derecha {
+  text-align: right;
+}
+
 .table__fila--clickeable {
   cursor: pointer;
 

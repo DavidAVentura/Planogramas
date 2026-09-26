@@ -14,6 +14,9 @@ Lista las tiendas activas de la cadena con código, nombre, tipo y marca. Usado 
 `marca` distingue el punto de venta (Cemaco, Jugueton, Bebé Jugueton) — un mismo local físico puede
 tener códigos de tienda separados por marca. Puede venir `null` en tiendas sin marca asignada.
 
+También lo usa la vista de administración de tiendas con `estado=todos` (activas e inactivas); esa
+vista filtra y ordena en el cliente.
+
 ---
 
 ## Parámetros de entrada
@@ -23,7 +26,7 @@ tener códigos de tienda separados por marca. Puede venir `null` en tiendas sin 
 | Parámetro | Tipo | Requerido | Descripción |
 |-----------|------|-----------|-------------|
 | `tipo` | `string` | No | Filtra por tipo. Valores: `GRANDE`, `MEDIANA`, `EXPRESS`. |
-| `estado` | `string` | No | Filtra por estado. Default: `activo`. |
+| `estado` | `string` | No | `activo`, `inactivo` o `todos` (sin filtro de estado). Default: `activo`. |
 | `sinVersionEspecial` | `boolean` | No | Si `true` con `planogramaId` y `versionBaseId`, excluye tiendas que ya tienen versión especial derivada de esa base. |
 | `planogramaId` | `integer` | Condicional | Requerido si `sinVersionEspecial=true`. |
 | `versionBaseId` | `integer` | Condicional | Requerido si `sinVersionEspecial=true`. |
@@ -35,6 +38,7 @@ tener códigos de tienda separados por marca. Puede venir `null` en tiendas sin 
 1. Por defecto retorna solo tiendas activas.
 2. Sin paginación (la cadena Cemaco tiene un número acotado de tiendas: < 50).
 3. Ordenadas por `nombre ASC`.
+4. `planogramas` = cantidad de planogramas distintos con al menos una versión no archivada asignada a la tienda.
 
 ---
 
@@ -48,7 +52,9 @@ tener códigos de tienda separados por marca. Puede venir `null` en tiendas sin 
     "nombre": "Cemaco Pradera",
     "tipo": "GRANDE",
     "region": "Guatemala Metropolitana",
-    "marca": "Cemaco"
+    "marca": "Cemaco",
+    "estado": "activo",
+    "planogramas": 12
   },
   {
     "id": 2,
@@ -56,7 +62,9 @@ tener códigos de tienda separados por marca. Puede venir `null` en tiendas sin 
     "nombre": "Cemaco Oakland",
     "tipo": "GRANDE",
     "region": "Guatemala Metropolitana",
-    "marca": "Cemaco"
+    "marca": "Cemaco",
+    "estado": "activo",
+    "planogramas": 9
   },
   {
     "id": 5,
@@ -64,7 +72,9 @@ tener códigos de tienda separados por marca. Puede venir `null` en tiendas sin 
     "nombre": "Cemaco Mediana Norte",
     "tipo": "MEDIANA",
     "region": "Guatemala Norte",
-    "marca": "Jugueton"
+    "marca": "Jugueton",
+    "estado": "activo",
+    "planogramas": 0
   }
 ]
 ```
@@ -75,7 +85,7 @@ tener códigos de tienda separados por marca. Puede venir `null` en tiendas sin 
 
 | Código | Condición |
 |--------|-----------|
-| `400 Bad Request` | `tipo` con valor inválido, o `sinVersionEspecial=true` sin los parámetros requeridos. |
+| `400 Bad Request` | `tipo` o `estado` con valor inválido, o `sinVersionEspecial=true` sin los parámetros requeridos. |
 | `401 Unauthorized` | JWT ausente. |
 
 ---

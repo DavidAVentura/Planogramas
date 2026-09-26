@@ -14,11 +14,10 @@ interface OpcionNavegacion {
   disponible: boolean;
 }
 
-// Módulos de la app. Solo Planogramas existe hoy; el resto se muestra deshabilitado hasta que
-// tenga su página (Tiendas será el CRUD de tiendas).
+// Módulos de la app. Los que todavía no tienen página se muestran deshabilitados.
 const OPCIONES_NAVEGACION: OpcionNavegacion[] = [
   { etiqueta: 'Planogramas', ruta: '/planogramas', disponible: true },
-  { etiqueta: 'Tiendas', ruta: '/tiendas', disponible: false },
+  { etiqueta: 'Tiendas', ruta: '/tiendas', disponible: true },
   { etiqueta: 'Estructura', ruta: '/estructura', disponible: false },
   { etiqueta: 'Productos', ruta: '/productos', disponible: false },
 ];

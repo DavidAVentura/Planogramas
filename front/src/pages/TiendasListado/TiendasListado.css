@@ -1,0 +1,51 @@
+.tiendas-listado__contenido {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.tiendas-listado__cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.tiendas-listado__resumen {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tiendas-listado__conteo {
+  font-size: 14px;
+  color: var(--fg-2);
+  font-weight: 600;
+}
+
+.tiendas-listado__orden {
+  font-size: 13px;
+  color: var(--fg-3);
+  white-space: pre;
+
+  strong {
+    color: var(--fg-1);
+    font-weight: 600;
+  }
+}
+
+.tiendas-listado__restablecer {
+  border: 0;
+  background: transparent;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cemaco-indigo);
+  cursor: pointer;
+
+  &:hover { background: var(--cemaco-indigo-50); }
+}

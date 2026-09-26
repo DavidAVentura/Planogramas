@@ -1,0 +1,56 @@
+.tiendas-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+}
+
+.tiendas-filtros__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 140px;
+  font-size: 13px;
+  color: var(--fg-2);
+  font-weight: 600;
+
+  input,
+  select {
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--fg-1);
+    background: #fff;
+
+    &:focus {
+      outline: 0;
+      border-color: var(--cemaco-indigo);
+    }
+  }
+}
+
+.tiendas-filtros__campo--busqueda {
+  flex: 2;
+  min-width: 220px;
+}
+
+@media (width <= 640px) {
+  .tiendas-filtros {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tiendas-filtros__campo,
+  .tiendas-filtros__campo--busqueda {
+    min-width: 0;
+  }
+}

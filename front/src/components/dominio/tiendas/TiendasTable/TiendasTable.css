@@ -1,0 +1,105 @@
+/* El <th> ya trae padding de .table; el botón lo compensa para que el área clickeable sea todo
+   el encabezado sin correr el texto respecto a las celdas. */
+.table th[aria-sort] {
+  padding: 4px 8px;
+}
+
+.tiendas-table__orden {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--fg-3);
+  cursor: pointer;
+
+  &:hover { background: var(--ink-100); }
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 1px;
+  }
+}
+
+.tiendas-table__orden--principal {
+  color: var(--cemaco-indigo);
+  font-weight: 800;
+}
+
+.tiendas-table__orden--secundario {
+  color: var(--fg-2);
+}
+
+.tiendas-table__icono--inactivo {
+  color: var(--ink-300);
+}
+
+.tiendas-table__prioridad {
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border-radius: var(--radius-pill);
+  background: var(--ink-200);
+  color: var(--fg-2);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tiendas-table__orden--principal .tiendas-table__prioridad {
+  background: var(--cemaco-indigo);
+  color: #fff;
+}
+
+.tiendas-table__codigo {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.tiendas-table__nombre {
+  font-weight: 600;
+}
+
+.tiendas-table__fila--inactiva td {
+  color: var(--fg-3);
+}
+
+.tiendas-table__acciones {
+  display: inline-flex;
+  gap: 8px;
+
+  button {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--fg-1);
+    cursor: pointer;
+
+    &:hover { background: var(--ink-50); }
+  }
+
+  .tiendas-table__accion--peligro {
+    color: var(--danger);
+
+    &:hover { background: var(--danger-bg); }
+  }
+
+  .tiendas-table__accion--exito {
+    color: var(--cemaco-green-700);
+
+    &:hover { background: var(--cemaco-green-50); }
+  }
+}

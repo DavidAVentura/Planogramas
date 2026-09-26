@@ -21,7 +21,7 @@ Los contratos están organizados por recurso e incluyen anotaciones de arquitect
 | `07_exportacion/` | Exportación | GET JSON, GET CSV, GET validar publicación |
 | `08_catalogo/` | Catálogo (CATI) | GET buscar productos, GET detalle producto, GET stock producto, GET ficha técnica producto |
 | `09_accesorios/` | Accesorios | GET lista, GET detalle |
-| `10_tiendas/` | Tiendas | GET lista, GET planogramas por tienda |
+| `10_tiendas/` | Tiendas | GET lista, POST crear, PATCH editar, GET planogramas por tienda |
 | `11_jerarquia/` | Jerarquía (CATI) | GET áreas, GET departamentos |
 | `12_sesiones_captura/` | Captura *(fuera de MVP)* | Referencia de diseño |
 | `13_adjuntos/` | Adjuntos | GET lista, POST agregar, PUT reemplazar, DELETE eliminar, GET descargar |

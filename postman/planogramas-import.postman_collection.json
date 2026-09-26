@@ -197,6 +197,24 @@
       "value": "",
       "type": "string",
       "description": "Id de la version base MEDIANA (borrador) creada por el Setup, usada para clonar las dos especiales de T004 y T007."
+    },
+    {
+      "key": "tiendaIdCrud",
+      "value": "",
+      "type": "string",
+      "description": "Lo llena \"Crear tienda (POST /tiendas) / 201 - ...\" en cada corrida; no editar a mano."
+    },
+    {
+      "key": "tiendaCodigoCrud",
+      "value": "",
+      "type": "string",
+      "description": "Código de la tienda creada en la misma corrida (tiendaIdCrud); no editar a mano."
+    },
+    {
+      "key": "tiendaCodigoOtra",
+      "value": "",
+      "type": "string",
+      "description": "Lo llena \"Listar tiendas / 200 - Listar con estado=todos...\" con el código de una tienda existente; no editar a mano."
     }
   ],
   "item": [
@@ -13281,6 +13299,52 @@
               "response": []
             },
             {
+              "name": "200 - Listar con estado=todos incluye estado y planogramas",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas?estado=todos",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "estado",
+                      "value": "todos"
+                    }
+                  ]
+                },
+                "description": "Vista de administración: activas e inactivas. Guarda el código de una tienda existente en tiendaCodigoOtra para el 409 de PATCH /tiendas/:id."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "pm.test('Cada tienda trae estado y conteo de planogramas', () => {",
+                      "  pm.expect(body).to.be.an('array').that.is.not.empty;",
+                      "  body.forEach((t) => {",
+                      "    pm.expect(t.estado).to.be.oneOf(['activo', 'inactivo']);",
+                      "    pm.expect(t.planogramas).to.be.a('number');",
+                      "  });",
+                      "});",
+                      "pm.collectionVariables.set('tiendaCodigoOtra', body[0].codigo);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
               "name": "200 - Listar con filtro por tipo",
               "request": {
                 "method": "GET",
@@ -13448,6 +13512,573 @@
                       "pm.test('Code VALIDATION_ERROR', () => {",
                       "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
                       "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - estado con valor no permitido",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas?estado=cerrada",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "estado",
+                      "value": "cerrada"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Crear tienda (POST /tiendas)",
+          "item": [
+            {
+              "name": "201 - Crear tienda (código se normaliza a mayúsculas)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas"
+                  ]
+                },
+                "description": "Crea la tienda que usan las pruebas de PATCH. Guarda tiendaIdCrud y tiendaCodigoCrud. La última prueba de PATCH la desactiva para que no quede en los listados por defecto.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"codigo\": \"pm-{{$timestamp}}\",\n  \"nombre\": \"Tienda Postman {{$timestamp}}\",\n  \"tipo\": \"EXPRESS\",\n  \"marca\": \"Cemaco\",\n  \"region\": \"Pruebas\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "const t = pm.response.json();",
+                      "pm.test('Queda activa, sin planogramas y con código en mayúsculas', () => {",
+                      "  pm.expect(t.estado).to.eql('activo');",
+                      "  pm.expect(t.planogramas).to.eql(0);",
+                      "  pm.expect(t.codigo).to.eql(t.codigo.toUpperCase());",
+                      "  pm.expect(t.tipo).to.eql('EXPRESS');",
+                      "  pm.expect(t.marca).to.eql('Cemaco');",
+                      "});",
+                      "pm.collectionVariables.set('tiendaIdCrud', t.id);",
+                      "pm.collectionVariables.set('tiendaCodigoCrud', t.codigo);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Faltan campos requeridos",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Sin código ni tipo\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - tipo y marca con valores no permitidos",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"codigo\": \"PM-INVALIDA\",\n  \"nombre\": \"Tienda inválida\",\n  \"tipo\": \"CHICA\",\n  \"marca\": \"Otra\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "409 - Código duplicado",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"codigo\": \"{{tiendaCodigoCrud}}\",\n  \"nombre\": \"Duplicada\",\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 409', () => pm.response.to.have.status(409));",
+                      "pm.test('Error CONFLICT', () => pm.expect(pm.response.json().error.code).to.eql('CONFLICT'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Editar tienda (PATCH /tiendas/:id)",
+          "item": [
+            {
+              "name": "200 - Editar nombre, tipo y región",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdCrud}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdCrud}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Tienda Postman editada {{$timestamp}}\",\n  \"tipo\": \"MEDIANA\",\n  \"region\": null\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Aplica solo los campos enviados', () => {",
+                      "  const t = pm.response.json();",
+                      "  pm.expect(t.nombre).to.include('Tienda Postman editada');",
+                      "  pm.expect(t.tipo).to.eql('MEDIANA');",
+                      "  pm.expect(t.region).to.eql(null);",
+                      "  pm.expect(t.codigo).to.eql(pm.collectionVariables.get('tiendaCodigoCrud'));",
+                      "  pm.expect(t.marca).to.eql('Cemaco');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Mismo código que ya tiene no es conflicto",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdCrud}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdCrud}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"codigo\": \"{{tiendaCodigoCrud}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Body vacío",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdCrud}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdCrud}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - id no es un entero positivo",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/abc",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "abc"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"X\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - Tienda no encontrada",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdInexistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdInexistente}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"X\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Error NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "409 - Código de otra tienda",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdCrud}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdCrud}}"
+                  ]
+                },
+                "description": "tiendaCodigoOtra lo llena \"200 - Listar con estado=todos...\" con una tienda que existía antes de esta corrida.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"codigo\": \"{{tiendaCodigoOtra}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 409', () => pm.response.to.have.status(409));",
+                      "pm.test('Error CONFLICT', () => pm.expect(pm.response.json().error.code).to.eql('CONFLICT'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Desactivar tienda",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdCrud}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdCrud}}"
+                  ]
+                },
+                "description": "Va al final: deja inactiva la tienda creada por la colección para que no aparezca en los selectores de asignación.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estado\": \"inactivo\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Queda inactiva', () => pm.expect(pm.response.json().estado).to.eql('inactivo'));"
                     ]
                   }
                 }
