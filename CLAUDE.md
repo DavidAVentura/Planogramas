@@ -161,11 +161,17 @@ El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
     En esa vista el filtro por jerarquía se resuelve en vivo contra CATI (lista de SKUs del nivel
     cruzada con la tabla local), nunca con columnas locales — ver
     `Arquitectura/Contratos/08_catalogo/GET_productos_listar.md`.
+- **Implementado end-to-end: `asignaciones` (15, vista Estructura `/estructura`)**. Matriz planograma ×
+  tienda con la regla "una tienda monta una sola versión por planograma" (publicada o piloto) y
+  auditoría por edición (`EdicionAsignacion`/`AsignacionAuditoria`, migración 010). Las operaciones
+  que corren dentro de una transacción ajena (montar/desmontar, registrar edición) viven en
+  `infrastructure/repositories/asignacionTx.js` porque también las usan `promover` y
+  `PUT /versiones/:id/tiendas`. El usuario auditado es `USUARIO_SISTEMA` hasta que exista CAO.
 - **Implementado, sin carpeta Postman todavía**: `adjuntos` (13, CRUD sobre Azure Blob; la
   migración `009_adjuntos_version.js` puede estar pendiente de aplicar) y `agente-extractor`.
 - **Pendiente**: `sustituciones` (06) y `exportacion` (07) no están montados en
   `back/src/infrastructure/http/routes/index.js`. Su contrato ya existe en `Arquitectura/Contratos/`.
-- Migraciones: `001` a `009` en `back/src/infrastructure/db/migrations/`. Antes de implementar un
+- Migraciones: `001` a `010` en `back/src/infrastructure/db/migrations/`. Antes de implementar un
   módulo nuevo, revisa si el esquema ya cubre las tablas que necesita o si hace falta una migración
   adicional (`010_...`, ver convención de nombres en `ESTRUCTURA_BACKEND.md`). Un valor nuevo de
   una columna `varchar` sin CHECK (ej. `Posicion.modo = 'IMPULSO'`) no requiere migración: basta

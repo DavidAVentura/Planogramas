@@ -35,10 +35,11 @@ Ciclo de vida de una versión de planograma: creación, promoción de estado y a
 | `POST` | `/planogramas/{id}/versiones` | Analista | CU-02-01 / CU-02-02 | Crea una nueva versión. Si lleva `version_base_id`, crea una versión especial por tienda derivada de esa base. |
 | `GET` | `/versiones/{id}` | Analista / Implementador | CU-01-05 | Retorna el detalle completo de una versión: góndolas, niveles y posiciones anidadas. |
 | `PATCH` | `/versiones/{id}` | Analista | — | Modifica metadatos de la versión (notas, código). |
-| `POST` | `/versiones/{id}/promover` | Analista | CU-02-03 / CU-02-04 | Avanza el estado de la versión al siguiente (`en_desarrollo` → `piloto` → `publicado`). El body indica tiendas piloto cuando el estado destino es `piloto`. Si la versión es de línea base, cada paso archiva automáticamente la versión base que ocupaba el estado destino para el mismo planograma+tipo (piloto anterior al promover a piloto, publicada anterior al promover a publicado); las versiones especiales por tienda no archivan ninguna anterior. |
+| `POST` | `/versiones/{id}/promover` | Analista | CU-02-03 / CU-02-04 | Avanza el estado de la versión al siguiente (`en_desarrollo` → `piloto` → `publicado`). El body indica tiendas piloto cuando el estado destino es `piloto`. Si la versión es de línea base, cada paso archiva automáticamente la versión base que ocupaba el estado destino para el mismo planograma+tipo (piloto anterior al promover a piloto, publicada anterior al promover a publicado); las versiones especiales por tienda no archivan ninguna anterior. Mueve tiendas y lo audita: a piloto, las tiendas piloto desmontan su versión; a publicado, las tiendas piloto quedan con esta publicada y las de la publicada anterior pasan a esta (ver sección 15). |
 | `POST` | `/versiones/{id}/archivar` | Analista | CU-02-07 | Marca la versión como `archivado` directamente, sin esperar a que otra versión la reemplace. Solo permitido desde `borrador`, `en_desarrollo` o `piloto` — una versión `publicado` solo se archiva automáticamente cuando otra la reemplaza (ver `/promover`). |
 | `GET` | `/versiones/{id}/tiendas` | Analista | CU-02-05 | Lista las tiendas asignadas a una versión. |
-| `PUT` | `/versiones/{id}/tiendas` | Analista | CU-02-05 | Reemplaza el listado completo de tiendas asignadas a la versión. |
+| `PUT` | `/versiones/{id}/tiendas` | Analista | CU-02-05 | Reemplaza el listado completo de tiendas asignadas a la versión. Si está publicada o en piloto, cada tienda agregada desmonta la versión que tenía del planograma, y se audita (ver sección 15). |
+| `GET` | `/versiones/{id}/resumen` | Analista | CU-02-06 | Ficha de solo lectura para "Ver versión" en Estructura: datos de versión y planograma, conteos de estructura (productos, posiciones por modo, góndolas, niveles, metros lineales) y tiendas que la montan. |
 | `PATCH` | `/versiones/{id}/guardar` | Analista | CU-06-01 | Persiste el estado actual del planograma sin cambiar su estado. Partial update de posiciones, góndolas y niveles en un solo request. |
 | `GET` | `/versiones/{id}/validar-publicacion` | Analista | CU-06-02 | Verifica que la versión no tiene errores bloqueantes antes de publicar. Retorna lista de errores/advertencias. |
 | `GET` | `/versiones/{id}/estructura` | Analista / Implementador | CU-07-01 | Retorna la versión completa con góndolas, niveles y posiciones anidadas en un solo response. Acepta query param `?vistaImplementador=true` para filtrar campos de edición. |
@@ -212,6 +213,18 @@ Archivos (imágenes o PDFs) que el analista asocia a una versión de planograma 
 | `PUT` | `/adjuntos/{id}` | Analista | CU-09-03 | Reemplaza el archivo de un adjunto existente, conservando su id. Mismo body que agregar. |
 | `DELETE` | `/adjuntos/{id}` | Analista | CU-09-04 | Elimina un adjunto (fila + blob en Azure). Requiere que la versión esté en modo editable. |
 | `GET` | `/adjuntos/{id}/descargar` | Analista | CU-09-05 | Descarga el archivo — streaming desde Azure Blob Storage a través del backend. |
+
+---
+
+## 15. Asignaciones (vista Estructura)
+
+Qué versión de cada planograma monta cada tienda. Regla: **una tienda monta una sola versión por planograma**, publicada (TG/TM/TE o su especial) o en piloto. Cada guardado es una edición auditada (`EdicionAsignacion` + `AsignacionAuditoria`, migración 010), con usuario, fecha, motivo y versión anterior/nueva.
+
+| Método | Ruta | Actor | CU | Descripción |
+|--------|------|-------|----|-------------|
+| `GET` | `/asignaciones` | Analista | CU-02-05 | Matriz: tiendas activas, planogramas con versiones publicadas o en piloto (con todas sus versiones no archivadas) y asignaciones montadas. |
+| `POST` | `/asignaciones/ediciones` | Analista | CU-02-05 | Guarda un grupo de cambios de celda como una sola edición: montar una versión, clonar una especial publicada o quitar. Transaccional. |
+| `GET` | `/asignaciones/historial` | Analista | CU-02-06 | Movimientos de una celda planograma × tienda, más reciente primero (manuales y automáticos). |
 
 ---
 

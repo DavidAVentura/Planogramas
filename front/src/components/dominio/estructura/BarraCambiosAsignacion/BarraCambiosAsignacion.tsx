@@ -21,8 +21,8 @@ export function BarraCambiosAsignacion({
   const hayCambios = cambios > 0;
 
   return (
-    <div className={`barra-cambios-asignacion${hayCambios ? ' barra-cambios-asignacion--pendiente' : ''}`} role="status">
-      <div className="barra-cambios-asignacion__estado">
+    <div className={`barra-cambios-asignacion${hayCambios ? ' barra-cambios-asignacion--pendiente' : ''}`}>
+      <div className="barra-cambios-asignacion__estado" role="status">
         {hayCambios ? (
           <>
             <strong>{cambios === 1 ? '1 cambio sin guardar' : `${cambios} cambios sin guardar`}</strong>
