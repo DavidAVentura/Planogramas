@@ -125,4 +125,4 @@ async function completarConImagen({ instrucciones, imagenBase64, mimeType, jsonS
   }
 }
 
-module.exports = { completarConTools, completarConImagen };
+module.exports = { completarConTools, completarConImagen, obtenerCliente, errorServicioNoDisponible };

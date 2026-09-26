@@ -39,6 +39,8 @@ interface AgenteExtractorBubbleProps {
   /** Abre el modal de crear góndola de la página — se ofrece cuando el usuario intenta extraer
    * de otra fuente sin tener todavía ninguna góndola. */
   onCrearGondola: () => void;
+  /** Habilita el modo voz del chat (dictado + lectura en voz alta). Hoy solo en el Lienzo. */
+  modoVoz?: boolean;
 }
 
 export function AgenteExtractorBubble({
@@ -50,6 +52,7 @@ export function AgenteExtractorBubble({
   subcategorias,
   onConfirmado,
   onCrearGondola,
+  modoVoz = false,
 }: AgenteExtractorBubbleProps) {
   const [abierto, setAbierto] = useState(false);
   const [mostrarResumen, setMostrarResumen] = useState(false);
@@ -104,6 +107,7 @@ export function AgenteExtractorBubble({
             onColapsar={alternar}
             onReestablecer={() => setConfirmarReestablecer(true)}
             onArrastreHeader={(e) => iniciarArrastre(e, ANCHO_PANEL, ALTO_PANEL)}
+            modoVoz={modoVoz}
           />
         ) : (
           <button

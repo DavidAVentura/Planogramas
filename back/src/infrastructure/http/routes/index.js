@@ -26,5 +26,6 @@ router.use('/jerarquia',      require('./jerarquia.routes'));
 router.use('/catalog',        require('./catalogo.routes'));
 router.use('/catalog',        require('./producto.routes'));
 router.use('/agente-extractor', require('./agenteExtractor.routes'));
+router.use('/voz',            require('./voz.routes'));
 
 module.exports = router;

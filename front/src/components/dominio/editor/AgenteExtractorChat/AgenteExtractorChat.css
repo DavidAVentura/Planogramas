@@ -187,3 +187,66 @@
 
   &.button--outline:hover:not(:disabled) { background: transparent; }
 }
+
+/* ─── Modo voz ─────────────────────────────────────────────────────────────── */
+
+.agente-extractor-chat__lectura {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+/* Mic + flechita de ajustes: se ven como una sola pieza. */
+.agente-extractor-chat__mic {
+  display: flex;
+  flex-shrink: 0;
+  height: 36px;
+}
+
+.agente-extractor-chat__mic-boton,
+.agente-extractor-chat__mic-ajustes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--fg-2);
+  cursor: pointer;
+}
+
+.agente-extractor-chat__mic-boton {
+  width: 36px;
+  border-right: 0;
+  border-radius: var(--radius-pill) 0 0 var(--radius-pill);
+}
+
+.agente-extractor-chat__mic-ajustes {
+  width: 18px;
+  border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+}
+
+.agente-extractor-chat__mic-boton:hover:not([aria-disabled='true']),
+.agente-extractor-chat__mic-ajustes:hover {
+  border-color: var(--cemaco-indigo);
+  color: var(--cemaco-indigo);
+}
+
+.agente-extractor-chat__mic-boton[aria-disabled='true'] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@keyframes agente-extractor-mic-pulso {
+  0%,
+  100% { box-shadow: 0 0 0 0 rgb(16 30 142 / 35%); }
+  50% { box-shadow: 0 0 0 6px rgb(16 30 142 / 0%); }
+}
+
+.agente-extractor-chat__mic-boton--activo,
+.agente-extractor-chat__mic-boton--activo:hover {
+  border-color: var(--cemaco-indigo);
+  background: var(--cemaco-indigo);
+  color: var(--white);
+  animation: agente-extractor-mic-pulso 1.6s ease-in-out infinite;
+}

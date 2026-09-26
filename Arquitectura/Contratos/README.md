@@ -25,6 +25,7 @@ Los contratos están organizados por recurso e incluyen anotaciones de arquitect
 | `11_jerarquia/` | Jerarquía (CATI) | GET áreas, GET departamentos, GET familias, GET categorías, GET subcategorías |
 | `12_sesiones_captura/` | Captura *(fuera de MVP)* | Referencia de diseño |
 | `13_adjuntos/` | Adjuntos | GET lista, POST agregar, PUT reemplazar, DELETE eliminar, GET descargar |
+| `14_voz/` | Modo voz del chat (OpenAI) | POST transcribir, POST sesión streaming, POST tts |
 
 ---
 

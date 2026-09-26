@@ -15135,6 +15135,416 @@
           ]
         }
       ]
+    },
+    {
+      "name": "voz",
+      "description": "Modo voz del chat del Agente extractor. Los casos de éxito llaman a OpenAI (consumen créditos, requieren OPENIA_TOKEN). Todo el módulo comparte un rate limit de 30 req/min por IP.",
+      "item": [
+        {
+          "name": "Transcribir audio (POST /voz/transcribir)",
+          "item": [
+            {
+              "name": "200 - Transcribir un WAV válido",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"audio_base64\": \"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\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{HOST}}/api/v1/voz/transcribir",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "voz",
+                    "transcribir"
+                  ]
+                },
+                "description": "WAV de 0.25 s con un tono (sin voz): la transcripción puede venir vacía, lo que se valida es la forma."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde { texto } string', () => {",
+                      "  pm.expect(pm.response.json().texto).to.be.a('string');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Sin audio_base64",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{HOST}}/api/v1/voz/transcribir",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "voz",
+                    "transcribir"
+                  ]
+                },
+                "description": "audio_base64 es obligatorio."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Base64 que no es audio",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"audio_base64\": \"aG9sYSBtdW5kbyBlc3RvIG5vIGVzIGF1ZGlv\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{HOST}}/api/v1/voz/transcribir",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "voz",
+                    "transcribir"
+                  ]
+                },
+                "description": "Base64 válido pero sin magic bytes de webm/ogg/wav/mp4."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});",
+                      "pm.test('Mensaje de audio no reconocible', () => {",
+                      "  pm.expect(pm.response.json().error.message).to.include('audio');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Crear sesion de streaming (POST /voz/sesion-streaming)",
+          "item": [
+            {
+              "name": "200 - Crear secreto efímero",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/voz/sesion-streaming",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "voz",
+                    "sesion-streaming"
+                  ]
+                },
+                "description": "Devuelve un secreto efímero ek_… (vive 60 s) para abrir el WebSocket Realtime desde el navegador."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('value es un secreto efímero ek_', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body.value).to.be.a('string').and.match(/^ek_/);",
+                      "  pm.expect(body.expira_en).to.be.a('number');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Sintetizar voz (POST /voz/tts)",
+          "item": [
+            {
+              "name": "200 - Sintetizar con voz y velocidad",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texto\": \"Hola\",\n  \"voz\": \"alloy\",\n  \"velocidad\": 1.2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{HOST}}/api/v1/voz/tts",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "voz",
+                    "tts"
+                  ]
+                },
+                "description": "Respuesta binaria audio/mpeg (no JSON)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type audio/mpeg', () => {",
+                      "  pm.expect(pm.response.headers.get('Content-Type')).to.include('audio/mpeg');",
+                      "});",
+                      "pm.test('Trae audio', () => pm.expect(pm.response.responseSize).to.be.above(0));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Sin texto",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{HOST}}/api/v1/voz/tts",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "voz",
+                    "tts"
+                  ]
+                },
+                "description": "texto es obligatorio."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Voz fuera de la whitelist",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texto\": \"Hola\",\n  \"voz\": \"nova\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{HOST}}/api/v1/voz/tts",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "voz",
+                    "tts"
+                  ]
+                },
+                "description": "voz solo admite fable | alloy | echo."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Velocidad fuera de rango",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"texto\": \"Hola\",\n  \"velocidad\": 3\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{HOST}}/api/v1/voz/tts",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "voz",
+                    "tts"
+                  ]
+                },
+                "description": "velocidad debe estar entre 1 y 2."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        }
+      ]
     }
   ]
 }

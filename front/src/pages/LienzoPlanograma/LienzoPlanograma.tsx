@@ -604,6 +604,7 @@ export function LienzoPlanograma() {
           subcategorias={planograma?.subcategorias ?? []}
           onConfirmado={onRecargarTodo}
           onCrearGondola={() => setModalGondola('crear')}
+          modoVoz
         />
       )}
     </div>
