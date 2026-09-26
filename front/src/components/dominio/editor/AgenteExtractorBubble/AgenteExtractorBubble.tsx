@@ -55,6 +55,7 @@ export function AgenteExtractorBubble({
   const [mostrarResumen, setMostrarResumen] = useState(false);
   const [metodoExtraccion, setMetodoExtraccion] = useState<MetodoExtraccion>('ninguno');
   const [avisoSinGondola, setAvisoSinGondola] = useState(false);
+  const [confirmarReestablecer, setConfirmarReestablecer] = useState(false);
 
   // Carga perezosa: solo se pide el detalle de niveles/posiciones de toda la versión cuando el
   // chat está abierto, para no pegarle a la API de cada góndola en cada carga del editor.
@@ -63,7 +64,7 @@ export function AgenteExtractorBubble({
   const { accesorios } = useAccesorios();
 
   const contexto = construirContextoAgente(gondolas, niveles, posicionesPorNivel, accesorios, subcategorias);
-  const agente = useAgenteExtractor(contexto);
+  const agente = useAgenteExtractor(contexto, versionId);
 
   const { pos, iniciarArrastre, consumirArrastre, anclarEsquina } = usePosicionFlotante(ANCHO_BURBUJA, ALTO_BURBUJA);
 
@@ -101,6 +102,7 @@ export function AgenteExtractorBubble({
             extraerDeshabilitado={!gondolaActiva}
             onRevisar={() => setMostrarResumen(true)}
             onColapsar={alternar}
+            onReestablecer={() => setConfirmarReestablecer(true)}
             onArrastreHeader={(e) => iniciarArrastre(e, ANCHO_PANEL, ALTO_PANEL)}
           />
         ) : (
@@ -125,6 +127,20 @@ export function AgenteExtractorBubble({
           onConfirm={() => {
             setAvisoSinGondola(false);
             onCrearGondola();
+          }}
+        />
+      )}
+
+      {confirmarReestablecer && (
+        <ConfirmDialog
+          titulo="Reestablecer chat"
+          mensaje="Se borrará el historial de la conversación y el borrador pendiente de esta versión. ¿Deseas continuar?"
+          confirmarLabel="Reestablecer"
+          peligro
+          onClose={() => setConfirmarReestablecer(false)}
+          onConfirm={() => {
+            setConfirmarReestablecer(false);
+            agente.reestablecer();
           }}
         />
       )}
@@ -209,7 +225,7 @@ export function AgenteExtractorBubble({
             // No cierra el modal todavía: se queda mostrando el resumen de resultados
             // (ejecutada/fallida/omitida por acción) hasta que el usuario lo cierre a mano.
             setAbierto(false);
-            agente.reiniciar();
+            agente.limpiarBorrador();
             recargarNiveles();
             recargarPosiciones();
             onConfirmado();

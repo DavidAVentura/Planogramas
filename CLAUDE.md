@@ -11,6 +11,10 @@ historia, `PENDIENTES_PROYECTO.md` para el backlog, y `REUNION_TECNICA.md` para 
 objetivo y el roadmap. La documentacion del proyecto y los textos de la UI estan en espanol;
 mantener ese idioma al editarlos.
 
+## artifact de diseño para construir prototipado
+https://claude.ai/artifact/Fts1Mb1NXDCGQnb7ramEKv?sk=kMWPRZHdQe0T3z4333UJgw
+
+
 ## Comandos
 
 ```bash
