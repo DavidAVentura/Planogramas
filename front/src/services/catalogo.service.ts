@@ -6,8 +6,16 @@ import type {
   ProductoCatalogo,
   ProductoDetalle,
 } from '../types/catalogo';
+import type { AparicionProducto, FiltroJerarquia, ProductoListado } from '../types/producto';
 
 export const catalogoService = {
+  /** Productos de la tabla local; el backend usa solo el nivel de jerarquía más específico. */
+  listarProductos: (jerarquia: Partial<FiltroJerarquia> = {}) =>
+    httpClient.get<ProductoListado[]>('/catalog/productos', { ...jerarquia }),
+
+  obtenerPlanogramasDeProducto: (sku: string) =>
+    httpClient.get<AparicionProducto[]>(`/catalog/productos/${encodeURIComponent(sku)}/planogramas`),
+
   buscarProductos: (q: string, opts: { subcategoria?: string; page?: number; pageSize?: number } = {}) =>
     httpClient.get<ProductoCatalogo[]>('/catalog/productos/buscar', { q, ...opts }),
 

@@ -63,6 +63,9 @@
   - imagen frontal.
   - estado activo.
 - Definir si VTEX sera fuente temporal antes de Stibo.
+- Vista `/productos`: filtrar por un area completa tarda ~10 s la primera vez (CATI devuelve ~56 000 sku; luego queda en cache 30 min). Si molesta, evaluar precarga o cache persistente.
+- Vista `/productos`: evaluar mostrar tambien los sku de CATI que no estan en ningun planograma (opcion hibrida al elegir una subcategoria). Hoy solo se listan sku locales.
+- `Producto.categoria_nivel1/2` quedan congelados al registrar el sku y `categoria_nivel3` no se llena. Solo se usan para mostrar; si se necesitan vigentes, pedirlos a CATI.
 
 ## Editor
 

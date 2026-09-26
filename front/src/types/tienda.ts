@@ -9,8 +9,8 @@ export interface Tienda {
   region: string | null;
   marca: string | null;
   estado: EstadoTienda;
-  /** Planogramas distintos con una versión no archivada asignada a la tienda. */
-  planogramas: number;
+  /** Versiones de planograma en estado `publicado` asignadas a la tienda. */
+  versionesPublicadas: number;
 }
 
 export interface CrearTiendaInput {
@@ -30,3 +30,24 @@ export interface FiltrosListadoTiendas {
 }
 
 export type EditarTiendaInput = Partial<CrearTiendaInput> & { estado?: EstadoTienda };
+
+/** Versión publicada asignada a una tienda (GET /tiendas/:id/planogramas). */
+export interface PlanogramaPublicadoTienda {
+  versionId: number;
+  /** Código de la versión, ej. "ALFOMBRAS DE AUTO-TG". */
+  codigo: string;
+  tipo: TipoTienda;
+  /** Versión especial por tienda (derivada de una versión base). */
+  esEspecial: boolean;
+  planogramaId: number;
+  nombre: string;
+  departamento: string;
+  /** Con el código CATI al inicio, ej. "(01-0025-993-920399-20573) ALFOMBRAS DE HULE AUTOS". */
+  subcategorias: string[];
+}
+
+export interface PlanogramasDeTienda {
+  tienda: Pick<Tienda, 'id' | 'codigo' | 'nombre'>;
+  planogramas: PlanogramaPublicadoTienda[];
+  mensaje?: string;
+}

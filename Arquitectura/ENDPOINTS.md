@@ -87,7 +87,7 @@ Gestión de posiciones (SKUs) dentro de un nivel: alta, edición, movimiento, co
 | `GET` | `/niveles/{id}/posiciones` | Analista | CU-01-05 | Lista las posiciones de un nivel ordenadas por `orden_horizontal`. Incluye capacidad disponible restante del nivel. |
 | `GET` | `/posiciones/{id}` | Analista | CU-04-02 | Retorna el detalle completo de una posición para el panel de edición del Analista. |
 | `POST` | `/niveles/{id}/posiciones` | Analista | CU-04-01 | Agrega una posición al nivel asignando SKU y facings (o ancho asignado). Retorna `422` si el nivel queda en desborde sin el flag de confirmación. |
-| `PATCH` | `/posiciones/{id}` | Analista | CU-04-02 | Modifica atributos de la posición: facings, cantidad apilable, unidades por facing, perfil de redondeo, modo, flags (cross, display, desborde) y observaciones. |
+| `PATCH` | `/posiciones/{id}` | Analista | CU-04-02 | Modifica atributos de la posición: facings, cantidad apilable, unidades por facing, perfil de redondeo, modo (`PLANOGRAMA`, `CROSS`, `IMPULSO`, `PENDIENTE`), flags (cross, display, desborde) y observaciones. |
 | `PATCH` | `/posiciones/{id}/mover` | Analista | CU-04-03 | Mueve la posición a otro nivel o a otro orden dentro del mismo nivel. El body especifica `nivel_id_destino` y `orden_destino`. |
 | `POST` | `/posiciones/{id}/copiar` | Analista | CU-04-04 / CU-04-05 | Duplica la posición. El body especifica `nivel_id_destino` y `orden_destino`. |
 | `DELETE` | `/posiciones/{id}` | Analista | CU-04-06 | Elimina una posición del nivel. |
@@ -127,11 +127,16 @@ es CATI (API interna de Cemaco); esos 2 endpoints actúan como proxy/caché para
 dimensiones físicas, en cambio, tienen una porción de escritura LOCAL (tabla `Producto`, distinta
 del proxy): un analista puede corregirlas a mano o validar las que ya trae CATI — ver los 2
 endpoints `PATCH .../dimensiones*`, servidos por un módulo de dominio separado (`domain/producto/`,
-no `catalogo`).
+no `catalogo`). Ese mismo módulo sirve la vista `/productos`: el listado de la tabla local con sus
+apariciones en planogramas y el detalle de posiciones por SKU (`GET /catalog/productos` y
+`GET /catalog/productos/{sku}/planogramas`). En ese listado el filtro por jerarquía se resuelve en
+vivo contra CATI, nunca con columnas locales.
 
 | Método | Ruta | Actor | CU | Descripción |
 |--------|------|-------|----|-------------|
-| `GET` | `/catalog/productos` | Analista | CU-04-01 / CU-05-02 | Busca productos del catálogo. Filtros: `sku`, `gtin`, `marca`, `nombre`, `subcategoria`, `categoria_nivel1`, `categoria_nivel2`, `solo_con_stock`. Paginado. Se puede navegar solo por `subcategoria` (sin texto de búsqueda) para el drill-down de jerarquía. |
+| `GET` | `/catalog/productos/buscar` | Analista | CU-04-01 / CU-05-02 | Busca productos en CATI por SKU, nombre o marca (`q`) y/o `subcategoria`. Paginado con `page`/`pageSize` (máx. 50). Se puede navegar solo por `subcategoria` (sin texto de búsqueda) para el drill-down de jerarquía. |
+| `GET` | `/catalog/productos` | Analista | CU-10-01 | Lista los productos de la tabla local con la cantidad de planogramas distintos (no archivados) en que aparecen, total y por modo (`PLANOGRAMA`/`CROSS`/`IMPULSO`). Filtro opcional por un nivel de jerarquía CATI (`area`, `departamento`, `familia`, `categoria`, `subcategoria`; se usa el más específico), resuelto pidiendo a CATI los SKUs de ese nivel. Sin paginar. |
+| `GET` | `/catalog/productos/{sku}/planogramas` | Analista | CU-10-02 | Lista cada posición del producto en versiones no archivadas: planograma, versión, góndola, nivel, modo y tiendas asignadas a la versión. `404` si el SKU no existe localmente. |
 | `GET` | `/catalog/productos/{sku}` | Analista | CU-04-02 | Retorna el detalle de un producto: dimensiones, imagen, precio, jerarquía, SKU sustituto sugerido, fuente de dimensiones y si están validadas. |
 | `PATCH` | `/catalog/productos/{sku}/dimensiones` | Analista | CU-04-12 | Actualiza `ancho_cm`/`alto_cm`/`profundidad_cm` del producto local; marca `fuente_dimensiones='MANUAL'` y `dimensiones_validadas=true`. |
 | `PATCH` | `/catalog/productos/{sku}/dimensiones/validar` | Analista | CU-04-13 | Marca `dimensiones_validadas=true` sin modificar las medidas; requiere que las tres sean mayores a 0 (`422` si no). |
@@ -157,7 +162,7 @@ Tiendas de la cadena: lookup para asignarlas a versiones de planograma y adminis
 
 | Método | Ruta | Actor | CU | Descripción |
 |--------|------|-------|----|-------------|
-| `GET` | `/tiendas` | Analista | CU-02-05 | Lista las tiendas (por defecto solo activas; `estado=todos` incluye inactivas) con código, nombre, tipo (GRANDE, MEDIANA, EXPRESS), marca, estado y cantidad de planogramas asignados. |
+| `GET` | `/tiendas` | Analista | CU-02-05 | Lista las tiendas (por defecto solo activas; `estado=todos` incluye inactivas) con código, nombre, tipo (GRANDE, MEDIANA, EXPRESS), marca, estado y cantidad de versiones de planograma publicadas asignadas. |
 | `POST` | `/tiendas` | Analista | CU-02-05 | Crea una tienda (queda activa). El código es único en la cadena. |
 | `PATCH` | `/tiendas/{id}` | Analista | CU-02-05 | Edita los datos de una tienda y la activa/desactiva vía `estado`. Desactivar no toca sus asignaciones. |
 | `GET` | `/tiendas/{id}/planogramas` | Implementador | CU-07-01 | Lista los planogramas activos de una tienda. Filtros: `departamento`, `estado` (por defecto `publicado`). |

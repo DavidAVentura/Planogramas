@@ -10046,6 +10046,55 @@
               "response": []
             },
             {
+              "name": "200 - Cambiar modo a IMPULSO",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"modo\": \"IMPULSO\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "IMPULSO es un valor nuevo de Posicion.modo (sin migracion: la columna es varchar(20))."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Modo actualizado a IMPULSO', () => {",
+                      "  pm.expect(pm.response.json().modo).to.eql('IMPULSO');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
               "name": "200 - Aceptar desborde con nota",
               "request": {
                 "method": "PATCH",
@@ -11729,7 +11778,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{HOST}}/api/v1/catalog/productos/buscar?q=de&page=1&pageSize=1",
+                  "raw": "{{HOST}}/api/v1/catalog/productos/buscar?q=martillo&page=1&pageSize=1",
                   "host": [
                     "{{HOST}}"
                   ],
@@ -11743,7 +11792,7 @@
                   "query": [
                     {
                       "key": "q",
-                      "value": "de"
+                      "value": "martillo"
                     },
                     {
                       "key": "page",
@@ -11755,7 +11804,7 @@
                     }
                   ]
                 },
-                "description": "Busca un producto real en CATI (query generica 'de') para usarlo en el escenario de exito de /catalog/productos/{sku}. No se puede sembrar via SQL porque el catalogo de productos es externo (CATI) y de solo lectura."
+                "description": "Busca un producto real en CATI (query 'martillo') para usarlo en el escenario de exito de /catalog/productos/{sku}. No se puede sembrar via SQL porque el catalogo de productos es externo (CATI) y de solo lectura. Se usa 'martillo' y no un termino generico como 'de': CATI tarda ~6 s en buscar 'de' en Descripcion (110 000 coincidencias) y el backend corta a los 5 s con 503. Si este setup falla, las pruebas de detalle/stock que usan catalogoSkuExistente fallan en cadena."
               },
               "event": [
                 {
@@ -11767,6 +11816,9 @@
                       "pm.test('Responde un array', () => {",
                       "  const body = pm.response.json();",
                       "  pm.expect(body).to.be.an('array');",
+                      "});",
+                      "pm.test('Encuentra al menos un producto (catalogoSkuExistente)', () => {",
+                      "  pm.expect(pm.response.json()).to.have.length.above(0);",
                       "});",
                       "const body = pm.response.json();",
                       "if (body.length > 0) {",
@@ -12000,7 +12052,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{HOST}}/api/v1/catalog/productos/buscar?q=de&page=1&pageSize=20",
+                  "raw": "{{HOST}}/api/v1/catalog/productos/buscar?q=martillo&page=1&pageSize=20",
                   "host": [
                     "{{HOST}}"
                   ],
@@ -12014,7 +12066,7 @@
                   "query": [
                     {
                       "key": "q",
-                      "value": "de"
+                      "value": "martillo"
                     },
                     {
                       "key": "page",
@@ -12259,6 +12311,271 @@
                   ]
                 },
                 "description": "Reutiliza la variable skuInexistente (ya usada por otros modulos) asumiendo que un SKU que no existe localmente tampoco existe en CATI."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Code NOT_FOUND', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Listar productos (GET /catalog/productos)",
+          "item": [
+            {
+              "name": "200 - Listar productos locales sin filtros",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos"
+                  ]
+                },
+                "description": "Lista la tabla local Producto con el conteo de planogramas distintos (no archivados) en los que aparece cada SKU, total y por modo."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array', () => pm.expect(pm.response.json()).to.be.an('array'));",
+                      "pm.test('Cada producto trae conteo total y por modo', () => {",
+                      "  pm.response.json().forEach((p) => {",
+                      "    pm.expect(p).to.have.property('sku');",
+                      "    pm.expect(p.planogramas).to.be.a('number');",
+                      "    pm.expect(p.apariciones).to.have.all.keys('PLANOGRAMA', 'CROSS', 'IMPULSO');",
+                      "  });",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Filtrar por subcategoria (SKUs resueltos en CATI)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos?subcategoria={{jerarquiaSubcategoriaIdExistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos"
+                  ],
+                  "query": [
+                    {
+                      "key": "subcategoria",
+                      "value": "{{jerarquiaSubcategoriaIdExistente}}"
+                    }
+                  ]
+                },
+                "description": "Usa el id de subcategoria que llena catalogo/Setup - datos de prueba. El backend pide a CATI los SKUs de esa subcategoria y los cruza con la tabla local; puede responder un array vacio si ningun SKU local pertenece a ella."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array', () => pm.expect(pm.response.json()).to.be.an('array'));",
+                      "pm.test('Cada producto trae conteo total y por modo', () => {",
+                      "  pm.response.json().forEach((p) => {",
+                      "    pm.expect(p).to.have.property('sku');",
+                      "    pm.expect(p.planogramas).to.be.a('number');",
+                      "    pm.expect(p.apariciones).to.have.all.keys('PLANOGRAMA', 'CROSS', 'IMPULSO');",
+                      "  });",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Filtrar por familia usa el nivel mas especifico",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos?area={{jerarquiaAreaIdExistente}}&familia={{jerarquiaFamiliaIdExistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos"
+                  ],
+                  "query": [
+                    {
+                      "key": "area",
+                      "value": "{{jerarquiaAreaIdExistente}}"
+                    },
+                    {
+                      "key": "familia",
+                      "value": "{{jerarquiaFamiliaIdExistente}}"
+                    }
+                  ]
+                },
+                "description": "Con area y familia a la vez, el backend filtra solo por familia (el nivel mas especifico)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array', () => pm.expect(pm.response.json()).to.be.an('array'));",
+                      "pm.test('Cada producto trae conteo total y por modo', () => {",
+                      "  pm.response.json().forEach((p) => {",
+                      "    pm.expect(p).to.have.property('sku');",
+                      "    pm.expect(p.planogramas).to.be.a('number');",
+                      "    pm.expect(p.apariciones).to.have.all.keys('PLANOGRAMA', 'CROSS', 'IMPULSO');",
+                      "  });",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Nivel de jerarquia vacio",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos?familia=",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos"
+                  ],
+                  "query": [
+                    {
+                      "key": "familia",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => {",
+                      "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Obtener planogramas de producto (GET /catalog/productos/:sku/planogramas)",
+          "item": [
+            {
+              "name": "200 - Posiciones de un producto local",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos/{{skuExistente}}/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos",
+                    "{{skuExistente}}",
+                    "planogramas"
+                  ]
+                },
+                "description": "Reutiliza skuExistente (sembrado localmente, ver descripcion de la variable). Las posiciones creadas en posiciones/Setup usan ese SKU, asi que en una corrida completa responde al menos una fila."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Responde un array de posiciones', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array');",
+                      "  body.forEach((a) => {",
+                      "    pm.expect(a).to.include.keys('posicionId', 'modo', 'planogramaId', 'versionId', 'codigo', 'versionEstado', 'gondola', 'nivel', 'tiendas');",
+                      "    pm.expect(['PLANOGRAMA', 'CROSS', 'IMPULSO']).to.include(a.modo);",
+                      "    pm.expect(a.versionEstado).to.not.eql('archivado');",
+                      "  });",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - SKU inexistente en la tabla local",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/catalog/productos/{{skuInexistente}}/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "catalog",
+                    "productos",
+                    "{{skuInexistente}}",
+                    "planogramas"
+                  ]
+                }
               },
               "event": [
                 {
@@ -13299,7 +13616,7 @@
               "response": []
             },
             {
-              "name": "200 - Listar con estado=todos incluye estado y planogramas",
+              "name": "200 - Listar con estado=todos incluye estado y versiones publicadas",
               "request": {
                 "method": "GET",
                 "header": [],
@@ -13330,11 +13647,11 @@
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "const body = pm.response.json();",
-                      "pm.test('Cada tienda trae estado y conteo de planogramas', () => {",
+                      "pm.test('Cada tienda trae estado y conteo de versiones publicadas', () => {",
                       "  pm.expect(body).to.be.an('array').that.is.not.empty;",
                       "  body.forEach((t) => {",
                       "    pm.expect(t.estado).to.be.oneOf(['activo', 'inactivo']);",
-                      "    pm.expect(t.planogramas).to.be.a('number');",
+                      "    pm.expect(t.versionesPublicadas).to.be.a('number');",
                       "  });",
                       "});",
                       "pm.collectionVariables.set('tiendaCodigoOtra', body[0].codigo);"
@@ -13600,9 +13917,9 @@
                     "exec": [
                       "pm.test('Status 201', () => pm.response.to.have.status(201));",
                       "const t = pm.response.json();",
-                      "pm.test('Queda activa, sin planogramas y con código en mayúsculas', () => {",
+                      "pm.test('Queda activa, sin versiones publicadas y con código en mayúsculas', () => {",
                       "  pm.expect(t.estado).to.eql('activo');",
-                      "  pm.expect(t.planogramas).to.eql(0);",
+                      "  pm.expect(t.versionesPublicadas).to.eql(0);",
                       "  pm.expect(t.codigo).to.eql(t.codigo.toUpperCase());",
                       "  pm.expect(t.tipo).to.eql('EXPRESS');",
                       "  pm.expect(t.marca).to.eql('Cemaco');",
@@ -14124,6 +14441,7 @@
                       "  pm.expect(p).to.have.property('versionId');",
                       "  pm.expect(p).to.have.property('codigo');",
                       "  pm.expect(p).to.have.property('tipo');",
+                      "  pm.expect(p.esEspecial).to.be.a('boolean');",
                       "  pm.expect(p).to.have.property('planogramaId');",
                       "  pm.expect(p).to.have.property('nombre');",
                       "  pm.expect(p).to.have.property('departamento');",

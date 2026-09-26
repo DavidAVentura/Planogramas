@@ -22,6 +22,8 @@ const ETIQUETAS_PERFIL: Record<PerfilRedondeo, string> = {
 const ETIQUETAS_MODO: Record<ModoPosicion, string> = {
   PLANOGRAMA: 'Planograma',
   CROSS: 'Cross',
+  IMPULSO: 'Impulso',
+  PENDIENTE: 'Pendiente',
 };
 
 const ETIQUETAS_DECISION: Record<DecisionPosicion, string> = {

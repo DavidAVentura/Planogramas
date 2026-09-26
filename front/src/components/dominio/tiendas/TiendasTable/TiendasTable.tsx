@@ -11,7 +11,7 @@ interface ColumnaOrdenable {
   campo: CampoOrdenTienda;
   header: string;
   alinear?: 'left' | 'right';
-  render: (t: Tienda) => ReactNode;
+  render: (t: Tienda, onVerPlanogramas: (t: Tienda) => void) => ReactNode;
 }
 
 const COLUMNAS: ColumnaOrdenable[] = [
@@ -27,7 +27,25 @@ const COLUMNAS: ColumnaOrdenable[] = [
     ),
   },
   { campo: 'marca', header: 'Marca', render: (t) => t.marca ?? '—' },
-  { campo: 'planogramas', header: 'Planogramas', alinear: 'right', render: (t) => t.planogramas },
+  {
+    campo: 'versionesPublicadas',
+    header: 'Planogramas publicados',
+    alinear: 'right',
+    render: (t, onVerPlanogramas) =>
+      t.versionesPublicadas > 0 ? (
+        <button
+          type="button"
+          className="tiendas-table__conteo"
+          title="Ver planogramas publicados"
+          aria-label={`Ver ${t.versionesPublicadas} planogramas publicados de ${t.nombre}`}
+          onClick={() => onVerPlanogramas(t)}
+        >
+          {t.versionesPublicadas}
+        </button>
+      ) : (
+        <span className="tiendas-table__conteo--vacio">0</span>
+      ),
+  },
   {
     campo: 'estado',
     header: 'Estado',
@@ -47,6 +65,7 @@ interface TiendasTableProps {
   onEditar: (tienda: Tienda) => void;
   onDesactivar: (tienda: Tienda) => void;
   onReactivar: (tienda: Tienda) => void;
+  onVerPlanogramas: (tienda: Tienda) => void;
 }
 
 export function TiendasTable({
@@ -57,6 +76,7 @@ export function TiendasTable({
   onEditar,
   onDesactivar,
   onReactivar,
+  onVerPlanogramas,
 }: TiendasTableProps) {
   const variosCriterios = orden.length > 1;
 
@@ -93,7 +113,7 @@ export function TiendasTable({
           )}
         </button>
       ),
-      render: col.render,
+      render: (t) => col.render(t, onVerPlanogramas),
     };
   });
 

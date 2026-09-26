@@ -1,7 +1,7 @@
 import { TIPOS_TIENDA } from '../../constants/tiendas';
 import type { Tienda } from '../../types/tienda';
 
-export type CampoOrdenTienda = 'codigo' | 'nombre' | 'tipo' | 'marca' | 'planogramas' | 'estado';
+export type CampoOrdenTienda = 'codigo' | 'nombre' | 'tipo' | 'marca' | 'versionesPublicadas' | 'estado';
 export type DireccionOrden = 'asc' | 'desc';
 
 export interface CriterioOrden {
@@ -18,8 +18,9 @@ const VALOR_ORDEN: Record<CampoOrdenTienda, (t: Tienda) => string | number> = {
   codigo: (t) => t.codigo,
   nombre: (t) => t.nombre,
   tipo: (t) => TIPOS_TIENDA.indexOf(t.tipo),
-  marca: (t) => t.marca ?? '￿',
-  planogramas: (t) => t.planogramas,
+  // Prefijo 0/1 para que "sin marca" quede después de cualquier marca, en asc.
+  marca: (t) => (t.marca === null ? '1' : `0${t.marca}`),
+  versionesPublicadas: (t) => t.versionesPublicadas,
   estado: (t) => (t.estado === 'activo' ? 0 : 1),
 };
 

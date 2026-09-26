@@ -22,7 +22,7 @@ function mapTienda(row) {
     region:      row.region,
     marca:       row.marca,
     estado:      row.estado,
-    planogramas: Number(row.planogramas ?? 0),
+    versionesPublicadas: Number(row.versionesPublicadas ?? 0),
   };
 }
 
@@ -33,16 +33,16 @@ function aColumnas(datos) {
 }
 
 /**
- * Consulta base de tiendas con el conteo de planogramas distintos que tienen una versión no
- * archivada asignada a cada tienda. Los filtros se agregan sobre columnas `Tienda.*`.
+ * Consulta base de tiendas con el conteo de versiones de planograma publicadas asignadas a cada
+ * tienda (lo que la tienda tiene implementado en piso). Los filtros se agregan sobre `Tienda.*`.
  */
 function consultaTiendas() {
   const conteo = db(TABLA_VERSION_TIENDA)
     .join(TABLA_VERSION, `${TABLA_VERSION_TIENDA}.planograma_version_id`, `${TABLA_VERSION}.id`)
-    .whereNot(`${TABLA_VERSION}.estado`, 'archivado')
+    .where(`${TABLA_VERSION}.estado`, 'publicado')
     .groupBy(`${TABLA_VERSION_TIENDA}.tienda_id`)
     .select(`${TABLA_VERSION_TIENDA}.tienda_id`)
-    .countDistinct(`${TABLA_VERSION}.planograma_id as planogramas`)
+    .count(`${TABLA_VERSION_TIENDA}.planograma_version_id as versionesPublicadas`)
     .as('conteo');
 
   return db(TABLA_TIENDA)
@@ -55,7 +55,7 @@ function consultaTiendas() {
       `${TABLA_TIENDA}.region`,
       `${TABLA_TIENDA}.Marca as marca`,
       `${TABLA_TIENDA}.estado`,
-      db.raw('COALESCE(conteo.planogramas, 0) as planogramas'),
+      db.raw('COALESCE(conteo.versionesPublicadas, 0) as versionesPublicadas'),
     );
 }
 
@@ -148,6 +148,7 @@ async function listarPlanogramasPublicados(tiendaId, { departamento }) {
     `${TABLA_VERSION}.id as versionId`,
     `${TABLA_VERSION}.codigo as codigo`,
     `${TABLA_VERSION}.tipo as tipo`,
+    `${TABLA_VERSION}.version_base_id as versionBaseId`,
     `${TABLA_PLANOGRAMA}.id as planogramaId`,
     `${TABLA_PLANOGRAMA}.nombre as nombre`,
     `${TABLA_PLANOGRAMA}.departamento as departamento`,
@@ -170,6 +171,7 @@ async function listarPlanogramasPublicados(tiendaId, { departamento }) {
     versionId:     r.versionId,
     codigo:        r.codigo,
     tipo:          r.tipo,
+    esEspecial:    r.versionBaseId !== null,
     planogramaId:  r.planogramaId,
     nombre:        r.nombre,
     departamento:  r.departamento,

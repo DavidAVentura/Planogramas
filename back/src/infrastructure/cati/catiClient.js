@@ -305,6 +305,51 @@ async function buscarProductos({ q, subcategoria, page, pageSize }) {
   return productos;
 }
 
+// Nombre del filtro de CATI GET /Product/search por nivel de jerarquía (mismo id que devuelve
+// GET /jerarquia/{nivel}).
+const PARAM_CATI_POR_NIVEL = Object.freeze({
+  area:         'Area',
+  departamento: 'Departamento',
+  familia:      'Familia',
+  categoria:    'Categoria',
+  subcategoria: 'Subcategoria',
+});
+// Medido contra CATI real (2026-09-25): un área completa (~56 000 SKUs) con páginas de 10 000
+// en paralelo tarda ~4 s; un departamento (~5 700) cabe en una sola página y responde en < 1 s.
+const PAGE_SIZE_SKUS_JERARQUIA  = 10000;
+const TIMEOUT_SKUS_JERARQUIA_MS = 30000;
+
+/**
+ * Lista todos los SKUs de CATI que pertenecen a un nivel de jerarquía (cacheado 30 min, igual
+ * que la jerarquía: un área completa tarda ~10 s en frío). Pide la primera página de /Product/search y, con su `totalPages`, el resto en
+ * paralelo. No filtra por estado: la vista de productos también debe mostrar inactivos que siguen
+ * colocados en planogramas.
+ * @param {'area'|'departamento'|'familia'|'categoria'|'subcategoria'} nivel
+ * @param {string} id
+ * @returns {Promise<string[]>}
+ */
+async function listarSkusPorJerarquia(nivel, id) {
+  const clave    = `catalogo:skus:${nivel}:${id}`;
+  const cacheado = obtenerDeCache(clave);
+  if (cacheado) return cacheado;
+
+  const pedirPagina = (pagina) => get('/Product/search', {
+    Profile:    'CEMACO',
+    PageNumber: String(pagina),
+    PageSize:   String(PAGE_SIZE_SKUS_JERARQUIA),
+    [PARAM_CATI_POR_NIVEL[nivel]]: id,
+  }, { timeoutMs: TIMEOUT_SKUS_JERARQUIA_MS });
+
+  const primera = await pedirPagina(1);
+  const paginasRestantes = Array.from({ length: Math.max((primera?.totalPages ?? 1) - 1, 0) }, (_, i) => i + 2);
+  const resto = await Promise.all(paginasRestantes.map(pedirPagina));
+
+  const skus = [primera, ...resto].flatMap((data) => (data?.items ?? []).map((raw) => String(raw.sku)));
+
+  guardarEnCache(clave, skus);
+  return skus;
+}
+
 /**
  * Obtiene el detalle de un producto (proxy a CATI GET /Product/{sku}). Retorna `null` si
  * el SKU no existe en CATI — ver regla 4 de GET_productos_detalle.md. CATI responde 404 para
@@ -430,6 +475,7 @@ module.exports = {
   obtenerCategorias,
   obtenerSubcategorias,
   buscarProductos,
+  listarSkusPorJerarquia,
   obtenerProducto,
   obtenerStockSap,
   obtenerFichaTecnica,

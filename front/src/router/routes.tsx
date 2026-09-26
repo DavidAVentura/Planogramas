@@ -4,6 +4,7 @@ import { PlanogramaDetalle } from '../pages/PlanogramaDetalle/PlanogramaDetalle'
 import { EditorPlanograma } from '../pages/EditorPlanograma/EditorPlanograma';
 import { LienzoPlanograma } from '../pages/LienzoPlanograma/LienzoPlanograma';
 import { TiendasListado } from '../pages/TiendasListado/TiendasListado';
+import { ProductosListado } from '../pages/ProductosListado/ProductosListado';
 
 export function AppRoutes() {
   return (
@@ -14,6 +15,7 @@ export function AppRoutes() {
       <Route path="/planogramas/:id/versiones/:versionId/editor" element={<EditorPlanograma />} />
       <Route path="/planogramas/:id/versiones/:versionId/lienzo" element={<LienzoPlanograma />} />
       <Route path="/tiendas" element={<TiendasListado />} />
+      <Route path="/productos" element={<ProductosListado />} />
     </Routes>
   );
 }

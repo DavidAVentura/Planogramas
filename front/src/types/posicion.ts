@@ -1,7 +1,7 @@
 export const PERFILES_REDONDEO = ['MRP', 'ZSRE'] as const;
 export type PerfilRedondeo = (typeof PERFILES_REDONDEO)[number];
 
-export const MODOS_POSICION = ['PLANOGRAMA', 'CROSS', 'PENDIENTE'] as const;
+export const MODOS_POSICION = ['PLANOGRAMA', 'CROSS', 'IMPULSO', 'PENDIENTE'] as const;
 export type ModoPosicion = (typeof MODOS_POSICION)[number];
 
 export const DECISIONES_POSICION = ['ACTIVO', 'INACTIVO'] as const;

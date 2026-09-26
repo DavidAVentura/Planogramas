@@ -75,7 +75,7 @@ Mismo formato que `POST /tiendas`, con los datos ya actualizados:
   "region": "Guatemala Metropolitana",
   "marca": "Cemaco",
   "estado": "activo",
-  "planogramas": 12
+  "versionesPublicadas": 12
 }
 ```
 

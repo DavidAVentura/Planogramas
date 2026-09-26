@@ -38,7 +38,7 @@ vista filtra y ordena en el cliente.
 1. Por defecto retorna solo tiendas activas.
 2. Sin paginación (la cadena Cemaco tiene un número acotado de tiendas: < 50).
 3. Ordenadas por `nombre ASC`.
-4. `planogramas` = cantidad de planogramas distintos con al menos una versión no archivada asignada a la tienda.
+4. `versionesPublicadas` = cantidad de versiones de planograma (`PlanogramaVersion`) en estado `publicado` asignadas a la tienda, es decir, lo que la tienda tiene implementado. Se cuenta a nivel versión: las asignaciones a versiones en borrador, en desarrollo, piloto o archivadas no suman.
 
 ---
 
@@ -54,7 +54,7 @@ vista filtra y ordena en el cliente.
     "region": "Guatemala Metropolitana",
     "marca": "Cemaco",
     "estado": "activo",
-    "planogramas": 12
+    "versionesPublicadas": 12
   },
   {
     "id": 2,
@@ -64,7 +64,7 @@ vista filtra y ordena en el cliente.
     "region": "Guatemala Metropolitana",
     "marca": "Cemaco",
     "estado": "activo",
-    "planogramas": 9
+    "versionesPublicadas": 9
   },
   {
     "id": 5,
@@ -74,7 +74,7 @@ vista filtra y ordena en el cliente.
     "region": "Guatemala Norte",
     "marca": "Jugueton",
     "estado": "activo",
-    "planogramas": 0
+    "versionesPublicadas": 0
   }
 ]
 ```

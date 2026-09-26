@@ -19,10 +19,10 @@ Los contratos están organizados por recurso e incluyen anotaciones de arquitect
 | `05_posiciones/` | Posiciones | POST agregar, PATCH editar, POST mover, POST copiar, DELETE, GET accesorios, POST accesorio, DELETE accesorio, GET capacidad, GET detalle implementador |
 | `06_sustituciones/` | Sustituciones | GET historial, POST ejecutar, GET por-sku |
 | `07_exportacion/` | Exportación | GET JSON, GET CSV, GET validar publicación |
-| `08_catalogo/` | Catálogo (CATI) | GET buscar productos, GET detalle producto, GET stock producto, GET ficha técnica producto |
+| `08_catalogo/` | Catálogo (CATI + tabla local `Producto`) | GET buscar productos, GET detalle producto, GET stock producto, GET ficha técnica producto, PATCH dimensiones, PATCH validar dimensiones, GET listar productos locales con apariciones, GET planogramas de un producto |
 | `09_accesorios/` | Accesorios | GET lista, GET detalle |
 | `10_tiendas/` | Tiendas | GET lista, POST crear, PATCH editar, GET planogramas por tienda |
-| `11_jerarquia/` | Jerarquía (CATI) | GET áreas, GET departamentos |
+| `11_jerarquia/` | Jerarquía (CATI) | GET áreas, GET departamentos, GET familias, GET categorías, GET subcategorías |
 | `12_sesiones_captura/` | Captura *(fuera de MVP)* | Referencia de diseño |
 | `13_adjuntos/` | Adjuntos | GET lista, POST agregar, PUT reemplazar, DELETE eliminar, GET descargar |
 

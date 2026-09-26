@@ -95,7 +95,7 @@ erDiagram
         int         min_final              "ajustable manualmente; min_final <= max_final validado por la API si ambos vienen juntos"
         int         max_final               "ajustable manualmente"
         varchar     perfil_redondeo         "MRP (no se rompe empaque) | ZSRE (se puede romper) — ver posicion.entity.js (default MRP). Ojo: hasta 2026-07-20 posicion.entity.js tenía valores equivocados (NORMAL/REDONDEAR_ARRIBA/REDONDEAR_ABAJO) que ni siquiera entraban en la columna varchar(10) — causaba un 500 al crear una posición; corregido"
-        varchar     modo                    "PLANOGRAMA | CROSS — ver posicion.entity.js (default PLANOGRAMA, coincide con el default de la columna en BD)"
+        varchar     modo                    "PLANOGRAMA | CROSS | IMPULSO | PENDIENTE — ver posicion.entity.js (default PLANOGRAMA, coincide con el default de la columna en BD). IMPULSO agregado 2026-09-25 sin migración: varchar(20) sin CHECK. PENDIENTE = posición sin SKU confirmado (migración 008)"
         bit         cross_externo           "true = accesorio colgante fuera de la góndola"
         bit         montar_en_display       "true = producto trae display propio (ej. Kinder)"
         bit         desborda_gondola        "true = producto cruza límite al módulo siguiente; si true, nota_desborde es obligatoria (validado por la API)"
@@ -162,18 +162,24 @@ erDiagram
     %% Stibo/VTEX/CATI (planeado, ver REUNION_TECNICA.md); hoy se puebla manualmente. Es una tabla
     %% DISTINTA del catálogo de solo-lectura que expone `GET /catalog/productos/*` (proxy en vivo a
     %% CATI, ver catalogo.controller.js) — CATI puede conocer un SKU real que todavía no exista acá.
+    %% JERARQUÍA (decisión 2026-09-25): familia y categoría NO se guardan localmente, y el filtro por
+    %% jerarquía de GET /catalog/productos nunca usa categoria_nivel1/2 — se resuelve en vivo pidiendo
+    %% a CATI los SKUs del nivel elegido y cruzándolos con esta tabla (ver
+    %% Contratos/08_catalogo/GET_productos_listar.md). Evita copias que se desactualicen cuando la
+    %% jerarquía cambia en CATI.
+
     Producto {
         varchar     sku                     PK
         varchar     nombre
         varchar     marca
-        varchar     categoria_nivel1
-        varchar     categoria_nivel2
-        varchar     categoria_nivel3        "columna existe en BD; no se expone hoy en GET /catalog/productos/*"
+        varchar     categoria_nivel1        "área al registrar el SKU, con código CATI (ej. FERRETERIA (01)) — solo para mostrar"
+        varchar     categoria_nivel2        "departamento al registrar el SKU, con código CATI — solo para mostrar"
+        varchar     categoria_nivel3        "columna existe en BD pero no se llena (asegurarExistencia solo copia área/departamento/subcategoría)"
         varchar     subcategoria
         decimal     ancho_cm
         decimal     alto_cm
         decimal     profundidad_cm
-        varchar     fuente_dimensiones          "STIBO | VTEX | MANUAL"
+        varchar     fuente_dimensiones          "CATI | VTEX | MANUAL — ver FUENTES_DIMENSIONES en producto.entity.js"
         bit         dimensiones_validadas
         varchar     gtin
         decimal     precio

@@ -19,7 +19,7 @@ const OPCIONES_NAVEGACION: OpcionNavegacion[] = [
   { etiqueta: 'Planogramas', ruta: '/planogramas', disponible: true },
   { etiqueta: 'Tiendas', ruta: '/tiendas', disponible: true },
   { etiqueta: 'Estructura', ruta: '/estructura', disponible: false },
-  { etiqueta: 'Productos', ruta: '/productos', disponible: false },
+  { etiqueta: 'Productos', ruta: '/productos', disponible: true },
 ];
 
 export function AppTopbar({ titulo, breadcrumb }: AppTopbarProps) {

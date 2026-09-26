@@ -97,7 +97,9 @@ export function PosicionLienzo({
       {posicion.confidence != null && posicion.confidence < 100 && (
         <span className="posicion-lienzo__badge-ia">IA · {posicion.confidence}%</span>
       )}
-      {posicion.modo === 'CROSS' && <span className="posicion-lienzo__badge-cross">cross</span>}
+      {(posicion.modo === 'CROSS' || posicion.modo === 'IMPULSO') && (
+        <span className="posicion-lienzo__badge-cross">{posicion.modo.toLowerCase()}</span>
+      )}
 
       <div className="posicion-lienzo__tiles">
         {Array.from({ length: posicion.facings }).map((_, i) => (

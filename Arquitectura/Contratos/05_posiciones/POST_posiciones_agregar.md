@@ -36,7 +36,7 @@ Agrega una posición (producto con SKU) a un nivel del planograma. Valida el esp
 | `min_final` | `integer` | No | Mínimo de reorden. Debe ser ≤ `max_final`. |
 | `max_final` | `integer` | No | Máximo de reorden. Debe ser ≥ `min_final`. |
 | `perfil_redondeo` | `string` | No | `MRP` (no se rompe empaque), `ZSRE` (se puede romper). Default: `MRP`. |
-| `modo` | `string` | No | `PLANOGRAMA`, `CROSS`. Default: `PLANOGRAMA`. |
+| `modo` | `string` | No | `PLANOGRAMA`, `CROSS`, `IMPULSO` o `PENDIENTE`. Default: `PLANOGRAMA` con SKU, `PENDIENTE` sin SKU (posición detectada por IA sin confirmar). |
 | `decision` | `string` | No | `ACTIVO`, `INACTIVO`. Default: `ACTIVO`. |
 
 ---

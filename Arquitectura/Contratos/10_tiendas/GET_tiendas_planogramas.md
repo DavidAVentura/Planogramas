@@ -11,6 +11,8 @@
 
 Retorna los planogramas publicados asignados a una tienda específica. Endpoint principal para la vista del Implementador. Filtra solo versiones en estado `publicado`.
 
+También lo usa el modal "Planogramas publicados" de la vista de tiendas (clic en el conteo `versionesPublicadas` de `GET /tiendas`), así que ambos cuentan lo mismo. `esEspecial` es `true` cuando la versión es una versión especial por tienda (tiene `version_base_id`).
+
 ---
 
 ## Parámetros de entrada
@@ -43,6 +45,7 @@ Retorna los planogramas publicados asignados a una tienda específica. Endpoint 
       "versionId": 10,
       "codigo": "AUTOS 01-TG",
       "tipo": "GRANDE",
+      "esEspecial": false,
       "planogramaId": 42,
       "nombre": "AUTOS 01",
       "departamento": "AUTOS",

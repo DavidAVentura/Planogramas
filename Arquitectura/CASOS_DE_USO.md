@@ -113,6 +113,15 @@ Actores:
 
 ---
 
+## CU-10 — Consulta de productos
+
+| ID | Nombre | Actor | Descripción |
+|---|---|---|---|
+| CU-10-01 | Listar productos con apariciones en planogramas | Analista | Consulta los productos ya usados en planogramas con cuántos planogramas los incluyen y cómo (planograma, cross o impulso); filtra por la jerarquía CATI (área, departamento, familia, categoría, subcategoría), estado y tipo de aparición, y ordena por cualquier columna. |
+| CU-10-02 | Ver planogramas de un producto | Analista | Expande un producto para ver cada posición donde aparece: planograma, versión, góndola, nivel, modo y tiendas asignadas; si el producto está inactivo y sigue en una versión publicada o en piloto, el sistema lo advierte junto con su sustituto recomendado. |
+
+---
+
 ## Fuera de alcance del MVP — fase siguiente
 
 | ID | Nombre | Fase |

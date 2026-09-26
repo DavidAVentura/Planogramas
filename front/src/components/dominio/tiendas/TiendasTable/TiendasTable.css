@@ -70,6 +70,35 @@
   font-weight: 600;
 }
 
+.tiendas-table__conteo {
+  min-width: 36px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--cemaco-indigo);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--cemaco-indigo-50);
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 1px;
+  }
+}
+
+.tiendas-table__conteo--vacio {
+  padding: 4px 10px;
+  color: var(--fg-4);
+}
+
 .tiendas-table__fila--inactiva td {
   color: var(--fg-3);
 }

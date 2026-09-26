@@ -3,7 +3,13 @@ import { tiendasService, type FiltrosTiendas } from '../services/tiendas.service
 import { ApiError } from '../services/httpClient';
 import { useToast } from '../context/ToastContext';
 import { mensajeDeError } from '../utils/errors';
-import type { CrearTiendaInput, EditarTiendaInput, EstadoTienda, Tienda } from '../types/tienda';
+import type {
+  CrearTiendaInput,
+  EditarTiendaInput,
+  EstadoTienda,
+  PlanogramaPublicadoTienda,
+  Tienda,
+} from '../types/tienda';
 
 /** `filtros` en `null` omite la carga (útil mientras un dato previo, ej. la versión base, no está listo). */
 export function useTiendas(filtros: FiltrosTiendas | null) {
@@ -35,6 +41,28 @@ export function useTiendas(filtros: FiltrosTiendas | null) {
   const recargar = useCallback(() => setRecargas((n) => n + 1), []);
 
   return { tiendas, cargando, recargar };
+}
+
+/** Versiones publicadas asignadas a una tienda (modal "Planogramas publicados"). */
+export function usePlanogramasPublicadosTienda(tiendaId: number) {
+  const [planogramas, setPlanogramas] = useState<PlanogramaPublicadoTienda[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const { mostrarToast } = useToast();
+
+  useEffect(() => {
+    let vigente = true;
+    setCargando(true);
+    tiendasService
+      .planogramasPublicados(tiendaId)
+      .then((r) => vigente && setPlanogramas(r.planogramas))
+      .catch((err) => mostrarToast(mensajeDeError(err, 'No se pudieron cargar los planogramas de la tienda'), 'error'))
+      .finally(() => vigente && setCargando(false));
+    return () => {
+      vigente = false;
+    };
+  }, [tiendaId, mostrarToast]);
+
+  return { planogramas, cargando };
 }
 
 /** La tienda guardada, el código duplicado (para mostrarlo junto al campo) o `null` si falló. */

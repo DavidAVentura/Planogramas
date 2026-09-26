@@ -75,9 +75,9 @@ export function TiendaFormModal({ tienda, onClose, onGuardado }: TiendaFormModal
       <form id="tienda-form" className="tienda-form" onSubmit={onSubmit} noValidate>
         {editando && (
           <p className="tienda-form__contexto">
-            {tienda.planogramas === 1
-              ? 'Asignada a 1 planograma'
-              : `Asignada a ${tienda.planogramas} planogramas`}
+            {tienda.versionesPublicadas === 1
+              ? '1 planograma publicado asignado'
+              : `${tienda.versionesPublicadas} planogramas publicados asignados`}
           </p>
         )}
 

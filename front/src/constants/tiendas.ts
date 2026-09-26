@@ -9,6 +9,13 @@ interface MetaBadge {
 /** En orden de tamaño de tienda: es el orden que usa la tabla al ordenar por tipo. */
 export const TIPOS_TIENDA: TipoTienda[] = ['EXPRESS', 'MEDIANA', 'GRANDE'];
 
+/** Sufijo del código de versión según el tipo (ej. "ALFOMBRAS DE AUTO-TG"). */
+export const SIGLA_TIPO_TIENDA: Record<TipoTienda, string> = {
+  GRANDE: 'TG',
+  MEDIANA: 'TM',
+  EXPRESS: 'TE',
+};
+
 export const TIPO_TIENDA_META: Record<TipoTienda, MetaBadge> = {
   GRANDE:  { label: 'Grande',  bg: 'var(--cemaco-indigo-50)', color: 'var(--cemaco-indigo)' },
   MEDIANA: { label: 'Mediana', bg: 'var(--cemaco-green-50)',  color: 'var(--cemaco-green-700)' },

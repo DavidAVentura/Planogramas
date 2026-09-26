@@ -17,7 +17,9 @@ export function DesactivarTiendaModal({ tienda, onClose, onDesactivada }: Desact
   }
 
   const asignados =
-    tienda.planogramas === 1 ? 'Su planograma asignado no se modifica' : `Sus ${tienda.planogramas} planogramas asignados no se modifican`;
+    tienda.versionesPublicadas === 1
+      ? 'Su planograma publicado asignado no se modifica'
+      : `Sus ${tienda.versionesPublicadas} planogramas publicados asignados no se modifican`;
 
   return (
     <ConfirmDialog

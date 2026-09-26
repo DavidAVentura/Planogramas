@@ -10,8 +10,11 @@ const ESTADOS_VERSION_EDITABLE = Object.freeze(['borrador', 'en_desarrollo', 'pi
 /** Valores permitidos de perfil_redondeo: MRP (no se rompe empaque) | ZSRE (se puede romper). */
 const PERFILES_REDONDEO = Object.freeze(['MRP', 'ZSRE']);
 
-/** Valores permitidos de modo. */
-const MODOS = Object.freeze(['PLANOGRAMA', 'CROSS', 'PENDIENTE']);
+/**
+ * Valores permitidos de modo. IMPULSO = exhibición de compra por impulso (ej. cajas); la columna
+ * es varchar(20) sin CHECK, así que no requiere migración.
+ */
+const MODOS = Object.freeze(['PLANOGRAMA', 'CROSS', 'IMPULSO', 'PENDIENTE']);
 
 /** Confidence de una posición confirmada por el usuario (máximo, sin incertidumbre). */
 const CONFIDENCE_CONFIRMADO = 100;

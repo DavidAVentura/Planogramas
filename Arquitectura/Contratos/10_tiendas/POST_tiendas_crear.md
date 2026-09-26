@@ -9,7 +9,7 @@
 
 ## Descripción
 
-Da de alta una tienda de la cadena. La tienda se crea siempre en estado `activo`, sin planogramas asignados. Usado desde la vista de administración de tiendas (`/tiendas` en el front).
+Da de alta una tienda de la cadena. La tienda se crea siempre en estado `activo`, sin versiones publicadas asignadas. Usado desde la vista de administración de tiendas (`/tiendas` en el front).
 
 ---
 
@@ -67,7 +67,7 @@ Da de alta una tienda de la cadena. La tienda se crea siempre en estado `activo`
   "region": "Guatemala Metropolitana",
   "marca": "Cemaco",
   "estado": "activo",
-  "planogramas": 0
+  "versionesPublicadas": 0
 }
 ```
 

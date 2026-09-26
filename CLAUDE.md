@@ -147,19 +147,29 @@ El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
 `Arquitectura/Contratos/{NN}_{modulo}/` (01 a 11; el 12, sesiones de captura, queda fuera del MVP).
 
 - **Implementado end-to-end (código + pruebas Postman)**: `planogramas` (01), `versiones` (02),
-  `gondolas` (03) y `niveles` (04). Cada uno sigue el mismo patrón de 4 capas descrito abajo:
+  `gondolas` (03), `niveles` (04), `posiciones` (05), `catalogo` (08), `accesorios` (09),
+  `tiendas` (10) y `jerarquia` (11). Cada uno sigue el mismo patrón de 4 capas descrito abajo:
   `back/src/domain/{entidad}/`, `back/src/infrastructure/repositories/{entidad}.repository.js`,
   `back/src/application/{modulo}/{modulo}.controller.js` y
   `back/src/infrastructure/http/routes/{modulo}.routes.js`. `planogramas` sigue siendo la
   referencia más simple; `gondolas`/`niveles` muestran el patrón de entidad hija (listar/crear/
   reordenar cuelgan de la ruta del padre, ver comentarios en `gondolas.routes.js`).
-- **Pendiente**: el resto de módulos de `back/src/infrastructure/http/routes/index.js` están
-  comentados (`posiciones`, `accesorios`, `tiendas`, `jerarquia`, `catalog`, `sustituciones`,
-  `exportacion`). El contrato de cada uno ya existe en `Arquitectura/Contratos/`; falta implementar
-  código y pruebas. Siguiente en el orden: `posiciones` (05).
-- Solo hay una migración (`001_esquema_inicial.js`) — antes de implementar un módulo nuevo, revisa
-  si el esquema de esa migración ya cubre las tablas que necesita o si hace falta una migración
-  adicional (`002_...`, ver convención de nombres en `ESTRUCTURA_BACKEND.md`).
+  - `catalogo` y `jerarquia` son proxies a CATI **sin capa de dominio** (`catalogo.controller.js`
+    → `infrastructure/cati/catiClient.js`). Bajo el mismo prefijo `/catalog/productos` vive también
+    el módulo `producto` (con dominio propio, `domain/producto/`): dimensiones locales y la vista
+    `/productos` (`GET /catalog/productos` y `GET /catalog/productos/{sku}/planogramas`, CU-10).
+    En esa vista el filtro por jerarquía se resuelve en vivo contra CATI (lista de SKUs del nivel
+    cruzada con la tabla local), nunca con columnas locales — ver
+    `Arquitectura/Contratos/08_catalogo/GET_productos_listar.md`.
+- **Implementado, sin carpeta Postman todavía**: `adjuntos` (13, CRUD sobre Azure Blob; la
+  migración `009_adjuntos_version.js` puede estar pendiente de aplicar) y `agente-extractor`.
+- **Pendiente**: `sustituciones` (06) y `exportacion` (07) no están montados en
+  `back/src/infrastructure/http/routes/index.js`. Su contrato ya existe en `Arquitectura/Contratos/`.
+- Migraciones: `001` a `009` en `back/src/infrastructure/db/migrations/`. Antes de implementar un
+  módulo nuevo, revisa si el esquema ya cubre las tablas que necesita o si hace falta una migración
+  adicional (`010_...`, ver convención de nombres en `ESTRUCTURA_BACKEND.md`). Un valor nuevo de
+  una columna `varchar` sin CHECK (ej. `Posicion.modo = 'IMPULSO'`) no requiere migración: basta
+  con la entidad de dominio (`MODOS` en `posicion.entity.js`) y el tipo del front.
 
 ### Método de trabajo para implementar un módulo nuevo
 

@@ -34,7 +34,7 @@ Modifica atributos de una posición existente: facings, capacidad, mínimos, má
 | `min_final` | `integer \| null` | Mínimo de reorden. |
 | `max_final` | `integer \| null` | Máximo de reorden. |
 | `perfil_redondeo` | `string` | `MRP` (no se rompe empaque), `ZSRE` (se puede romper). |
-| `modo` | `string` | `PLANOGRAMA`, `CROSS`. |
+| `modo` | `string` | `PLANOGRAMA`, `CROSS`, `IMPULSO` (exhibición de compra por impulso, ej. cajas) o `PENDIENTE`. |
 | `cross_externo` | `boolean` | Posición cross merchandising desde otra categoría. |
 | `montar_en_display` | `boolean` | Requiere montaje en display. |
 | `desborda_gondola` | `boolean` | Producto físicamente cruza límite de góndola. |

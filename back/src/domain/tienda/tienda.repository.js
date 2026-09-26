@@ -10,8 +10,8 @@
 module.exports = {
   /**
    * Lista tiendas con filtros, ordenadas por nombre ASC. Sin paginación. Cada tienda incluye
-   * `estado` y `planogramas` (cantidad de planogramas distintos con una versión no archivada
-   * asignada a la tienda).
+   * `estado` y `versionesPublicadas` (cantidad de versiones de planograma en estado `publicado`
+   * asignadas a la tienda).
    * @param {{ tipo?: string, estado: string|null }} filtros  `estado` null = sin filtro de estado
    * @returns {Promise<object[]>}
    */

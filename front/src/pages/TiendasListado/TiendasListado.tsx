@@ -5,6 +5,7 @@ import { FILTROS_TIENDAS_INICIALES } from '../../constants/tiendas';
 import { TiendasTable } from '../../components/dominio/tiendas/TiendasTable/TiendasTable';
 import { TiendaFormModal } from '../../components/dominio/modales/TiendaFormModal/TiendaFormModal';
 import { DesactivarTiendaModal } from '../../components/dominio/modales/DesactivarTiendaModal/DesactivarTiendaModal';
+import { PlanogramasTiendaModal } from '../../components/dominio/modales/PlanogramasTiendaModal/PlanogramasTiendaModal';
 import { Button } from '../../components/ui/Button/Button';
 import { useCambiarEstadoTienda, useTiendas } from '../../hooks/useTiendas';
 import { useAuth } from '../../context/AuthContext';
@@ -24,7 +25,7 @@ const NOMBRE_CAMPO: Record<CampoOrdenTienda, string> = {
   nombre: 'Nombre',
   tipo: 'Tipo',
   marca: 'Marca',
-  planogramas: 'Planogramas',
+  versionesPublicadas: 'Planogramas publicados',
   estado: 'Estado',
 };
 
@@ -42,6 +43,7 @@ export function TiendasListado() {
   // `undefined` = modal cerrado; `null` = crear; una tienda = editar.
   const [tiendaEnFormulario, setTiendaEnFormulario] = useState<Tienda | null | undefined>(undefined);
   const [tiendaADesactivar, setTiendaADesactivar] = useState<Tienda | null>(null);
+  const [tiendaConPlanogramas, setTiendaConPlanogramas] = useState<Tienda | null>(null);
 
   const visibles = useMemo(() => {
     const q = filtros.busqueda.trim().toLowerCase();
@@ -95,6 +97,7 @@ export function TiendasListado() {
             onEditar={setTiendaEnFormulario}
             onDesactivar={setTiendaADesactivar}
             onReactivar={reactivar}
+            onVerPlanogramas={setTiendaConPlanogramas}
           />
         )}
       </div>
@@ -108,6 +111,10 @@ export function TiendasListado() {
             recargar();
           }}
         />
+      )}
+
+      {tiendaConPlanogramas && (
+        <PlanogramasTiendaModal tienda={tiendaConPlanogramas} onClose={() => setTiendaConPlanogramas(null)} />
       )}
 
       {tiendaADesactivar && (

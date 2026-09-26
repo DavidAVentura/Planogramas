@@ -1,5 +1,11 @@
 import { httpClient } from './httpClient';
-import type { CrearTiendaInput, EditarTiendaInput, EstadoTienda, Tienda } from '../types/tienda';
+import type {
+  CrearTiendaInput,
+  EditarTiendaInput,
+  EstadoTienda,
+  PlanogramasDeTienda,
+  Tienda,
+} from '../types/tienda';
 
 export interface FiltrosTiendas {
   tipo?: string;
@@ -16,4 +22,6 @@ export const tiendasService = {
   crear: (datos: CrearTiendaInput) => httpClient.post<Tienda>('/tiendas', datos),
 
   editar: (id: number, cambios: EditarTiendaInput) => httpClient.patch<Tienda>(`/tiendas/${id}`, cambios),
+
+  planogramasPublicados: (id: number) => httpClient.get<PlanogramasDeTienda>(`/tiendas/${id}/planogramas`),
 };
