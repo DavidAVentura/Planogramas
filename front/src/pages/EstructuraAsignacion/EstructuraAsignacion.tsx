@@ -29,7 +29,19 @@ import {
 import type { PlanogramaMatriz, TiendaMatriz } from '../../types/asignacion';
 import './EstructuraAsignacion.css';
 
-const FILTROS_INICIALES: FiltrosEstructura = { busqueda: '', departamento: '', tipoTienda: '' };
+const FILTROS_INICIALES: FiltrosEstructura = { busqueda: '', departamento: '', tipoTienda: '', planogramas: [], tiendas: [] };
+
+/** Cuántos valores distintos de `valor` tiene cada `clave` (ej. tiendas por planograma). */
+function contarDistintos<T>(filas: T[], clave: (f: T) => number, valor: (f: T) => number): Map<number, number> {
+  const conjuntos = new Map<number, Set<number>>();
+  filas.forEach((f) => {
+    const k = clave(f);
+    const conjunto = conjuntos.get(k) ?? new Set<number>();
+    conjunto.add(valor(f));
+    conjuntos.set(k, conjunto);
+  });
+  return new Map([...conjuntos].map(([k, s]) => [k, s.size]));
+}
 
 interface MenuAbierto {
   planograma: PlanogramaMatriz;
@@ -82,16 +94,42 @@ export function EstructuraAsignacion() {
     return () => window.removeEventListener('beforeunload', avisar);
   }, [cambios.length]);
 
-  const tiendasVisibles = useMemo(
-    () => (matriz?.tiendas ?? []).filter((t) => !filtros.tipoTienda || t.tipo === filtros.tipoTienda),
-    [matriz, filtros.tipoTienda],
-  );
+  const tiendasVisibles = useMemo(() => {
+    const elegidas = new Set(filtros.tiendas.map((t) => t.id));
+    return (matriz?.tiendas ?? []).filter(
+      (t) => (!filtros.tipoTienda || t.tipo === filtros.tipoTienda) && (elegidas.size === 0 || elegidas.has(t.id)),
+    );
+  }, [matriz, filtros.tipoTienda, filtros.tiendas]);
   const planogramasVisibles = useMemo(() => {
     const q = filtros.busqueda.trim().toLowerCase();
+    const elegidos = new Set(filtros.planogramas.map((p) => p.id));
     return (matriz?.planogramas ?? []).filter(
-      (p) => (!filtros.departamento || p.departamento === filtros.departamento) && (!q || p.nombre.toLowerCase().includes(q)),
+      (p) =>
+        (!filtros.departamento || p.departamento === filtros.departamento) &&
+        (!q || p.nombre.toLowerCase().includes(q)) &&
+        (elegidos.size === 0 || elegidos.has(p.id)),
     );
-  }, [matriz, filtros.busqueda, filtros.departamento]);
+  }, [matriz, filtros.busqueda, filtros.departamento, filtros.planogramas]);
+
+  // Opciones de los modales de filtro: siempre la matriz completa, con sus asignaciones guardadas.
+  const opcionesPlanogramas = useMemo(
+    () =>
+      (matriz?.planogramas ?? []).map((p) => ({
+        id: p.id,
+        nombre: p.nombre,
+        departamento: p.departamento,
+        totalVersiones: p.versiones.length,
+      })),
+    [matriz],
+  );
+  const tiendasPorPlanograma = useMemo(
+    () => contarDistintos(matriz?.asignaciones ?? [], (a) => a.planogramaId, (a) => a.tiendaId),
+    [matriz],
+  );
+  const planogramasPorTienda = useMemo(
+    () => contarDistintos(matriz?.asignaciones ?? [], (a) => a.tiendaId, (a) => a.planogramaId),
+    [matriz],
+  );
   const departamentos = useMemo(
     () => [...new Set((matriz?.planogramas ?? []).map((p) => p.departamento))].sort((a, b) => a.localeCompare(b, 'es')),
     [matriz],
@@ -206,6 +244,10 @@ export function EstructuraAsignacion() {
           editable={puedeEscribir}
           filtros={filtros}
           departamentos={departamentos}
+          planogramas={opcionesPlanogramas}
+          tiendas={matriz?.tiendas ?? []}
+          tiendasPorPlanograma={{ porId: tiendasPorPlanograma, singular: 'tienda', plural: 'tiendas' }}
+          planogramasPorTienda={{ porId: planogramasPorTienda, singular: 'planograma', plural: 'planogramas' }}
           onPincel={setPincel}
           onModoPiloto={setModoPiloto}
           onFiltros={(parciales) => setFiltros((f) => ({ ...f, ...parciales }))}
@@ -221,7 +263,11 @@ export function EstructuraAsignacion() {
           <EmptyState titulo="Ningún planograma coincide con los filtros" />
         )}
 
-        {matriz && planogramasVisibles.length > 0 && (
+        {matriz && planogramasVisibles.length > 0 && tiendasVisibles.length === 0 && (
+          <EmptyState titulo="Ninguna tienda coincide con los filtros" />
+        )}
+
+        {matriz && planogramasVisibles.length > 0 && tiendasVisibles.length > 0 && (
           <MatrizAsignaciones
             planogramas={planogramasVisibles}
             tiendas={tiendasVisibles}

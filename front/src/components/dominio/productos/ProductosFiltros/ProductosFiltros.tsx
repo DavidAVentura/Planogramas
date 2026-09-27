@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '../../../ui/Button/Button';
-import { FiltroPlanogramasModal } from '../../modales/FiltroPlanogramasModal/FiltroPlanogramasModal';
+import { BotonSeleccionMultiple } from '../../../ui/BotonSeleccionMultiple/BotonSeleccionMultiple';
+import { SeleccionPlanogramasModal } from '../../modales/SeleccionPlanogramasModal/SeleccionPlanogramasModal';
 import { useJerarquia, useJerarquiaExploracion } from '../../../../hooks/useJerarquia';
 import {
   FILTROS_PRODUCTOS_INICIALES,
@@ -104,19 +105,13 @@ export function ProductosFiltros({
 
         <div className="productos-filtros__campo">
           <span id="productos-filtros-planograma">Planograma</span>
-          <button
-            type="button"
-            className={`productos-filtros__disparador${filtros.planogramas.length > 0 ? ' productos-filtros__disparador--activo' : ''}`}
-            aria-labelledby="productos-filtros-planograma"
-            aria-haspopup="dialog"
+          <BotonSeleccionMultiple
+            seleccionados={filtros.planogramas}
+            textoVacio="Todos"
+            plural="planogramas"
+            ariaLabelledby="productos-filtros-planograma"
             onClick={() => setModalPlanogramas(true)}
-          >
-            {filtros.planogramas.length === 0
-              ? 'Todos'
-              : filtros.planogramas.length === 1
-                ? filtros.planogramas[0].nombre
-                : `${filtros.planogramas.length} planogramas`}
-          </button>
+          />
         </div>
 
         <label className="productos-filtros__campo">
@@ -199,9 +194,9 @@ export function ProductosFiltros({
       </div>
 
       {modalPlanogramas && (
-        <FiltroPlanogramasModal
+        <SeleccionPlanogramasModal
           seleccionados={filtros.planogramas}
-          productosPorPlanograma={productosPorPlanograma}
+          conteo={{ porId: productosPorPlanograma, singular: 'producto', plural: 'productos' }}
           onAplicar={(planogramas) => onChange({ planogramas })}
           onClose={() => setModalPlanogramas(false)}
         />

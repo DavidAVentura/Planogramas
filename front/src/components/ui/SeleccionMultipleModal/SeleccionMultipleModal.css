@@ -1,11 +1,11 @@
-.filtro-planogramas__controles {
+.seleccion-multiple__controles {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
 }
 
-.filtro-planogramas__busqueda {
+.seleccion-multiple__busqueda {
   flex: 1;
   min-width: 220px;
   height: 40px;
@@ -22,7 +22,7 @@
   }
 }
 
-.filtro-planogramas__orden {
+.seleccion-multiple__orden {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -32,7 +32,7 @@
   > span { margin-right: 4px; }
 }
 
-.filtro-planogramas__orden-btn {
+.seleccion-multiple__orden-btn {
   height: 32px;
   padding: 0 10px;
   border: 1px solid var(--border);
@@ -46,7 +46,7 @@
   &:hover { background: var(--ink-50); }
 }
 
-.filtro-planogramas__orden-btn--activo {
+.seleccion-multiple__orden-btn--activo {
   border-color: var(--cemaco-indigo);
   background: var(--cemaco-indigo-50);
   color: var(--cemaco-indigo);
@@ -55,7 +55,7 @@
   &:hover { background: var(--cemaco-indigo-50); }
 }
 
-.filtro-planogramas__lista {
+.seleccion-multiple__lista {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -66,7 +66,7 @@
   padding: 6px;
 }
 
-.filtro-planogramas__fila {
+.seleccion-multiple__fila {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -81,14 +81,14 @@
   input { flex: none; }
 }
 
-.filtro-planogramas__fila--todos {
+.seleccion-multiple__fila--todos {
   font-weight: 600;
   border-bottom: 1px solid var(--border-subtle);
   border-radius: 0;
   margin-bottom: 4px;
 }
 
-.filtro-planogramas__nombre {
+.seleccion-multiple__nombre {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -96,12 +96,12 @@
   gap: 2px;
 }
 
-.filtro-planogramas__departamento {
+.seleccion-multiple__detalle {
   font-size: 12px;
   color: var(--fg-3);
 }
 
-.filtro-planogramas__meta {
+.seleccion-multiple__meta {
   flex: none;
   font-size: 12px;
   color: var(--fg-3);
@@ -109,14 +109,14 @@
   text-align: right;
 }
 
-.filtro-planogramas__conteo {
+.seleccion-multiple__conteo {
   margin-right: auto;
   align-self: center;
   font-size: 13px;
   color: var(--fg-2);
 }
 
-.filtro-planogramas__cargando {
+.seleccion-multiple__cargando {
   font-size: 14px;
   color: var(--fg-3);
   text-align: center;
@@ -124,5 +124,5 @@
 }
 
 @media (width <= 640px) {
-  .filtro-planogramas__meta:last-child { display: none; }
+  .seleccion-multiple__meta:last-child { display: none; }
 }

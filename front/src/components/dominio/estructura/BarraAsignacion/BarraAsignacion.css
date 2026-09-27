@@ -188,10 +188,15 @@
 }
 
 .barra-asignacion__filtros {
+  --boton-seleccion-alto: 38px;
+
   display: flex;
-  flex: none;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
   gap: 8px;
+
+  .boton-seleccion { max-width: 200px; }
 
   input,
   select {

@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Modal } from '../../../ui/Modal/Modal';
+import { BotonSeleccionMultiple } from '../../../ui/BotonSeleccionMultiple/BotonSeleccionMultiple';
+import type { ConteoPorElemento, ElementoSeleccionado } from '../../../ui/SeleccionMultipleModal/SeleccionMultipleModal';
+import {
+  SeleccionPlanogramasModal,
+  type PlanogramaSeleccionable,
+} from '../../modales/SeleccionPlanogramasModal/SeleccionPlanogramasModal';
+import { SeleccionTiendasModal, type TiendaSeleccionable } from '../../modales/SeleccionTiendasModal/SeleccionTiendasModal';
 import type { Pincel } from '../../../../domain/estructura/asignaciones';
 import type { TipoTienda } from '../../../../types/tienda';
 import './BarraAsignacion.css';
@@ -9,6 +16,10 @@ export interface FiltrosEstructura {
   busqueda: string;
   departamento: string;
   tipoTienda: TipoTienda | '';
+  /** Vacío = todos. */
+  planogramas: ElementoSeleccionado[];
+  /** Vacío = todas. */
+  tiendas: ElementoSeleccionado[];
 }
 
 interface BarraAsignacionProps {
@@ -17,6 +28,11 @@ interface BarraAsignacionProps {
   editable: boolean;
   filtros: FiltrosEstructura;
   departamentos: string[];
+  /** Opciones de los modales de filtro, con cuántas asignaciones tiene cada una. */
+  planogramas: PlanogramaSeleccionable[];
+  tiendas: TiendaSeleccionable[];
+  tiendasPorPlanograma: ConteoPorElemento;
+  planogramasPorTienda: ConteoPorElemento;
   onPincel: (pincel: Pincel) => void;
   onModoPiloto: (piloto: boolean) => void;
   onFiltros: (parciales: Partial<FiltrosEstructura>) => void;
@@ -60,11 +76,16 @@ export function BarraAsignacion({
   editable,
   filtros,
   departamentos,
+  planogramas,
+  tiendas,
+  tiendasPorPlanograma,
+  planogramasPorTienda,
   onPincel,
   onModoPiloto,
   onFiltros,
 }: BarraAsignacionProps) {
   const [ayudaAbierta, setAyudaAbierta] = useState(false);
+  const [selectorAbierto, setSelectorAbierto] = useState<'planogramas' | 'tiendas' | null>(null);
 
   return (
     <div className="barra-asignacion">
@@ -150,10 +171,24 @@ export function BarraAsignacion({
             ))}
           </select>
         </label>
+        <BotonSeleccionMultiple
+          seleccionados={filtros.planogramas}
+          textoVacio="Todos los planogramas"
+          plural="planogramas"
+          ariaLabel="Filtrar por planograma"
+          onClick={() => setSelectorAbierto('planogramas')}
+        />
+        <BotonSeleccionMultiple
+          seleccionados={filtros.tiendas}
+          textoVacio="Todas las tiendas"
+          plural="tiendas"
+          ariaLabel="Filtrar por tienda"
+          onClick={() => setSelectorAbierto('tiendas')}
+        />
         <label>
           <span className="barra-asignacion__oculto">Tipo de tienda</span>
           <select value={filtros.tipoTienda} onChange={(e) => onFiltros({ tipoTienda: e.target.value as TipoTienda | '' })}>
-            <option value="">Todas las tiendas</option>
+            <option value="">Todos los tipos</option>
             <option value="GRANDE">Grandes</option>
             <option value="MEDIANA">Medianas</option>
             <option value="EXPRESS">Express</option>
@@ -162,6 +197,26 @@ export function BarraAsignacion({
       </div>
 
       {ayudaAbierta && <ModalAyudaAsignar onClose={() => setAyudaAbierta(false)} />}
+
+      {selectorAbierto === 'planogramas' && (
+        <SeleccionPlanogramasModal
+          planogramas={planogramas}
+          seleccionados={filtros.planogramas}
+          conteo={tiendasPorPlanograma}
+          onAplicar={(seleccion) => onFiltros({ planogramas: seleccion })}
+          onClose={() => setSelectorAbierto(null)}
+        />
+      )}
+
+      {selectorAbierto === 'tiendas' && (
+        <SeleccionTiendasModal
+          tiendas={tiendas}
+          seleccionados={filtros.tiendas}
+          conteo={planogramasPorTienda}
+          onAplicar={(seleccion) => onFiltros({ tiendas: seleccion })}
+          onClose={() => setSelectorAbierto(null)}
+        />
+      )}
     </div>
   );
 }
