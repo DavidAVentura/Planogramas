@@ -19,7 +19,6 @@ const NOMBRE_CAMPO: Record<CampoOrdenProducto, string> = {
   sku: 'SKU',
   nombre: 'Producto',
   jerarquia: 'Jerarquía',
-  precio: 'Precio',
   planogramas: 'Planogramas',
   estado: 'Estado',
 };

@@ -5,7 +5,6 @@ import { ProductoApariciones } from '../ProductoApariciones/ProductoApariciones'
 import { ESTADO_PRODUCTO_META, MODO_APARICION_META, MODOS_APARICION } from '../../../../constants/productos';
 import type { CampoOrdenProducto, CriterioOrden } from '../../../../domain/productos/ordenProductos';
 import type { ProductoListado } from '../../../../types/producto';
-import { formatearPrecio } from '../../../../utils/formatters';
 import './ProductosTable.css';
 
 // La tabla local guarda área/departamento/subcategoría con su código de CATI al final
@@ -63,16 +62,6 @@ const COLUMNAS: ColumnaOrdenable[] = [
         </div>
       );
     },
-  },
-  {
-    campo: 'precio',
-    header: 'Precio',
-    alinear: 'right',
-    render: (p) => (
-      <span className={`productos-table__precio${p.precio === null ? ' productos-table__precio--vacio' : ''}`}>
-        {p.precio === null ? 'Sin precio' : formatearPrecio(p.precio)}
-      </span>
-    ),
   },
   {
     campo: 'planogramas',
