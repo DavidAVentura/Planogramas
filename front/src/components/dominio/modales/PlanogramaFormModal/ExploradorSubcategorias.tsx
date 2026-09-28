@@ -10,8 +10,8 @@ import './ExploradorSubcategorias.css';
 interface ExploradorSubcategoriasProps {
   /** Id de departamento (CATI) ya elegido en la columna del formulario; vacío deshabilita el explorador. */
   departamentoId: string;
-  /** Recibe "(id) nombre" para que el id de la subcategoría quede disponible en otras partes. */
-  onAgregar: (subcategoriaConId: string) => void;
+  /** Recibe cada subcategoría como "(id) nombre" para que el id quede disponible en otras partes. */
+  onAgregar: (subcategoriasConId: string[]) => void;
 }
 
 export function ExploradorSubcategorias({ departamentoId, onAgregar }: ExploradorSubcategoriasProps) {
@@ -30,12 +30,28 @@ export function ExploradorSubcategorias({ departamentoId, onAgregar }: Explorado
 
   const [familiaId, setFamiliaId] = useState('');
   const [categoriaId, setCategoriaId] = useState('');
+  // Clic simple = subcategoría en vista previa (solo muestra sus productos).
   const [subcategoriaId, setSubcategoriaId] = useState('');
+  // Doble clic = subcategorías marcadas para añadir; se conservan al navegar entre categorías.
+  const [seleccionadas, setSeleccionadas] = useState<Map<string, string>>(new Map());
 
-  const subcategoriaNombre = subcategorias.find((s) => s.id === subcategoriaId)?.name ?? '';
+  function alternarSeleccion(id: string, nombre: string) {
+    setSeleccionadas((prev) => {
+      const siguiente = new Map(prev);
+      if (siguiente.has(id)) siguiente.delete(id);
+      else siguiente.set(id, nombre);
+      return siguiente;
+    });
+  }
+
+  function agregarSeleccionadas() {
+    onAgregar([...seleccionadas].map(([id, nombre]) => `(${id}) ${nombre}`));
+    setSeleccionadas(new Map());
+  }
 
   useEffect(() => {
     setFamiliaId('');
+    setSeleccionadas(new Map());
     cargarFamilias(departamentoId);
   }, [departamentoId, cargarFamilias]);
 
@@ -109,6 +125,9 @@ export function ExploradorSubcategorias({ departamentoId, onAgregar }: Explorado
       {categoriaId && (
         <section className="explorador-subcategorias__nivel">
           <span className="explorador-subcategorias__etiqueta">Subcategoría</span>
+          <span className="explorador-subcategorias__ayuda">
+            Clic para ver sus productos · doble clic para seleccionarla (o quitarla)
+          </span>
           <div className="explorador-subcategorias__chips">
             {cargandoSubcategorias && <span className="explorador-subcategorias__ayuda">Cargando…</span>}
             {subcategorias.map((subcategoria) => (
@@ -117,14 +136,39 @@ export function ExploradorSubcategorias({ departamentoId, onAgregar }: Explorado
                 type="button"
                 className={
                   'explorador-subcategorias__chip explorador-subcategorias__chip--subcategoria' +
-                  (subcategoria.id === subcategoriaId ? ' explorador-subcategorias__chip--activa' : '')
+                  (subcategoria.id === subcategoriaId ? ' explorador-subcategorias__chip--vista' : '') +
+                  (seleccionadas.has(subcategoria.id) ? ' explorador-subcategorias__chip--seleccionada' : '')
                 }
+                aria-pressed={seleccionadas.has(subcategoria.id)}
                 onClick={() => setSubcategoriaId(subcategoria.id)}
+                onDoubleClick={() => alternarSeleccion(subcategoria.id, subcategoria.name)}
               >
                 {subcategoria.name}
               </button>
             ))}
           </div>
+        </section>
+      )}
+
+      {seleccionadas.size > 0 && (
+        <section className="explorador-subcategorias__nivel">
+          <span className="explorador-subcategorias__etiqueta">Seleccionadas ({seleccionadas.size})</span>
+          <div className="explorador-subcategorias__chips">
+            {[...seleccionadas].map(([id, nombre]) => (
+              <button
+                key={id}
+                type="button"
+                className="explorador-subcategorias__chip explorador-subcategorias__chip--seleccionada"
+                title="Quitar de la selección"
+                onClick={() => alternarSeleccion(id, nombre)}
+              >
+                {nombre} &times;
+              </button>
+            ))}
+          </div>
+          <Button type="button" className="explorador-subcategorias__agregar" onClick={agregarSeleccionadas}>
+            + Añadir {seleccionadas.size === 1 ? 'subcat' : `${seleccionadas.size} subcats`} al planograma
+          </Button>
         </section>
       )}
 
@@ -155,13 +199,6 @@ export function ExploradorSubcategorias({ departamentoId, onAgregar }: Explorado
               </p>
             }
           />
-          <Button
-            type="button"
-            className="explorador-subcategorias__agregar"
-            onClick={() => onAgregar(`(${subcategoriaId}) ${subcategoriaNombre}`)}
-          >
-            + Añadir subcat al planograma
-          </Button>
         </section>
       )}
     </div>

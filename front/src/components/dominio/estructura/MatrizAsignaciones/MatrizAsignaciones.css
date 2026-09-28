@@ -1,0 +1,322 @@
+.matriz-asignaciones {
+  --ancho-planograma: 250px;
+  --ancho-cobertura: 76px;
+
+  overflow: auto;
+  max-height: calc(100vh - 290px);
+  min-height: 320px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  user-select: none;
+}
+
+.matriz-asignaciones__fila {
+  display: grid;
+  grid-template-columns: var(--ancho-planograma) repeat(var(--columnas), minmax(104px, 1fr)) var(--ancho-cobertura);
+  align-items: center;
+  min-width: fit-content;
+  border-bottom: 1px solid var(--border-subtle);
+
+  &:hover { background: #fbfcfa; }
+}
+
+.matriz-asignaciones__fila--encabezado {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  align-items: stretch;
+  background: var(--bg);
+  border-bottom-color: var(--border);
+
+  &:hover { background: var(--bg); }
+}
+
+.matriz-asignaciones__esquina {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  padding: 10px 16px;
+  background: var(--bg);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+/* Vista extendida: la matriz crece hasta llenar el alto que deja el contenedor flex de la página. */
+.matriz-asignaciones--extendida {
+  flex: 1 1 auto;
+  max-height: none;
+  min-height: 0;
+}
+
+/* La esquina "Planograma activo" es el botón de la vista extendida (doble clic). */
+.matriz-asignaciones__esquina:has(.matriz-asignaciones__extender) {
+  padding: 6px 8px;
+}
+
+.matriz-asignaciones__extender {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: zoom-in;
+
+  svg {
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &:hover {
+    background: var(--cemaco-indigo-50);
+    color: var(--cemaco-indigo);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 2px;
+  }
+
+  &[aria-pressed='true'] { cursor: zoom-out; }
+}
+
+.matriz-asignaciones__esquina--fin {
+  position: static;
+  justify-content: flex-end;
+}
+
+.matriz-asignaciones__tienda {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 4px 8px;
+  border-top: 3px solid var(--cemaco-indigo);
+  text-align: center;
+}
+
+.matriz-asignaciones__tienda--mediana { border-top-color: var(--cemaco-green-600); }
+.matriz-asignaciones__tienda--express { border-top-color: var(--accent-sun); }
+
+/* Vista extendida: una sola línea con el código y los planogramas asignados. */
+.matriz-asignaciones__tienda--compacta {
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+}
+
+/* Vista extendida: encabezado de una sola línea, con "Planograma activo", los códigos y "Tiendas"
+   centrados a la misma altura. */
+.matriz-asignaciones--extendida {
+  .matriz-asignaciones__esquina,
+  .matriz-asignaciones__esquina:has(.matriz-asignaciones__extender) {
+    align-items: center;
+    padding-top: 2px;
+    padding-bottom: 2px;
+  }
+
+  .matriz-asignaciones__extender {
+    align-items: center;
+    min-height: 30px;
+    padding: 2px 8px;
+  }
+}
+
+.matriz-asignaciones__tienda-asignadas {
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-3);
+}
+
+.matriz-asignaciones__tienda-codigo {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg-1);
+}
+
+.matriz-asignaciones__tienda-nombre {
+  min-height: 29px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--fg-2);
+}
+
+.matriz-asignaciones__tienda-tipo {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.matriz-asignaciones__planograma {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-self: stretch;
+  justify-content: center;
+  padding: 8px 16px;
+  background: var(--bg-elevated);
+}
+
+.matriz-asignaciones__planograma-nombre {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--fg-1);
+}
+
+.matriz-asignaciones__planograma-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--fg-3);
+}
+
+.matriz-asignaciones__hueco {
+  display: flex;
+  justify-content: center;
+  padding: 5px 4px;
+}
+
+.matriz-asignaciones__celda {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 100%;
+  max-width: 116px;
+  height: 48px;
+  border: 1px solid;
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+
+  &:hover { box-shadow: 0 0 0 2px var(--cemaco-indigo); }
+  &:active { transform: scale(0.96); }
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 2px;
+  }
+}
+
+.matriz-asignaciones__celda--tg {
+  background: var(--cemaco-indigo-50);
+  border-color: var(--cemaco-indigo-200);
+  color: var(--cemaco-indigo);
+}
+
+.matriz-asignaciones__celda--tm {
+  background: var(--cemaco-green-50);
+  border-color: #cfe79a;
+  color: var(--cemaco-green-700);
+}
+
+.matriz-asignaciones__celda--te {
+  background: var(--warning-bg);
+  border-color: #ecd689;
+  color: #7a5900;
+}
+
+.matriz-asignaciones__celda--esp {
+  background: #fff1e5;
+  border-color: #f2c59c;
+  color: #9a4a00;
+}
+
+.matriz-asignaciones__celda--piloto {
+  background: #f3edfb;
+  border-color: #cdb5ec;
+  color: #5b2d91;
+}
+
+.matriz-asignaciones__celda--vacia {
+  background: var(--bg-elevated);
+  border-style: dashed;
+  border-color: var(--border-strong);
+  color: var(--fg-4);
+}
+
+.matriz-asignaciones__celda--bloqueada {
+  cursor: not-allowed;
+
+  &:hover { box-shadow: none; }
+  &:active { transform: none; }
+}
+
+.matriz-asignaciones__celda--lectura {
+  cursor: context-menu;
+
+  &:hover { box-shadow: none; }
+  &:active { transform: none; }
+}
+
+.matriz-asignaciones__detalle {
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.matriz-asignaciones__marca-cambio {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--cemaco-indigo);
+  box-shadow: 0 0 0 2px var(--white);
+}
+
+.matriz-asignaciones__marca-distinta {
+  position: absolute;
+  top: 4px;
+  left: 5px;
+  fill: none;
+  stroke: #9a4a00;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+
+.matriz-asignaciones__cobertura {
+  padding: 0 16px;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--fg-2);
+}
+
+.matriz-asignaciones__cobertura--completa { color: var(--cemaco-green-700); }
+.matriz-asignaciones__cobertura--nula { color: #9a4a00; }

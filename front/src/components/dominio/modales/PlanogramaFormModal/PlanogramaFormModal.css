@@ -1,3 +1,21 @@
+/* Header y footer fijos; solo el cuerpo hace scroll para que Cancelar/Guardar siempre se vean. */
+.planograma-form-modal {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  .modal__header,
+  .modal__footer {
+    flex-shrink: 0;
+  }
+
+  .modal__body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+}
+
 .planograma-form {
   display: flex;
   flex-direction: column;
@@ -5,14 +23,21 @@
 }
 
 .planograma-form__layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Nombre | área y departamento, en una sola fila. */
+.planograma-form__fila {
   display: grid;
-  grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
-  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
   align-items: start;
 }
 
-@media (max-width: 720px) {
-  .planograma-form__layout {
+@media (max-width: 860px) {
+  .planograma-form__fila {
     grid-template-columns: 1fr;
   }
 }
@@ -23,18 +48,10 @@
   gap: 16px;
 }
 
-.planograma-form__columna--exploracion {
-  padding-left: 24px;
-  border-left: 1px solid var(--border-subtle);
-}
-
-@media (max-width: 720px) {
-  .planograma-form__columna--exploracion {
-    padding-left: 0;
-    padding-top: 20px;
-    border-left: 0;
-    border-top: 1px solid var(--border-subtle);
-  }
+/* Explorador a todo el ancho, debajo de los campos. */
+.planograma-form__exploracion {
+  padding-top: 20px;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .planograma-form__campo {

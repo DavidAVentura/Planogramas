@@ -1,0 +1,39 @@
+.boton-texto-a-voz {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--fg-2);
+  cursor: pointer;
+  transition: border-color var(--dur-fast), color var(--dur-fast);
+}
+
+.boton-texto-a-voz:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.boton-texto-a-voz:hover:not(:disabled),
+.boton-texto-a-voz--activo {
+  border-color: var(--cemaco-indigo);
+  color: var(--cemaco-indigo);
+}
+
+.boton-texto-a-voz__spinner {
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--border);
+  border-top-color: var(--cemaco-indigo);
+  border-radius: 50%;
+  animation: boton-texto-a-voz-girar 0.7s linear infinite;
+}
+
+@keyframes boton-texto-a-voz-girar {
+  to { transform: rotate(360deg); }
+}

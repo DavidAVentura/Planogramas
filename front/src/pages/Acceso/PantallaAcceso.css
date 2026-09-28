@@ -1,0 +1,76 @@
+.pantalla-acceso {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: var(--bg);
+}
+
+.pantalla-acceso__tarjeta {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 32px 28px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.pantalla-acceso__marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+  text-align: left;
+}
+
+.pantalla-acceso__isotipo {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  display: block;
+}
+
+.pantalla-acceso__app {
+  font-family: var(--font-display);
+  font-size: 15px;
+  line-height: 1.1;
+}
+
+.pantalla-acceso__eyebrow {
+  font-size: 10px;
+  color: var(--fg-3);
+  letter-spacing: 0.03em;
+}
+
+.pantalla-acceso__titulo {
+  font-size: 20px;
+  color: var(--fg-1);
+}
+
+.pantalla-acceso__mensaje {
+  margin: 0;
+  font-size: 14px;
+  color: var(--fg-2);
+}
+
+.pantalla-acceso__spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--ink-200);
+  border-top-color: var(--cemaco-indigo);
+  border-radius: 50%;
+  animation: pantalla-acceso-giro 0.8s linear infinite;
+}
+
+@keyframes pantalla-acceso-giro {
+  to {
+    transform: rotate(360deg);
+  }
+}

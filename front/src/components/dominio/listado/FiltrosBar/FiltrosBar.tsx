@@ -13,11 +13,14 @@ const OPCIONES_ESTADO: { value: PlanogramaEstado | ''; label: string }[] = [
 ];
 
 interface FiltrosBarProps {
+  id: string;
   filtros: ListarPlanogramasFiltros;
   onChange: (parciales: Partial<ListarPlanogramasFiltros>) => void;
+  /** Contraída se oculta pero sigue montada, para no perder el área elegida ni la búsqueda a medio escribir. */
+  visible: boolean;
 }
 
-export function FiltrosBar({ filtros, onChange }: FiltrosBarProps) {
+export function FiltrosBar({ id, filtros, onChange, visible }: FiltrosBarProps) {
   const { areas, departamentos, cargandoDepartamentos, cargarDepartamentos } = useJerarquia();
   const [area, setArea] = useState('');
   // El <select> de CascadingSelect trabaja con el id de CATI; Planograma.departamento se
@@ -40,7 +43,7 @@ export function FiltrosBar({ filtros, onChange }: FiltrosBarProps) {
   }
 
   return (
-    <div className="filtros-bar">
+    <div id={id} className="filtros-bar" hidden={!visible}>
       <CascadingSelect
         areas={areas}
         departamentos={departamentos}
@@ -60,7 +63,7 @@ export function FiltrosBar({ filtros, onChange }: FiltrosBarProps) {
       />
 
       <label className="filtros-bar__campo">
-        <span>Estado</span>
+        <span className="filtros-bar__oculto">Estado</span>
         <select
           className="filtros-bar__estado"
           value={filtros.estado ?? ''}
@@ -75,7 +78,7 @@ export function FiltrosBar({ filtros, onChange }: FiltrosBarProps) {
       </label>
 
       <label className="filtros-bar__campo filtros-bar__campo--busqueda">
-        <span>Buscar</span>
+        <span className="filtros-bar__oculto">Buscar</span>
         <input
           className="filtros-bar__busqueda"
           type="search"

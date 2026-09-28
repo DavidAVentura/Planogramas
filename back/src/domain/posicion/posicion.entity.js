@@ -10,8 +10,14 @@ const ESTADOS_VERSION_EDITABLE = Object.freeze(['borrador', 'en_desarrollo', 'pi
 /** Valores permitidos de perfil_redondeo: MRP (no se rompe empaque) | ZSRE (se puede romper). */
 const PERFILES_REDONDEO = Object.freeze(['MRP', 'ZSRE']);
 
-/** Valores permitidos de modo. */
-const MODOS = Object.freeze(['PLANOGRAMA', 'CROSS']);
+/**
+ * Valores permitidos de modo. IMPULSO = exhibición de compra por impulso (ej. cajas); la columna
+ * es varchar(20) sin CHECK, así que no requiere migración.
+ */
+const MODOS = Object.freeze(['PLANOGRAMA', 'CROSS', 'IMPULSO', 'PENDIENTE']);
+
+/** Confidence de una posición confirmada por el usuario (máximo, sin incertidumbre). */
+const CONFIDENCE_CONFIRMADO = 100;
 
 /** Valores permitidos de decision. */
 const DECISIONES = Object.freeze(['ACTIVO', 'INACTIVO']);
@@ -82,13 +88,31 @@ function calcularAdvertenciaEspacio({ anchoOcupado, anchoNuevo, anchoDisponible 
   return null;
 }
 
+/**
+ * Recalcula el ancho asignado a partir de los facings y el ancho físico del producto
+ * (facings × ancho_cm) — mismo criterio que el front (`utils/posicionCalculos.ts`,
+ * usado en "cambiar facings"). Si no hay ancho de producto conocido, mantiene el ancho
+ * actual sin recalcular — evita que asignar un SKU deje la posición dibujada más angosta
+ * (o más ancha) que el producto real.
+ * @param {number} facings
+ * @param {number|null|undefined} anchoProductoCm
+ * @param {number} anchoActualCm
+ * @returns {number}
+ */
+function calcularAnchoAsignado(facings, anchoProductoCm, anchoActualCm) {
+  if (!facings || !anchoProductoCm) return anchoActualCm;
+  return facings * anchoProductoCm;
+}
+
 module.exports = {
   ESTADOS_VERSION_EDITABLE,
   PERFILES_REDONDEO,
   MODOS,
+  CONFIDENCE_CONFIRMADO,
   DECISIONES,
   validarVersionEditable,
   validarDesborde,
   validarMinMax,
   calcularAdvertenciaEspacio,
+  calcularAnchoAsignado,
 };

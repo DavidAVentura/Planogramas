@@ -1,0 +1,64 @@
+.tiendas-listado__contenido {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Conteo, orden y acciones arriba; abajo, los filtros desplegables (mismo patrón que Estructura). */
+.tiendas-listado__barra {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.tiendas-listado__cabecera {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  /* El botón de filtros empuja "Crear" al extremo derecho. */
+  .boton-filtros { margin-left: auto; }
+}
+
+.tiendas-listado__resumen {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tiendas-listado__conteo {
+  font-size: 14px;
+  color: var(--fg-2);
+  font-weight: 600;
+}
+
+.tiendas-listado__orden {
+  font-size: 13px;
+  color: var(--fg-3);
+  white-space: pre;
+
+  strong {
+    color: var(--fg-1);
+    font-weight: 600;
+  }
+}
+
+.tiendas-listado__restablecer {
+  border: 0;
+  background: transparent;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cemaco-indigo);
+  cursor: pointer;
+
+  &:hover { background: var(--cemaco-indigo-50); }
+}

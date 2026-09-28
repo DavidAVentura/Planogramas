@@ -45,10 +45,14 @@ export function PlanogramaFormModal({ planogramaId, onClose, onGuardado }: Plano
     cargarDepartamentos(area);
   }, [area, cargarDepartamentos]);
 
-  function agregarSubcategoria(nombreNueva: string) {
-    if (!nombreNueva || subcategorias.includes(nombreNueva)) return;
-    setSubcategorias([...subcategorias, nombreNueva]);
-    mostrarToast(`"${nombreNueva}" agregada`, 'success');
+  function agregarSubcategorias(nombresNuevos: string[]) {
+    const nuevas = nombresNuevos.filter((n) => n && !subcategorias.includes(n));
+    if (nuevas.length === 0) return;
+    setSubcategorias([...subcategorias, ...nuevas]);
+    mostrarToast(
+      nuevas.length === 1 ? `"${nuevas[0]}" agregada` : `${nuevas.length} subcategorías agregadas`,
+      'success',
+    );
   }
 
   const nombreValido = nombre.trim().length > 0;
@@ -73,6 +77,7 @@ export function PlanogramaFormModal({ planogramaId, onClose, onGuardado }: Plano
       titulo={editando ? 'Editar planograma' : 'Crear planograma'}
       onClose={onClose}
       ancho="xl"
+      claseModal="planograma-form-modal"
       footer={
         <>
           <Button variante="outline" onClick={onClose} disabled={enviando}>
@@ -89,47 +94,47 @@ export function PlanogramaFormModal({ planogramaId, onClose, onGuardado }: Plano
       ) : (
         <form id="planograma-form" className="planograma-form" onSubmit={onSubmit}>
           <div className="planograma-form__layout">
-            <div className="planograma-form__columna">
-              <label className="planograma-form__campo">
-                <span>Nombre</span>
-                <input value={nombre} onChange={(e) => setNombre(e.target.value)} required />
-              </label>
+            <div className="planograma-form__fila">
+              <div className="planograma-form__columna">
+                <label className="planograma-form__campo">
+                  <span>Nombre</span>
+                  <input value={nombre} onChange={(e) => setNombre(e.target.value)} required />
+                </label>
 
-              {editando && (
-                <p className="planograma-form__depto-actual">
-                  Departamento actual: <strong>{planograma?.departamento}</strong>
-                </p>
-              )}
-
-              <div className="planograma-form__campo">
-                <span>{editando ? 'Cambiar departamento (opcional)' : 'Área y departamento'}</span>
-                <CascadingSelect
-                  areas={areas}
-                  departamentos={departamentos}
-                  areaValue={area}
-                  departamentoValue={departamentoId}
-                  cargandoDepartamentos={cargandoDepartamentos}
-                  requerido={!editando}
-                  onAreaChange={(areaId) => {
-                    setArea(areaId);
-                    setDepartamentoId('');
-                  }}
-                  onDepartamentoChange={setDepartamentoId}
-                />
+                {editando && (
+                  <p className="planograma-form__depto-actual">
+                    Departamento actual: <strong>{planograma?.departamento}</strong> · elegí otro solo para cambiarlo
+                  </p>
+                )}
               </div>
 
-              <label className="planograma-form__campo">
-                <span>Subcategorías de referencia</span>
-                <ChipInput
-                  valores={subcategorias}
-                  onChange={setSubcategorias}
-                  placeholder="Escribí y presioná Enter"
-                />
-              </label>
+              {/* Sin título de grupo: las etiquetas Área/Departamento quedan a la altura de "Nombre". */}
+              <CascadingSelect
+                areas={areas}
+                departamentos={departamentos}
+                areaValue={area}
+                departamentoValue={departamentoId}
+                cargandoDepartamentos={cargandoDepartamentos}
+                requerido={!editando}
+                onAreaChange={(areaId) => {
+                  setArea(areaId);
+                  setDepartamentoId('');
+                }}
+                onDepartamentoChange={setDepartamentoId}
+              />
             </div>
 
-            <div className="planograma-form__columna planograma-form__columna--exploracion">
-              <ExploradorSubcategorias departamentoId={departamentoId} onAgregar={agregarSubcategoria} />
+            <label className="planograma-form__campo">
+              <span>Subcategorías de referencia</span>
+              <ChipInput
+                valores={subcategorias}
+                onChange={setSubcategorias}
+                placeholder="Escribí y presioná Enter"
+              />
+            </label>
+
+            <div className="planograma-form__exploracion">
+              <ExploradorSubcategorias departamentoId={departamentoId} onAgregar={agregarSubcategorias} />
             </div>
           </div>
         </form>

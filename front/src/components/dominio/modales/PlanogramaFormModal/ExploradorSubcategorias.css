@@ -33,6 +33,7 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  user-select: none;
   background: #fff;
   color: var(--fg-1);
   transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out),
@@ -49,10 +50,21 @@
   color: var(--white);
 }
 
-.explorador-subcategorias__chip--subcategoria.explorador-subcategorias__chip--activa {
+/* Vista previa (clic simple): solo resalta, no selecciona. */
+.explorador-subcategorias__chip--vista {
+  border-color: var(--cemaco-indigo);
+  box-shadow: inset 0 0 0 1px var(--cemaco-indigo);
+}
+
+/* Seleccionada (doble clic): es la que se añade al planograma. */
+.explorador-subcategorias__chip--seleccionada {
   background: var(--cemaco-green);
   border-color: var(--cemaco-green);
   color: var(--ink-900);
+}
+
+.explorador-subcategorias__chip--seleccionada.explorador-subcategorias__chip--vista {
+  border-color: var(--cemaco-indigo);
 }
 
 .explorador-subcategorias__ayuda {

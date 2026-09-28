@@ -1,0 +1,70 @@
+.tienda-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 320px;
+  padding: 3px 4px 3px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-1);
+}
+
+.tienda-chip__icono {
+  display: inline-flex;
+  color: var(--fg-2);
+}
+
+.tienda-chip__nombre {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tienda-chip__codigo {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--fg-3);
+}
+
+.tienda-chip__cambiar {
+  flex: none;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cemaco-indigo);
+  cursor: pointer;
+
+  &:hover { background: var(--cemaco-indigo-50); }
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 1px;
+  }
+}
+
+.tienda-chip--vacia {
+  padding: 6px 12px;
+  border-style: dashed;
+  color: var(--cemaco-indigo);
+  cursor: pointer;
+
+  &:hover { background: var(--cemaco-indigo-50); }
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 2px;
+  }
+}
+
+@media (width <= 720px) {
+  .tienda-chip__nombre { display: none; }
+}

@@ -101,6 +101,27 @@ Actores:
 
 ---
 
+## CU-09 — Adjuntos de versión de planograma
+
+| ID | Nombre | Actor | Descripción |
+|---|---|---|---|
+| CU-09-01 | Agregar adjunto | Analista | Sube un archivo (imagen o PDF) y lo asocia a una versión de planograma. |
+| CU-09-02 | Listar adjuntos | Analista | Consulta los adjuntos de una versión. |
+| CU-09-03 | Reemplazar adjunto | Analista | Sube un archivo nuevo que reemplaza el contenido de un adjunto existente, conservando su id. |
+| CU-09-04 | Eliminar adjunto | Analista | Elimina un adjunto de la versión. |
+| CU-09-05 | Descargar adjunto | Analista | Descarga el archivo de un adjunto a través del backend. |
+
+---
+
+## CU-10 — Consulta de productos
+
+| ID | Nombre | Actor | Descripción |
+|---|---|---|---|
+| CU-10-01 | Listar productos con apariciones en planogramas | Analista | Consulta los productos ya usados en planogramas con cuántos planogramas los incluyen y cómo (planograma, cross o impulso); filtra por la jerarquía CATI (área, departamento, familia, categoría, subcategoría), estado y tipo de aparición, y ordena por cualquier columna. |
+| CU-10-02 | Ver planogramas de un producto | Analista | Expande un producto para ver cada posición donde aparece: planograma, versión, góndola, nivel, modo y tiendas asignadas; si el producto está inactivo y sigue en una versión publicada o en piloto, el sistema lo advierte junto con su sustituto recomendado. |
+
+---
+
 ## Fuera de alcance del MVP — fase siguiente
 
 | ID | Nombre | Fase |

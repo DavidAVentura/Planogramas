@@ -30,4 +30,20 @@ module.exports = {
    * @returns {Promise<object>} producto actualizado
    */
   marcarDimensionesValidadas: async (_sku) => { throw new Error('No implementado'); },
+
+  /**
+   * Lista todos los productos locales con el conteo de planogramas distintos en los que
+   * aparecen (total y por modo PLANOGRAMA/CROSS/IMPULSO). Solo cuentan posiciones de versiones
+   * y planogramas no archivados.
+   * @returns {Promise<Array<object>>}
+   */
+  listarConApariciones: async () => { throw new Error('No implementado'); },
+
+  /**
+   * Lista cada posición del producto en versiones no archivadas, con su planograma, versión,
+   * góndola, nivel y cantidad de tiendas asignadas a la versión.
+   * @param {string} sku
+   * @returns {Promise<Array<object>>}
+   */
+  listarApariciones: async (_sku) => { throw new Error('No implementado'); },
 };

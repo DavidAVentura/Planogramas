@@ -1,0 +1,132 @@
+.producto-apariciones {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.producto-apariciones__mensaje {
+  margin: 0;
+  font-size: 13px;
+  color: var(--fg-3);
+}
+
+.producto-apariciones__mensaje--error {
+  color: var(--danger);
+}
+
+.producto-apariciones__vacio {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--fg-2);
+}
+
+.producto-apariciones__alerta {
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  background: var(--warning-bg);
+  color: #6b4d00;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Va anidada dentro de `.table` (ProductosTable): el prefijo `.producto-apariciones` le gana en
+   especificidad a las reglas de `.table th/td`, incluidas las de la vista móvil. */
+.producto-apariciones .producto-apariciones__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+
+  th {
+    text-align: left;
+    padding: 8px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+    background: var(--ink-50);
+  }
+
+  td {
+    padding: 8px 14px;
+    font-size: 13px;
+    color: var(--fg-1);
+    border-top: 1px solid var(--border-subtle);
+    vertical-align: middle;
+  }
+}
+
+.producto-apariciones .producto-apariciones__tabla .producto-apariciones__derecha {
+  text-align: right;
+}
+
+.producto-apariciones__principal {
+  font-weight: 600;
+}
+
+.producto-apariciones__codigo {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.producto-apariciones__secundario {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--fg-3);
+}
+
+.producto-apariciones__abrir {
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--cemaco-indigo);
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+
+  &:hover { background: var(--cemaco-indigo-50); }
+}
+
+.producto-apariciones__oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (width <= 600px) {
+  .producto-apariciones .producto-apariciones__tabla {
+    thead { display: none; }
+
+    tr {
+      display: block;
+      padding: 4px 0;
+      border: 0;
+      border-top: 1px solid var(--border-subtle);
+      border-radius: 0;
+    }
+
+    td {
+      display: block;
+      border-top: 0;
+      padding: 4px 12px;
+      text-align: left;
+
+      &::before { content: none; }
+    }
+  }
+
+  .producto-apariciones .producto-apariciones__tabla .producto-apariciones__derecha {
+    text-align: left;
+  }
+}

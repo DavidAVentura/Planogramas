@@ -4,6 +4,8 @@ import type { TipoAccesorio } from './nivel';
 export interface MensajeChat {
   rol: 'user' | 'assistant';
   contenido: string;
+  /** Versión corta y hablada del mensaje del asistente, la que lee el modo voz. */
+  narracion?: string;
 }
 
 // ─── Contexto enviado al agente ──────────────────────────────────────────────
@@ -286,6 +288,7 @@ export interface MensajeAgenteExtractorInput {
 
 export interface RespuestaAgenteExtractor {
   mensaje_asistente: string;
+  narracion_asistente: string;
   borrador: AccionBorrador[];
   listo_para_confirmar: boolean;
 }

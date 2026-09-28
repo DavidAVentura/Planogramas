@@ -16,19 +16,27 @@ const productoRepo = require('../../infrastructure/repositories/producto.reposit
 // ─── Esquemas de validación ───────────────────────────────────────────────────
 
 const schemaCrear = Joi.object({
-  sku:                 Joi.string().trim().min(1).required(),
+  sku:                 Joi.string().trim().min(1).optional().allow(null),
   orden_horizontal:    Joi.number().integer().positive().required(),
   ancho_asignado_cm:   Joi.number().positive().required(),
   facings_horizontal:  Joi.number().integer().positive().required(),
   cantidad_apilable:   Joi.number().integer().positive().required(),
   unidades_por_facing: Joi.number().integer().positive().required(),
-  capacidad_maxima:    Joi.number().integer().positive().required(),
+  capacidad_maxima:    Joi.number().integer().positive().allow(null).optional(),
   min_estetico:        Joi.number().integer().min(0).optional(),
   min_final:           Joi.number().integer().min(0).optional(),
   max_final:           Joi.number().integer().min(0).optional(),
   perfil_redondeo:     Joi.string().valid(...PERFILES_REDONDEO).optional(),
   modo:                Joi.string().valid(...MODOS).optional(),
   decision:            Joi.string().valid(...DECISIONES).optional(),
+  nombre_detectado:    Joi.string().trim().max(500).optional().allow(null, ''),
+  confidence:          Joi.number().integer().min(0).max(100).optional(),
+  datos_vision:        Joi.object().unknown(true).optional().allow(null),
+});
+
+const schemaAsignarSku = Joi.object({
+  sku:          Joi.string().trim().min(1).required(),
+  subcategorias: Joi.array().items(Joi.string()).optional().default([]),
 });
 
 const schemaEditar = Joi.object({
@@ -221,6 +229,21 @@ async function buscarPorSku(req, res, next) {
   }
 }
 
+
+async function asignarSku(req, res, next) {
+  try {
+    const id    = Number(req.params.id);
+    const datos = validarBody(schemaAsignarSku, req.body);
+    const posicion = await usecases.asignarSku(
+      posicionRepo, nivelRepo, gondolaRepo, versionRepo, productoRepo,
+      id, datos,
+    );
+    res.json(posicion);
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   listar,
   agregar,
@@ -229,6 +252,7 @@ module.exports = {
   mover,
   copiar,
   eliminar,
+  asignarSku,
   listarAccesorios,
   agregarAccesorio,
   eliminarAccesorio,

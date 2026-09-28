@@ -1,17 +1,22 @@
-/** Redimensiona una imagen (ej. foto de celular, varios MB) a un lado máximo de `maxDimension` px
- * y la recodifica a JPEG antes de mandarla en base64 al backend — evita pegarle al agente de
- * visión con archivos enormes y mantiene el body de la request liviano. */
+/** Redimensiona una imagen (ej. foto de celular, varios MB, o un data URL ya generado en canvas)
+ * a un lado máximo de `maxDimension` px y la recodifica a JPEG antes de mandarla en base64 al
+ * backend — evita pegarle al agente de visión con archivos enormes y mantiene el body de la
+ * request liviano. `dibujarEncima`, si se pasa, corre después de dibujar la imagen redimensionada
+ * y antes de codificarla — sirve para quemarle marcas u overlays a la imagen que ve el modelo, no
+ * solo dibujarlas encima en el front. */
 export function redimensionarImagenABase64(
-  file: File,
+  origen: File | string,
   maxDimension = 2000,
   calidad = 0.85,
+  dibujarEncima?: (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => void,
 ): Promise<{ base64: string; mimeType: string }> {
   return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
+    const esArchivo = typeof origen !== 'string';
+    const url = esArchivo ? URL.createObjectURL(origen) : origen;
     const img = new Image();
 
     img.onload = () => {
-      URL.revokeObjectURL(url);
+      if (esArchivo) URL.revokeObjectURL(url);
 
       const escala = Math.min(1, maxDimension / Math.max(img.width, img.height));
       const ancho = Math.round(img.width * escala);
@@ -26,6 +31,7 @@ export function redimensionarImagenABase64(
         return;
       }
       ctx.drawImage(img, 0, 0, ancho, alto);
+      dibujarEncima?.(ctx, canvas);
 
       const dataUrl = canvas.toDataURL('image/jpeg', calidad);
       const base64 = dataUrl.split(',')[1] ?? '';
@@ -33,7 +39,7 @@ export function redimensionarImagenABase64(
     };
 
     img.onerror = () => {
-      URL.revokeObjectURL(url);
+      if (esArchivo) URL.revokeObjectURL(url);
       reject(new Error('No se pudo leer la imagen seleccionada.'));
     };
 

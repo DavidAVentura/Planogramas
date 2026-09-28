@@ -1,0 +1,128 @@
+.seleccion-multiple__controles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.seleccion-multiple__busqueda {
+  flex: 1;
+  min-width: 220px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--fg-1);
+
+  &:focus {
+    outline: 0;
+    border-color: var(--cemaco-indigo);
+  }
+}
+
+.seleccion-multiple__orden {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--fg-3);
+
+  > span { margin-right: 4px; }
+}
+
+.seleccion-multiple__orden-btn {
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--fg-2);
+  cursor: pointer;
+
+  &:hover { background: var(--ink-50); }
+}
+
+.seleccion-multiple__orden-btn--activo {
+  border-color: var(--cemaco-indigo);
+  background: var(--cemaco-indigo-50);
+  color: var(--cemaco-indigo);
+  font-weight: 600;
+
+  &:hover { background: var(--cemaco-indigo-50); }
+}
+
+.seleccion-multiple__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 50vh;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 6px;
+}
+
+.seleccion-multiple__fila {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--fg-1);
+  cursor: pointer;
+
+  &:hover { background: var(--ink-50); }
+
+  input { flex: none; }
+}
+
+.seleccion-multiple__fila--todos {
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-subtle);
+  border-radius: 0;
+  margin-bottom: 4px;
+}
+
+.seleccion-multiple__nombre {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.seleccion-multiple__detalle {
+  font-size: 12px;
+  color: var(--fg-3);
+}
+
+.seleccion-multiple__meta {
+  flex: none;
+  font-size: 12px;
+  color: var(--fg-3);
+  min-width: 80px;
+  text-align: right;
+}
+
+.seleccion-multiple__conteo {
+  margin-right: auto;
+  align-self: center;
+  font-size: 13px;
+  color: var(--fg-2);
+}
+
+.seleccion-multiple__cargando {
+  font-size: 14px;
+  color: var(--fg-3);
+  text-align: center;
+  padding: 16px 0;
+}
+
+@media (width <= 640px) {
+  .seleccion-multiple__meta:last-child { display: none; }
+}

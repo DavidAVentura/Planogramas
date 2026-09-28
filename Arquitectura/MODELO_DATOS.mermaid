@@ -80,7 +80,7 @@ erDiagram
         int         min_final              "ajustable manualmente; min_final <= max_final validado por la API si ambos vienen juntos"
         int         max_final               "ajustable manualmente"
         varchar     perfil_redondeo         "MRP (no se rompe empaque) | ZSRE (se puede romper) — ver posicion.entity.js (default MRP). Ojo: hasta 2026-07-20 posicion.entity.js tenía valores equivocados (NORMAL/REDONDEAR_ARRIBA/REDONDEAR_ABAJO) que ni siquiera entraban en la columna varchar(10) — causaba un 500 al crear una posición; corregido"
-        varchar     modo                    "PLANOGRAMA | CROSS — ver posicion.entity.js (default PLANOGRAMA, coincide con el default de la columna en BD)"
+        varchar     modo                    "PLANOGRAMA | CROSS | IMPULSO | PENDIENTE — ver posicion.entity.js (default PLANOGRAMA, coincide con el default de la columna en BD)"
         bit         cross_externo           "true = accesorio colgante fuera de la góndola"
         bit         montar_en_display       "true = producto trae display propio (ej. Kinder)"
         bit         desborda_gondola        "true = producto cruza límite al módulo siguiente; si true, nota_desborde es obligatoria (validado por la API)"

@@ -4,15 +4,31 @@
   padding: 24px;
 }
 
+/* Conteo + acciones arriba; abajo, los filtros desplegables (mismo patrón que la barra de Estructura). */
+.planogramas-listado__barra {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
 .planogramas-listado__cabecera {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  gap: 12px;
 }
 
 .planogramas-listado__conteo {
   font-size: 14px;
   color: var(--fg-2);
   font-weight: 600;
+}
+
+/* El botón de filtros empuja "Crear" al extremo derecho. */
+.planogramas-listado__cabecera .boton-filtros {
+  margin-left: auto;
 }

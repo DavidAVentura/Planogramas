@@ -52,7 +52,7 @@ Content-Disposition: attachment; filename="AUTOS 01-TG.csv"
 | `min_final` | integer | Mínimo de reorden |
 | `max_final` | integer | Máximo de reorden |
 | `perfil_redondeo` | string | Perfil de redondeo |
-| `modo` | string | Modo de la posición |
+| `modo` | string | Modo de la posición: `PLANOGRAMA`, `CROSS`, `IMPULSO` o `PENDIENTE` |
 | `decision` | string | Decisión (ACTIVO/BAJA/NUEVO) |
 | `cross_externo` | boolean | Es cross merchandising |
 | `montar_display` | boolean | Montar en display |

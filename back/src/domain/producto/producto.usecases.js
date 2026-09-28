@@ -4,7 +4,7 @@
  * Reciben el repositorio por inyección de dependencia — sin imports de infraestructura.
  */
 
-const { errorNotFound, validarDimensionesCompletas } = require('./producto.entity');
+const { errorNotFound, validarDimensionesCompletas, nivelJerarquiaMasEspecifico } = require('./producto.entity');
 
 async function buscarProductoOFallar(productoRepo, sku) {
   const producto = await productoRepo.buscarPorSku(sku);
@@ -32,7 +32,35 @@ async function validarDimensiones(productoRepo, sku) {
   return productoRepo.marcarDimensionesValidadas(sku);
 }
 
+/**
+ * Lista los productos locales con sus apariciones en planogramas. Si se filtra por jerarquía,
+ * el catálogo externo (CATI) resuelve qué SKUs pertenecen al nivel más específico elegido y se
+ * cruzan con la tabla local — la jerarquía nunca se lee de columnas locales, que pueden estar
+ * desactualizadas o no existir (familia/categoría).
+ * @param {{ productoRepo: object, catalogo: { listarSkusPorJerarquia: Function } }} deps
+ * @param {{ area?: string, departamento?: string, familia?: string, categoria?: string, subcategoria?: string }} filtros
+ */
+async function listarProductos({ productoRepo, catalogo }, filtros) {
+  const jerarquia = nivelJerarquiaMasEspecifico(filtros);
+  if (!jerarquia) return productoRepo.listarConApariciones();
+
+  const [productos, skus] = await Promise.all([
+    productoRepo.listarConApariciones(),
+    catalogo.listarSkusPorJerarquia(jerarquia.nivel, jerarquia.id),
+  ]);
+  const skusDelNivel = new Set(skus);
+  return productos.filter((p) => skusDelNivel.has(p.sku));
+}
+
+/** Posiciones del producto en planogramas vigentes (no archivados). */
+async function obtenerPlanogramasDeProducto(productoRepo, sku) {
+  await buscarProductoOFallar(productoRepo, sku);
+  return productoRepo.listarApariciones(sku);
+}
+
 module.exports = {
   actualizarDimensiones,
   validarDimensiones,
+  listarProductos,
+  obtenerPlanogramasDeProducto,
 };

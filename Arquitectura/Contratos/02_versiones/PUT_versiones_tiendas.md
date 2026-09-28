@@ -35,6 +35,7 @@ Reemplaza el listado completo de tiendas asignadas a la versión. Hace DELETE de
 2. Una tienda puede asignarse a una versión sin importar su `tipo` (no se valida coincidencia).
 3. IDs inexistentes son ignorados silenciosamente (o retornan advertencia — a decisión de implementación; se recomienda retornar advertencia).
 4. La operación es idempotente: llamar dos veces con los mismos IDs produce el mismo resultado.
+5. Si la versión está `publicado` o `piloto`, aplica la regla "una tienda monta una sola versión por planograma": cada tienda agregada desmonta la versión que tenía del planograma. Las tiendas agregadas y quitadas se auditan en una edición con `origen = VERSION` (ver `15_asignaciones/`). En otros estados la lista se reemplaza tal cual, sin auditoría.
 
 ---
 

@@ -7,6 +7,27 @@
 /** Valores permitidos de fuente_dimensiones: de dónde vino la última medida guardada. */
 const FUENTES_DIMENSIONES = Object.freeze(['CATI', 'VTEX', 'MANUAL']);
 
+/**
+ * Niveles de la jerarquía CATI, del más específico al más general. La tabla local no guarda
+ * familia ni categoría (y área/departamento pueden quedar desactualizados): el filtro por
+ * jerarquía siempre se resuelve en vivo contra CATI, que devuelve los SKUs del nivel elegido.
+ */
+const NIVELES_JERARQUIA = Object.freeze(['subcategoria', 'categoria', 'familia', 'departamento', 'area']);
+
+/** Modos de Posicion que cuentan como aparición del producto en un planograma. */
+const MODOS_APARICION = Object.freeze(['PLANOGRAMA', 'CROSS', 'IMPULSO']);
+
+/**
+ * Elige el nivel más específico de los filtros de jerarquía recibidos — el resto de niveles
+ * superiores quedan implícitos (una subcategoría ya pertenece a su categoría, familia, etc.).
+ * @param {Record<string, string|undefined>} filtros
+ * @returns {{ nivel: string, id: string } | null} null si no se filtró por jerarquía
+ */
+function nivelJerarquiaMasEspecifico(filtros) {
+  const nivel = NIVELES_JERARQUIA.find((n) => filtros[n]);
+  return nivel ? { nivel, id: filtros[nivel] } : null;
+}
+
 function errorNotFound(mensaje) {
   const err = new Error(mensaje);
   err.status = 404;
@@ -40,6 +61,9 @@ function validarDimensionesCompletas({ ancho_cm, alto_cm, profundidad_cm }) {
 
 module.exports = {
   FUENTES_DIMENSIONES,
+  NIVELES_JERARQUIA,
+  MODOS_APARICION,
+  nivelJerarquiaMasEspecifico,
   errorNotFound,
   errorUnprocessable,
   validarDimensionesCompletas,

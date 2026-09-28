@@ -1,0 +1,21 @@
+.onda-voz {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  align-self: stretch;
+  min-height: 52px;
+  padding: 8px 10px;
+  border: 1px solid var(--cemaco-indigo);
+  border-radius: var(--radius-md);
+}
+
+.onda-voz__barra {
+  flex: 1;
+  max-width: 3px;
+  min-height: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--cemaco-indigo);
+  transition: height 60ms linear;
+}

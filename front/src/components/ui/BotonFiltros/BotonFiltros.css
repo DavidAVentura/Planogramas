@@ -1,0 +1,58 @@
+.boton-filtros {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--fg-2);
+  cursor: pointer;
+
+  svg {
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+
+  &:hover { background: var(--ink-100); }
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 2px;
+  }
+}
+
+.boton-filtros--con-filtros {
+  border-color: var(--cemaco-indigo);
+  color: var(--cemaco-indigo);
+}
+
+.boton-filtros--abierto {
+  border-color: var(--cemaco-indigo);
+  background: var(--cemaco-indigo-50);
+  color: var(--cemaco-indigo);
+
+  &:hover { background: var(--cemaco-indigo-50); }
+}
+
+.boton-filtros__conteo {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  border-radius: var(--radius-pill);
+  background: var(--cemaco-indigo);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+}

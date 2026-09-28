@@ -82,6 +82,7 @@ async function procesarMensaje(req, res, next) {
 
     res.json({
       mensaje_asistente:    resultado.mensajeAsistente,
+      narracion_asistente:  resultado.narracionAsistente,
       borrador:             resultado.borrador,
       listo_para_confirmar: resultado.listoParaConfirmar,
     });

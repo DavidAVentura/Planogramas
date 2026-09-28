@@ -14,6 +14,9 @@ interface VersionesTableProps {
   onTiendas: (v: VersionListItem) => void;
   onPublicar: (v: VersionListItem) => void;
   onArchivar: (v: VersionListItem) => void;
+  /** Abre el modal de "¿Editor o Lienzo?" — reemplaza la navegación directa que tenía antes el enlace "Diseñar". */
+  onDisenar: (v: VersionListItem) => void;
+  onAdjuntos: (v: VersionListItem) => void;
 }
 
 export function VersionesTable({
@@ -25,6 +28,8 @@ export function VersionesTable({
   onTiendas,
   onPublicar,
   onArchivar,
+  onDisenar,
+  onAdjuntos,
 }: VersionesTableProps) {
   const columnas: TableColumn<VersionListItem>[] = [
     {
@@ -48,7 +53,12 @@ export function VersionesTable({
       header: 'Acciones',
       render: (v) => (
         <span className="versiones-table__acciones">
-          <Link to={`/planogramas/${planogramaId}/versiones/${v.id}/editor`}>Diseñar</Link>
+          <button type="button" onClick={() => onDisenar(v)}>
+            Diseñar
+          </button>
+          <button type="button" onClick={() => onAdjuntos(v)}>
+            Adjuntos
+          </button>
           {v.estado === 'borrador' && (
             <button type="button" onClick={() => onMarcarEnDesarrollo(v)}>
               Marcar en desarrollo

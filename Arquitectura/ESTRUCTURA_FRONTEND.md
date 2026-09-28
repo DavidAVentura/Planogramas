@@ -56,7 +56,7 @@ front/
 │   │   ├── posiciones.service.ts
 │   │   ├── sustituciones.service.ts
 │   │   ├── exportacion.service.ts
-│   │   ├── catalogo.service.ts        # Proxy a CATI vía backend
+│   │   ├── catalogo.service.ts        # Proxy a CATI vía backend + listado local de productos (/productos)
 │   │   ├── accesorios.service.ts
 │   │   ├── tiendas.service.ts
 │   │   └── jerarquia.service.ts       # Proxy a CATI vía backend
@@ -66,14 +66,16 @@ front/
 │   │   ├── useVersion.ts              # Crear versión/especial, promover, publicar, tiendas asignadas
 │   │   ├── useEditorPlanograma.ts     # Estado del editor: tabs de góndola, selección, drag&drop, undo/redo
 │   │   ├── usePosicionEditor.ts       # PosicionDrawer: cálculos derivados (facings↔ancho, capacidad) + guardado
-│   │   └── useSustitucionSku.ts       # Modo sustitución + SustitucionWizard
+│   │   ├── useSustitucionSku.ts       # Modo sustitución + SustitucionWizard
+│   │   └── useProductos.ts            # Listado de productos por jerarquía + posiciones de un SKU (PANT-10-01, ACC-10-02)
 │   │
 │   ├── context/                       # Estado transversal, no específico de un dominio
 │   │   ├── AuthContext.tsx            # Usuario/rol (Analista/Implementador) — hoy es el RoleSwitch manual del prototipo, no auth real (ver gap en INVENTARIO §5)
 │   │   └── ToastContext.tsx           # Cola de notificaciones globales
 │   │
 │   ├── types/                         # Modelo de datos compartido (ver ESPECIFICACION-PANTALLAS-COMPONENTES.md §4)
-│   │   └── planograma.ts              # Planograma, Version, Gondola, Nivel, Posicion, ProductoCatalogo, MedidasMontaje, Sustitucion
+│   │   ├── planograma.ts              # Planograma, Version, Gondola, Nivel, Posicion, ProductoCatalogo, MedidasMontaje, Sustitucion
+│   │   └── producto.ts                # ProductoListado, AparicionProducto, FiltroJerarquia (vista /productos)
 │   │
 │   ├── pages/                         # Una carpeta por pantalla ruteable — SOLO 3, ver nota abajo
 │   │   ├── PlanogramasListado/
@@ -82,9 +84,10 @@ front/
 │   │   ├── PlanogramaDetalle/
 │   │   │   ├── PlanogramaDetalle.tsx
 │   │   │   └── PlanogramaDetalle.css
-│   │   └── PlanogramaEditor/
-│   │       ├── PlanogramaEditor.tsx
-│   │       └── PlanogramaEditor.css
+│   │   ├── PlanogramaEditor/
+│   │   │   ├── PlanogramaEditor.tsx
+│   │   │   └── PlanogramaEditor.css
+│   │   └── ProductosListado/          # /productos (PANT-10-01) — filtros de jerarquía en backend, resto en cliente
 │   │
 │   ├── components/
 │   │   ├── ui/                        # Primitivos genéricos — sin conocimiento del dominio
@@ -141,6 +144,10 @@ front/
 │   │       │   ├── DeleteConfirmModal/
 │   │       │   ├── SustitucionWizard/
 │   │       │   └── HistorialSustitucionesModal/
+│   │       ├── productos/
+│   │       │   ├── ProductosFiltros/      # búsqueda, modo, estado + cascada de jerarquía CATI de 5 niveles
+│   │       │   ├── ProductosTable/        # tabla con orden anidado y filas expandibles
+│   │       │   └── ProductoApariciones/   # detalle de posiciones de un SKU (ACC-10-02)
 │   │       └── EstadoBadge/            # (badge de estado con colores por estado, ver INVENTARIO §4.3)
 │   │
 │   ├── styles/

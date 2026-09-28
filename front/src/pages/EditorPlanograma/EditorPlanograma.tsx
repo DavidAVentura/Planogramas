@@ -406,17 +406,20 @@ export function EditorPlanograma() {
         />
       )}
 
-      {!cargandoInicial && gondolaActiva && (
+      {!cargandoInicial && (
         <AgenteExtractorBubble
           puedeEscribir={puedeEscribir}
           versionId={versionIdNumerico}
           gondolas={gondolas}
+          gondolaActiva={gondolaActiva}
+          categoria={planograma?.departamento ?? ''}
           subcategorias={planograma?.subcategorias ?? []}
           onConfirmado={() => {
             recargarNiveles();
             recargarGondolas();
             recargarPosiciones();
           }}
+          onCrearGondola={() => setModalGondola('crear')}
         />
       )}
     </div>

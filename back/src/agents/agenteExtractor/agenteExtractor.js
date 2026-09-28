@@ -132,10 +132,12 @@ const SCHEMA_RESPUESTA = {
     type: 'object',
     properties: {
       mensaje: { type: 'string' },
+      // Versión hablada y corta de "mensaje" para el modo voz: el TTS lee esto, no el mensaje completo.
+      narracion: { type: 'string' },
       borrador: { type: 'array', items: ACCION_SCHEMA },
       listo_para_confirmar: { type: 'boolean' },
     },
-    required: ['mensaje', 'borrador', 'listo_para_confirmar'],
+    required: ['mensaje', 'narracion', 'borrador', 'listo_para_confirmar'],
     additionalProperties: false,
   },
 };
@@ -280,7 +282,40 @@ nuevo en ella → producto en ese nivel → accesorio en esa posición, en ese o
 - Posiciones existentes: ${posicionesTexto}.
 - Catálogo de accesorios disponibles: ${accesoriosTexto}.
 - Subcategorías de referencia de este planograma: ${subcategoriasTexto}.
-- Responde siempre en español, en tono breve y directo.`;
+- Responde siempre en español, en tono breve y directo.
+
+## Formato del campo "mensaje"
+
+El campo "mensaje" se muestra renderizado como Markdown (GFM) en un panel de chat; las tablas
+tienen scroll horizontal, así que pueden ser más anchas que el panel.
+- Siempre que muestres 2 o más productos (resultados de búsqueda, candidatos, productos de un
+  nivel), usa una TABLA, nunca una lista. Columnas sugeridas: "#", "SKU", "Producto", "Marca" y,
+  si aplica, "Góndola", "Nivel", "Espacio", "Facings". Incluye solo columnas con datos; no repitas
+  la marca dentro del nombre si ya tiene su columna.
+- Al resumir el borrador de acciones (2 o más), usa también una tabla: "#", "Acción", "Ubicación"
+  (ej. "G1 · N2 · E3"), "Detalle".
+- Usa **negritas** para destacar un SKU, góndola o nivel puntual dentro de una oración, y listas
+  solo para enumerar pasos o preguntas cortas.
+- Pon una oración breve antes de la tabla (qué muestra) y, después, la pregunta o siguiente paso.
+- Si anuncias resultados ("encontré…", "aquí están…", "a continuación…"), la tabla con TODOS esos
+  resultados va en ese mismo "mensaje". Nunca anuncies una tabla que no incluyes.
+- No uses encabezados mayores a "###", ni bloques de código, ni HTML, ni imágenes. Un mensaje de
+  una o dos oraciones va como texto plano, sin formato.
+
+## Formato del campo "narracion"
+
+"narracion" es lo que se lee en voz alta al usuario (texto a voz). Es un campo ADICIONAL: no cambia
+en nada cómo escribes "mensaje", que sigue llevando todo el contenido (tablas completas incluidas)
+según las reglas de arriba. Escribe primero "mensaje" completo y después su "narracion", como se
+diría hablando:
+- Una o dos oraciones cortas, en español, texto plano: sin Markdown, tablas, listas, emojis ni
+  símbolos.
+- Resume qué pasó y cuál es el siguiente paso o la pregunta pendiente. Si "mensaje" tiene una tabla
+  o lista, NO la leas: di cuántos elementos son y qué son, y que el detalle está en pantalla. Ej.:
+  "Encontré 12 productos de lubricantes, te los dejé en el chat. ¿Cuál quieres agregar?".
+- No dictes SKUs, códigos ni medidas salvo que sea uno solo y sea el dato clave de la respuesta.
+- Nunca contradigas "mensaje": los números que digas deben coincidir con lo que muestra.
+- Si "mensaje" ya es una o dos oraciones de texto plano, "narracion" puede ser igual.`;
 }
 
 // ─── Tool buscar_producto ─────────────────────────────────────────────────────
@@ -905,6 +940,7 @@ async function procesarMensaje({ mensaje, historial = [], borradorActual = [], c
 
   return {
     mensajeAsistente: resultado.mensaje,
+    narracionAsistente: resultado.narracion || resultado.mensaje,
     borrador,
     listoParaConfirmar: Boolean(resultado.listo_para_confirmar),
   };

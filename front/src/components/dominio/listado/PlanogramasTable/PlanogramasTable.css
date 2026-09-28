@@ -1,22 +1,59 @@
+/* Estilo del listado de planogramas del prototipo (vista analista): encabezados en mayúsculas,
+   filas compactas y acciones como enlaces de texto. */
+.planogramas-table {
+  .table th {
+    text-transform: uppercase;
+  }
+
+  .table td {
+    padding: 10px 16px;
+  }
+}
+
+.planogramas-table__nombre {
+  font-weight: 700;
+}
+
+.planogramas-table__numero {
+  font-variant-numeric: tabular-nums;
+}
+
+.table .planogramas-table__fila--archivada td {
+  color: var(--fg-3);
+}
+
 .planogramas-table__acciones {
   display: inline-flex;
-  gap: 8px;
+  gap: 2px;
 
   button {
-    background: transparent;
-    border: 1px solid var(--border);
+    min-height: 36px;
+    padding: 8px 10px;
+    border: 0;
     border-radius: var(--radius-sm);
-    padding: 6px 10px;
-    font-size: 12px;
+    background: transparent;
+    font-family: var(--font-body);
+    font-size: 13px;
     font-weight: 600;
-    color: var(--fg-1);
+    color: var(--cemaco-indigo);
     cursor: pointer;
 
-    &:hover:not(:disabled) { background: var(--ink-50); }
+    &:hover:not(:disabled) { background: var(--cemaco-indigo-50); }
+
+    &:focus-visible {
+      outline: 2px solid var(--cemaco-indigo);
+      outline-offset: 1px;
+    }
 
     &:disabled {
-      opacity: 0.4;
+      color: var(--fg-4);
       cursor: not-allowed;
     }
+  }
+
+  .planogramas-table__accion--peligro:not(:disabled) {
+    color: var(--danger);
+
+    &:hover { background: var(--danger-bg); }
   }
 }

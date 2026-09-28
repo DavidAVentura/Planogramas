@@ -1,0 +1,138 @@
+/* Mismo formato compacto que TiendasFiltros: controles de 38px, etiquetas solo para lectores de pantalla. */
+.productos-filtros {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+
+  &[hidden] { display: none; }
+}
+
+.productos-filtros__fila,
+.productos-filtros__jerarquia {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.productos-filtros__jerarquia { gap: 6px; }
+
+.productos-filtros__campo {
+  display: flex;
+  --boton-seleccion-alto: 38px;
+
+  input,
+  select {
+    height: 38px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--fg-1);
+    background: #fff;
+
+    &:focus {
+      outline: 0;
+      border-color: var(--cemaco-indigo);
+      box-shadow: 0 0 0 3px var(--cemaco-indigo-100);
+    }
+
+    &:disabled {
+      background: var(--ink-50);
+      color: var(--fg-3);
+      cursor: not-allowed;
+    }
+  }
+}
+
+/* La búsqueda toma el ancho sobrante de la fila. */
+.productos-filtros__campo--busqueda {
+  flex: 1 1 220px;
+
+  input { width: 100%; }
+}
+
+.productos-filtros__campo--activo select {
+  border-color: var(--cemaco-indigo);
+  background: var(--cemaco-indigo-50);
+}
+
+.productos-filtros__titulo-jerarquia {
+  margin-right: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+.productos-filtros__nivel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  select { max-width: 200px; }
+}
+
+.productos-filtros__separador {
+  flex: none;
+  color: var(--ink-400);
+}
+
+.productos-filtros__oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.productos-filtros__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.productos-filtros__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 4px 3px 10px;
+  border-radius: 999px;
+  background: var(--cemaco-indigo-100);
+  color: var(--cemaco-indigo);
+  font-size: 12px;
+  font-weight: 600;
+
+  button {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 4px;
+    cursor: pointer;
+  }
+}
+
+@media (width <= 640px) {
+  .productos-filtros__fila,
+  .productos-filtros__jerarquia {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .productos-filtros__separador { display: none; }
+
+  .productos-filtros__nivel select {
+    width: 100%;
+    max-width: none;
+  }
+
+  .productos-filtros__nivel,
+  .productos-filtros__nivel .productos-filtros__campo { flex: 1; }
+}

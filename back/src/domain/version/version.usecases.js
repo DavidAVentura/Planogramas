@@ -180,6 +180,19 @@ async function obtenerEstructuraPublicada(versionRepo, id, opciones) {
   return versionRepo.obtenerEstructuraPublicada(id, opciones);
 }
 
+/**
+ * Ficha de solo lectura de una versión (modal "Ver versión" de Estructura).
+ * @param {object} versionRepo
+ * @param {number} id
+ * @returns {Promise<object>}
+ */
+async function obtenerResumen(versionRepo, id) {
+  const version = await versionRepo.buscarPorId(id);
+  if (!version) throw errorVersionNoEncontrada(id);
+
+  return versionRepo.obtenerResumen(id);
+}
+
 // ─── Metadatos ───────────────────────────────────────────────────────────────
 
 /**
@@ -235,16 +248,17 @@ async function guardarVersion(versionRepo, id) {
  * @param {object} versionRepo
  * @param {number} id
  * @param {{ estadoDestino: string, tiendaIds?: number[] }} datos
+ * @param {{ numero, nombre }} usuario  quien queda en la auditoría de asignaciones
  * @returns {Promise<object>}
  */
-async function promoverVersion(versionRepo, id, datos) {
+async function promoverVersion(versionRepo, id, datos, usuario) {
   const version = await versionRepo.buscarPorId(id);
   if (!version) throw errorVersionNoEncontrada(id);
 
   validarTransicionPromover(version.estado, datos.estadoDestino);
 
   if (datos.estadoDestino === ESTADOS.PILOTO) {
-    const { tiendas, versionAnteriorArchivada } = await versionRepo.promoverAPiloto(id, datos.tiendaIds);
+    const { tiendas, versionAnteriorArchivada } = await versionRepo.promoverAPiloto(id, datos.tiendaIds, usuario);
     const actualizada = await versionRepo.buscarPorId(id);
     return { ...actualizada, tiendas, versionAnteriorArchivada };
   }
@@ -258,7 +272,7 @@ async function promoverVersion(versionRepo, id, datos) {
     throw err;
   }
 
-  const { versionAnteriorArchivada } = await versionRepo.promoverAPublicado(id);
+  const { versionAnteriorArchivada } = await versionRepo.promoverAPublicado(id, usuario);
   const actualizada = await versionRepo.buscarPorId(id);
   return { ...actualizada, versionAnteriorArchivada };
 }
@@ -302,15 +316,16 @@ async function listarTiendasVersion(versionRepo, id) {
  * @param {object} versionRepo
  * @param {number} id
  * @param {number[]} tiendaIds
+ * @param {{ numero, nombre }} usuario  quien queda en la auditoría de asignaciones
  * @returns {Promise<{ tiendas: object[], ignorados: number[] }>}
  */
-async function reemplazarTiendasVersion(versionRepo, id, tiendaIds) {
+async function reemplazarTiendasVersion(versionRepo, id, tiendaIds, usuario) {
   const version = await versionRepo.buscarPorId(id);
   if (!version) throw errorVersionNoEncontrada(id);
 
   validarNoArchivada(version.estado, 'No se pueden modificar las tiendas de una versión archivada');
 
-  return versionRepo.reemplazarTiendas(id, tiendaIds);
+  return versionRepo.reemplazarTiendas(id, tiendaIds, usuario);
 }
 
 module.exports = {
@@ -318,6 +333,7 @@ module.exports = {
   crearVersion,
   obtenerDetalle,
   obtenerEstructuraPublicada,
+  obtenerResumen,
   editarMetadatos,
   guardarVersion,
   promoverVersion,

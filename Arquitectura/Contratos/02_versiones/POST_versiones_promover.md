@@ -46,13 +46,17 @@ Cuando pasa a `publicado`:
 3. Las tiendas deben ser del mismo `tipo` que la versión.
 4. Reemplaza el listado completo de tiendas asignadas en la operación.
 5. Si la versión es de línea base, archiva la versión base `piloto` anterior del mismo `planograma_id + tipo` (si existe). Las versiones especiales por tienda no archivan ninguna anterior. Operación atómica (transacción).
+6. Una tienda monta una sola versión por planograma: cada tienda piloto **desmonta** la versión publicada o piloto que tuviera de ese planograma y monta esta.
+7. Las tiendas de la piloto anterior archivada que no siguen en el piloto nuevo vuelven a la versión publicada del mismo tipo (o quedan sin el planograma si no existe).
+8. Cada movimiento de tienda se audita en una edición con `origen = PILOTO` (ver `15_asignaciones/`).
 
 ## Reglas de negocio — promover a publicado
 
 1. El estado actual debe ser `piloto` → `422` si no.
 2. Valida errores bloqueantes: posiciones con `min_final > max_final`. Si hay errores, retorna `422` con el detalle.
 3. Si la versión es de línea base, archiva la versión base `publicado` anterior del mismo `planograma_id + tipo` (si existe). Las versiones especiales por tienda no archivan ninguna anterior.
-4. Operación atómica (transacción).
+4. Las tiendas que probaban esta versión en piloto quedan con ella publicada (`PILOTO_PUBLICADO`), y las tiendas de la publicada anterior que se archiva pasan a esta (`CAMBIO`). Todo se audita en una edición con `origen = PUBLICACION` y usuario `sistema`.
+5. Operación atómica (transacción).
 
 ---
 

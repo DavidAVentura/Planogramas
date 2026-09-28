@@ -1,0 +1,42 @@
+/* El alto se ajusta con --boton-seleccion-alto para igualar los selects de cada barra de filtros. */
+.boton-seleccion {
+  position: relative;
+  height: var(--boton-seleccion-alto, 40px);
+  max-width: 100%;
+  padding: 0 32px 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--fg-1);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    border-right: 1.5px solid var(--fg-2);
+    border-bottom: 1.5px solid var(--fg-2);
+    transform: translateY(-70%) rotate(45deg);
+  }
+
+  &:focus-visible {
+    outline: 0;
+    border-color: var(--cemaco-indigo);
+    box-shadow: 0 0 0 3px var(--cemaco-indigo-100);
+  }
+}
+
+.boton-seleccion--activo {
+  border-color: var(--cemaco-indigo);
+  background: var(--cemaco-indigo-50);
+}

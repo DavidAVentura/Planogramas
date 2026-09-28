@@ -57,4 +57,6 @@ temp/
 # --- POSTMAN ----
 #*.postman_collection.json
 *.postman_environment.json
-postman
+# Espejo auto-generado por Postman Cloud; solo la colección importable se edita a mano.
+postman/*
+!postman/planogramas-import.postman_collection.json

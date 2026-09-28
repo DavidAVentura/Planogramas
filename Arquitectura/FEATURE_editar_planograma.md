@@ -96,7 +96,7 @@ Al hacer clic en una posición se abre un panel lateral o modal con los siguient
   Activo = el producto viene con display propio y debe exhibirse en él (ej. Kinder).
 
 ### Clasificación
-- **Modo**: `PLANOGRAMA` / `CROSS`.
+- **Modo**: `PLANOGRAMA` / `CROSS` / `IMPULSO` (`PENDIENTE` lo asigna el sistema a posiciones sin SKU confirmado).
 - **Cross externo**: toggle — activo si el producto está en un accesorio colgante
   fuera de la góndola principal.
 - **Decisión**: `ACTIVO` / `INACTIVO`.

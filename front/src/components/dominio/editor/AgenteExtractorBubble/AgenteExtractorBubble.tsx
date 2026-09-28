@@ -1,14 +1,27 @@
 import { useState } from 'react';
+import { ConfirmDialog } from '../../../ui/ConfirmDialog/ConfirmDialog';
 import { AgenteExtractorChat } from '../AgenteExtractorChat/AgenteExtractorChat';
 import { ResumenBorradorModal } from '../../modales/ResumenBorradorModal/ResumenBorradorModal';
 import { ExtractorImagenNumeradaModal } from '../../modales/ExtractorImagenNumeradaModal/ExtractorImagenNumeradaModal';
+import { SeleccionarMetodoExtraccionModal } from '../../modales/SeleccionarMetodoExtraccionModal/SeleccionarMetodoExtraccionModal';
+import { ExtractorVisionCatalogoModal } from '../../modales/ExtractorVisionCatalogoModal/ExtractorVisionCatalogoModal';
+import { ExtractorLienzoModal } from '../../modales/ExtractorLienzoModal/ExtractorLienzoModal';
+import { ExtractorJCv2Modal } from '../../modales/ExtractorJCv2Modal/ExtractorJCv2Modal';
 import { useAgenteExtractor } from '../../../../hooks/useAgenteExtractor';
 import { useNivelesDeVersion } from '../../../../hooks/useNiveles';
 import { usePosicionesDeNiveles } from '../../../../hooks/usePosiciones';
 import { useAccesorios } from '../../../../hooks/useAccesorios';
+import { usePosicionFlotante } from '../../../../hooks/usePosicionFlotante';
 import { construirContextoAgente } from '../../../../utils/agenteExtractorContexto';
 import type { GondolaListItem } from '../../../../types/gondola';
 import './AgenteExtractorBubble.css';
+
+const ANCHO_BURBUJA = 88;
+const ALTO_BURBUJA = 48;
+const ANCHO_PANEL = 360;
+const ALTO_PANEL = 520;
+
+type MetodoExtraccion = 'ninguno' | 'elegir' | 'imagen-numerada' | 'vision-catalogo' | 'lienzo' | 'jcv2';
 
 interface AgenteExtractorBubbleProps {
   puedeEscribir: boolean;
@@ -16,20 +29,36 @@ interface AgenteExtractorBubbleProps {
   /** Todas las góndolas de la versión — el agente opera sobre la versión completa, no solo la
    * góndola activa en pantalla. */
   gondolas: GondolaListItem[];
+  /** Góndola visible en pantalla — es la que se usa como "fixture" para el extractor por fotos
+   * (IA visual), ya que las fotos que suba el usuario son de ese mueble puntual. Sin góndolas en
+   * la versión no hay ninguna: el chat sigue disponible pero la extracción queda bloqueada. */
+  gondolaActiva?: GondolaListItem | null;
+  categoria: string;
   subcategorias: string[];
   onConfirmado: () => void;
+  /** Abre el modal de crear góndola de la página — se ofrece cuando el usuario intenta extraer
+   * de otra fuente sin tener todavía ninguna góndola. */
+  onCrearGondola: () => void;
+  /** Habilita el modo voz del chat (dictado + lectura en voz alta). Hoy solo en el Lienzo. */
+  modoVoz?: boolean;
 }
 
 export function AgenteExtractorBubble({
   puedeEscribir,
   versionId,
   gondolas,
+  gondolaActiva,
+  categoria,
   subcategorias,
   onConfirmado,
+  onCrearGondola,
+  modoVoz = false,
 }: AgenteExtractorBubbleProps) {
   const [abierto, setAbierto] = useState(false);
   const [mostrarResumen, setMostrarResumen] = useState(false);
-  const [mostrarExtractorImagen, setMostrarExtractorImagen] = useState(false);
+  const [metodoExtraccion, setMetodoExtraccion] = useState<MetodoExtraccion>('ninguno');
+  const [avisoSinGondola, setAvisoSinGondola] = useState(false);
+  const [confirmarReestablecer, setConfirmarReestablecer] = useState(false);
 
   // Carga perezosa: solo se pide el detalle de niveles/posiciones de toda la versión cuando el
   // chat está abierto, para no pegarle a la API de cada góndola en cada carga del editor.
@@ -38,40 +67,152 @@ export function AgenteExtractorBubble({
   const { accesorios } = useAccesorios();
 
   const contexto = construirContextoAgente(gondolas, niveles, posicionesPorNivel, accesorios, subcategorias);
-  const agente = useAgenteExtractor(contexto);
+  const agente = useAgenteExtractor(contexto, versionId);
+
+  const { pos, iniciarArrastre, consumirArrastre, anclarEsquina } = usePosicionFlotante(ANCHO_BURBUJA, ALTO_BURBUJA);
 
   if (!puedeEscribir) return null;
 
+  function alternar() {
+    if (consumirArrastre()) return;
+    if (abierto) {
+      anclarEsquina(ANCHO_PANEL, ALTO_PANEL, ANCHO_BURBUJA, ALTO_BURBUJA);
+    } else {
+      anclarEsquina(ANCHO_BURBUJA, ALTO_BURBUJA, ANCHO_PANEL, ALTO_PANEL);
+    }
+    setAbierto(!abierto);
+  }
+
+  function extraerDeOtraFuente() {
+    if (!gondolaActiva) {
+      setAvisoSinGondola(true);
+      return;
+    }
+    setMetodoExtraccion('elegir');
+  }
+
   return (
     <>
-      <button
-        type="button"
-        className="agente-extractor-bubble"
-        onClick={() => setAbierto(true)}
-        title="Agente extractor del planograma"
-      >
-        Chat
-      </button>
+      <div className="agente-extractor-widget" style={{ left: pos.x, top: pos.y }}>
+        {abierto ? (
+          <AgenteExtractorChat
+            mensajes={agente.mensajes}
+            borrador={agente.borrador}
+            listoParaConfirmar={agente.listoParaConfirmar}
+            enviando={agente.enviando}
+            onEnviar={agente.enviar}
+            onReenviar={agente.reenviar}
+            onExtraerImagen={extraerDeOtraFuente}
+            extraerDeshabilitado={!gondolaActiva}
+            onRevisar={() => setMostrarResumen(true)}
+            onColapsar={alternar}
+            onReestablecer={() => setConfirmarReestablecer(true)}
+            onArrastreHeader={(e) => iniciarArrastre(e, ANCHO_PANEL, ALTO_PANEL)}
+            modoVoz={modoVoz}
+          />
+        ) : (
+          <button
+            type="button"
+            className="agente-extractor-bubble"
+            onPointerDown={(e) => iniciarArrastre(e, ANCHO_BURBUJA, ALTO_BURBUJA)}
+            onClick={alternar}
+            title="Agente extractor del planograma"
+          >
+            Chat
+          </button>
+        )}
+      </div>
 
-      {abierto && (
-        <AgenteExtractorChat
-          mensajes={agente.mensajes}
-          borrador={agente.borrador}
-          listoParaConfirmar={agente.listoParaConfirmar}
-          enviando={agente.enviando}
-          onEnviar={agente.enviar}
-          onExtraerImagen={() => setMostrarExtractorImagen(true)}
-          onRevisar={() => setMostrarResumen(true)}
-          onClose={() => setAbierto(false)}
+      {avisoSinGondola && (
+        <ConfirmDialog
+          titulo="Sin góndolas"
+          mensaje="Debes crear una góndola primero."
+          confirmarLabel="Crear góndola"
+          onClose={() => setAvisoSinGondola(false)}
+          onConfirm={() => {
+            setAvisoSinGondola(false);
+            onCrearGondola();
+          }}
         />
       )}
 
-      {mostrarExtractorImagen && (
+      {confirmarReestablecer && (
+        <ConfirmDialog
+          titulo="Reestablecer chat"
+          mensaje="Se borrará el historial de la conversación y el borrador pendiente de esta versión. ¿Deseas continuar?"
+          confirmarLabel="Reestablecer"
+          peligro
+          onClose={() => setConfirmarReestablecer(false)}
+          onConfirm={() => {
+            setConfirmarReestablecer(false);
+            agente.reestablecer();
+          }}
+        />
+      )}
+
+      {metodoExtraccion === 'elegir' && (
+        <SeleccionarMetodoExtraccionModal
+          onClose={() => setMetodoExtraccion('ninguno')}
+          onSeleccionarImagenNumerada={() => setMetodoExtraccion('imagen-numerada')}
+          onSeleccionarVisionCatalogo={() => setMetodoExtraccion('vision-catalogo')}
+          onSeleccionarLienzo={() => setMetodoExtraccion('lienzo')}
+          onSeleccionarJCv2={() => setMetodoExtraccion('jcv2')}
+        />
+      )}
+
+      {metodoExtraccion === 'imagen-numerada' && (
         <ExtractorImagenNumeradaModal
-          onClose={() => setMostrarExtractorImagen(false)}
+          onClose={() => setMetodoExtraccion('ninguno')}
           onAceptar={(mensaje) => {
-            setMostrarExtractorImagen(false);
+            setMetodoExtraccion('ninguno');
             agente.enviar(mensaje);
+          }}
+        />
+      )}
+
+      {metodoExtraccion === 'vision-catalogo' && gondolaActiva && (
+        <ExtractorVisionCatalogoModal
+          subcategorias={subcategorias}
+          gondola={gondolaActiva}
+          categoria={categoria}
+          onClose={() => setMetodoExtraccion('ninguno')}
+          onAceptar={(mensaje) => {
+            setMetodoExtraccion('ninguno');
+            agente.enviar(mensaje);
+          }}
+        />
+      )}
+
+      {metodoExtraccion === 'lienzo' && gondolaActiva && (
+        <ExtractorLienzoModal
+          subcategorias={subcategorias}
+          gondolas={gondolas}
+          versionId={versionId}
+          gondola={gondolaActiva}
+          categoria={categoria}
+          onClose={() => setMetodoExtraccion('ninguno')}
+          onAceptar={() => {
+            setMetodoExtraccion('ninguno');
+            recargarNiveles();
+            recargarPosiciones();
+            onConfirmado();
+          }}
+        />
+      )}
+
+      {metodoExtraccion === 'jcv2' && gondolaActiva && (
+        <ExtractorJCv2Modal
+          subcategorias={subcategorias}
+          gondolas={gondolas}
+          versionId={versionId}
+          gondola={gondolaActiva}
+          categoria={categoria}
+          onClose={() => setMetodoExtraccion('ninguno')}
+          onAceptar={() => {
+            setMetodoExtraccion('ninguno');
+            recargarNiveles();
+            recargarPosiciones();
+            onConfirmado();
           }}
         />
       )}
@@ -89,7 +230,7 @@ export function AgenteExtractorBubble({
             // No cierra el modal todavía: se queda mostrando el resumen de resultados
             // (ejecutada/fallida/omitida por acción) hasta que el usuario lo cierre a mano.
             setAbierto(false);
-            agente.reiniciar();
+            agente.limpiarBorrador();
             recargarNiveles();
             recargarPosiciones();
             onConfirmado();

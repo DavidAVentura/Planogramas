@@ -62,7 +62,7 @@ export function BarraAccionesPosicion({
         <button type="button" onClick={() => onEditar(posicion)}>
           Editar
         </button>
-        <button type="button" onClick={() => onFicha(posicion.sku)}>
+        <button type="button" disabled={!posicion.sku} onClick={() => posicion.sku && onFicha(posicion.sku)}>
           Ficha
         </button>
         <button type="button" className="barra-acciones-posicion__quitar" onClick={() => onQuitar(posicion)}>

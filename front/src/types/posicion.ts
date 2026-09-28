@@ -1,16 +1,35 @@
 export const PERFILES_REDONDEO = ['MRP', 'ZSRE'] as const;
 export type PerfilRedondeo = (typeof PERFILES_REDONDEO)[number];
 
-export const MODOS_POSICION = ['PLANOGRAMA', 'CROSS'] as const;
+export const MODOS_POSICION = ['PLANOGRAMA', 'CROSS', 'IMPULSO', 'PENDIENTE'] as const;
 export type ModoPosicion = (typeof MODOS_POSICION)[number];
 
 export const DECISIONES_POSICION = ['ACTIVO', 'INACTIVO'] as const;
 export type DecisionPosicion = (typeof DECISIONES_POSICION)[number];
 
+
+export interface AlternativaVision {
+  sku: string;
+  name: string;
+  confidence: number;
+}
+
+export interface DatosVision {
+  detectedName: string;
+  facings: number;
+  confidence: number;
+  moduleId: string;
+  reason: string;
+  alternatives: AlternativaVision[];
+}
+
 export interface Posicion {
   id: number;
   nivelId: number;
-  sku: string;
+  sku: string | null;
+  nombre_detectado: string | null;
+  confidence: number;
+  datos_vision: DatosVision | null;
   orden_horizontal: number;
   ancho_asignado_cm: number;
   facings_horizontal: number;
@@ -59,6 +78,11 @@ export interface PosicionEditada extends Posicion {
   advertencia?: string;
 }
 
+export interface AsignarSkuInput {
+  sku: string;
+  subcategorias?: string[];
+}
+
 export interface PosicionCampos {
   ancho_asignado_cm: number;
   facings_horizontal: number;
@@ -73,8 +97,12 @@ export interface PosicionCampos {
   decision?: DecisionPosicion;
 }
 
+/** `sku` null = posición PENDIENTE. Los campos de visión son opcionales, como en el backend. */
 export interface PosicionInput extends PosicionCampos {
-  sku: string;
+  sku: string | null;
+  nombre_detectado?: string | null;
+  confidence?: number;
+  datos_vision?: DatosVision | null;
   orden_horizontal: number;
 }
 

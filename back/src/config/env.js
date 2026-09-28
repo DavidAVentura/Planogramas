@@ -31,11 +31,12 @@ module.exports = {
     audience: process.env.JWT_AUDIENCE,
   },
 
-  // CAO — CemacoAllInOne (primer salto de autenticación hacia CATI)
+  // CAO — CemacoAllInOne: emite el JWT del usuario (el login ocurre en otra aplicación) y lo
+  // valida vía GET {baseUrl}/auth/validar_token?cod_modulo={codModulo}. Ese mismo JWT es el que
+  // se intercambia por el accessToken de CATI (ver infrastructure/cati/tokenManager.js).
   cao: {
-    baseUrl:  process.env.CAO_BASE_URL,
-    user:     process.env.CAO_USER,
-    password: process.env.CAO_PASSWORD,
+    baseUrl:   process.env.CAO_BASE_URL,
+    codModulo: process.env.CAO_COD_MODULO || 'SCRAPING',
   },
 
   // CATI — catálogo y jerarquía (segundo salto)
@@ -48,5 +49,13 @@ module.exports = {
   openai: {
     apiKey: process.env.OPENIA_TOKEN,
     model:  process.env.OPENAI_MODEL || 'gpt-4o-mini',
+  },
+
+  // Azure Blob Storage — adjuntos de PlanogramaVersion. Contenedor privado (la cuenta tiene
+  // deshabilitado el acceso anónimo al blob); la descarga real siempre pasa por el backend
+  // (GET /adjuntos/:id/descargar), nunca se expone una URL directa del blob.
+  azureStorage: {
+    connectionString: process.env.AZURE_STORAGE_CONNECTION_STRING,
+    container:        process.env.AZURE_STORAGE_CONTAINER_ADJUNTOS || 'adjuntos',
   },
 };

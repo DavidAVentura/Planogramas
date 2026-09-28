@@ -25,6 +25,9 @@ La idea surgio como "foto a planograma con IA", pero se ha ido aterrizando a un 
 - En racks largos se deben tomar multiples fotos por modulo.
 - El reconocimiento debe mostrar confianza y candidatos alternos.
 - La etiqueta de precio puede ayudar, pero no debe ser la fuente principal de reconocimiento.
+- Jerarquia de productos (2026-09-25): familia y categoria no se guardan en la tabla local `Producto`. En la vista `/productos` el filtro por jerarquia se resuelve en vivo: CATI devuelve los sku del nivel elegido y se cruzan con la tabla local. Asi no hay copias desactualizadas cuando la jerarquia cambia en CATI.
+- La vista `/productos` lista solo los sku de la tabla local (los ya usados en alguna posicion), con cuantos planogramas los incluyen y como: planograma, cross o impulso.
+- `Posicion.modo` admite `IMPULSO` (exhibicion de compra por impulso, ej. cajas) ademas de `PLANOGRAMA`, `CROSS` y `PENDIENTE`. Sin migracion: la columna es varchar(20) sin CHECK.
 
 ## Estado Actual Del Prototipo
 

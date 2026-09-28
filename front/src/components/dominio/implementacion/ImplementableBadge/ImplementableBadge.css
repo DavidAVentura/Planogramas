@@ -1,0 +1,25 @@
+.implementable-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.implementable-badge--si {
+  background: #f4fbe3;
+  color: #4f7300;
+}
+
+.implementable-badge--no {
+  background: #fdeae5;
+  color: #b3261e;
+}
+
+.implementable-badge--sin-dato {
+  background: var(--ink-100);
+  color: var(--fg-2);
+}

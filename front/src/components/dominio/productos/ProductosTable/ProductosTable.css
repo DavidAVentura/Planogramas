@@ -1,0 +1,209 @@
+/* El <th> ya trae padding de .table; el botón lo compensa para que el área clickeable sea todo
+   el encabezado sin correr el texto respecto a las celdas. */
+.productos-table th[aria-sort] {
+  padding: 4px 8px;
+}
+
+.productos-table td {
+  vertical-align: middle;
+}
+
+/* Mismo estilo que los listados de planogramas y tiendas: encabezados en mayúsculas y filas
+   compactas. Con `>` para no alcanzar la tabla del detalle expandido. */
+.productos-table > thead > tr > th {
+  text-transform: uppercase;
+}
+
+.productos-table > tbody > tr > td {
+  padding: 10px 16px;
+}
+
+.productos-table__orden {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: inherit;
+  color: var(--fg-3);
+  cursor: pointer;
+
+  &:hover { background: var(--ink-100); }
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 1px;
+  }
+}
+
+.productos-table__orden--principal {
+  color: var(--cemaco-indigo);
+  font-weight: 800;
+}
+
+.productos-table__orden--secundario {
+  color: var(--fg-2);
+}
+
+.productos-table__icono--inactivo {
+  color: var(--ink-300);
+}
+
+.productos-table__prioridad {
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border-radius: var(--radius-pill);
+  background: var(--ink-200);
+  color: var(--fg-2);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.productos-table__orden--principal .productos-table__prioridad {
+  background: var(--cemaco-indigo);
+  color: #fff;
+}
+
+.productos-table .productos-table__col-expandir {
+  width: 44px;
+  padding: 0 0 0 8px;
+}
+
+.productos-table__expandir {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--fg-2);
+  cursor: pointer;
+
+  &:hover { background: var(--ink-100); }
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 1px;
+  }
+}
+
+.productos-table__sku {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.productos-table__producto,
+.productos-table__jerarquia {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.productos-table__nombre {
+  font-weight: 600;
+}
+
+.productos-table__secundario {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--fg-3);
+}
+
+.productos-table__sin-validar {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8a3f00;
+}
+
+.productos-table__subcategoria {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.productos-table__conteo {
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.productos-table__conteo--cero {
+  color: var(--fg-4);
+}
+
+.productos-table__modos {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.productos-table__modo-conteo {
+  margin-left: 5px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
+}
+
+.productos-table__sin-planograma {
+  display: inline-flex;
+  padding: 3px 8px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg-3);
+}
+
+.productos-table > tbody > .productos-table__fila--inactiva > td {
+  color: var(--fg-3);
+}
+
+/* Selectores con `>`: el detalle contiene su propia tabla y estas reglas no deben alcanzarla. */
+.productos-table > tbody > .productos-table__fila--abierta > td,
+.productos-table > tbody > .productos-table__detalle > td {
+  background: var(--ink-50);
+}
+
+.productos-table > tbody > .productos-table__detalle > td {
+  border-top: 0;
+  padding: 4px 16px 16px 60px;
+}
+
+.productos-table__oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (width <= 600px) {
+  .productos-table .productos-table__col-expandir {
+    width: auto;
+    padding: 8px 0 0;
+  }
+
+  .productos-table > tbody > .productos-table__detalle > td {
+    display: block;
+    padding: 8px 0 12px;
+
+    &::before { content: none; }
+  }
+}

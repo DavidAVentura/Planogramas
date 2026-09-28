@@ -5,6 +5,8 @@
 
 const db = require('../db/connection');
 const { ESTADOS } = require('../../domain/version/version.entity');
+const { ORIGENES, esMontable, calcularAccion } = require('../../domain/asignacion/asignacion.entity');
+const { versionesMontadas, montar, registrarEdicion } = require('./asignacionTx');
 
 const TABLA_VERSION            = 'PlanogramaVersion';
 const TABLA_VERSION_TIENDA     = 'VersionTienda';
@@ -109,10 +111,58 @@ async function crear(version) {
   return id;
 }
 
+// ─── clonarEstructura ────────────────────────────────────────────────────────
+// Copia góndolas → niveles → posiciones → accesorios de `versionBaseId` a
+// `nuevaVersionId`, dentro de la transacción `trx` del llamador. El id nuevo de
+// cada fila padre se usa inmediatamente como FK de sus hijos, sin necesidad de
+// mantener un mapa oldId→newId en memoria.
+
+async function clonarEstructura(trx, versionBaseId, nuevaVersionId) {
+  const gondolas = await trx(TABLA_GONDOLA)
+    .where('planograma_version_id', versionBaseId)
+    .orderBy('orden', 'asc');
+
+  for (const gondola of gondolas) {
+    const { id: gondolaIdOriginal, planograma_version_id, ...gondolaDatos } = gondola;
+    const [{ id: nuevaGondolaId }] = await trx(TABLA_GONDOLA)
+      .insert({ ...gondolaDatos, planograma_version_id: nuevaVersionId })
+      .returning('id');
+
+    const niveles = await trx(TABLA_NIVEL)
+      .where('gondola_id', gondolaIdOriginal)
+      .orderBy('orden', 'asc');
+
+    for (const nivel of niveles) {
+      const { id: nivelIdOriginal, gondola_id, ...nivelDatos } = nivel;
+      const [{ id: nuevoNivelId }] = await trx(TABLA_NIVEL)
+        .insert({ ...nivelDatos, gondola_id: nuevaGondolaId })
+        .returning('id');
+
+      const posiciones = await trx(TABLA_POSICION)
+        .where('nivel_id', nivelIdOriginal)
+        .orderBy('orden_horizontal', 'asc');
+
+      for (const posicion of posiciones) {
+        const { id: posicionIdOriginal, nivel_id, ...posicionDatos } = posicion;
+        const [{ id: nuevaPosicionId }] = await trx(TABLA_POSICION)
+          .insert({ ...posicionDatos, nivel_id: nuevoNivelId })
+          .returning('id');
+
+        const accesorios = await trx(TABLA_POSICION_ACCESORIO).where('posicion_id', posicionIdOriginal);
+
+        if (accesorios.length > 0) {
+          const filas = accesorios.map(({ id, posicion_id, ...datos }) => ({
+            ...datos,
+            posicion_id: nuevaPosicionId,
+          }));
+          await trx(TABLA_POSICION_ACCESORIO).insert(filas);
+        }
+      }
+    }
+  }
+}
+
 // ─── crearConClon ────────────────────────────────────────────────────────────
-// Copia góndolas → niveles → posiciones → accesorios de la versión base en una
-// única transacción. El id nuevo de cada fila padre se usa inmediatamente como
-// FK de sus hijos, sin necesidad de mantener un mapa oldId→newId en memoria.
 
 async function crearConClon(version, versionBaseId, tiendaId) {
   return db.transaction(async (trx) => {
@@ -120,48 +170,7 @@ async function crearConClon(version, versionBaseId, tiendaId) {
 
     await trx(TABLA_VERSION_TIENDA).insert({ planograma_version_id: nuevaVersionId, tienda_id: tiendaId });
 
-    const gondolas = await trx(TABLA_GONDOLA)
-      .where('planograma_version_id', versionBaseId)
-      .orderBy('orden', 'asc');
-
-    for (const gondola of gondolas) {
-      const { id: gondolaIdOriginal, planograma_version_id, ...gondolaDatos } = gondola;
-      const [{ id: nuevaGondolaId }] = await trx(TABLA_GONDOLA)
-        .insert({ ...gondolaDatos, planograma_version_id: nuevaVersionId })
-        .returning('id');
-
-      const niveles = await trx(TABLA_NIVEL)
-        .where('gondola_id', gondolaIdOriginal)
-        .orderBy('orden', 'asc');
-
-      for (const nivel of niveles) {
-        const { id: nivelIdOriginal, gondola_id, ...nivelDatos } = nivel;
-        const [{ id: nuevoNivelId }] = await trx(TABLA_NIVEL)
-          .insert({ ...nivelDatos, gondola_id: nuevaGondolaId })
-          .returning('id');
-
-        const posiciones = await trx(TABLA_POSICION)
-          .where('nivel_id', nivelIdOriginal)
-          .orderBy('orden_horizontal', 'asc');
-
-        for (const posicion of posiciones) {
-          const { id: posicionIdOriginal, nivel_id, ...posicionDatos } = posicion;
-          const [{ id: nuevaPosicionId }] = await trx(TABLA_POSICION)
-            .insert({ ...posicionDatos, nivel_id: nuevoNivelId })
-            .returning('id');
-
-          const accesorios = await trx(TABLA_POSICION_ACCESORIO).where('posicion_id', posicionIdOriginal);
-
-          if (accesorios.length > 0) {
-            const filas = accesorios.map(({ id, posicion_id, ...datos }) => ({
-              ...datos,
-              posicion_id: nuevaPosicionId,
-            }));
-            await trx(TABLA_POSICION_ACCESORIO).insert(filas);
-          }
-        }
-      }
-    }
+    await clonarEstructura(trx, versionBaseId, nuevaVersionId);
 
     return nuevaVersionId;
   });
@@ -437,7 +446,10 @@ async function listarTiendas(id) {
 
 // ─── reemplazarTiendas ───────────────────────────────────────────────────────
 
-async function reemplazarTiendas(id, tiendaIds) {
+// Para versiones publicadas o en piloto aplica la regla "una tienda monta una sola versión por
+// planograma" (las tiendas agregadas desmontan la que tenían) y audita cada cambio. Para el
+// resto de estados la lista de tiendas es solo informativa y se reemplaza tal cual.
+async function reemplazarTiendas(id, tiendaIds, usuario) {
   let tiendasValidas = [];
   let ignorados       = [];
 
@@ -451,28 +463,59 @@ async function reemplazarTiendas(id, tiendaIds) {
   }
 
   await db.transaction(async (trx) => {
-    await trx(TABLA_VERSION_TIENDA).where('planograma_version_id', id).delete();
+    const version = await trx(TABLA_VERSION).where('id', id).select('id', 'planograma_id', 'codigo', 'estado').first();
 
-    if (tiendasValidas.length > 0) {
-      const filas = tiendasValidas.map((t) => ({ planograma_version_id: id, tienda_id: t.id }));
-      await trx(TABLA_VERSION_TIENDA).insert(filas);
+    if (!esMontable(version.estado)) {
+      await trx(TABLA_VERSION_TIENDA).where('planograma_version_id', id).delete();
+      if (tiendasValidas.length > 0) {
+        const filas = tiendasValidas.map((t) => ({ planograma_version_id: id, tienda_id: t.id }));
+        await trx(TABLA_VERSION_TIENDA).insert(filas);
+      }
+      return;
     }
+
+    const planogramaId = version.planograma_id;
+    const esta         = { id: version.id, codigo: version.codigo, estado: version.estado };
+    const nuevasIds    = tiendasValidas.map((t) => t.id);
+    const actualesIds  = await trx(TABLA_VERSION_TIENDA).where('planograma_version_id', id).pluck('tienda_id');
+    const quitadas     = actualesIds.filter((t) => !nuevasIds.includes(t));
+    const agregadas    = nuevasIds.filter((t) => !actualesIds.includes(t));
+    const montadas     = await versionesMontadas(trx, planogramaId, agregadas);
+
+    const operaciones = [];
+    for (const tiendaId of quitadas) {
+      await trx(TABLA_VERSION_TIENDA).where({ planograma_version_id: id, tienda_id: tiendaId }).delete();
+      operaciones.push({ planogramaId, tiendaId, accion: calcularAccion(esta, null), anterior: esta, nueva: null });
+    }
+    for (const tiendaId of agregadas) {
+      const anterior = montadas.find((m) => m.tiendaId === tiendaId) ?? null;
+      await montar(trx, planogramaId, tiendaId, id);
+      const accion = calcularAccion(anterior, esta);
+      if (accion) operaciones.push({ planogramaId, tiendaId, accion, anterior, nueva: esta });
+    }
+
+    await registrarEdicion(trx, { usuario, motivo: `Tiendas asignadas a ${version.codigo}`, origen: ORIGENES.VERSION }, operaciones);
   });
 
   return { tiendas: tiendasValidas, ignorados };
 }
 
 // ─── promoverAPiloto ─────────────────────────────────────────────────────────
+// Las tiendas piloto desmontan la versión que tenían del planograma y montan esta. Si se
+// archiva una piloto anterior, sus tiendas que no siguen en el piloto nuevo vuelven a la
+// versión publicada del mismo tipo (o quedan sin el planograma si no existe). Todo se audita.
 
-async function promoverAPiloto(id, tiendaIds) {
+async function promoverAPiloto(id, tiendaIds, usuario) {
   return db.transaction(async (trx) => {
-    const version = await trx(TABLA_VERSION).where('id', id).select('planograma_id', 'tipo', 'version_base_id').first();
+    const version = await trx(TABLA_VERSION).where('id', id).select('planograma_id', 'tipo', 'version_base_id', 'codigo').first();
+    const planogramaId = version.planograma_id;
+    const esLineaBase  = version.version_base_id === null;
 
     // El archivado automático de la "anterior" es una regla de la línea base — las
     // versiones especiales por tienda no compiten por el estado con nadie.
-    const anterior = version.version_base_id === null
+    const anterior = esLineaBase
       ? await trx(TABLA_VERSION)
-          .where('planograma_id', version.planograma_id)
+          .where('planograma_id', planogramaId)
           .where('tipo', version.tipo)
           .where('estado', ESTADOS.PILOTO)
           .whereNull('version_base_id')
@@ -481,37 +524,72 @@ async function promoverAPiloto(id, tiendaIds) {
           .first()
       : undefined;
 
+    const publicadaMismoTipo = esLineaBase
+      ? await trx(TABLA_VERSION)
+          .where('planograma_id', planogramaId)
+          .where('tipo', version.tipo)
+          .where('estado', ESTADOS.PUBLICADO)
+          .whereNull('version_base_id')
+          .select('id', 'codigo')
+          .first()
+      : undefined;
+
+    const tiendasValidas = tiendaIds.length > 0
+      ? await trx(TABLA_TIENDA).whereIn('id', tiendaIds).select('id', 'codigo', 'nombre')
+      : [];
+    const nuevasIds = tiendasValidas.map((t) => t.id);
+
+    // Estado de cada tienda antes de mover nada, para auditar desde dónde viene.
+    const montadasAntes   = await versionesMontadas(trx, planogramaId, nuevasIds);
+    const testersAnterior = anterior
+      ? await trx(TABLA_VERSION_TIENDA).where('planograma_version_id', anterior.id).pluck('tienda_id')
+      : [];
+    const huerfanas = testersAnterior.filter((t) => !nuevasIds.includes(t));
+
     if (anterior) {
       await trx(TABLA_VERSION).where('id', anterior.id).update({ estado: ESTADOS.ARCHIVADO, updated_at: trx.fn.now() });
+      await trx(TABLA_VERSION_TIENDA).where('planograma_version_id', anterior.id).delete();
     }
 
     await trx(TABLA_VERSION_TIENDA).where('planograma_version_id', id).delete();
+    await trx(TABLA_VERSION).where('id', id).update({ estado: ESTADOS.PILOTO, updated_at: trx.fn.now() });
 
-    let tiendasValidas = [];
-    if (tiendaIds.length > 0) {
-      tiendasValidas = await trx(TABLA_TIENDA).whereIn('id', tiendaIds).select('id', 'codigo', 'nombre');
-      if (tiendasValidas.length > 0) {
-        const filas = tiendasValidas.map((t) => ({ planograma_version_id: id, tienda_id: t.id }));
-        await trx(TABLA_VERSION_TIENDA).insert(filas);
-      }
+    const esta = { id, codigo: version.codigo, estado: ESTADOS.PILOTO };
+    const operaciones = [];
+
+    for (const tiendaId of nuevasIds) {
+      const previa = montadasAntes.find((m) => m.tiendaId === tiendaId) ?? null;
+      await montar(trx, planogramaId, tiendaId, id);
+      const accion = calcularAccion(previa, esta);
+      if (accion) operaciones.push({ planogramaId, tiendaId, accion, anterior: previa, nueva: esta });
     }
 
-    await trx(TABLA_VERSION).where('id', id).update({ estado: ESTADOS.PILOTO, updated_at: trx.fn.now() });
+    for (const tiendaId of huerfanas) {
+      const previa  = { id: anterior.id, codigo: anterior.codigo, estado: ESTADOS.PILOTO };
+      const vuelta  = publicadaMismoTipo ? { ...publicadaMismoTipo, estado: ESTADOS.PUBLICADO } : null;
+      if (vuelta) await montar(trx, planogramaId, tiendaId, vuelta.id);
+      operaciones.push({ planogramaId, tiendaId, accion: calcularAccion(previa, vuelta), anterior: previa, nueva: vuelta });
+    }
+
+    await registrarEdicion(trx, { usuario, motivo: `Promoción a piloto de ${version.codigo}`, origen: ORIGENES.PILOTO }, operaciones);
 
     return { tiendas: tiendasValidas, versionAnteriorArchivada: anterior ?? null };
   });
 }
 
 // ─── promoverAPublicado ──────────────────────────────────────────────────────
+// Las tiendas que probaban esta versión en piloto quedan con ella publicada, y las que usaban
+// la publicada anterior del mismo tipo (que se archiva) pasan a esta. Todo se audita.
 
-async function promoverAPublicado(id) {
+async function promoverAPublicado(id, usuario) {
   return db.transaction(async (trx) => {
-    const version = await trx(TABLA_VERSION).where('id', id).select('planograma_id', 'tipo', 'version_base_id').first();
+    const version = await trx(TABLA_VERSION).where('id', id).select('planograma_id', 'tipo', 'version_base_id', 'codigo', 'estado').first();
+    const planogramaId = version.planograma_id;
 
     // Ver nota en promoverAPiloto: solo la línea base archiva a su anterior.
     const anterior = version.version_base_id === null
       ? await trx(TABLA_VERSION)
-          .where('planograma_id', version.planograma_id)
+          .where('planograma_id', planogramaId)
           .where('tipo', version.tipo)
           .where('estado', ESTADOS.PUBLICADO)
           .whereNull('version_base_id')
@@ -520,11 +598,32 @@ async function promoverAPublicado(id) {
           .first()
       : undefined;
 
+    const testers   = await trx(TABLA_VERSION_TIENDA).where('planograma_version_id', id).pluck('tienda_id');
+    const migrantes = anterior
+      ? (await trx(TABLA_VERSION_TIENDA).where('planograma_version_id', anterior.id).pluck('tienda_id'))
+          .filter((t) => !testers.includes(t))
+      : [];
+
     if (anterior) {
       await trx(TABLA_VERSION).where('id', anterior.id).update({ estado: ESTADOS.ARCHIVADO, updated_at: trx.fn.now() });
+      await trx(TABLA_VERSION_TIENDA).where('planograma_version_id', anterior.id).delete();
     }
 
     await trx(TABLA_VERSION).where('id', id).update({ estado: ESTADOS.PUBLICADO, updated_at: trx.fn.now() });
+
+    const antes = { id, codigo: version.codigo, estado: version.estado };
+    const esta  = { id, codigo: version.codigo, estado: ESTADOS.PUBLICADO };
+    const operaciones = testers.map((tiendaId) => ({
+      planogramaId, tiendaId, accion: calcularAccion(antes, esta), anterior: antes, nueva: esta,
+    }));
+
+    for (const tiendaId of migrantes) {
+      const previa = { id: anterior.id, codigo: anterior.codigo, estado: ESTADOS.PUBLICADO };
+      await montar(trx, planogramaId, tiendaId, id);
+      operaciones.push({ planogramaId, tiendaId, accion: calcularAccion(previa, esta), anterior: previa, nueva: esta });
+    }
+
+    await registrarEdicion(trx, { usuario, motivo: `Publicación de ${version.codigo}`, origen: ORIGENES.PUBLICACION }, operaciones);
 
     return { versionAnteriorArchivada: anterior ?? null };
   });
@@ -584,12 +683,105 @@ async function buscarErroresBloqueantes(id) {
   }));
 }
 
+// ─── obtenerResumen ──────────────────────────────────────────────────────────
+// Ficha de solo lectura de una versión (modal "Ver versión" de Estructura): datos de la
+// versión y su planograma, conteos de estructura y tiendas que la montan. Los adjuntos se
+// piden aparte a GET /versiones/:id/adjuntos.
+
+const TABLA_PLANOGRAMA   = 'Planograma';
+const TABLA_SUBCATEGORIA = 'PlanogramaSubcategoria';
+const MODOS_POSICION     = ['PLANOGRAMA', 'CROSS', 'IMPULSO', 'PENDIENTE'];
+
+async function contarEstructura(id) {
+  const [gondolas] = await db(TABLA_GONDOLA)
+    .where('planograma_version_id', id)
+    .count('id as total')
+    .sum('ancho_cm as anchoTotal');
+
+  const [niveles] = await db(TABLA_NIVEL)
+    .join(TABLA_GONDOLA, `${TABLA_NIVEL}.gondola_id`, `${TABLA_GONDOLA}.id`)
+    .where(`${TABLA_GONDOLA}.planograma_version_id`, id)
+    .count(`${TABLA_NIVEL}.id as total`);
+
+  const posicionesDeVersion = () => db(TABLA_POSICION)
+    .join(TABLA_NIVEL, `${TABLA_POSICION}.nivel_id`, `${TABLA_NIVEL}.id`)
+    .join(TABLA_GONDOLA, `${TABLA_NIVEL}.gondola_id`, `${TABLA_GONDOLA}.id`)
+    .where(`${TABLA_GONDOLA}.planograma_version_id`, id);
+
+  const porModo = await posicionesDeVersion()
+    .groupBy(`${TABLA_POSICION}.modo`)
+    .select(`${TABLA_POSICION}.modo as modo`)
+    .count(`${TABLA_POSICION}.id as total`);
+
+  const [productos] = await posicionesDeVersion()
+    .whereNotNull(`${TABLA_POSICION}.sku`)
+    .countDistinct(`${TABLA_POSICION}.sku as total`);
+
+  const posicionesPorModo = Object.fromEntries(MODOS_POSICION.map((m) => [m, 0]));
+  porModo.forEach((r) => { posicionesPorModo[r.modo] = Number(r.total); });
+
+  return {
+    gondolas:          Number(gondolas.total),
+    niveles:           Number(niveles.total),
+    posiciones:        Object.values(posicionesPorModo).reduce((a, b) => a + b, 0),
+    productos:         Number(productos.total),
+    metrosLineales:    Math.round(Number(gondolas.anchoTotal ?? 0)) / 100,
+    posicionesPorModo,
+  };
+}
+
+async function obtenerResumen(id) {
+  const version = await db(TABLA_VERSION).where('id', id).first();
+
+  const planograma = await db(TABLA_PLANOGRAMA)
+    .where('id', version.planograma_id)
+    .select('id', 'nombre', 'departamento', 'estado')
+    .first();
+  const subcategorias = await db(TABLA_SUBCATEGORIA)
+    .where('planograma_id', planograma.id)
+    .pluck('subcategoria');
+
+  const versionBase = version.version_base_id
+    ? await db(TABLA_VERSION).where('id', version.version_base_id).select('id', 'codigo').first()
+    : null;
+
+  // La piloto de la línea base reemplazará, al publicarse, a la publicada del mismo tipo.
+  const reemplazaA = version.estado === ESTADOS.PILOTO && version.version_base_id === null
+    ? await db(TABLA_VERSION)
+        .where('planograma_id', version.planograma_id)
+        .where('tipo', version.tipo)
+        .where('estado', ESTADOS.PUBLICADO)
+        .whereNull('version_base_id')
+        .select('id', 'codigo')
+        .first()
+    : null;
+
+  const tiendas = await db(TABLA_VERSION_TIENDA)
+    .join(TABLA_TIENDA, `${TABLA_VERSION_TIENDA}.tienda_id`, `${TABLA_TIENDA}.id`)
+    .where(`${TABLA_VERSION_TIENDA}.planograma_version_id`, id)
+    .orderBy(`${TABLA_TIENDA}.nombre`, 'asc')
+    .select(`${TABLA_TIENDA}.id`, `${TABLA_TIENDA}.codigo`, `${TABLA_TIENDA}.nombre`, `${TABLA_TIENDA}.tipo`);
+
+  return {
+    version: {
+      ...mapVersion(version),
+      versionBase: versionBase ?? null,
+      reemplazaA:  reemplazaA ?? null,
+    },
+    planograma: { ...planograma, subcategorias },
+    estructura: await contarEstructura(id),
+    tiendas,
+  };
+}
+
 // ─── Exportación ─────────────────────────────────────────────────────────────
 
 module.exports = {
   listarPorPlanograma,
   crear,
   crearConClon,
+  clonarEstructura,
+  obtenerResumen,
   buscarPorId,
   obtenerDetalleCompleto,
   obtenerEstructuraPublicada,

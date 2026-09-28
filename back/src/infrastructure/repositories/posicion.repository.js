@@ -29,6 +29,10 @@ const CAMPOS_EDITABLES = [
   'nota_desborde',
   'decision',
   'observaciones',
+  'sku',
+  'nombre_detectado',
+  'confidence',
+  'datos_vision',
 ];
 
 // ─── Helpers privados ────────────────────────────────────────────────────────
@@ -37,7 +41,7 @@ function mapPosicion(row) {
   return {
     id:                  row.id,
     nivelId:             row.nivel_id,
-    sku:                 row.sku,
+    sku:                 row.sku ?? null,
     orden_horizontal:    row.orden_horizontal,
     ancho_asignado_cm:   Number(row.ancho_asignado_cm),
     facings_horizontal:  row.facings_horizontal,
@@ -55,6 +59,9 @@ function mapPosicion(row) {
     nota_desborde:       row.nota_desborde,
     decision:            row.decision,
     observaciones:       row.observaciones,
+    nombre_detectado:    row.nombre_detectado ?? null,
+    confidence:          row.confidence ?? 100,
+    datos_vision:        row.datos_vision ? JSON.parse(row.datos_vision) : null,
   };
 }
 
@@ -160,9 +167,20 @@ async function buscarPorIdConAccesorios(id) {
 
 // ─── crear ───────────────────────────────────────────────────────────────────
 
+// Inserta la posición en el `orden_horizontal` indicado, desplazando (+1) las posiciones
+// existentes del mismo nivel con orden_horizontal >= al solicitado — mismo patrón que
+// `crearConOrden` en nivel.repository.js. Cuando se agrega al final (orden_horizontal >
+// cualquier posición existente) el desplazamiento no afecta ninguna fila.
 async function crear(datos) {
-  const [{ id }] = await db(TABLA_POSICION).insert(datos).returning('id');
-  return id;
+  return db.transaction(async (trx) => {
+    await trx(TABLA_POSICION)
+      .where('nivel_id', datos.nivel_id)
+      .where('orden_horizontal', '>=', datos.orden_horizontal)
+      .increment('orden_horizontal', 1);
+
+    const [{ id }] = await trx(TABLA_POSICION).insert(datos).returning('id');
+    return id;
+  });
 }
 
 // ─── actualizar ──────────────────────────────────────────────────────────────
@@ -350,6 +368,13 @@ async function buscarPorSkuEnVersion(sku, versionId) {
 
 // ─── Exportación ─────────────────────────────────────────────────────────────
 
+
+async function actualizarAsignacionSku(id, { sku, modo, confidence, nombre_detectado, ancho_asignado_cm }) {
+  await db(TABLA_POSICION)
+    .where('id', id)
+    .update({ sku, modo, confidence, nombre_detectado, ancho_asignado_cm });
+}
+
 module.exports = {
   listarPorNivel,
   buscarPorId,
@@ -365,4 +390,5 @@ module.exports = {
   buscarAccesorioPorId,
   eliminarAccesorio,
   buscarPorSkuEnVersion,
+  actualizarAsignacionSku,
 };

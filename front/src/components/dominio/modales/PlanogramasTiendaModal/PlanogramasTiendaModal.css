@@ -1,0 +1,163 @@
+/* Header y footer fijos; solo el cuerpo hace scroll, igual que PlanogramaFormModal. */
+.planogramas-tienda-modal {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  .modal__header,
+  .modal__footer {
+    flex-shrink: 0;
+  }
+
+  .modal__body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .modal__footer {
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.planogramas-tienda {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.planogramas-tienda__tienda {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--fg-2);
+
+  strong {
+    color: var(--fg-1);
+  }
+}
+
+.planogramas-tienda__filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.planogramas-tienda__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 160px;
+  font-size: 13px;
+  color: var(--fg-2);
+  font-weight: 600;
+
+  input,
+  select {
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--fg-1);
+    background: #fff;
+
+    &:focus {
+      outline: 0;
+      border-color: var(--cemaco-indigo);
+    }
+  }
+}
+
+.planogramas-tienda__campo--busqueda {
+  flex: 2;
+  min-width: 240px;
+}
+
+.planogramas-tienda__conteo {
+  padding-bottom: 11px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-2);
+  white-space: nowrap;
+}
+
+.planogramas-tienda__planograma {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.planogramas-tienda__nombre {
+  font-weight: 700;
+}
+
+.planogramas-tienda__codigo {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--fg-3);
+}
+
+.planogramas-tienda__badges,
+.planogramas-tienda__subcats {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.planogramas-tienda__subcats {
+  max-width: 320px;
+}
+
+.planogramas-tienda__subcat {
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--ink-100);
+  color: var(--ink-700);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.planogramas-tienda__subcat--mas {
+  background: #fff;
+  border: 1px solid var(--border);
+  color: var(--fg-2);
+  font-weight: 700;
+}
+
+.planogramas-tienda__ver {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cemaco-indigo);
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+
+  &:hover {
+    background: var(--cemaco-indigo-50);
+  }
+}
+
+.planogramas-tienda__cargando {
+  margin: 0;
+  padding: 24px 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--fg-3);
+}
+
+.planogramas-tienda__nota {
+  font-size: 12px;
+  color: var(--fg-3);
+}
