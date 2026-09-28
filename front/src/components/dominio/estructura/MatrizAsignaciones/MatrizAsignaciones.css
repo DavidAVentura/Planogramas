@@ -117,6 +117,39 @@
 .matriz-asignaciones__tienda--mediana { border-top-color: var(--cemaco-green-600); }
 .matriz-asignaciones__tienda--express { border-top-color: var(--accent-sun); }
 
+/* Vista extendida: una sola línea con el código y los planogramas asignados. */
+.matriz-asignaciones__tienda--compacta {
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+}
+
+/* Vista extendida: encabezado de una sola línea, con "Planograma activo", los códigos y "Tiendas"
+   centrados a la misma altura. */
+.matriz-asignaciones--extendida {
+  .matriz-asignaciones__esquina,
+  .matriz-asignaciones__esquina:has(.matriz-asignaciones__extender) {
+    align-items: center;
+    padding-top: 2px;
+    padding-bottom: 2px;
+  }
+
+  .matriz-asignaciones__extender {
+    align-items: center;
+    min-height: 30px;
+    padding: 2px 8px;
+  }
+}
+
+.matriz-asignaciones__tienda-asignadas {
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-3);
+}
+
 .matriz-asignaciones__tienda-codigo {
   font-family: var(--font-mono);
   font-size: 13px;

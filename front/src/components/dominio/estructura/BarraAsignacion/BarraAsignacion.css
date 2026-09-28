@@ -1,4 +1,4 @@
-/* Dos filas: arriba las herramientas de asignación, abajo los filtros a todo el ancho. */
+/* Dos filas: arriba las herramientas de asignación, abajo los filtros a todo el ancho (desplegables). */
 .barra-asignacion {
   display: flex;
   flex-direction: column;
@@ -174,6 +174,72 @@
 .barra-asignacion__muestra--piloto {
   background: #f3edfb;
   border-color: #5b2d91;
+}
+
+.barra-asignacion__lectura {
+  font-size: 13px;
+  color: var(--fg-2);
+}
+
+/* Botón de filtros: siempre al extremo derecho de la fila de asignar. */
+.barra-asignacion__boton-filtros {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-left: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--fg-2);
+  cursor: pointer;
+
+  svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+
+  &:hover { background: var(--ink-100); }
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 2px;
+  }
+}
+
+.barra-asignacion__boton-filtros--con-filtros {
+  border-color: var(--cemaco-indigo);
+  color: var(--cemaco-indigo);
+}
+
+.barra-asignacion__boton-filtros--abierto {
+  border-color: var(--cemaco-indigo);
+  background: var(--cemaco-indigo-50);
+  color: var(--cemaco-indigo);
+
+  &:hover { background: var(--cemaco-indigo-50); }
+}
+
+.barra-asignacion__conteo-filtros {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  border-radius: var(--radius-pill);
+  background: var(--cemaco-indigo);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
 }
 
 .barra-asignacion__ayuda-lista {

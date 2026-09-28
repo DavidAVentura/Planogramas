@@ -96,19 +96,30 @@ export function MatrizAsignaciones({
             </svg>
           </button>
         </div>
-        {tiendas.map((t) => (
-          <div
-            key={t.id}
-            role="columnheader"
-            className={`matriz-asignaciones__tienda matriz-asignaciones__tienda--${t.tipo.toLowerCase()}`}
-          >
-            <span className="matriz-asignaciones__tienda-codigo">{t.codigo}</span>
-            <span className="matriz-asignaciones__tienda-nombre">{t.nombre}</span>
-            <span className="matriz-asignaciones__tienda-tipo" style={{ color: TIPO_TIENDA_META[t.tipo].color }}>
-              {TIPO_TIENDA_META[t.tipo].label} · {asignadasPorTienda.get(t.id) ?? 0}/{totalPlanogramas}
-            </span>
-          </div>
-        ))}
+        {tiendas.map((t) => {
+          const asignadas = asignadasPorTienda.get(t.id) ?? 0;
+          const clase = `matriz-asignaciones__tienda matriz-asignaciones__tienda--${t.tipo.toLowerCase()}`;
+          // Vista extendida: encabezado compacto, solo el código y los planogramas asignados. El nombre
+          // y el tipo quedan en el title; el tipo también se ve en el color del borde superior.
+          if (extendida) {
+            const detalle = `${t.nombre} · ${TIPO_TIENDA_META[t.tipo].label} · ${asignadas} de ${totalPlanogramas} planogramas asignados`;
+            return (
+              <div key={t.id} role="columnheader" className={`${clase} matriz-asignaciones__tienda--compacta`} title={detalle} aria-label={`${t.codigo}: ${detalle}`}>
+                <span className="matriz-asignaciones__tienda-codigo">{t.codigo}</span>
+                <span className="matriz-asignaciones__tienda-asignadas">{asignadas}/{totalPlanogramas}</span>
+              </div>
+            );
+          }
+          return (
+            <div key={t.id} role="columnheader" className={clase}>
+              <span className="matriz-asignaciones__tienda-codigo">{t.codigo}</span>
+              <span className="matriz-asignaciones__tienda-nombre">{t.nombre}</span>
+              <span className="matriz-asignaciones__tienda-tipo" style={{ color: TIPO_TIENDA_META[t.tipo].color }}>
+                {TIPO_TIENDA_META[t.tipo].label} · {asignadas}/{totalPlanogramas}
+              </span>
+            </div>
+          );
+        })}
         <div role="columnheader" className="matriz-asignaciones__esquina matriz-asignaciones__esquina--fin">Tiendas</div>
       </div>
 
