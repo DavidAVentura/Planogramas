@@ -12,6 +12,7 @@ const { MIME_TYPES_PERMITIDOS } = require('../../domain/adjunto/adjunto.entity')
 const adjuntoRepo = require('../../infrastructure/repositories/adjunto.repository');
 const versionRepo = require('../../infrastructure/repositories/version.repository');
 const blobStorage = require('../../infrastructure/storage/blobClient');
+const { usuarioActual } = require('../compartido/validacion');
 
 // ─── Esquemas de validación ───────────────────────────────────────────────────
 
@@ -56,8 +57,7 @@ async function agregar(req, res, next) {
   try {
     const versionId = parsearId(req.params.id);
     const datos     = validarBody(schemaArchivo, req.body);
-    // TODO: reemplazar 'sistema' por el usuario autenticado cuando exista el middleware de CAO.
-    const adjunto   = await usecases.agregarAdjunto(adjuntoRepo, versionRepo, blobStorage, versionId, datos, 'sistema');
+    const adjunto   = await usecases.agregarAdjunto(adjuntoRepo, versionRepo, blobStorage, versionId, datos, usuarioActual(req));
     res.status(201).json(adjunto);
   } catch (err) {
     next(err);
@@ -68,7 +68,7 @@ async function reemplazar(req, res, next) {
   try {
     const id      = parsearId(req.params.id);
     const datos   = validarBody(schemaArchivo, req.body);
-    const adjunto = await usecases.reemplazarAdjunto(adjuntoRepo, versionRepo, blobStorage, id, datos, 'sistema');
+    const adjunto = await usecases.reemplazarAdjunto(adjuntoRepo, versionRepo, blobStorage, id, datos, usuarioActual(req));
     res.json(adjunto);
   } catch (err) {
     next(err);

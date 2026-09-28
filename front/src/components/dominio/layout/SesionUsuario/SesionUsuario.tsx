@@ -7,10 +7,11 @@ export function SesionUsuario() {
   if (!usuario) return null;
 
   const nombre = usuario.nombre ?? usuario.usuario ?? usuario.correo ?? 'Usuario';
+  const detalle = usuario.numeroEmpleado ? `${nombre} · N.º ${usuario.numeroEmpleado}` : (usuario.correo ?? nombre);
 
   return (
     <div className="sesion-usuario">
-      <span className="sesion-usuario__nombre" title={usuario.correo ?? nombre}>
+      <span className="sesion-usuario__nombre" title={detalle}>
         {nombre}
       </span>
       <button type="button" className="sesion-usuario__salir" onClick={cerrarSesion}>

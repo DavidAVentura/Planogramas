@@ -6,7 +6,7 @@
 
 const Joi             = require('joi');
 const usecases        = require('../../domain/asignacion/asignacion.usecases');
-const { USUARIO_SISTEMA } = require('../../domain/asignacion/asignacion.entity');
+const { usuarioAuditoria } = require('../compartido/validacion');
 const asignacionRepo  = require('../../infrastructure/repositories/asignacion.repository');
 
 // ─── Esquemas de validación ───────────────────────────────────────────────────
@@ -51,8 +51,7 @@ async function obtenerMatriz(req, res, next) {
 async function guardarEdicion(req, res, next) {
   try {
     const datos = validar(schemaEdicion, req.body);
-    // TODO: reemplazar USUARIO_SISTEMA por el usuario autenticado cuando exista el middleware de CAO.
-    const resultado = await usecases.guardarEdicion(asignacionRepo, datos, USUARIO_SISTEMA);
+    const resultado = await usecases.guardarEdicion(asignacionRepo, datos, usuarioAuditoria(req));
     res.status(201).json(resultado);
   } catch (err) {
     next(err);

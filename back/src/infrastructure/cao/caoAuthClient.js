@@ -42,23 +42,36 @@ function primerValor(...valores) {
 }
 
 /**
- * Normaliza la respuesta de CAO a un usuario de la app. La forma exacta de la respuesta de
- * validar_token todavía no está documentada, así que se toleran variantes ({ data: {...} } o
- * plana, nombres de campo en español/inglés) y se completa con los claims del JWT. `cao` guarda
- * la respuesta cruda para mapear permisos una vez que se confirme su forma.
+ * Normaliza la respuesta de CAO a un usuario de la app. Forma confirmada de validar_token:
+ *   { token, user: "100702", username: "NOMBRE COMPLETO",
+ *     perfiles: [{ cod_perfil, perfil, permisos: ["SCP002", ...] }], tiendas: [] }
+ * `user` es el número de empleado y `username` el nombre completo (no un login). Los claims del
+ * JWT solo completan lo que falte. `cao` guarda la respuesta cruda, sin el token que CAO devuelve.
  */
 function mapearUsuario(cuerpo, claims) {
-  const datos   = cuerpo?.data ?? cuerpo ?? {};
-  const fuente  = datos.usuario ?? datos.user ?? datos;
-  const c       = claims ?? {};
+  const { token: _token, ...datos } = cuerpo ?? {};
+  const c = claims ?? {};
+
+  const numeroEmpleado = primerValor(datos.user, c.user, c.sub);
+  const perfiles = (Array.isArray(datos.perfiles) ? datos.perfiles : []).map((p) => ({
+    codigo:   p.cod_perfil,
+    nombre:   p.perfil,
+    permisos: Array.isArray(p.permisos) ? p.permisos : [],
+  }));
 
   return {
-    id:      primerValor(fuente.id, fuente.id_usuario, fuente.idUsuario, c.id, c.id_usuario, c.sub),
-    usuario: primerValor(fuente.usuario, fuente.username, fuente.user, c.usuario, c.username, c.unique_name),
-    nombre:  primerValor(fuente.nombre, fuente.nombre_completo, fuente.name, c.nombre, c.name),
-    correo:  primerValor(fuente.correo, fuente.email, c.correo, c.email),
-    permisos: primerValor(datos.permisos, datos.permissions, datos.roles, fuente.permisos, fuente.roles, []),
-    cao:     datos,
+    id:             numeroEmpleado,
+    numeroEmpleado: numeroEmpleado != null ? String(numeroEmpleado) : undefined,
+    usuario:        numeroEmpleado != null ? String(numeroEmpleado) : undefined,
+    nombre:         primerValor(datos.username, c.username, c.name),
+    correo:         primerValor(datos.correo, datos.email, c.correo, c.email),
+    perfiles,
+    // Permisos efectivos = unión de los permisos de todos los perfiles del usuario en el módulo.
+    permisos:       [...new Set(perfiles.flatMap((p) => p.permisos))],
+    // Tiendas del usuario en CAO; hoy viene vacío. Cuando se llene, puede reemplazar el selector de
+    // tienda del Implementador.
+    tiendas:        Array.isArray(datos.tiendas) ? datos.tiendas : [],
+    cao:            datos,
   };
 }
 

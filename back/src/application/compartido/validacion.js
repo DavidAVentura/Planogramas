@@ -5,6 +5,8 @@
  * formatee el errorHandler global, igual que en el resto del backend.
  */
 
+const { USUARIO_SISTEMA } = require('../../domain/asignacion/asignacion.entity');
+
 const CODIGO_VALIDACION = 'VALIDATION_ERROR';
 
 function errorValidacion(mensaje, details) {
@@ -65,8 +67,20 @@ function validarConJoi(schema, datos) {
  * @returns {string}
  */
 function usuarioActual(req) {
-  const usuario = req.usuario?.usuario ?? req.usuario?.id;
+  const usuario = req.usuario?.numeroEmpleado ?? req.usuario?.usuario ?? req.usuario?.id;
   return usuario === undefined || usuario === null || usuario === '' ? 'sistema' : String(usuario);
+}
+
+/**
+ * Usuario para la auditoría de asignaciones (`EdicionAsignacion.usuario_numero/usuario_nombre`):
+ * número de empleado y nombre que devuelve CAO. Si faltan, cae en USUARIO_SISTEMA.
+ * @param {import('express').Request} req
+ * @returns {{ numero: string, nombre: string }}
+ */
+function usuarioAuditoria(req) {
+  const numero = req.usuario?.numeroEmpleado;
+  if (!numero) return USUARIO_SISTEMA;
+  return { numero: String(numero), nombre: req.usuario?.nombre || String(numero) };
 }
 
 module.exports = {
@@ -75,4 +89,5 @@ module.exports = {
   parsearListaEnterosPositivos,
   validarConJoi,
   usuarioActual,
+  usuarioAuditoria,
 };

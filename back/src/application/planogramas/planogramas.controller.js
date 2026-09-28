@@ -7,6 +7,7 @@
 const Joi        = require('joi');
 const usecases   = require('../../domain/planograma/planograma.usecases');
 const repo       = require('../../infrastructure/repositories/planograma.repository');
+const { usuarioActual } = require('../compartido/validacion');
 
 // ─── Esquemas de validación ───────────────────────────────────────────────────
 
@@ -72,7 +73,7 @@ async function listar(req, res, next) {
 async function crear(req, res, next) {
   try {
     const datos      = validarBody(schemaCrear, req.body);
-    const planograma = await usecases.crearPlanograma(repo, datos, 'sistema');
+    const planograma = await usecases.crearPlanograma(repo, datos, usuarioActual(req));
     res.status(201).json(planograma);
   } catch (err) {
     next(err);

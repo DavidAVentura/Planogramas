@@ -9,7 +9,7 @@ const usecases        = require('../../domain/version/version.usecases');
 const { TIPOS, ESTADOS } = require('../../domain/version/version.entity');
 const versionRepo     = require('../../infrastructure/repositories/version.repository');
 const planogramaRepo  = require('../../infrastructure/repositories/planograma.repository');
-const { USUARIO_SISTEMA } = require('../../domain/asignacion/asignacion.entity');
+const { usuarioAuditoria } = require('../compartido/validacion');
 
 // ─── Esquemas de validación ───────────────────────────────────────────────────
 
@@ -125,8 +125,7 @@ async function promover(req, res, next) {
   try {
     const id         = parsearId(req.params.id);
     const datos      = validarBody(schemaPromover, req.body);
-    // TODO: reemplazar USUARIO_SISTEMA por el usuario autenticado cuando exista el middleware de CAO.
-    const resultado  = await usecases.promoverVersion(versionRepo, id, datos, USUARIO_SISTEMA);
+    const resultado  = await usecases.promoverVersion(versionRepo, id, datos, usuarioAuditoria(req));
     res.json(resultado);
   } catch (err) {
     next(err);
@@ -157,8 +156,7 @@ async function reemplazarTiendas(req, res, next) {
   try {
     const id        = parsearId(req.params.id);
     const datos     = validarBody(schemaTiendas, req.body);
-    // TODO: reemplazar USUARIO_SISTEMA por el usuario autenticado cuando exista el middleware de CAO.
-    const resultado = await usecases.reemplazarTiendasVersion(versionRepo, id, datos.tiendaIds, USUARIO_SISTEMA);
+    const resultado = await usecases.reemplazarTiendasVersion(versionRepo, id, datos.tiendaIds, usuarioAuditoria(req));
     res.json({ versionId: id, tiendas: resultado.tiendas });
   } catch (err) {
     next(err);
