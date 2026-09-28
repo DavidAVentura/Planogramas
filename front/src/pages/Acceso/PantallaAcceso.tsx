@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import isotipoCemaco from '../../assets/cemaco-isotipo.png';
 import './PantallaAcceso.css';
 
 interface PantallaAccesoProps {
@@ -14,7 +15,7 @@ export function PantallaAcceso({ titulo, mensaje, cargando = false, accion }: Pa
     <main className="pantalla-acceso">
       <section className="pantalla-acceso__tarjeta" aria-live="polite" aria-busy={cargando}>
         <div className="pantalla-acceso__marca">
-          <div className="pantalla-acceso__isotipo">C</div>
+          <img className="pantalla-acceso__isotipo" src={isotipoCemaco} alt="Cemaco" />
           <div>
             <div className="pantalla-acceso__app">Planogramas</div>
             <div className="pantalla-acceso__eyebrow">CEMACO</div>
