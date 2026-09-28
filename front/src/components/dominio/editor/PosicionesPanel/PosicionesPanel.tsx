@@ -134,7 +134,7 @@ export function PosicionesPanel({
           posicion={posicionPendiente}
           subcategorias={subcategorias}
           onClose={() => setPosicionPendiente(null)}
-          onAsignado={(actualizada) => {
+          onAsignado={() => {
             setPosicionPendiente(null);
             onCambio();
           }}

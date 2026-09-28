@@ -1,4 +1,6 @@
 import { usePlanogramasVigentes } from '../../../../hooks/usePlanogramas';
+import type { VersionMatriz } from '../../../../types/asignacion';
+import { VersionesPlanograma } from '../../estructura/VersionesPlanograma/VersionesPlanograma';
 import { textoConteo } from '../../../../utils/formatters';
 import {
   SeleccionMultipleModal,
@@ -6,6 +8,7 @@ import {
   type ElementoSeleccionado,
   type OpcionOrdenSeleccion,
 } from '../../../ui/SeleccionMultipleModal/SeleccionMultipleModal';
+import './SeleccionPlanogramasModal.css';
 
 /** Lo mínimo que necesita el selector; sirve para `PlanogramaListItem` y para la matriz de Estructura. */
 export interface PlanogramaSeleccionable {
@@ -13,6 +16,8 @@ export interface PlanogramaSeleccionable {
   nombre: string;
   departamento: string;
   totalVersiones: number;
+  /** Si viene (matriz de Estructura), el detalle muestra los cuadritos TG/TM/TE, especiales y pilotos. */
+  versiones?: VersionMatriz[];
 }
 
 interface SeleccionPlanogramasModalProps {
@@ -64,9 +69,20 @@ function ListaPlanogramas({
       textoBusqueda={(p) => `${p.nombre} ${p.departamento}`}
       placeholderBusqueda="Buscar por nombre o departamento"
       ordenes={ORDENES}
-      renderDetalle={(p) => p.departamento}
+      renderDetalle={(p) =>
+        p.versiones ? (
+          <span className="seleccion-planogramas__detalle">
+            {p.departamento}
+            <span aria-hidden="true">·</span>
+            <VersionesPlanograma versiones={p.versiones} />
+          </span>
+        ) : (
+          p.departamento
+        )
+      }
       renderMeta={(p) => [
-        textoConteo(p.totalVersiones, 'versión', 'versiones'),
+        // Con los cuadritos de versiones a la vista, el conteo de versiones sobra.
+        ...(p.versiones ? [] : [textoConteo(p.totalVersiones, 'versión', 'versiones')]),
         ...(conteo ? [textoConteo(conteo.porId.get(p.id) ?? 0, conteo.singular, conteo.plural)] : []),
       ]}
       seleccionados={seleccionados}

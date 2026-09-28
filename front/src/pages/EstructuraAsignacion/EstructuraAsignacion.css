@@ -42,3 +42,13 @@
   font-size: 14px;
   color: var(--fg-2);
 }
+
+/* Vista extendida: la página ocupa exactamente la pantalla y la matriz se estira en ella. */
+.estructura-asignacion--extendida .estructura-asignacion__contenido {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  max-width: none;
+  height: 100vh;
+  padding: 12px 12px 14px;
+}

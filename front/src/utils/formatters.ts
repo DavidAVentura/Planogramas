@@ -14,6 +14,11 @@ export function subcategoriaSinCodigo(subcategoria: string): string {
   return subcategoria.replace(/^\s*\([^)]*\)\s*/, '');
 }
 
+/** "Q 1,299.00" */
+export function formatearPrecio(precio: number): string {
+  return `Q ${precio.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 /** "1 versión" / "3 versiones". */
 export function textoConteo(n: number, singular: string, plural: string): string {
   return `${n} ${n === 1 ? singular : plural}`;

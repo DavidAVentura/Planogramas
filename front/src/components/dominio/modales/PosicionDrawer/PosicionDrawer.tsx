@@ -181,7 +181,7 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
   }
 
   async function onActualizarMedidas() {
-    if (!posicion) return;
+    if (!posicion?.sku) return;
     const dimAnchoNum = Number(dimAnchoCm) || 0;
     const dimAltoNum = Number(dimAltoCm) || 0;
     const dimProfundidadNum = Number(dimProfundidadCm) || 0;
@@ -200,7 +200,7 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
   }
 
   async function onValidarDimensiones() {
-    if (!posicion) return;
+    if (!posicion?.sku) return;
     const resultado = await validarDimensiones(posicion.sku);
     if (resultado) recargarProducto();
   }

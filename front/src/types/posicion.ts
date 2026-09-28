@@ -97,11 +97,12 @@ export interface PosicionCampos {
   decision?: DecisionPosicion;
 }
 
+/** `sku` null = posición PENDIENTE. Los campos de visión son opcionales, como en el backend. */
 export interface PosicionInput extends PosicionCampos {
   sku: string | null;
-  nombre_detectado: string | null;
-  confidence: number;
-  datos_vision: DatosVision | null;
+  nombre_detectado?: string | null;
+  confidence?: number;
+  datos_vision?: DatosVision | null;
   orden_horizontal: number;
 }
 

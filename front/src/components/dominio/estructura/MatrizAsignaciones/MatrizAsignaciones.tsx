@@ -1,5 +1,5 @@
 import type { CSSProperties, MouseEvent } from 'react';
-import { SIGLA_TIPO_TIENDA, TIPO_TIENDA_META } from '../../../../constants/tiendas';
+import { TIPO_TIENDA_META } from '../../../../constants/tiendas';
 import {
   clave,
   describirCelda,
@@ -9,10 +9,8 @@ import {
   type Pincel,
 } from '../../../../domain/estructura/asignaciones';
 import type { PlanogramaMatriz, TiendaMatriz, VersionMatriz } from '../../../../types/asignacion';
-import type { VersionTipo } from '../../../../types/version';
+import { VersionesPlanograma } from '../VersionesPlanograma/VersionesPlanograma';
 import './MatrizAsignaciones.css';
-
-const TIPOS_BASE: VersionTipo[] = ['GRANDE', 'MEDIANA', 'EXPRESS'];
 
 interface MatrizAsignacionesProps {
   planogramas: PlanogramaMatriz[];
@@ -29,45 +27,15 @@ interface MatrizAsignacionesProps {
   onPintar: (p: PlanogramaMatriz, t: TiendaMatriz, inicioDeTrazo: boolean) => void;
   onTerminarTrazo: () => void;
   onMenu: (e: MouseEvent<HTMLButtonElement>, p: PlanogramaMatriz, t: TiendaMatriz) => void;
+  /** Vista extendida: la matriz ocupa toda la pantalla. Se alterna con doble clic en la esquina. */
+  extendida: boolean;
+  onAlternarExtendida: () => void;
 }
 
 function claseDeCelda(etiqueta: string, esPiloto: boolean, vacia: boolean): string {
   if (vacia) return 'vacia';
   if (esPiloto) return 'piloto';
   return etiqueta === 'Especial' ? 'esp' : etiqueta.toLowerCase();
-}
-
-function VersionesDisponibles({ planograma }: { planograma: PlanogramaMatriz }) {
-  const bases = planograma.versiones.filter((v) => v.versionBaseId === null);
-  const especiales = planograma.versiones.filter((v) => v.versionBaseId !== null && v.estado === 'publicado').length;
-  return (
-    <span className="matriz-asignaciones__versiones">
-      {TIPOS_BASE.map((tipo) => {
-        const hay = bases.some((v) => v.tipo === tipo && v.estado === 'publicado');
-        return (
-          <span
-            key={tipo}
-            className={`matriz-asignaciones__sigla matriz-asignaciones__sigla--${hay ? SIGLA_TIPO_TIENDA[tipo].toLowerCase() : 'falta'}`}
-            title={hay ? `Versión ${SIGLA_TIPO_TIENDA[tipo]} publicada` : `Sin versión ${SIGLA_TIPO_TIENDA[tipo]} publicada`}
-          >
-            {SIGLA_TIPO_TIENDA[tipo]}
-          </span>
-        );
-      })}
-      {especiales > 0 && (
-        <span className="matriz-asignaciones__sigla matriz-asignaciones__sigla--esp" title="Versiones especiales publicadas">
-          {especiales} esp.
-        </span>
-      )}
-      {bases
-        .filter((v) => v.estado === 'piloto')
-        .map((v) => (
-          <span key={v.id} className="matriz-asignaciones__sigla matriz-asignaciones__sigla--piloto" title={`Versión ${SIGLA_TIPO_TIENDA[v.tipo]} en piloto`}>
-            {SIGLA_TIPO_TIENDA[v.tipo]} piloto
-          </span>
-        ))}
-    </span>
-  );
 }
 
 export function MatrizAsignaciones({
@@ -84,8 +52,11 @@ export function MatrizAsignaciones({
   onPintar,
   onTerminarTrazo,
   onMenu,
+  extendida,
+  onAlternarExtendida,
 }: MatrizAsignacionesProps) {
   const columnas = { '--columnas': tiendas.length } as CSSProperties;
+  const ayudaExtendida = extendida ? 'Doble clic para salir de la vista extendida' : 'Doble clic para la vista extendida';
   const asignadasPorTienda = new Map<number, number>();
   const asignadasPorPlanograma = new Map<number, number>();
   for (const [k, valor] of Object.entries(asignaciones)) {
@@ -97,7 +68,7 @@ export function MatrizAsignaciones({
 
   return (
     <div
-      className="matriz-asignaciones"
+      className={`matriz-asignaciones${extendida ? ' matriz-asignaciones--extendida' : ''}`}
       role="grid"
       aria-label="Versión de cada planograma por tienda"
       aria-readonly={!editable}
@@ -106,7 +77,25 @@ export function MatrizAsignaciones({
       onMouseLeave={onTerminarTrazo}
     >
       <div role="row" className="matriz-asignaciones__fila matriz-asignaciones__fila--encabezado">
-        <div role="columnheader" className="matriz-asignaciones__esquina">Planograma</div>
+        <div role="columnheader" className="matriz-asignaciones__esquina">
+          <button
+            type="button"
+            className="matriz-asignaciones__extender"
+            title={ayudaExtendida}
+            aria-label={ayudaExtendida}
+            aria-pressed={extendida}
+            onDoubleClick={onAlternarExtendida}
+            onClick={(e) => {
+              // Con teclado (Enter/Espacio) basta una pulsación; con el mouse se exige doble clic.
+              if (e.detail === 0) onAlternarExtendida();
+            }}
+          >
+            <span>Planograma activo</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+              <path d={extendida ? 'M4 10h6V4M10 10L3 3M20 14h-6v6M14 14l7 7' : 'M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7'} />
+            </svg>
+          </button>
+        </div>
         {tiendas.map((t) => (
           <div
             key={t.id}
@@ -131,7 +120,7 @@ export function MatrizAsignaciones({
               <span className="matriz-asignaciones__planograma-nombre">{p.nombre}</span>
               <span className="matriz-asignaciones__planograma-meta">
                 {p.departamento}
-                <VersionesDisponibles planograma={p} />
+                <VersionesPlanograma versiones={p.versiones} />
               </span>
             </div>
 

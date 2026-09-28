@@ -69,6 +69,7 @@ export function EstructuraAsignacion() {
   const [menu, setMenu] = useState<MenuAbierto | null>(null);
   const [celdaHistorial, setCeldaHistorial] = useState<CeldaAbierta | null>(null);
   const [versionAbierta, setVersionAbierta] = useState<{ versionId: number; tienda: TiendaMatriz } | null>(null);
+  const [extendida, setExtendida] = useState(false);
 
   // Al arrastrar se pintan varias celdas en un solo paso de "Deshacer": el ref guarda el mapa
   // vigente entre eventos (el estado de React no se actualiza a tiempo) y si el trazo ya apiló.
@@ -85,6 +86,25 @@ export function EstructuraAsignacion() {
   }, [matriz, versiones]);
 
   const cambios = useMemo(() => clavesCambiadas(asignaciones, guardadas), [asignaciones, guardadas]);
+
+  // Vista extendida: sin barra superior ni título; la matriz usa todo el alto y ancho de la pantalla.
+  const alternarExtendida = useCallback(() => {
+    mostrarToast(extendida ? 'Vista normal' : 'Vista extendida · doble clic en la esquina o Esc para salir');
+    setExtendida(!extendida);
+    setMenu(null);
+  }, [extendida, mostrarToast]);
+
+  // Esc sale de la vista extendida, salvo que lo esté usando un modal o el menú de una celda.
+  useEffect(() => {
+    if (!extendida) return;
+    function alPresionar(e: KeyboardEvent) {
+      if (e.key !== 'Escape' || e.defaultPrevented) return;
+      if (document.querySelector('[role="dialog"], [role="menu"]')) return;
+      alternarExtendida();
+    }
+    window.addEventListener('keydown', alPresionar);
+    return () => window.removeEventListener('keydown', alPresionar);
+  }, [extendida, alternarExtendida]);
 
   // Avisar antes de cerrar la pestaña con cambios sin guardar.
   useEffect(() => {
@@ -119,6 +139,7 @@ export function EstructuraAsignacion() {
         nombre: p.nombre,
         departamento: p.departamento,
         totalVersiones: p.versiones.length,
+        versiones: p.versiones,
       })),
     [matriz],
   );
@@ -222,21 +243,23 @@ export function EstructuraAsignacion() {
   const menuDescripcion = menu ? describirCelda(asignaciones[clave(menu.planograma.id, menu.tienda.id)], menu.tienda, versiones) : null;
 
   return (
-    <div className="estructura-asignacion">
-      <AppTopbar titulo="Estructura" />
+    <div className={`estructura-asignacion${extendida ? ' estructura-asignacion--extendida' : ''}`}>
+      {!extendida && <AppTopbar titulo="Estructura" />}
 
       <div className="estructura-asignacion__contenido">
-        <div className="estructura-asignacion__cabecera">
-          <span className="estructura-asignacion__eyebrow">Estructura de surtido</span>
-          <div className="estructura-asignacion__titulo">
-            <h1>¿Qué versión usa cada tienda?</h1>
-            {matriz && (
-              <span>
-                {matriz.planogramas.length} planogramas activos · {matriz.tiendas.length} tiendas · {totalAsignaciones} asignaciones, {enPiloto} en piloto
-              </span>
-            )}
+        {!extendida && (
+          <div className="estructura-asignacion__cabecera">
+            <span className="estructura-asignacion__eyebrow">Estructura de surtido</span>
+            <div className="estructura-asignacion__titulo">
+              <h1>¿Qué versión usa cada tienda?</h1>
+              {matriz && (
+                <span>
+                  {matriz.planogramas.length} planogramas activos · {matriz.tiendas.length} tiendas · {totalAsignaciones} asignaciones, {enPiloto} en piloto
+                </span>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         <BarraAsignacion
           pincel={pincel}
@@ -282,6 +305,8 @@ export function EstructuraAsignacion() {
             onPintar={pintar}
             onTerminarTrazo={terminarTrazo}
             onMenu={abrirMenu}
+            extendida={extendida}
+            onAlternarExtendida={alternarExtendida}
           />
         )}
 

@@ -1,0 +1,44 @@
+.versiones-planograma {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.versiones-planograma__sigla {
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.versiones-planograma__sigla--tg {
+  background: var(--cemaco-indigo-50);
+  color: var(--cemaco-indigo);
+}
+
+.versiones-planograma__sigla--tm {
+  background: var(--cemaco-green-50);
+  color: var(--cemaco-green-700);
+}
+
+.versiones-planograma__sigla--te {
+  background: var(--warning-bg);
+  color: #7a5900;
+}
+
+.versiones-planograma__sigla--esp {
+  background: #fff1e5;
+  color: #9a4a00;
+}
+
+.versiones-planograma__sigla--piloto {
+  background: #f3edfb;
+  color: #5b2d91;
+}
+
+.versiones-planograma__sigla--falta {
+  background: var(--ink-100);
+  color: var(--fg-4);
+  text-decoration: line-through;
+}

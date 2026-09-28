@@ -8,19 +8,20 @@ import {
 
 export type { DireccionOrden } from '../orden/ordenAnidado';
 
-export type CampoOrdenProducto = 'sku' | 'nombre' | 'jerarquia' | 'planogramas' | 'estado';
+export type CampoOrdenProducto = 'sku' | 'nombre' | 'jerarquia' | 'precio' | 'planogramas' | 'estado';
 
 export type CriterioOrden = CriterioOrdenGenerico<CampoOrdenProducto>;
 
 export const ORDEN_INICIAL: CriterioOrden[] = [{ campo: 'nombre', dir: 'asc' }];
 
-// Sin dato de jerarquía va al final en orden ascendente; activos antes que inactivos.
+// Sin dato de jerarquía o de precio va al final en orden ascendente; activos antes que inactivos.
 const AL_FINAL = '￿';
 const VALOR_ORDEN: Record<CampoOrdenProducto, (p: ProductoListado) => string | number> = {
   sku: (p) => p.sku,
   nombre: (p) => p.nombre,
   jerarquia: (p) =>
     [p.categoria_nivel1, p.categoria_nivel2, p.subcategoria].map((n) => n ?? AL_FINAL).join('|'),
+  precio: (p) => p.precio ?? Number.POSITIVE_INFINITY,
   planogramas: (p) => p.planogramas,
   estado: (p) => (p.estado === 'activo' ? 0 : 1),
 };

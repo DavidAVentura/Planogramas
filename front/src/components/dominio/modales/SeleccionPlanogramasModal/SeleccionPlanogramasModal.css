@@ -1,0 +1,8 @@
+.seleccion-planogramas__detalle {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+
+  > span[aria-hidden='true'] { color: var(--fg-4); }
+}
