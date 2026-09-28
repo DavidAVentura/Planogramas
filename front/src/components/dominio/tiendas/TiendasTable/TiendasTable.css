@@ -16,6 +16,7 @@
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.03em;
+  text-transform: inherit;
   color: var(--fg-3);
   cursor: pointer;
 
@@ -105,19 +106,26 @@
 
 .tiendas-table__acciones {
   display: inline-flex;
-  gap: 8px;
+  gap: 2px;
 
   button {
-    background: transparent;
-    border: 1px solid var(--border);
+    min-height: 36px;
+    padding: 8px 10px;
+    border: 0;
     border-radius: var(--radius-sm);
-    padding: 6px 10px;
-    font-size: 12px;
+    background: transparent;
+    font-family: var(--font-body);
+    font-size: 13px;
     font-weight: 600;
-    color: var(--fg-1);
+    color: var(--cemaco-indigo);
     cursor: pointer;
 
-    &:hover { background: var(--ink-50); }
+    &:hover { background: var(--cemaco-indigo-50); }
+
+    &:focus-visible {
+      outline: 2px solid var(--cemaco-indigo);
+      outline-offset: 1px;
+    }
   }
 
   .tiendas-table__accion--peligro {
@@ -130,5 +138,17 @@
     color: var(--cemaco-green-700);
 
     &:hover { background: var(--cemaco-green-50); }
+  }
+}
+
+/* Mismo estilo que el listado de planogramas: encabezados en mayúsculas, filas compactas y
+   acciones como enlaces de texto. */
+.tiendas-table {
+  .table th {
+    text-transform: uppercase;
+  }
+
+  .table td {
+    padding: 10px 16px;
   }
 }

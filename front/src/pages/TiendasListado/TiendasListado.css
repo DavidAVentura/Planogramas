@@ -4,12 +4,25 @@
   padding: 24px;
 }
 
+/* Conteo, orden y acciones arriba; abajo, los filtros desplegables (mismo patrón que Estructura). */
+.tiendas-listado__barra {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
 .tiendas-listado__cabecera {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   gap: 12px;
-  margin-bottom: 20px;
+
+  /* El botón de filtros empuja "Crear" al extremo derecho. */
+  .boton-filtros { margin-left: auto; }
 }
 
 .tiendas-listado__resumen {

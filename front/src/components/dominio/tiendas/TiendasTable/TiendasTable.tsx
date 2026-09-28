@@ -142,18 +142,20 @@ export function TiendasTable({
   }
 
   return (
-    <Table
-      columns={columnas}
-      rows={rows}
-      rowKey={(t) => t.id}
-      rowClassName={(t) => (t.estado === 'inactivo' ? 'tiendas-table__fila--inactiva' : undefined)}
-      vacio={
-        <EmptyState
-          titulo="No hay tiendas con esos filtros"
-          hint="Ajusta la búsqueda o el estado para ver más resultados."
-        />
-      }
-    />
+    <div className="tiendas-table">
+      <Table
+        columns={columnas}
+        rows={rows}
+        rowKey={(t) => t.id}
+        rowClassName={(t) => (t.estado === 'inactivo' ? 'tiendas-table__fila--inactiva' : undefined)}
+        vacio={
+          <EmptyState
+            titulo="No hay tiendas con esos filtros"
+            hint="Ajusta la búsqueda o el estado para ver más resultados."
+          />
+        }
+      />
+    </div>
   );
 }
 

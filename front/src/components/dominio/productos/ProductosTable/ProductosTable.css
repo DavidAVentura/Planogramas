@@ -8,6 +8,16 @@
   vertical-align: middle;
 }
 
+/* Mismo estilo que los listados de planogramas y tiendas: encabezados en mayúsculas y filas
+   compactas. Con `>` para no alcanzar la tabla del detalle expandido. */
+.productos-table > thead > tr > th {
+  text-transform: uppercase;
+}
+
+.productos-table > tbody > tr > td {
+  padding: 10px 16px;
+}
+
 .productos-table__orden {
   display: inline-flex;
   align-items: center;
@@ -20,6 +30,7 @@
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.03em;
+  text-transform: inherit;
   color: var(--fg-3);
   cursor: pointer;
 
@@ -159,7 +170,7 @@
   color: var(--fg-3);
 }
 
-.productos-table__fila--inactiva td {
+.productos-table > tbody > .productos-table__fila--inactiva > td {
   color: var(--fg-3);
 }
 

@@ -9,21 +9,18 @@ import type { EstadoTienda, FiltrosListadoTiendas, TipoTienda } from '../../../.
 import './TiendasFiltros.css';
 
 interface TiendasFiltrosProps {
+  id: string;
   filtros: FiltrosListadoTiendas;
+  hayFiltrosActivos: boolean;
   onChange: (parciales: Partial<FiltrosListadoTiendas>) => void;
 }
 
-export function TiendasFiltros({ filtros, onChange }: TiendasFiltrosProps) {
-  const hayFiltrosActivos =
-    filtros.busqueda !== FILTROS_TIENDAS_INICIALES.busqueda ||
-    filtros.tipo !== FILTROS_TIENDAS_INICIALES.tipo ||
-    filtros.marca !== FILTROS_TIENDAS_INICIALES.marca ||
-    filtros.estado !== FILTROS_TIENDAS_INICIALES.estado;
-
+/** Fila desplegable de filtros del listado de tiendas; las etiquetas quedan solo para lectores de pantalla. */
+export function TiendasFiltros({ id, filtros, hayFiltrosActivos, onChange }: TiendasFiltrosProps) {
   return (
-    <div className="tiendas-filtros">
+    <div id={id} className="tiendas-filtros">
       <label className="tiendas-filtros__campo tiendas-filtros__campo--busqueda">
-        <span>Buscar</span>
+        <span className="tiendas-filtros__oculto">Buscar tienda</span>
         <input
           type="search"
           placeholder="Código o nombre de tienda"
@@ -33,9 +30,9 @@ export function TiendasFiltros({ filtros, onChange }: TiendasFiltrosProps) {
       </label>
 
       <label className="tiendas-filtros__campo">
-        <span>Tipo</span>
+        <span className="tiendas-filtros__oculto">Tipo</span>
         <select value={filtros.tipo} onChange={(e) => onChange({ tipo: e.target.value as TipoTienda | '' })}>
-          <option value="">Todos</option>
+          <option value="">Todos los tipos</option>
           {TIPOS_TIENDA.map((tipo) => (
             <option key={tipo} value={tipo}>
               {TIPO_TIENDA_META[tipo].label}
@@ -45,9 +42,9 @@ export function TiendasFiltros({ filtros, onChange }: TiendasFiltrosProps) {
       </label>
 
       <label className="tiendas-filtros__campo">
-        <span>Marca</span>
+        <span className="tiendas-filtros__oculto">Marca</span>
         <select value={filtros.marca} onChange={(e) => onChange({ marca: e.target.value })}>
-          <option value="">Todas</option>
+          <option value="">Todas las marcas</option>
           {MARCAS_TIENDA.map((marca) => (
             <option key={marca} value={marca}>
               {marca}
@@ -57,7 +54,7 @@ export function TiendasFiltros({ filtros, onChange }: TiendasFiltrosProps) {
       </label>
 
       <label className="tiendas-filtros__campo">
-        <span>Estado</span>
+        <span className="tiendas-filtros__oculto">Estado</span>
         <select
           value={filtros.estado}
           onChange={(e) => onChange({ estado: e.target.value as EstadoTienda | '' })}
