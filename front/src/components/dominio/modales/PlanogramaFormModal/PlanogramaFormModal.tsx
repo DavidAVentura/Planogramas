@@ -103,27 +103,25 @@ export function PlanogramaFormModal({ planogramaId, onClose, onGuardado }: Plano
 
                 {editando && (
                   <p className="planograma-form__depto-actual">
-                    Departamento actual: <strong>{planograma?.departamento}</strong>
+                    Departamento actual: <strong>{planograma?.departamento}</strong> · elegí otro solo para cambiarlo
                   </p>
                 )}
               </div>
 
-              <div className="planograma-form__campo">
-                <span>{editando ? 'Cambiar departamento (opcional)' : 'Área y departamento'}</span>
-                <CascadingSelect
-                  areas={areas}
-                  departamentos={departamentos}
-                  areaValue={area}
-                  departamentoValue={departamentoId}
-                  cargandoDepartamentos={cargandoDepartamentos}
-                  requerido={!editando}
-                  onAreaChange={(areaId) => {
-                    setArea(areaId);
-                    setDepartamentoId('');
-                  }}
-                  onDepartamentoChange={setDepartamentoId}
-                />
-              </div>
+              {/* Sin título de grupo: las etiquetas Área/Departamento quedan a la altura de "Nombre". */}
+              <CascadingSelect
+                areas={areas}
+                departamentos={departamentos}
+                areaValue={area}
+                departamentoValue={departamentoId}
+                cargandoDepartamentos={cargandoDepartamentos}
+                requerido={!editando}
+                onAreaChange={(areaId) => {
+                  setArea(areaId);
+                  setDepartamentoId('');
+                }}
+                onDepartamentoChange={setDepartamentoId}
+              />
             </div>
 
             <label className="planograma-form__campo">

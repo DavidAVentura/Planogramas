@@ -46,7 +46,8 @@ cientos de posiciones), sin paginar.
 3. Orden por defecto: `codigoVersion`, `Gondola.orden`, `Nivel.orden`, `Posicion.orden_horizontal`.
 4. `nombre`, `marca` y `sku_sustituto` salen de la tabla local `Producto`; `sustituto_nombre` es el
    `nombre` del producto sustituto (null si no hay sustituto o no está en la tabla local).
-5. Inventario: misma consulta y misma regla que `GET_implementacion_resumen.md` (reglas 3 y 5).
+5. Inventario: misma consulta y misma regla, caché y campos `inventarioDisponible` / `inventarioDesactualizado` /
+   `inventarioActualizadoEn` / `advertencia` que `GET_implementacion_resumen.md` (reglas 3, 5 y 6).
    `inventario` es el número de unidades en la tienda (0 si no hay fila); `conInventario = inventario > 0`.
    En modo degradado ambos van en `null` y `inventarioDisponible: false`.
 
@@ -58,6 +59,8 @@ cientos de posiciones), sin paginar.
 {
   "tienda": { "id": 1, "codigo": "T0PC", "nombre": "Cemaco Pradera", "tipo": "GRANDE" },
   "inventarioDisponible": true,
+  "inventarioDesactualizado": false,
+  "inventarioActualizadoEn": "2026-09-28T14:05:12.000Z",
   "total": 1,
   "data": [
     {

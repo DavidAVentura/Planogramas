@@ -4,14 +4,29 @@
   padding: 24px;
 }
 
+/* Conteo, orden y botón de filtros arriba; abajo, los filtros desplegables (mismo patrón que Tiendas). */
+.productos-listado__barra {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
 .productos-listado__cabecera {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 20px;
+  min-height: 40px;
+
+  .boton-filtros { flex: none; }
 }
+
+/* La nota empuja el botón de filtros al extremo derecho. */
+.productos-listado__nota { margin-left: auto; }
 
 .productos-listado__resumen {
   display: flex;

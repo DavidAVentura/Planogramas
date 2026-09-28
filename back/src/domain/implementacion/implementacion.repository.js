@@ -8,7 +8,9 @@
  *
  * El inventario NO sale de este repositorio sino del puerto de inventario, inyectado aparte en
  * los casos de uso:
- *   obtenerInventarioTienda(codigoTienda: string, skus: string[]) → Promise<Map<sku, unidades>>
+ *   obtenerInventarioTienda(codigoTienda: string, skus: string[])
+ *     → Promise<{ inventario: Map<sku, unidades>, actualizadoEn: Date|null, desactualizado: boolean }>
+ *   (`desactualizado` = se sirvió el último dato en caché porque CATI falló; lanza si no hay dato)
  * (implementación concreta: src/infrastructure/cati/inventarioTienda.js).
  */
 

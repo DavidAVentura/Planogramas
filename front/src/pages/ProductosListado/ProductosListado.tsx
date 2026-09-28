@@ -1,6 +1,10 @@
 import { useMemo, useState } from 'react';
 import { AppTopbar } from '../../components/dominio/layout/AppTopbar/AppTopbar';
-import { ProductosFiltros } from '../../components/dominio/productos/ProductosFiltros/ProductosFiltros';
+import {
+  NIVELES_JERARQUIA,
+  ProductosFiltros,
+} from '../../components/dominio/productos/ProductosFiltros/ProductosFiltros';
+import { BotonFiltros } from '../../components/ui/BotonFiltros/BotonFiltros';
 import { ProductosTable } from '../../components/dominio/productos/ProductosTable/ProductosTable';
 import { FILTROS_PRODUCTOS_INICIALES, JERARQUIA_VACIA } from '../../constants/productos';
 import { useProductos } from '../../hooks/useProductos';
@@ -23,6 +27,18 @@ const NOMBRE_CAMPO: Record<CampoOrdenProducto, string> = {
   estado: 'Estado',
 };
 
+/** Filtros aplicados (cada nivel de jerarquía cuenta); se muestran en el botón con la barra oculta. */
+function contarFiltrosActivos(filtros: FiltrosListadoProductos, jerarquia: FiltroJerarquia): number {
+  return (
+    [
+      filtros.busqueda.trim() !== FILTROS_PRODUCTOS_INICIALES.busqueda,
+      filtros.modo !== FILTROS_PRODUCTOS_INICIALES.modo,
+      filtros.estado !== FILTROS_PRODUCTOS_INICIALES.estado,
+      filtros.planogramas.length > 0,
+    ].filter(Boolean).length + NIVELES_JERARQUIA.filter(({ campo }) => jerarquia[campo] !== '').length
+  );
+}
+
 // La jerarquía se resuelve en el backend (contra CATI); búsqueda, modo, estado y orden se resuelven
 // en el cliente sobre esa lista, igual que en Tiendas: la tabla local solo tiene los SKUs que ya se
 // usaron en alguna posición, así que el volumen es acotado.
@@ -31,6 +47,9 @@ export function ProductosListado() {
   const [filtros, setFiltros] = useState<FiltrosListadoProductos>(FILTROS_PRODUCTOS_INICIALES);
   const [orden, setOrden] = useState<CriterioOrden[]>(ORDEN_INICIAL);
   const { productos, cargando } = useProductos(jerarquia);
+  // La barra de filtros arranca oculta, como en Tiendas y Planogramas; el botón de filtros la despliega.
+  const [filtrosVisibles, setFiltrosVisibles] = useState(false);
+  const filtrosActivos = contarFiltrosActivos(filtros, jerarquia);
 
   const porSku = useMemo(() => new Map(productos.map((p) => [p.sku, p])), [productos]);
 
@@ -66,35 +85,46 @@ export function ProductosListado() {
       <AppTopbar titulo="Productos" />
 
       <div className="productos-listado__contenido">
-        <div className="productos-listado__cabecera">
-          <div className="productos-listado__resumen">
-            <span className="productos-listado__conteo">
-              {cargando ? 'Cargando…' : visibles.length === 1 ? '1 producto' : `${visibles.length} productos`}
-            </span>
-            {!cargando && (
-              <span className="productos-listado__cobertura">
-                {visibles.length - sinPlanograma} en planogramas · {sinPlanograma} sin planograma
+        <div className="productos-listado__barra">
+          <div className="productos-listado__cabecera">
+            <div className="productos-listado__resumen">
+              <span className="productos-listado__conteo">
+                {cargando ? 'Cargando…' : visibles.length === 1 ? '1 producto' : `${visibles.length} productos`}
               </span>
-            )}
-            <span className="productos-listado__orden">
-              Ordenado por <strong>{resumenOrden}</strong>
-            </span>
-            {!esOrdenInicial(orden) && (
-              <button type="button" className="productos-listado__restablecer" onClick={() => setOrden(ORDEN_INICIAL)}>
-                Restablecer orden
-              </button>
-            )}
+              {!cargando && (
+                <span className="productos-listado__cobertura">
+                  {visibles.length - sinPlanograma} en planogramas · {sinPlanograma} sin planograma
+                </span>
+              )}
+              <span className="productos-listado__orden">
+                Ordenado por <strong>{resumenOrden}</strong>
+              </span>
+              {!esOrdenInicial(orden) && (
+                <button type="button" className="productos-listado__restablecer" onClick={() => setOrden(ORDEN_INICIAL)}>
+                  Restablecer orden
+                </button>
+              )}
+            </div>
+            <span className="productos-listado__nota">Productos ya usados en planogramas · jerarquía según CATI</span>
+            <BotonFiltros
+              controla="productos-listado-filtros"
+              abierto={filtrosVisibles}
+              activos={filtrosActivos}
+              onClick={() => setFiltrosVisibles((v) => !v)}
+            />
           </div>
-          <span className="productos-listado__nota">Productos ya usados en planogramas · jerarquía según CATI</span>
+  
+          <ProductosFiltros
+            id="productos-listado-filtros"
+            visible={filtrosVisibles}
+            filtros={filtros}
+            jerarquia={jerarquia}
+            hayFiltrosActivos={filtrosActivos > 0}
+            onChange={(parciales) => setFiltros((f) => ({ ...f, ...parciales }))}
+            onJerarquiaChange={setJerarquia}
+            productosPorPlanograma={productosPorPlanograma}
+          />
         </div>
-
-        <ProductosFiltros
-          filtros={filtros}
-          jerarquia={jerarquia}
-          onChange={(parciales) => setFiltros((f) => ({ ...f, ...parciales }))}
-          onJerarquiaChange={setJerarquia}
-          productosPorPlanograma={productosPorPlanograma}
-        />
 
         {/* Al cambiar la jerarquía se mantiene la tabla anterior mientras llega la nueva. */}
         {(!cargando || productos.length > 0) && (

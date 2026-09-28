@@ -2,14 +2,17 @@
  * implementacion.usecases.js
  * Casos de uso de la vista del Implementador (Arquitectura/Contratos/16_implementacion/).
  * Reciben por inyección el repositorio y el puerto de inventario
- * (`obtenerInventarioTienda(codigoTienda, skus) → Map<sku, unidades>`) — sin imports de
- * infraestructura. Si el inventario falla (CATI caído, timeout, 5xx) se responde en modo
- * degradado: inventarioDisponible=false, advertencia y campos de inventario en null.
+ * (`obtenerInventarioTienda(codigoTienda, skus) → { inventario, actualizadoEn, desactualizado }`)
+ * — sin imports de infraestructura. Si el inventario falla sin dato previo (CATI caído, timeout,
+ * 5xx) se responde en modo degradado: inventarioDisponible=false, advertencia y campos de
+ * inventario en null. Si se sirvió el último dato en caché: inventarioDesactualizado=true y
+ * advertencia.
  */
 
 const {
   UMBRAL_IMPLEMENTABLE,
   ADVERTENCIA_INVENTARIO_NO_DISPONIBLE,
+  ADVERTENCIA_INVENTARIO_DESACTUALIZADO,
   errorTiendaNoEncontrada,
   errorVersionNoAsignada,
   resumirInventarioVersion,
@@ -62,12 +65,13 @@ function datosTienda(tienda) {
  * devuelve `inventario: null` (modo degradado).
  */
 async function consultarInventario(inventarioPort, codigoTienda, skus) {
-  if (skus.length === 0) return { disponible: true, inventario: new Map() };
+  const sinDato = { actualizadoEn: null, desactualizado: false };
+  if (skus.length === 0) return { disponible: true, inventario: new Map(), ...sinDato };
   try {
-    const inventario = await inventarioPort.obtenerInventarioTienda(codigoTienda, skus);
-    return { disponible: true, inventario };
+    const consulta = await inventarioPort.obtenerInventarioTienda(codigoTienda, skus);
+    return { disponible: true, ...consulta };
   } catch {
-    return { disponible: false, inventario: null };
+    return { disponible: false, inventario: null, ...sinDato };
   }
 }
 
@@ -80,10 +84,15 @@ function agruparPorVersion(filas) {
   return mapa;
 }
 
-function marcaDisponibilidad({ disponible }) {
+function marcaDisponibilidad({ disponible, actualizadoEn, desactualizado }) {
+  let advertencia;
+  if (!disponible) advertencia = ADVERTENCIA_INVENTARIO_NO_DISPONIBLE;
+  else if (desactualizado) advertencia = ADVERTENCIA_INVENTARIO_DESACTUALIZADO;
   return {
-    inventarioDisponible: disponible,
-    ...(!disponible && { advertencia: ADVERTENCIA_INVENTARIO_NO_DISPONIBLE }),
+    inventarioDisponible:     disponible,
+    inventarioDesactualizado: desactualizado,
+    inventarioActualizadoEn:  actualizadoEn ? actualizadoEn.toISOString() : null,
+    ...(advertencia && { advertencia }),
   };
 }
 
@@ -102,7 +111,9 @@ async function obtenerResumenImplementacion(repo, inventarioPort, tiendaId) {
   const versiones = await repo.listarVersionesAsignadas(tiendaId);
 
   const base = { tienda: datosTienda(tienda), umbralImplementable: UMBRAL_IMPLEMENTABLE };
-  if (versiones.length === 0) return { ...base, inventarioDisponible: true, planogramas: [] };
+  if (versiones.length === 0) {
+    return { ...base, ...marcaDisponibilidad({ disponible: true, actualizadoEn: null, desactualizado: false }), planogramas: [] };
+  }
 
   const versionIds = versiones.map((v) => v.versionId);
   const [skusFilas, adjuntosPorVersion, gondolas] = await Promise.all([

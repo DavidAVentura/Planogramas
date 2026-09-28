@@ -10,6 +10,7 @@ import { useTiendaImplementador } from '../../context/TiendaImplementadorContext
 import { useResumenImplementacion } from '../../hooks/useImplementacion';
 import { FILTROS_MI_TIENDA_INICIALES, UMBRAL_IMPLEMENTABLE_POR_DEFECTO } from '../../constants/implementacion';
 import { calcularKpis, departamentosDe, filtrarPlanogramas } from '../../domain/implementacion/miTienda';
+import { textoHaceTiempo } from '../../utils/formatters';
 import type { FiltrosMiTienda, PlanogramaImplementacion, TiendaImplementador } from '../../types/implementacion';
 import './MiTienda.css';
 
@@ -69,6 +70,7 @@ function ContenidoMiTienda({ tienda }: { tienda: TiendaImplementador }) {
         </div>
         <span className="mi-tienda__regla">
           Se puede implementar cuando más del {umbral} % de los productos tiene inventario en tienda
+          {resumen?.inventarioActualizadoEn && ` · Inventario actualizado ${textoHaceTiempo(resumen.inventarioActualizadoEn)}`}
         </span>
       </div>
 
@@ -76,6 +78,14 @@ function ContenidoMiTienda({ tienda }: { tienda: TiendaImplementador }) {
         <div className="mi-tienda__advertencia" role="status">
           <strong>{resumen.advertencia ?? 'Inventario no disponible en este momento'}.</strong> Puedes seguir viendo tus
           planogramas, archivos y evidencia; el inventario y "Se puede implementar" se mostrarán cuando vuelva.
+        </div>
+      )}
+
+      {resumen && inventarioDisponible && resumen.inventarioDesactualizado && (
+        <div className="mi-tienda__advertencia" role="status">
+          <strong>{resumen.advertencia ?? 'No se pudo actualizar el inventario'}.</strong> El inventario y "Se puede
+          implementar" corresponden a la última consulta
+          {resumen.inventarioActualizadoEn && ` (${textoHaceTiempo(resumen.inventarioActualizadoEn)})`}.
         </div>
       )}
 

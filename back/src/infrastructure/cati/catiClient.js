@@ -499,29 +499,96 @@ function mapFilaStockBulk(raw) {
   };
 }
 
+// Caché del stock en lote, por SKU (con las filas de TODOS los centros, para que la compartan
+// todas las tiendas). Vigente 2 horas; si CATI falla se sigue sirviendo hasta 24 horas marcada
+// como desactualizada. Tras un fallo, durante 5 minutos no se reintenta CATI para los SKUs que
+// ya tienen algún dato (se sirve la caché directo, sin esperar el timeout en cada request).
+const CACHE_TTL_STOCK_MS        = 2 * 60 * 60 * 1000;
+const CACHE_MAX_STALE_STOCK_MS  = 24 * 60 * 60 * 1000;
+const PAUSA_TRAS_FALLO_STOCK_MS = 5 * 60 * 1000;
+const cacheStock    = new Map(); // sku → { filas, obtenidoEn }
+const stockEnCurso  = new Map(); // sku → Promise del lote que lo está consultando
+let stockPausadoHasta = 0;       // timestamp hasta el que no se reintentan SKUs con dato viejo
+
+function necesitaConsultarStock(sku, ahora) {
+  const entrada = cacheStock.get(sku);
+  if (!entrada) return true;
+  if (ahora - entrada.obtenidoEn < CACHE_TTL_STOCK_MS) return false;
+  return ahora >= stockPausadoHasta;
+}
+
+/**
+ * Consulta un lote a CATI y guarda en caché las filas de cada SKU del lote (un SKU sin filas
+ * queda cacheado como "sin inventario"). Libera `stockEnCurso` al terminar, falle o no.
+ */
+async function consultarLoteStock(lote, timeoutMs) {
+  try {
+    const cuerpo = await post('/Stock/sap/bulkInventoryReport', lote, { profile: 'CEMACO' }, { timeoutMs });
+    const filas  = extraerFilasStockBulk(cuerpo).map(mapFilaStockBulk);
+
+    const porSku = new Map(lote.map((sku) => [sku, []]));
+    filas.forEach((f) => { if (porSku.has(f.sku)) porSku.get(f.sku).push(f); });
+
+    const obtenidoEn = Date.now();
+    porSku.forEach((filasSku, sku) => cacheStock.set(sku, { filas: filasSku, obtenidoEn }));
+  } catch (err) {
+    stockPausadoHasta = Date.now() + PAUSA_TRAS_FALLO_STOCK_MS;
+    throw err;
+  } finally {
+    lote.forEach((sku) => stockEnCurso.delete(sku));
+  }
+}
+
 /**
  * Stock SAP de varios SKUs en todos los centros (CATI POST /Stock/sap/bulkInventoryReport, body =
- * arreglo de SKUs). Parte los SKUs en lotes de 200 que se piden en paralelo. Sin cache (el stock
- * cambia constantemente). Un 404 de CATI se trata como "sin inventario" (lote vacío); cualquier
- * otro error o timeout se relanza como 503 para que el caso de uso decida (modo degradado).
+ * arreglo de SKUs), con caché por SKU de 2 horas:
+ *   - solo se consultan a CATI los SKUs sin caché vigente, en lotes de 200 en paralelo;
+ *   - si otro request ya está consultando un SKU, se espera ese mismo lote (no se repite);
+ *   - cada lote se resuelve por separado: el que responde queda en caché aunque otro falle;
+ *   - si un lote falla, sus SKUs se sirven con el último dato (hasta 24 h) como desactualizados,
+ *     y por 5 minutos no se reintentan los SKUs que ya tienen algún dato.
+ * Un 404 de CATI se trata como "sin inventario". Si algún SKU se queda sin ningún dato, lanza 503
+ * para que el caso de uso decida (modo degradado).
  * @param {string[]} skus
  * @param {{ timeoutMs?: number }} [opciones]
- * @returns {Promise<Array<{ sku: string|null, centroId: string|null, stock: number|null }>>}
+ * @returns {Promise<{
+ *   filas: Array<{ sku: string|null, centroId: string|null, stock: number|null }>,
+ *   actualizadoEn: Date|null,   // el dato más antiguo usado
+ *   desactualizado: boolean,    // true si algún SKU salió de caché vencida porque CATI falló
+ * }>}
  */
 async function obtenerStockSapBulk(skus, { timeoutMs = TIMEOUT_STOCK_BULK_MS } = {}) {
   const unicos = [...new Set((skus ?? []).map((s) => String(s).trim()).filter(Boolean))];
-  if (unicos.length === 0) return [];
+  if (unicos.length === 0) return { filas: [], actualizadoEn: null, desactualizado: false };
 
-  const lotes = [];
-  for (let i = 0; i < unicos.length; i += TAMANO_LOTE_STOCK_BULK) {
-    lotes.push(unicos.slice(i, i + TAMANO_LOTE_STOCK_BULK));
+  const aConsultar = unicos.filter((sku) => necesitaConsultarStock(sku, Date.now()) && !stockEnCurso.has(sku));
+  for (let i = 0; i < aConsultar.length; i += TAMANO_LOTE_STOCK_BULK) {
+    const lote    = aConsultar.slice(i, i + TAMANO_LOTE_STOCK_BULK);
+    const promesa = consultarLoteStock(lote, timeoutMs);
+    lote.forEach((sku) => stockEnCurso.set(sku, promesa));
   }
 
-  const respuestas = await Promise.all(lotes.map((lote) => post(
-    '/Stock/sap/bulkInventoryReport', lote, { profile: 'CEMACO' }, { timeoutMs },
-  )));
+  const pendientes = [...new Set(unicos.map((sku) => stockEnCurso.get(sku)).filter(Boolean))];
+  const resultados = await Promise.allSettled(pendientes);
+  const fallo      = resultados.find((r) => r.status === 'rejected')?.reason;
+  if (fallo) console.warn('[catiClient] Falló una consulta de stock en lote a CATI:', fallo.message);
 
-  return respuestas.flatMap((cuerpo) => extraerFilasStockBulk(cuerpo).map(mapFilaStockBulk));
+  const ahora     = Date.now();
+  const entradas  = unicos.map((sku) => cacheStock.get(sku));
+  const faltantes = entradas.filter((e) => !e || ahora - e.obtenidoEn >= CACHE_MAX_STALE_STOCK_MS).length;
+  if (faltantes > 0) {
+    throw errorServicioNoDisponible(
+      fallo?.message ?? `Sin inventario de CATI para ${faltantes} SKUs`,
+      { catiStatus: fallo?.catiStatus },
+    );
+  }
+
+  const masAntiguo = Math.min(...entradas.map((e) => e.obtenidoEn));
+  return {
+    filas:          entradas.flatMap((e) => e.filas),
+    actualizadoEn:  new Date(masAntiguo),
+    desactualizado: ahora - masAntiguo >= CACHE_TTL_STOCK_MS,
+  };
 }
 
 // ─── Ficha técnica (ver Arquitectura/Contratos/08_catalogo/GET_productos_fichaTecnica.md) ─

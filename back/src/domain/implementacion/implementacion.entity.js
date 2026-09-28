@@ -14,6 +14,7 @@ const UMBRAL_IMPLEMENTABLE = 85;
 const ESTADOS_VERSION_IMPLEMENTACION = ESTADOS_MONTABLES;
 
 const ADVERTENCIA_INVENTARIO_NO_DISPONIBLE = 'Inventario no disponible en este momento';
+const ADVERTENCIA_INVENTARIO_DESACTUALIZADO = 'No se pudo actualizar el inventario, se muestra el último disponible';
 
 // ─── Errores de dominio ──────────────────────────────────────────────────────
 
@@ -103,6 +104,7 @@ module.exports = {
   UMBRAL_IMPLEMENTABLE,
   ESTADOS_VERSION_IMPLEMENTACION,
   ADVERTENCIA_INVENTARIO_NO_DISPONIBLE,
+  ADVERTENCIA_INVENTARIO_DESACTUALIZADO,
   errorTiendaNoEncontrada,
   errorVersionNoAsignada,
   normalizarCodigoCentro,

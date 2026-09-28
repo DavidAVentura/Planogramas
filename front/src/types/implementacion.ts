@@ -39,11 +39,21 @@ export interface PlanogramaImplementacion {
   gondolas: GondolaImplementacion[];
 }
 
-export interface ResumenImplementacion {
+/**
+ * Marca de inventario común a resumen y productos. El backend cachea el stock de CATI 2 h; si CATI
+ * falla y hay dato previo se sirve igual con `inventarioDesactualizado: true` y `advertencia`.
+ */
+export interface EstadoInventario {
+  inventarioDisponible: boolean;
+  inventarioDesactualizado: boolean;
+  /** ISO del dato más antiguo usado; `null` sin inventario o sin productos. */
+  inventarioActualizadoEn: string | null;
+  advertencia?: string;
+}
+
+export interface ResumenImplementacion extends EstadoInventario {
   tienda: TiendaImplementacion;
   umbralImplementable: number;
-  inventarioDisponible: boolean;
-  advertencia?: string;
   planogramas: PlanogramaImplementacion[];
 }
 
@@ -81,10 +91,8 @@ export interface ProductoImplementacion {
   conInventario: boolean | null;
 }
 
-export interface ProductosImplementacion {
+export interface ProductosImplementacion extends EstadoInventario {
   tienda: TiendaImplementacion;
-  inventarioDisponible: boolean;
-  advertencia?: string;
   total: number;
   data: ProductoImplementacion[];
 }

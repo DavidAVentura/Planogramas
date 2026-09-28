@@ -32,7 +32,7 @@ import {
 } from '../../domain/implementacion/columnasProductos';
 import { resumirOrden } from '../../domain/orden/ordenAnidado';
 import { parsearIdsVersiones, textoPorcentaje } from '../../domain/implementacion/miTienda';
-import { textoConteo } from '../../utils/formatters';
+import { textoConteo, textoHaceTiempo } from '../../utils/formatters';
 import type { PlanogramaImplementacion, TiendaImplementador } from '../../types/implementacion';
 import './ProductosTienda.css';
 
@@ -179,13 +179,24 @@ function ContenidoProductos({ tienda }: { tienda: TiendaImplementador }) {
             )}
           </div>
         </div>
-        <span className="productos-tienda__nota">Inventario en tienda {tienda.nombre} · solo lectura</span>
+        <span className="productos-tienda__nota">
+          Inventario en tienda {tienda.nombre} · solo lectura
+          {productos?.inventarioActualizadoEn && ` · actualizado ${textoHaceTiempo(productos.inventarioActualizadoEn)}`}
+        </span>
       </div>
 
       {productos && !inventarioDisponible && (
         <div className="productos-tienda__advertencia" role="status">
           <strong>{productos.advertencia ?? 'Inventario no disponible en este momento'}.</strong> Las columnas
           Inventario y Estado se muestran vacías.
+        </div>
+      )}
+
+      {productos && inventarioDisponible && productos.inventarioDesactualizado && (
+        <div className="productos-tienda__advertencia" role="status">
+          <strong>{productos.advertencia ?? 'No se pudo actualizar el inventario'}.</strong> Las columnas Inventario y
+          Estado corresponden a la última consulta
+          {productos.inventarioActualizadoEn && ` (${textoHaceTiempo(productos.inventarioActualizadoEn)})`}.
         </div>
       )}
 
