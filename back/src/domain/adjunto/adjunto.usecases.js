@@ -8,6 +8,7 @@
  */
 
 const { validarVersionEditable, validarArchivo, generarBlobPath } = require('./adjunto.entity');
+const { decodificarBase64 } = require('../compartido/archivo');
 
 // ─── Helpers privados ────────────────────────────────────────────────────────
 
@@ -58,7 +59,7 @@ async function agregarAdjunto(adjuntoRepo, versionRepo, blobStorage, versionId, 
   const version = await buscarVersionOFallar(versionRepo, versionId);
   validarVersionEditable(version.estado);
 
-  const buffer = Buffer.from(datos.archivo_base64, 'base64');
+  const buffer = decodificarBase64(datos.archivo_base64);
   validarArchivo({ tipoMime: datos.tipo_mime, tamanoBytes: buffer.length });
 
   const blobPath = generarBlobPath(versionId, datos.nombre_original);
@@ -97,7 +98,7 @@ async function reemplazarAdjunto(adjuntoRepo, versionRepo, blobStorage, id, dato
   const version = await buscarVersionOFallar(versionRepo, adjunto.versionId);
   validarVersionEditable(version.estado);
 
-  const buffer = Buffer.from(datos.archivo_base64, 'base64');
+  const buffer = decodificarBase64(datos.archivo_base64);
   validarArchivo({ tipoMime: datos.tipo_mime, tamanoBytes: buffer.length });
 
   const blobPathNuevo = generarBlobPath(adjunto.versionId, datos.nombre_original);

@@ -1,0 +1,119 @@
+.archivos-version__version {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--fg-2);
+
+  strong {
+    color: var(--fg-1);
+    font-weight: 700;
+  }
+}
+
+.archivos-version__codigo {
+  font-family: var(--font-mono);
+}
+
+.archivos-version__vacio {
+  margin: 0;
+  padding: 24px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--fg-2);
+}
+
+.archivos-version__vacio--borde {
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+}
+
+.archivos-version__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.archivos-version__fila {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border-subtle);
+
+  &:first-child { border-top: 0; }
+}
+
+.archivos-version__tipo {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--cemaco-indigo-50);
+  color: var(--cemaco-indigo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.archivos-version__datos {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.archivos-version__nombre {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.archivos-version__meta {
+  font-size: 12px;
+  color: var(--fg-3);
+}
+
+.archivos-version__descargar {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cemaco-indigo);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 1px;
+  }
+
+  &:disabled {
+    cursor: progress;
+    opacity: 0.6;
+  }
+
+  &:hover:not(:disabled) { background: var(--cemaco-indigo-50); }
+}
+
+.archivos-version__nota {
+  margin-right: auto;
+  align-self: center;
+  font-size: 12px;
+  color: var(--fg-3);
+}

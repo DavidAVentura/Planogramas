@@ -22,7 +22,10 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [rol, setRol] = useState<Rol>('analista');
+  // Mientras el rol se elija a mano, recargar una pantalla del Implementador lo conserva.
+  const [rol, setRol] = useState<Rol>(() =>
+    window.location.pathname.startsWith('/mi-tienda') ? 'implementador' : 'analista',
+  );
   const [usuario, setUsuario] = useState<UsuarioSesion | null>(null);
   const [estado, setEstado] = useState<EstadoSesion>(() =>
     sesionService.obtenerToken() ? 'verificando' : 'no_autenticado',

@@ -6,6 +6,8 @@ import { LienzoPlanograma } from '../pages/LienzoPlanograma/LienzoPlanograma';
 import { TiendasListado } from '../pages/TiendasListado/TiendasListado';
 import { ProductosListado } from '../pages/ProductosListado/ProductosListado';
 import { EstructuraAsignacion } from '../pages/EstructuraAsignacion/EstructuraAsignacion';
+import { MiTienda } from '../pages/MiTienda/MiTienda';
+import { ProductosTienda } from '../pages/ProductosTienda/ProductosTienda';
 
 export function AppRoutes() {
   return (
@@ -18,6 +20,8 @@ export function AppRoutes() {
       <Route path="/tiendas" element={<TiendasListado />} />
       <Route path="/estructura" element={<EstructuraAsignacion />} />
       <Route path="/productos" element={<ProductosListado />} />
+      <Route path="/mi-tienda" element={<MiTienda />} />
+      <Route path="/mi-tienda/productos" element={<ProductosTienda />} />
     </Routes>
   );
 }

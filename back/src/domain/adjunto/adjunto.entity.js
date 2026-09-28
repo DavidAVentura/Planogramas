@@ -5,6 +5,7 @@
  */
 
 const crypto = require('crypto');
+const { sanitizarNombreArchivo } = require('../compartido/archivo');
 
 /** Estados de PlanogramaVersion en los que se admite añadir/eliminar/reemplazar adjuntos. */
 const ESTADOS_VERSION_EDITABLE = Object.freeze(['borrador', 'en_desarrollo', 'piloto']);
@@ -67,7 +68,7 @@ function validarArchivo({ tipoMime, tamanoBytes }) {
  */
 function generarBlobPath(versionId, nombreOriginal) {
   const sufijo           = crypto.randomUUID();
-  const nombreSanitizado = nombreOriginal.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const nombreSanitizado = sanitizarNombreArchivo(nombreOriginal);
   return `versiones/${versionId}/${sufijo}-${nombreSanitizado}`;
 }
 

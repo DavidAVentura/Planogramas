@@ -1,0 +1,238 @@
+/* Scroll en ambos ejes dentro del contenedor: el encabezado queda fijo arriba (sticky). */
+.productos-impl__scroll {
+  max-height: calc(100vh - 220px);
+  min-height: 240px;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.productos-impl {
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.productos-impl__encabezado {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 6px 8px 8px 4px;
+  vertical-align: top;
+  text-align: left;
+  background: var(--ink-50);
+  border-bottom: 1px solid var(--border);
+  border-left: 2px solid transparent;
+}
+
+.productos-impl__encabezado--destino {
+  border-left-color: var(--cemaco-indigo);
+}
+
+.productos-impl__encabezado--arrastrando {
+  background: #eef0fb;
+}
+
+.productos-impl__arrastre {
+  display: flex;
+  align-items: flex-start;
+  min-height: 42px;
+  margin-bottom: 6px;
+  cursor: grab;
+
+  &:active { cursor: grabbing; }
+}
+
+.productos-impl__asa {
+  flex: none;
+  margin-top: 8px;
+  color: var(--ink-400);
+}
+
+.productos-impl__orden {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  padding: 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+  color: var(--fg-3);
+  text-align: left;
+  cursor: pointer;
+
+  svg {
+    flex: none;
+    margin-top: 1px;
+  }
+
+  &:hover { background: var(--ink-100); }
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 1px;
+  }
+}
+
+.productos-impl__orden--principal {
+  color: var(--cemaco-indigo);
+  font-weight: 800;
+}
+
+.productos-impl__orden--secundario {
+  color: var(--fg-2);
+}
+
+.productos-impl__icono-inactivo {
+  color: var(--ink-300);
+}
+
+.productos-impl__prioridad {
+  flex: none;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: var(--radius-pill);
+  background: var(--ink-200);
+  color: var(--fg-2);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.productos-impl__orden--principal .productos-impl__prioridad {
+  background: var(--cemaco-indigo);
+  color: #fff;
+}
+
+.productos-impl__filtro {
+  display: block;
+  width: calc(100% - 4px);
+  height: 30px;
+  margin-left: 4px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--fg-1);
+
+  &:focus {
+    outline: 0;
+    border-color: var(--cemaco-indigo);
+    box-shadow: 0 0 0 3px var(--cemaco-indigo-100);
+  }
+}
+
+select.productos-impl__filtro {
+  padding: 0 6px;
+}
+
+.productos-impl__filtro--activo {
+  border-color: var(--cemaco-indigo);
+}
+
+.productos-impl__filtro--invalido,
+.productos-impl__filtro--invalido:focus {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px var(--danger-bg);
+}
+
+.productos-impl td {
+  height: 52px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 14px;
+  vertical-align: middle;
+  overflow: hidden;
+}
+
+.productos-impl__fila--inactiva td {
+  color: var(--fg-3);
+}
+
+.productos-impl tbody tr:hover td {
+  background: var(--ink-50);
+}
+
+.productos-impl__celda--numero {
+  text-align: right;
+}
+
+.productos-impl__numero {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.productos-impl__numero--cero {
+  color: #b3261e;
+}
+
+.productos-impl__fuerte {
+  font-weight: 600;
+}
+
+.productos-impl__numero.productos-impl__fuerte {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.productos-impl__mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.productos-impl__texto,
+.productos-impl__doble > span {
+  display: block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.productos-impl__doble {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.productos-impl__doble--badge > .badge {
+  display: inline-flex;
+}
+
+.productos-impl__secundario {
+  font-size: 12px;
+  color: var(--fg-3);
+}
+
+.productos-impl__observaciones {
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--fg-2);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.productos-impl__vacio {
+  color: var(--ink-400);
+}
+
+.productos-impl__sin-filas {
+  position: sticky;
+  left: 0;
+  padding: 16px;
+}

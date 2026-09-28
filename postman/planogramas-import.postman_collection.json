@@ -251,6 +251,120 @@
       "value": "",
       "type": "string",
       "description": "Lo llena \"201 - Crear versión especial publicada desde la GRANDE\"; no editar a mano."
+    },
+    {
+      "key": "tiendaIdImplementacion",
+      "value": "",
+      "type": "string",
+      "description": "Tienda fresca (GRANDE, activa) creada por el Setup de 16 - Implementación; monta la versión piloto del setup. Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "tiendaIdImplementacionSinVersiones",
+      "value": "",
+      "type": "string",
+      "description": "Tienda fresca activa sin versiones asignadas (Setup de 16 - Implementación). Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "tiendaIdImplementacionInactiva",
+      "value": "",
+      "type": "string",
+      "description": "Tienda fresca que el Setup de 16 - Implementación desactiva, para el 404 NOT_FOUND por tienda inactiva. Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "planogramaIdImplementacion",
+      "value": "",
+      "type": "string",
+      "description": "Planograma temporal del Setup de 16 - Implementación. Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "versionIdImplementacion",
+      "value": "",
+      "type": "string",
+      "description": "Versión GRANDE que el Setup de 16 - Implementación deja en piloto montada en tiendaIdImplementacion. Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "versionIdImplementacionNoAsignada",
+      "value": "",
+      "type": "string",
+      "description": "Versión MEDIANA en borrador, sin tiendas (Setup de 16 - Implementación), para el 404 NOT_FOUND. Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "gondolaIdImplementacion",
+      "value": "",
+      "type": "string",
+      "description": "Góndola de versionIdImplementacion (Setup de 16 - Implementación). Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "nivelIdImplementacion",
+      "value": "",
+      "type": "string",
+      "description": "Nivel de gondolaIdImplementacion (Setup de 16 - Implementación). Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "posicionIdImplementacion",
+      "value": "",
+      "type": "string",
+      "description": "Posición ACTIVO con skuExistente (Setup de 16 - Implementación). Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "planogramaIdEvidencias",
+      "value": "",
+      "type": "string",
+      "description": "Planograma temporal del Setup de 17 - Evidencias. Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "versionIdEvidencias",
+      "value": "",
+      "type": "string",
+      "description": "Versión GRANDE que el Setup de 17 - Evidencias deja en piloto montada en tiendaIdExistente. Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "versionIdEvidenciasNoAsignada",
+      "value": "",
+      "type": "string",
+      "description": "Versión MEDIANA en borrador, sin tiendas (Setup de 17 - Evidencias). Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "gondolaIdEvidencias",
+      "value": "",
+      "type": "string",
+      "description": "Góndola 1 de versionIdEvidencias, recibe las fotos. Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "gondolaIdEvidenciasSinFotos",
+      "value": "",
+      "type": "string",
+      "description": "Góndola 2 de versionIdEvidencias, queda sin fotos. Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "gondolaIdEvidenciasOtraVersion",
+      "value": "",
+      "type": "string",
+      "description": "Góndola de versionIdEvidenciasNoAsignada, para el 400 VALIDATION_ERROR. Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "evidenciaIdListado",
+      "value": "",
+      "type": "string",
+      "description": "Foto subida por el Setup de 17 - Evidencias para probar el listado. Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "evidenciaId",
+      "value": "",
+      "type": "string",
+      "description": "Lo llena \"Subir foto de evidencia / 201 - ...\"; la descargan y eliminan los requests siguientes. No editar a mano."
+    },
+    {
+      "key": "evidenciaIdInexistente",
+      "value": "999999",
+      "type": "string",
+      "description": "Id de evidencia que no existe en la tabla EvidenciaImplementacion."
+    },
+    {
+      "key": "evidenciaIdDeOtroUsuario",
+      "value": "",
+      "type": "string",
+      "description": "Id de una EvidenciaImplementacion cuyo subido_por NO es el usuario de TOKEN_CAO, para el 403 FORBIDDEN de DELETE /evidencias/:id. No se puede crear vía API: con una sola sesión CAO toda evidencia queda a nombre de ese usuario. Script SQL mínimo para recrearlo (después de correr una vez el Setup de 17 - Evidencias): INSERT INTO EvidenciaImplementacion (planograma_version_id, tienda_id, gondola_id, nombre_original, tipo_mime, tamano_bytes, blob_container, blob_path, blob_url, subido_por) SELECT TOP 1 planograma_version_id, tienda_id, gondola_id, 'otro.png', 'image/png', 70, blob_container, 'evidencias/fixture/otro.png', blob_url, 'otro-usuario-postman' FROM EvidenciaImplementacion ORDER BY id DESC; y poner aquí el id resultante (SELECT MAX(id) FROM EvidenciaImplementacion WHERE subido_por = 'otro-usuario-postman'). El 403 se evalúa antes de tocar el blob, así que el blob_path ficticio no importa. Ojo: si se borra la versión dueña de la fila (CASCADE), hay que volver a sembrarla."
     }
   ],
   "item": [
@@ -16488,6 +16602,2270 @@
                       "pm.test('Code VALIDATION_ERROR', () => {",
                       "  pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');",
                       "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "16 - Implementación",
+      "description": "Vista del Implementador: resumen \"Mi tienda\" y productos por posición, con inventario SAP vía CATI (bulkInventoryReport). Ver Arquitectura/Contratos/16_implementacion/ y back/src/infrastructure/http/routes/tiendas.routes.js. Requiere las migraciones 009 (Adjunto) y 011 (EvidenciaImplementacion) aplicadas. Los tests aceptan tanto inventario disponible como el modo degradado (CATI caído → 200 con inventarioDisponible=false). Cada corrida crea 3 tiendas de prueba (códigos IMP/IMV/IMI + timestamp).",
+      "item": [
+        {
+          "name": "Setup - datos de prueba",
+          "item": [
+            {
+              "name": "201 - Crear tienda activa que montará la versión (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas"
+                  ]
+                },
+                "description": "Tienda fresca en cada corrida (su código no existe en SAP, así que CATI no devuelve inventario para ella). Guarda tiendaIdImplementacion.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"codigo\": \"IMP{{$timestamp}}\",\n  \"nombre\": \"Implementación Postman {{$timestamp}}\",\n  \"tipo\": \"GRANDE\",\n  \"region\": \"Pruebas\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('tiendaIdImplementacion', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear tienda activa sin versiones asignadas (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"codigo\": \"IMV{{$timestamp}}\",\n  \"nombre\": \"Implementación sin versiones {{$timestamp}}\",\n  \"tipo\": \"GRANDE\",\n  \"region\": \"Pruebas\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('tiendaIdImplementacionSinVersiones', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear tienda que se desactivará (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"codigo\": \"IMI{{$timestamp}}\",\n  \"nombre\": \"Implementación inactiva {{$timestamp}}\",\n  \"tipo\": \"GRANDE\",\n  \"region\": \"Pruebas\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('tiendaIdImplementacionInactiva', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Desactivar la tienda (setup)",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdImplementacionInactiva}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdImplementacionInactiva}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estado\": \"inactivo\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear planograma para pruebas de implementación (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Implementación - Planograma Setup {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\n    \"Aceites y lubricantes\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('planogramaIdImplementacion', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear versión GRANDE que quedará en piloto (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdImplementacion}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdImplementacion}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdImplementacion', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear góndola de la versión (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImplementacion}}/gondolas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImplementacion}}",
+                    "gondolas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Góndola Implementación\",\n  \"ancho_cm\": 120,\n  \"alto_cm\": 180,\n  \"profundidad_cm\": 40\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('gondolaIdImplementacion', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear nivel de la góndola (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdImplementacion}}/niveles",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdImplementacion}}",
+                    "niveles"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orden\": 1,\n  \"altura_desde_piso_cm\": 30,\n  \"tipo_accesorio\": \"BANDEJA\",\n  \"ancho_disponible_cm\": 120\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('nivelIdImplementacion', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear posición ACTIVO con SKU (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/niveles/{{nivelIdImplementacion}}/posiciones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "niveles",
+                    "{{nivelIdImplementacion}}",
+                    "posiciones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sku\": \"{{skuExistente}}\",\n  \"orden_horizontal\": 1,\n  \"ancho_asignado_cm\": 20,\n  \"facings_horizontal\": 2,\n  \"cantidad_apilable\": 1,\n  \"unidades_por_facing\": 1,\n  \"capacidad_maxima\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('posicionIdImplementacion', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Guardar versión, borrador→en_desarrollo (setup)",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImplementacion}}/guardar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImplementacion}}",
+                    "guardar"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Promover versión a piloto en la tienda activa (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImplementacion}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImplementacion}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    \"{{tiendaIdImplementacion}}\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear versión MEDIANA que queda en borrador, sin asignar (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdImplementacion}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdImplementacion}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"MEDIANA\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdImplementacionNoAsignada', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Obtener resumen de implementación (GET /tiendas/:tiendaId/implementacion)",
+          "item": [
+            {
+              "name": "200 - Resumen con la versión piloto asignada",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdImplementacion}}/implementacion",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdImplementacion}}",
+                    "implementacion"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "pm.test('tienda y umbral', () => { pm.expect(body.tienda.id).to.eql(Number(pm.collectionVariables.get('tiendaIdImplementacion'))); pm.expect(body.tienda).to.have.all.keys('id', 'codigo', 'nombre', 'tipo'); pm.expect(body.umbralImplementable).to.eql(85); });",
+                      "const v = body.planogramas.find((p) => p.versionId === Number(pm.collectionVariables.get('versionIdImplementacion')));",
+                      "pm.test('incluye la versión piloto con 1 producto y su góndola sin evidencia', () => { pm.expect(v).to.be.an('object'); pm.expect(v.estado).to.eql('piloto'); pm.expect(v.esEspecial).to.eql(false); pm.expect(v.planogramaId).to.eql(Number(pm.collectionVariables.get('planogramaIdImplementacion'))); pm.expect(v.totalProductos).to.eql(1); pm.expect(v.adjuntos).to.eql(0); pm.expect(v.evidencias).to.eql(0); pm.expect(v.gondolas.length).to.eql(1); pm.expect(v.gondolas[0].id).to.eql(Number(pm.collectionVariables.get('gondolaIdImplementacion'))); pm.expect(v.gondolas[0].evidencias).to.eql(0); });",
+                      "pm.test('no incluye la versión en borrador sin asignar', () => pm.expect(body.planogramas.some((p) => p.versionId === Number(pm.collectionVariables.get('versionIdImplementacionNoAsignada')))).to.eql(false));",
+                      "pm.test('inventarioDisponible es booleano', () => pm.expect(body.inventarioDisponible).to.be.a('boolean'));",
+                      "if (body.inventarioDisponible) {",
+                      "  pm.test('SKU fixture sin inventario en la tienda de prueba: 0 %, no implementable', () => { pm.expect(v.conInventario).to.eql(0); pm.expect(v.porcentajeInventario).to.eql(0); pm.expect(v.implementable).to.eql(false); });",
+                      "} else {",
+                      "  pm.test('Modo degradado: advertencia y campos de inventario en null', () => { pm.expect(body.advertencia).to.be.a('string'); pm.expect(v.conInventario).to.eql(null); pm.expect(v.porcentajeInventario).to.eql(null); pm.expect(v.implementable).to.eql(null); });",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Tienda sin versiones publicadas ni piloto asignadas",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdImplementacionSinVersiones}}/implementacion",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdImplementacionSinVersiones}}",
+                    "implementacion"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "pm.test('planogramas vacío', () => { pm.expect(body.planogramas).to.eql([]); pm.expect(body.umbralImplementable).to.eql(85); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - tiendaId no es un entero positivo",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/abc/implementacion",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "abc",
+                    "implementacion"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - Tienda no existe",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdInexistente}}/implementacion",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdInexistente}}",
+                    "implementacion"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Error NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - Tienda inactiva",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdImplementacionInactiva}}/implementacion",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdImplementacionInactiva}}",
+                    "implementacion"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Error NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Listar productos de implementación (GET /tiendas/:tiendaId/implementacion/productos)",
+          "item": [
+            {
+              "name": "200 - Todas las versiones asignadas (sin versionIds)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdImplementacion}}/implementacion/productos",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdImplementacion}}",
+                    "implementacion",
+                    "productos"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "pm.test('tienda, total y data', () => { pm.expect(body.tienda.id).to.eql(Number(pm.collectionVariables.get('tiendaIdImplementacion'))); pm.expect(body.data).to.be.an('array'); pm.expect(body.total).to.eql(body.data.length); pm.expect(body.total).to.eql(1); });",
+                      "const f = body.data[0];",
+                      "pm.test('fila de la posición del setup', () => { pm.expect(f.posicionId).to.eql(Number(pm.collectionVariables.get('posicionIdImplementacion'))); pm.expect(f.versionId).to.eql(Number(pm.collectionVariables.get('versionIdImplementacion'))); pm.expect(f.estadoVersion).to.eql('piloto'); pm.expect(f.gondolaId).to.eql(Number(pm.collectionVariables.get('gondolaIdImplementacion'))); pm.expect(f.nivelId).to.eql(Number(pm.collectionVariables.get('nivelIdImplementacion'))); pm.expect(f.sku).to.eql(pm.collectionVariables.get('skuExistente')); pm.expect(f.nivel).to.eql(1); pm.expect(f.orden).to.eql(1); pm.expect(f.facings_horizontal).to.eql(2); pm.expect(f.decision).to.eql('ACTIVO'); pm.expect(f).to.have.property('sku_sustituto'); pm.expect(f).to.have.property('sustituto_nombre'); });",
+                      "if (body.inventarioDisponible) {",
+                      "  pm.test('inventario 0 para la tienda de prueba', () => { pm.expect(f.inventario).to.eql(0); pm.expect(f.conInventario).to.eql(false); });",
+                      "} else {",
+                      "  pm.test('Modo degradado: inventario en null', () => { pm.expect(body.advertencia).to.be.a('string'); pm.expect(f.inventario).to.eql(null); pm.expect(f.conInventario).to.eql(null); });",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Filtrando por versionIds",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdImplementacion}}/implementacion/productos?versionIds={{versionIdImplementacion}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdImplementacion}}",
+                    "implementacion",
+                    "productos"
+                  ],
+                  "query": [
+                    {
+                      "key": "versionIds",
+                      "value": "{{versionIdImplementacion}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "pm.test('tienda, total y data', () => { pm.expect(body.tienda.id).to.eql(Number(pm.collectionVariables.get('tiendaIdImplementacion'))); pm.expect(body.data).to.be.an('array'); pm.expect(body.total).to.eql(body.data.length); pm.expect(body.total).to.eql(1); });",
+                      "const f = body.data[0];",
+                      "pm.test('fila de la posición del setup', () => { pm.expect(f.posicionId).to.eql(Number(pm.collectionVariables.get('posicionIdImplementacion'))); pm.expect(f.versionId).to.eql(Number(pm.collectionVariables.get('versionIdImplementacion'))); pm.expect(f.estadoVersion).to.eql('piloto'); pm.expect(f.gondolaId).to.eql(Number(pm.collectionVariables.get('gondolaIdImplementacion'))); pm.expect(f.nivelId).to.eql(Number(pm.collectionVariables.get('nivelIdImplementacion'))); pm.expect(f.sku).to.eql(pm.collectionVariables.get('skuExistente')); pm.expect(f.nivel).to.eql(1); pm.expect(f.orden).to.eql(1); pm.expect(f.facings_horizontal).to.eql(2); pm.expect(f.decision).to.eql('ACTIVO'); pm.expect(f).to.have.property('sku_sustituto'); pm.expect(f).to.have.property('sustituto_nombre'); });",
+                      "if (body.inventarioDisponible) {",
+                      "  pm.test('inventario 0 para la tienda de prueba', () => { pm.expect(f.inventario).to.eql(0); pm.expect(f.conInventario).to.eql(false); });",
+                      "} else {",
+                      "  pm.test('Modo degradado: inventario en null', () => { pm.expect(body.advertencia).to.be.a('string'); pm.expect(f.inventario).to.eql(null); pm.expect(f.conInventario).to.eql(null); });",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - tiendaId no es un entero positivo",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/abc/implementacion/productos",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "abc",
+                    "implementacion",
+                    "productos"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Un elemento de versionIds no es entero",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdImplementacion}}/implementacion/productos?versionIds={{versionIdImplementacion}},abc",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdImplementacion}}",
+                    "implementacion",
+                    "productos"
+                  ],
+                  "query": [
+                    {
+                      "key": "versionIds",
+                      "value": "{{versionIdImplementacion}},abc"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - Tienda no existe",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdInexistente}}/implementacion/productos",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdInexistente}}",
+                    "implementacion",
+                    "productos"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Error NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - Tienda inactiva",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdImplementacionInactiva}}/implementacion/productos",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdImplementacionInactiva}}",
+                    "implementacion",
+                    "productos"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Error NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - versionId en borrador / no asignado a la tienda",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdImplementacion}}/implementacion/productos?versionIds={{versionIdImplementacion}},{{versionIdImplementacionNoAsignada}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdImplementacion}}",
+                    "implementacion",
+                    "productos"
+                  ],
+                  "query": [
+                    {
+                      "key": "versionIds",
+                      "value": "{{versionIdImplementacion}},{{versionIdImplementacionNoAsignada}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Error NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));",
+                      "pm.test('details.versionIds trae solo el id no asignado', () => pm.expect(pm.response.json().error.details.versionIds).to.eql([Number(pm.collectionVariables.get('versionIdImplementacionNoAsignada'))]));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "17 - Evidencias",
+      "description": "Fotos de evidencia de implementación por versión + tienda + góndola, guardadas en Azure Blob (mismo contenedor que Adjuntos). Ver Arquitectura/Contratos/17_evidencias/, tiendas.routes.js (listar/subir) y evidencias.routes.js (descargar/eliminar). Requiere la migración 011 aplicada y Azure Blob configurado. Usa tiendaIdExistente como la tienda que monta la versión piloto del Setup. No se prueban los 503 SERVICE_UNAVAILABLE (requieren tumbar Azure) ni el 400 por archivo mayor a 5MB (inflaría la colección).",
+      "item": [
+        {
+          "name": "Setup - datos de prueba",
+          "item": [
+            {
+              "name": "201 - Crear planograma para pruebas de evidencias (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Evidencias - Planograma Setup {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\n    \"Aceites y lubricantes\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('planogramaIdEvidencias', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear versión GRANDE que quedará en piloto (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdEvidencias}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdEvidencias}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdEvidencias', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear góndola 1 de la versión (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdEvidencias}}/gondolas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdEvidencias}}",
+                    "gondolas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Góndola Evidencias 1\",\n  \"ancho_cm\": 120,\n  \"alto_cm\": 180,\n  \"profundidad_cm\": 40\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('gondolaIdEvidencias', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear góndola 2 de la versión, quedará sin fotos (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdEvidencias}}/gondolas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdEvidencias}}",
+                    "gondolas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Góndola Evidencias 2\",\n  \"ancho_cm\": 90,\n  \"alto_cm\": 180,\n  \"profundidad_cm\": 40\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('gondolaIdEvidenciasSinFotos', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Guardar versión, borrador→en_desarrollo (setup)",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdEvidencias}}/guardar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdEvidencias}}",
+                    "guardar"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Promover versión a piloto en la tienda existente (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdEvidencias}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdEvidencias}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    \"{{tiendaIdExistente}}\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear versión MEDIANA que queda en borrador, sin asignar (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdEvidencias}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdEvidencias}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"MEDIANA\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdEvidenciasNoAsignada', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear góndola en la versión MEDIANA (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdEvidenciasNoAsignada}}/gondolas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdEvidenciasNoAsignada}}",
+                    "gondolas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Góndola de otra versión\",\n  \"ancho_cm\": 90,\n  \"alto_cm\": 180,\n  \"profundidad_cm\": 40\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('gondolaIdEvidenciasOtraVersion', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Subir foto a la góndola 1 para el listado (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdExistente}}/versiones/{{versionIdEvidencias}}/evidencias",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdExistente}}",
+                    "versiones",
+                    "{{versionIdEvidencias}}",
+                    "evidencias"
+                  ]
+                },
+                "description": "Requiere Azure Blob configurado (AZURE_STORAGE_CONNECTION_STRING) y la migración 011 aplicada.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"gondola_id\": \"{{gondolaIdEvidencias}}\",\n  \"nombre_original\": \"setup.png\",\n  \"tipo_mime\": \"image/png\",\n  \"archivo_base64\": \"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('evidenciaIdListado', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Listar evidencias de una versión en una tienda (GET /tiendas/:tiendaId/versiones/:versionId/evidencias)",
+          "item": [
+            {
+              "name": "200 - Góndolas de la versión con sus fotos (incluye la que no tiene)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdExistente}}/versiones/{{versionIdEvidencias}}/evidencias",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdExistente}}",
+                    "versiones",
+                    "{{versionIdEvidencias}}",
+                    "evidencias"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "pm.test('versionId, tiendaId y 2 góndolas ordenadas', () => { pm.expect(body.versionId).to.eql(Number(pm.collectionVariables.get('versionIdEvidencias'))); pm.expect(body.tiendaId).to.eql(Number(pm.collectionVariables.get('tiendaIdExistente'))); pm.expect(body.gondolas.length).to.eql(2); pm.expect(body.gondolas[0].orden).to.be.at.most(body.gondolas[1].orden); });",
+                      "const g1 = body.gondolas.find((g) => g.id === Number(pm.collectionVariables.get('gondolaIdEvidencias')));",
+                      "const g2 = body.gondolas.find((g) => g.id === Number(pm.collectionVariables.get('gondolaIdEvidenciasSinFotos')));",
+                      "pm.test('la góndola 1 trae la foto del setup, eliminable por quien la subió', () => { const e = g1.evidencias.find((x) => x.id === Number(pm.collectionVariables.get('evidenciaIdListado'))); pm.expect(e).to.be.an('object'); pm.expect(e.tipo_mime).to.eql('image/png'); pm.expect(e.tamano_bytes).to.eql(70); pm.expect(e.puedeEliminar).to.eql(true); pm.expect(e.subido_por).to.be.a('string'); });",
+                      "pm.test('la góndola 2 aparece sin fotos', () => pm.expect(g2.evidencias).to.eql([]));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - versionId no es un entero positivo",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdExistente}}/versiones/abc/evidencias",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdExistente}}",
+                    "versiones",
+                    "abc",
+                    "evidencias"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - Tienda no existe",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdInexistente}}/versiones/{{versionIdEvidencias}}/evidencias",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdInexistente}}",
+                    "versiones",
+                    "{{versionIdEvidencias}}",
+                    "evidencias"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Error NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - Versión en borrador / no asignada a la tienda",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdExistente}}/versiones/{{versionIdEvidenciasNoAsignada}}/evidencias",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdExistente}}",
+                    "versiones",
+                    "{{versionIdEvidenciasNoAsignada}}",
+                    "evidencias"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Error NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Subir foto de evidencia (POST /tiendas/:tiendaId/versiones/:versionId/evidencias)",
+          "item": [
+            {
+              "name": "201 - Subir foto PNG de la góndola 1",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdExistente}}/versiones/{{versionIdEvidencias}}/evidencias",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdExistente}}",
+                    "versiones",
+                    "{{versionIdEvidencias}}",
+                    "evidencias"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"gondola_id\": \"{{gondolaIdEvidencias}}\",\n  \"nombre_original\": \"gondola 1 postman.png\",\n  \"tipo_mime\": \"image/png\",\n  \"archivo_base64\": \"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "const e = pm.response.json();",
+                      "pm.test('Evidencia creada para la góndola, eliminable por quien la subió', () => { pm.expect(e.id).to.be.a('number'); pm.expect(e.gondolaId).to.eql(Number(pm.collectionVariables.get('gondolaIdEvidencias'))); pm.expect(e.nombre_original).to.eql('gondola 1 postman.png'); pm.expect(e.tipo_mime).to.eql('image/png'); pm.expect(e.tamano_bytes).to.eql(70); pm.expect(e.subido_por).to.be.a('string'); pm.expect(e.created_at).to.be.a('string'); pm.expect(e.puedeEliminar).to.eql(true); });",
+                      "pm.collectionVariables.set('evidenciaId', e.id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Tipo MIME no permitido (PDF)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdExistente}}/versiones/{{versionIdEvidencias}}/evidencias",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdExistente}}",
+                    "versiones",
+                    "{{versionIdEvidencias}}",
+                    "evidencias"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"gondola_id\": \"{{gondolaIdEvidencias}}\",\n  \"nombre_original\": \"gondola 1 postman.png\",\n  \"tipo_mime\": \"application/pdf\",\n  \"archivo_base64\": \"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Falta gondola_id",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdExistente}}/versiones/{{versionIdEvidencias}}/evidencias",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdExistente}}",
+                    "versiones",
+                    "{{versionIdEvidencias}}",
+                    "evidencias"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre_original\": \"x.png\",\n  \"tipo_mime\": \"image/png\",\n  \"archivo_base64\": \"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Archivo vacío",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdExistente}}/versiones/{{versionIdEvidencias}}/evidencias",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdExistente}}",
+                    "versiones",
+                    "{{versionIdEvidencias}}",
+                    "evidencias"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"gondola_id\": \"{{gondolaIdEvidencias}}\",\n  \"nombre_original\": \"gondola 1 postman.png\",\n  \"tipo_mime\": \"image/png\",\n  \"archivo_base64\": \"====\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Base64 con prefijo data:",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdExistente}}/versiones/{{versionIdEvidencias}}/evidencias",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdExistente}}",
+                    "versiones",
+                    "{{versionIdEvidencias}}",
+                    "evidencias"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"gondola_id\": \"{{gondolaIdEvidencias}}\",\n  \"nombre_original\": \"gondola 1 postman.png\",\n  \"tipo_mime\": \"image/png\",\n  \"archivo_base64\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - tiendaId no es un entero positivo",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/abc/versiones/{{versionIdEvidencias}}/evidencias",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "abc",
+                    "versiones",
+                    "{{versionIdEvidencias}}",
+                    "evidencias"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"gondola_id\": \"{{gondolaIdEvidencias}}\",\n  \"nombre_original\": \"gondola 1 postman.png\",\n  \"tipo_mime\": \"image/png\",\n  \"archivo_base64\": \"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - La góndola es de otra versión",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdExistente}}/versiones/{{versionIdEvidencias}}/evidencias",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdExistente}}",
+                    "versiones",
+                    "{{versionIdEvidencias}}",
+                    "evidencias"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"gondola_id\": \"{{gondolaIdEvidenciasOtraVersion}}\",\n  \"nombre_original\": \"gondola 1 postman.png\",\n  \"tipo_mime\": \"image/png\",\n  \"archivo_base64\": \"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - Tienda no existe",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdInexistente}}/versiones/{{versionIdEvidencias}}/evidencias",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdInexistente}}",
+                    "versiones",
+                    "{{versionIdEvidencias}}",
+                    "evidencias"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"gondola_id\": \"{{gondolaIdEvidencias}}\",\n  \"nombre_original\": \"gondola 1 postman.png\",\n  \"tipo_mime\": \"image/png\",\n  \"archivo_base64\": \"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Error NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - Versión en borrador / no asignada a la tienda",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas/{{tiendaIdExistente}}/versiones/{{versionIdEvidenciasNoAsignada}}/evidencias",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas",
+                    "{{tiendaIdExistente}}",
+                    "versiones",
+                    "{{versionIdEvidenciasNoAsignada}}",
+                    "evidencias"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"gondola_id\": \"{{gondolaIdEvidenciasOtraVersion}}\",\n  \"nombre_original\": \"gondola 1 postman.png\",\n  \"tipo_mime\": \"image/png\",\n  \"archivo_base64\": \"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Error NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Descargar foto de evidencia (GET /evidencias/:id/descargar)",
+          "item": [
+            {
+              "name": "200 - Descarga la foto en streaming",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/evidencias/{{evidenciaId}}/descargar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "evidencias",
+                    "{{evidenciaId}}",
+                    "descargar"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type image/png e inline', () => { pm.expect(pm.response.headers.get('Content-Type')).to.include('image/png'); pm.expect(pm.response.headers.get('Content-Disposition')).to.include('inline'); });",
+                      "pm.test('Trae el binario completo', () => pm.expect(pm.response.stream.length).to.eql(70));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - id no es un entero positivo",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/evidencias/abc/descargar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "evidencias",
+                    "abc",
+                    "descargar"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - Evidencia no existe",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/evidencias/{{evidenciaIdInexistente}}/descargar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "evidencias",
+                    "{{evidenciaIdInexistente}}",
+                    "descargar"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Error NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Eliminar foto de evidencia (DELETE /evidencias/:id)",
+          "item": [
+            {
+              "name": "403 - La foto la subió otro usuario",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/evidencias/{{evidenciaIdDeOtroUsuario}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "evidencias",
+                    "{{evidenciaIdDeOtroUsuario}}"
+                  ]
+                },
+                "description": "Requiere el fixture SQL documentado en la variable evidenciaIdDeOtroUsuario (una sola sesión CAO no puede crear evidencia a nombre de otro usuario)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 403', () => pm.response.to.have.status(403));",
+                      "pm.test('Error FORBIDDEN', () => pm.expect(pm.response.json().error.code).to.eql('FORBIDDEN'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - id no es un entero positivo",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/evidencias/abc",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "evidencias",
+                    "abc"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "204 - Elimina la foto subida en esta corrida",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/evidencias/{{evidenciaId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "evidencias",
+                    "{{evidenciaId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 204', () => pm.response.to.have.status(204));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - La evidencia ya fue eliminada",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/evidencias/{{evidenciaId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "evidencias",
+                    "{{evidenciaId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Error NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));"
                     ]
                   }
                 }

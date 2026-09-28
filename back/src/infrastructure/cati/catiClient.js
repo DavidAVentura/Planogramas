@@ -38,15 +38,14 @@ function mapJerarquia(item) {
 }
 
 /**
- * GET autenticado contra CATI. Retorna `null` si CATI responde 404 (recurso no encontrado
- * dentro del catálogo, ej. área inexistente), y lanza 503 para cualquier otro error o si
- * no responde dentro de `timeoutMs` (ver regla de negocio en GET_productos_buscar.md).
+ * Request autenticado contra CATI (Bearer del usuario + x-api-key). Retorna `null` si CATI
+ * responde 404, y lanza 503 para cualquier otro error o si no responde dentro de `timeoutMs`.
+ * @param {'GET'|'POST'} metodo
  * @param {string} path
- * @param {Record<string, string>} [params]
- * @param {{ timeoutMs?: number }} [opciones]
+ * @param {{ params?: Record<string, string>, body?: any, timeoutMs?: number }} [opciones]
  * @returns {Promise<any>}
  */
-async function get(path, params = {}, { timeoutMs } = {}) {
+async function solicitar(metodo, path, { params = {}, body, timeoutMs } = {}) {
   const token = await tokenManager.obtenerAccessToken();
   const query = new URLSearchParams(params).toString();
   const url   = `${env.cati.baseUrl}${path}${query ? `?${query}` : ''}`;
@@ -54,13 +53,18 @@ async function get(path, params = {}, { timeoutMs } = {}) {
   const controller = timeoutMs ? new AbortController() : undefined;
   const timeout     = timeoutMs ? setTimeout(() => controller.abort(), timeoutMs) : undefined;
 
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    'x-api-key':   env.cati.apiKey,
+  };
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
+
   let response;
   try {
     response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'x-api-key':   env.cati.apiKey,
-      },
+      method: metodo,
+      headers,
+      ...(body !== undefined && { body: JSON.stringify(body) }),
       signal: controller?.signal,
     });
   } catch (err) {
@@ -77,6 +81,31 @@ async function get(path, params = {}, { timeoutMs } = {}) {
   }
 
   return response.json();
+}
+
+/**
+ * GET autenticado contra CATI. Retorna `null` si CATI responde 404 (recurso no encontrado
+ * dentro del catálogo, ej. área inexistente), y lanza 503 para cualquier otro error o si
+ * no responde dentro de `timeoutMs` (ver regla de negocio en GET_productos_buscar.md).
+ * @param {string} path
+ * @param {Record<string, string>} [params]
+ * @param {{ timeoutMs?: number }} [opciones]
+ * @returns {Promise<any>}
+ */
+async function get(path, params = {}, { timeoutMs } = {}) {
+  return solicitar('GET', path, { params, timeoutMs });
+}
+
+/**
+ * POST autenticado contra CATI con body JSON. Mismo manejo de errores que `get`.
+ * @param {string} path
+ * @param {any} body
+ * @param {Record<string, string>} [params]
+ * @param {{ timeoutMs?: number }} [opciones]
+ * @returns {Promise<any>}
+ */
+async function post(path, body, params = {}, { timeoutMs } = {}) {
+  return solicitar('POST', path, { params, body, timeoutMs });
 }
 
 /**
@@ -401,6 +430,100 @@ async function obtenerStockSap(sku, { timeoutMs = 5000 } = {}) {
   return (items ?? []).map(mapInventarioSap);
 }
 
+// ─── Stock en lote (ver Arquitectura/Contratos/16_implementacion/) ────────────
+
+const TAMANO_LOTE_STOCK_BULK = 200;
+const TIMEOUT_STOCK_BULK_MS  = 10000;
+
+/**
+ * Convierte el `stock` de SAP (string, a veces con separador de miles con coma, ej. "1,234.000";
+ * SAP también puede escribir el signo negativo al final, ej. "5-") a número. `null` si no se
+ * puede interpretar.
+ * @param {string|number|null|undefined} valor
+ * @returns {number|null}
+ */
+function parsearStockSap(valor) {
+  if (valor === null || valor === undefined) return null;
+  if (typeof valor === 'number') return Number.isFinite(valor) ? valor : null;
+
+  let texto = String(valor).trim().replace(/\s+/g, '').replace(/,/g, '');
+  if (texto === '') return null;
+  if (texto.endsWith('-')) texto = `-${texto.slice(0, -1)}`;
+
+  const numero = Number(texto);
+  return Number.isFinite(numero) ? numero : null;
+}
+
+function primerArreglo(...candidatos) {
+  return candidatos.find((c) => Array.isArray(c)) ?? null;
+}
+
+/**
+ * Capa anti-corrupción de `POST /Stock/sap/bulkInventoryReport`: la forma de su respuesta NO está
+ * documentada en el swagger de CATI ni se pudo confirmar contra CATI real (solo alcanzable desde la
+ * red interna), así que se aceptan defensivamente las variantes plausibles:
+ *   - arreglo plano de filas tipo `InventarioSap` (`{ sku, centroId, centro, stock, ... }`);
+ *   - filas agrupadas por SKU (`{ sku, inventario|items|stock: [ { centroId, stock, ... } ] }`);
+ *   - cualquiera de las dos envuelta en `{ data: [...] }` (o `items` / `result`).
+ * Cualquier otra forma se trata como "sin filas". Cuando se confirme la forma real conviene
+ * simplificar esta función y dejar solo esa variante.
+ * @param {any} cuerpo
+ * @returns {Array<object>} filas crudas, cada una con su `sku`
+ */
+function extraerFilasStockBulk(cuerpo) {
+  if (!cuerpo) return [];
+
+  let lista = Array.isArray(cuerpo) ? cuerpo : primerArreglo(cuerpo.data, cuerpo.items, cuerpo.result);
+  if (!lista && cuerpo.data && typeof cuerpo.data === 'object') {
+    lista = primerArreglo(cuerpo.data.data, cuerpo.data.items, cuerpo.data.result);
+  }
+  if (!lista) return [];
+
+  return lista.flatMap((fila) => {
+    if (!fila || typeof fila !== 'object') return [];
+    const anidadas = primerArreglo(fila.inventario, fila.items, fila.stock);
+    if (anidadas) {
+      return anidadas
+        .filter((h) => h && typeof h === 'object')
+        .map((h) => ({ ...h, sku: h.sku ?? fila.sku }));
+    }
+    return [fila];
+  });
+}
+
+function mapFilaStockBulk(raw) {
+  return {
+    sku:      raw.sku === undefined || raw.sku === null ? null : String(raw.sku).trim(),
+    centroId: raw.centroId === undefined || raw.centroId === null ? null : String(raw.centroId).trim(),
+    stock:    parsearStockSap(raw.stock),
+  };
+}
+
+/**
+ * Stock SAP de varios SKUs en todos los centros (CATI POST /Stock/sap/bulkInventoryReport, body =
+ * arreglo de SKUs). Parte los SKUs en lotes de 200 que se piden en paralelo. Sin cache (el stock
+ * cambia constantemente). Un 404 de CATI se trata como "sin inventario" (lote vacío); cualquier
+ * otro error o timeout se relanza como 503 para que el caso de uso decida (modo degradado).
+ * @param {string[]} skus
+ * @param {{ timeoutMs?: number }} [opciones]
+ * @returns {Promise<Array<{ sku: string|null, centroId: string|null, stock: number|null }>>}
+ */
+async function obtenerStockSapBulk(skus, { timeoutMs = TIMEOUT_STOCK_BULK_MS } = {}) {
+  const unicos = [...new Set((skus ?? []).map((s) => String(s).trim()).filter(Boolean))];
+  if (unicos.length === 0) return [];
+
+  const lotes = [];
+  for (let i = 0; i < unicos.length; i += TAMANO_LOTE_STOCK_BULK) {
+    lotes.push(unicos.slice(i, i + TAMANO_LOTE_STOCK_BULK));
+  }
+
+  const respuestas = await Promise.all(lotes.map((lote) => post(
+    '/Stock/sap/bulkInventoryReport', lote, { profile: 'CEMACO' }, { timeoutMs },
+  )));
+
+  return respuestas.flatMap((cuerpo) => extraerFilasStockBulk(cuerpo).map(mapFilaStockBulk));
+}
+
 // ─── Ficha técnica (ver Arquitectura/Contratos/08_catalogo/GET_productos_fichaTecnica.md) ─
 
 /**
@@ -469,6 +592,7 @@ async function obtenerFichaTecnica(sku, { timeoutMs = 5000 } = {}) {
 
 module.exports = {
   get,
+  post,
   obtenerAreas,
   obtenerDepartamentos,
   obtenerFamilias,
@@ -478,5 +602,6 @@ module.exports = {
   listarSkusPorJerarquia,
   obtenerProducto,
   obtenerStockSap,
+  obtenerStockSapBulk,
   obtenerFichaTecnica,
 };

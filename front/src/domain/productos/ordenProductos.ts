@@ -1,12 +1,16 @@
 import type { ProductoListado } from '../../types/producto';
+import {
+  alternarOrden as alternarOrdenAnidado,
+  compararValores,
+  ordenarAnidado,
+  type CriterioOrden as CriterioOrdenGenerico,
+} from '../orden/ordenAnidado';
+
+export type { DireccionOrden } from '../orden/ordenAnidado';
 
 export type CampoOrdenProducto = 'sku' | 'nombre' | 'jerarquia' | 'planogramas' | 'estado';
-export type DireccionOrden = 'asc' | 'desc';
 
-export interface CriterioOrden {
-  campo: CampoOrdenProducto;
-  dir: DireccionOrden;
-}
+export type CriterioOrden = CriterioOrdenGenerico<CampoOrdenProducto>;
 
 export const ORDEN_INICIAL: CriterioOrden[] = [{ campo: 'nombre', dir: 'asc' }];
 
@@ -21,35 +25,19 @@ const VALOR_ORDEN: Record<CampoOrdenProducto, (p: ProductoListado) => string | n
   estado: (p) => (p.estado === 'activo' ? 0 : 1),
 };
 
-function comparar(a: string | number, b: string | number): number {
-  if (typeof a === 'number' && typeof b === 'number') return a === b ? 0 : a < b ? -1 : 1;
-  // `numeric` ordena SKUs como números ("98" antes que "724813").
-  return String(a).localeCompare(String(b), 'es', { sensitivity: 'base', numeric: true });
-}
-
 /**
  * Orden anidado: el primer criterio es el principal y los siguientes desempatan, en el orden en
  * que se eligieron. Empate total = orden por SKU, para que el resultado sea estable.
  */
 export function ordenarProductos(productos: ProductoListado[], orden: CriterioOrden[]): ProductoListado[] {
-  return [...productos].sort((a, b) => {
-    for (const { campo, dir } of orden) {
-      const r = comparar(VALOR_ORDEN[campo](a), VALOR_ORDEN[campo](b));
-      if (r !== 0) return dir === 'asc' ? r : -r;
-    }
-    return comparar(a.sku, b.sku);
-  });
+  return ordenarAnidado(productos, orden, (p, campo) => VALOR_ORDEN[campo](p), (a, b) =>
+    compararValores(a.sku, b.sku),
+  );
 }
 
-/**
- * Clic en un encabezado: si ya es el criterio principal, alterna asc/desc; si no, pasa a ser el
- * principal empezando en asc y el resto queda como desempate.
- */
+/** Ver `alternarOrden` en `domain/orden/ordenAnidado.ts`. */
 export function alternarOrden(orden: CriterioOrden[], campo: CampoOrdenProducto): CriterioOrden[] {
-  if (orden[0]?.campo === campo) {
-    return [{ campo, dir: orden[0].dir === 'asc' ? 'desc' : 'asc' }, ...orden.slice(1)];
-  }
-  return [{ campo, dir: 'asc' }, ...orden.filter((o) => o.campo !== campo)];
+  return alternarOrdenAnidado(orden, campo);
 }
 
 export function esOrdenInicial(orden: CriterioOrden[]): boolean {
