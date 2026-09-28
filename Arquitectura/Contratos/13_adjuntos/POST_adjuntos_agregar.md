@@ -13,7 +13,7 @@ Sube un archivo (imagen o PDF) y lo asocia a una versión de planograma. El arch
 
 El binario se sube a Azure Blob Storage (contenedor privado) antes de crear la fila en BD; si la subida falla, no se crea el registro. La ruta del blob (`blob_path`) se genera en el backend (UUID + nombre sanitizado) — el cliente no la controla ni la conoce de antemano.
 
-Solo versiones en modo editable admiten esta operación.
+La operación se permite en cualquier estado de la versión (`borrador`, `en_desarrollo`, `piloto`, `publicado` o `archivado`): los adjuntos son material de apoyo del analista, no parte del contenido versionado del planograma, así que el analista siempre puede agregarlos, reemplazarlos o eliminarlos.
 
 ---
 
@@ -37,7 +37,7 @@ Solo versiones en modo editable admiten esta operación.
 
 ## Reglas de negocio
 
-1. La versión debe estar en `borrador`, `en_desarrollo` o `piloto` — si está `publicada` o `archivada`, retorna `422`.
+1. La versión debe existir — `404` si no. No se valida su estado: se admite en cualquier estado, incluidos `publicado` y `archivado`.
 2. `tipo_mime` debe estar en la lista blanca — cualquier otro valor retorna `400`, incluso si Joi ya lo valida contra el enum (doble chequeo: Joi en el controller, `validarArchivo` en el dominio).
 3. El tamaño decodificado del archivo no puede superar 5MB — el límite global del body JSON es 8mb (`app.js`) y el base64 agrega ~33% de overhead sobre el binario, así que 5MB de binario deja margen suficiente.
 4. `subido_por` se completa en el backend, no lo envía el cliente — hoy es siempre `'sistema'` porque no existe autenticación de usuario real (pendiente JWT vía CAO).
@@ -82,19 +82,7 @@ Solo versiones en modo editable admiten esta operación.
 | `400 Bad Request` | `tipo_mime` no permitido, archivo excede el tamaño máximo, o campos ausentes/mal formados. |
 | `401 Unauthorized` | JWT ausente. |
 | `404 Not Found` | Versión no existe. |
-| `422 Unprocessable Entity` | Versión no editable. |
 | `503 Service Unavailable` | Azure Blob Storage no respondió a la subida. |
-
-```json
-// 422
-{
-  "error": {
-    "code": "UNPROCESSABLE",
-    "message": "La versión no está en modo editable",
-    "details": { "estadoActual": "publicado" }
-  }
-}
-```
 
 ---
 

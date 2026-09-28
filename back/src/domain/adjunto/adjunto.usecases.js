@@ -5,9 +5,12 @@
  * dependencia — sin imports de infraestructura. El binario vive en Azure Blob Storage
  * (contenedor privado); la BD solo guarda la referencia. La descarga real pasa siempre por el
  * backend — nunca se expone blob_url como link directo al frontend.
+ *
+ * Los adjuntos se pueden agregar, reemplazar y eliminar en cualquier estado de la versión
+ * (incluida publicada): son material de apoyo del analista, no parte del planograma versionado.
  */
 
-const { validarVersionEditable, validarArchivo, generarBlobPath } = require('./adjunto.entity');
+const { validarArchivo, generarBlobPath } = require('./adjunto.entity');
 const { decodificarBase64 } = require('../compartido/archivo');
 
 // ─── Helpers privados ────────────────────────────────────────────────────────
@@ -56,8 +59,7 @@ async function listarAdjuntos(adjuntoRepo, versionRepo, versionId) {
  * @returns {Promise<object>}
  */
 async function agregarAdjunto(adjuntoRepo, versionRepo, blobStorage, versionId, datos, userId) {
-  const version = await buscarVersionOFallar(versionRepo, versionId);
-  validarVersionEditable(version.estado);
+  await buscarVersionOFallar(versionRepo, versionId);
 
   const buffer = decodificarBase64(datos.archivo_base64);
   validarArchivo({ tipoMime: datos.tipo_mime, tamanoBytes: buffer.length });
@@ -95,8 +97,7 @@ async function agregarAdjunto(adjuntoRepo, versionRepo, blobStorage, versionId, 
  */
 async function reemplazarAdjunto(adjuntoRepo, versionRepo, blobStorage, id, datos, userId) {
   const adjunto = await buscarAdjuntoOFallar(adjuntoRepo, id);
-  const version = await buscarVersionOFallar(versionRepo, adjunto.versionId);
-  validarVersionEditable(version.estado);
+  await buscarVersionOFallar(versionRepo, adjunto.versionId);
 
   const buffer = decodificarBase64(datos.archivo_base64);
   validarArchivo({ tipoMime: datos.tipo_mime, tamanoBytes: buffer.length });
@@ -131,8 +132,7 @@ async function reemplazarAdjunto(adjuntoRepo, versionRepo, blobStorage, id, dato
  */
 async function eliminarAdjunto(adjuntoRepo, versionRepo, blobStorage, id) {
   const adjunto = await buscarAdjuntoOFallar(adjuntoRepo, id);
-  const version = await buscarVersionOFallar(versionRepo, adjunto.versionId);
-  validarVersionEditable(version.estado);
+  await buscarVersionOFallar(versionRepo, adjunto.versionId);
 
   await adjuntoRepo.eliminar(id);
   await blobStorage.eliminar({ container: adjunto.blobContainer, blobPath: adjunto.blobPath });

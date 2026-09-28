@@ -7,9 +7,6 @@
 const crypto = require('crypto');
 const { sanitizarNombreArchivo } = require('../compartido/archivo');
 
-/** Estados de PlanogramaVersion en los que se admite añadir/eliminar/reemplazar adjuntos. */
-const ESTADOS_VERSION_EDITABLE = Object.freeze(['borrador', 'en_desarrollo', 'piloto']);
-
 const MIME_TYPES_PERMITIDOS = Object.freeze([
   'image/jpeg', 'image/png', 'image/webp', 'application/pdf',
 ]);
@@ -23,24 +20,6 @@ function errorBadRequest(mensaje) {
   err.status = 400;
   err.code   = 'VALIDATION_ERROR';
   return err;
-}
-
-function errorUnprocessable(mensaje, details) {
-  const err = new Error(mensaje);
-  err.status = 422;
-  err.code   = 'UNPROCESSABLE';
-  if (details) err.details = details;
-  return err;
-}
-
-/**
- * Valida que la versión padre esté en un estado que admite editar sus adjuntos.
- * @param {string} estadoVersion
- */
-function validarVersionEditable(estadoVersion) {
-  if (!ESTADOS_VERSION_EDITABLE.includes(estadoVersion)) {
-    throw errorUnprocessable('La versión no está en modo editable', { estadoActual: estadoVersion });
-  }
 }
 
 /**
@@ -73,10 +52,8 @@ function generarBlobPath(versionId, nombreOriginal) {
 }
 
 module.exports = {
-  ESTADOS_VERSION_EDITABLE,
   MIME_TYPES_PERMITIDOS,
   TAMANO_MAXIMO_BYTES,
-  validarVersionEditable,
   validarArchivo,
   generarBlobPath,
 };

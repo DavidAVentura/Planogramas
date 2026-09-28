@@ -26,7 +26,7 @@ Elimina un adjunto: borra la fila en BD y, después, el blob físico en Azure Bl
 ## Reglas de negocio
 
 1. El adjunto debe existir — `404` si no.
-2. La versión a la que pertenece debe estar en `borrador`, `en_desarrollo` o `piloto` — `422` si no.
+2. No se valida el estado de la versión a la que pertenece: se admite en cualquier estado, incluidos `publicado` y `archivado`.
 3. Se borra primero la fila en BD y recién después el blob en Azure. Si el borrado del blob fallara luego de borrar la fila, queda un blob huérfano en Storage (sin fila que lo referencie) — no bloquea la operación desde la perspectiva del usuario, pero es candidato a limpieza periódica si llegara a pasar.
 
 ---
@@ -43,19 +43,7 @@ Sin body.
 |--------|-----------|
 | `401 Unauthorized` | JWT ausente. |
 | `404 Not Found` | Adjunto no existe. |
-| `422 Unprocessable Entity` | Versión no editable. |
 | `503 Service Unavailable` | Azure Blob Storage no respondió al borrado del blob. |
-
-```json
-// 422
-{
-  "error": {
-    "code": "UNPROCESSABLE",
-    "message": "La versión no está en modo editable",
-    "details": { "estadoActual": "archivado" }
-  }
-}
-```
 
 ---
 

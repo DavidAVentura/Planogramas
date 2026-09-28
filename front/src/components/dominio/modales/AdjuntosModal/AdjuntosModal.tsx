@@ -12,10 +12,6 @@ import type { Adjunto } from '../../../../types/adjunto';
 import type { VersionListItem } from '../../../../types/version';
 import './AdjuntosModal.css';
 
-// Mismos estados editables que valida el backend (ver adjunto.entity.js) — evita que el usuario
-// dispare una subida/reemplazo/eliminación que el servidor va a rechazar con 422.
-const ESTADOS_EDITABLES = ['borrador', 'en_desarrollo', 'piloto'];
-
 const ACEPTA_ARCHIVOS = 'image/jpeg,image/png,image/webp,application/pdf';
 
 function formatearTamano(bytes: number): string {
@@ -67,8 +63,6 @@ export function AdjuntosModal({ version, onClose }: AdjuntosModalProps) {
   const { mostrarToast } = useToast();
   const inputReemplazoRef = useRef<HTMLInputElement>(null);
   const [idAReemplazar, setIdAReemplazar] = useState<number | null>(null);
-
-  const editable = ESTADOS_EDITABLES.includes(version.estado);
 
   async function onSeleccionarNuevo(e: ChangeEvent<HTMLInputElement>) {
     const archivo = e.target.files?.[0];
@@ -128,30 +122,26 @@ export function AdjuntosModal({ version, onClose }: AdjuntosModalProps) {
           >
             <IconoDescargar />
           </Button>
-          {editable && (
-            <>
-              <Button
-                variante="outline"
-                className="adjuntos-modal__accion-icono"
-                disabled={enviando}
-                onClick={() => onReemplazarClick(a.id)}
-                title="Reemplazar"
-                aria-label="Reemplazar"
-              >
-                <IconoReemplazar />
-              </Button>
-              <Button
-                variante="peligro"
-                className="adjuntos-modal__accion-icono"
-                disabled={enviando}
-                onClick={() => onEliminarClick(a)}
-                title="Eliminar"
-                aria-label="Eliminar"
-              >
-                <IconoEliminar />
-              </Button>
-            </>
-          )}
+          <Button
+            variante="outline"
+            className="adjuntos-modal__accion-icono"
+            disabled={enviando}
+            onClick={() => onReemplazarClick(a.id)}
+            title="Reemplazar"
+            aria-label="Reemplazar"
+          >
+            <IconoReemplazar />
+          </Button>
+          <Button
+            variante="peligro"
+            className="adjuntos-modal__accion-icono"
+            disabled={enviando}
+            onClick={() => onEliminarClick(a)}
+            title="Eliminar"
+            aria-label="Eliminar"
+          >
+            <IconoEliminar />
+          </Button>
         </span>
       ),
     },
@@ -160,20 +150,13 @@ export function AdjuntosModal({ version, onClose }: AdjuntosModalProps) {
   return (
     <Modal titulo={`Adjuntos de ${version.codigo}`} onClose={onClose} ancho="lg">
       <div className="adjuntos-modal">
-        {editable ? (
-          <div className="adjuntos-modal__subir">
-            <label className={`button button--outline${enviando ? ' button--disabled' : ''}`}>
-              {enviando ? 'Subiendo…' : '+ Añadir archivo'}
-              <input type="file" accept={ACEPTA_ARCHIVOS} onChange={onSeleccionarNuevo} disabled={enviando} hidden />
-            </label>
-            <span className="adjuntos-modal__hint">Imágenes (JPG, PNG, WEBP) o PDF — máximo 5MB.</span>
-          </div>
-        ) : (
-          <p className="adjuntos-modal__hint">
-            Esta versión está en estado <strong>{version.estado}</strong> — no admite agregar, reemplazar ni
-            eliminar adjuntos. Todavía se pueden descargar los existentes.
-          </p>
-        )}
+        <div className="adjuntos-modal__subir">
+          <label className={`button button--outline${enviando ? ' button--disabled' : ''}`}>
+            {enviando ? 'Subiendo…' : '+ Añadir archivo'}
+            <input type="file" accept={ACEPTA_ARCHIVOS} onChange={onSeleccionarNuevo} disabled={enviando} hidden />
+          </label>
+          <span className="adjuntos-modal__hint">Imágenes (JPG, PNG, WEBP) o PDF — máximo 5MB.</span>
+        </div>
 
         {!cargando && (
           <Table

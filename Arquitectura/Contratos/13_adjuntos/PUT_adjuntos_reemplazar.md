@@ -38,7 +38,7 @@ Mismas reglas de validación que `POST /versiones/{id}/adjuntos` (ver ese contra
 ## Reglas de negocio
 
 1. El adjunto debe existir — `404` si no.
-2. La versión a la que pertenece el adjunto debe estar en `borrador`, `en_desarrollo` o `piloto` — `422` si no.
+2. No se valida el estado de la versión a la que pertenece el adjunto: se admite en cualquier estado, incluidos `publicado` y `archivado`.
 3. Mismas validaciones de `tipo_mime` y tamaño máximo (5MB) que al agregar.
 4. `subido_por` se actualiza al usuario que hizo el reemplazo (hoy siempre `'sistema'`).
 5. El blob viejo se borra **después** de confirmar la actualización de la fila — nunca antes.
@@ -85,7 +85,6 @@ El `id` no cambia respecto al adjunto reemplazado; `blobPath`/`blobUrl` sí, por
 | `400 Bad Request` | `tipo_mime` no permitido, archivo excede el tamaño máximo, o campos ausentes/mal formados. |
 | `401 Unauthorized` | JWT ausente. |
 | `404 Not Found` | Adjunto no existe. |
-| `422 Unprocessable Entity` | Versión no editable. |
 | `503 Service Unavailable` | Azure Blob Storage no respondió a la subida o al borrado del blob viejo. |
 
 ---
