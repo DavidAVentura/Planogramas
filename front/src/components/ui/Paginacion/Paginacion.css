@@ -1,0 +1,24 @@
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--fg-2);
+}
+
+.paginacion__rango {
+  font-weight: 600;
+}
+
+.paginacion__controles {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.paginacion__pagina {
+  white-space: nowrap;
+}

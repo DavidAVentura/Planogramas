@@ -6,6 +6,7 @@ import { PlanogramaFormModal } from '../../components/dominio/modales/Planograma
 import { ArchivarModal } from '../../components/dominio/modales/ArchivarModal/ArchivarModal';
 import { Button } from '../../components/ui/Button/Button';
 import { BotonFiltros } from '../../components/ui/BotonFiltros/BotonFiltros';
+import { Paginacion } from '../../components/ui/Paginacion/Paginacion';
 import { usePlanogramasListado } from '../../hooks/usePlanogramas';
 import { useAuth } from '../../context/AuthContext';
 import type { ListarPlanogramasFiltros, PlanogramaListItem } from '../../types/planograma';
@@ -28,6 +29,11 @@ export function PlanogramasListado() {
   function editar(row: PlanogramaListItem) {
     setIdAEditar(row.id);
     setFormularioAbierto(true);
+  }
+
+  function cambiarPagina(page: number) {
+    setFiltros({ page });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function cerrarFormulario() {
@@ -57,13 +63,23 @@ export function PlanogramasListado() {
           <FiltrosBar id="planogramas-listado-filtros" filtros={filtros} onChange={setFiltros} visible={filtrosVisibles} />
         </div>
 
-        {!cargando && resultado && (
-          <PlanogramasTable
-            rows={resultado.data}
-            puedeEscribir={puedeEscribir}
-            onEditar={editar}
-            onArchivar={setPlanogramaAArchivar}
-          />
+        {/* Al cambiar de página se mantiene la tabla anterior mientras llega la nueva. */}
+        {resultado && (
+          <>
+            <PlanogramasTable
+              rows={resultado.data}
+              puedeEscribir={puedeEscribir}
+              onEditar={editar}
+              onArchivar={setPlanogramaAArchivar}
+            />
+            <Paginacion
+              page={resultado.page}
+              pageSize={resultado.pageSize}
+              total={resultado.total}
+              deshabilitado={cargando}
+              onChange={cambiarPagina}
+            />
+          </>
         )}
       </div>
 
