@@ -11,6 +11,8 @@ on:
 
 jobs:
   build:
+    # Solo en el fork con CI/CD a Azure; en origin (jdaetzcemaco) no existen los secrets y fallaria.
+    if: github.repository == 'DavidAVentura/Planogramas'
     runs-on: ubuntu-latest
     permissions:
       contents: read #This is required for actions/checkout
