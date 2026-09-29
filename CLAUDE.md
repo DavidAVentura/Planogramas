@@ -68,10 +68,19 @@ persistencia en Postgres, e integraciones de solo lectura con VTEX/Microsoft Fab
 
 ## Deployment
 
-Sitio estatico en DigitalOcean App Platform, con redeploy automatico en cada push a `main` (build
-command `npm run build`, output dir `dist`). Es una SPA sin rutas del lado del servidor; si en algun
-momento se agregan rutas, se necesita un catchall a `index.html`. La alternativa manual (subir
-`dist/` a `jcddash.com/surtido`) esta documentada en `DEPLOY_SURTIDO.md`.
+**Antes de publicar cualquier cambio, leer [Arquitectura/DESPLIEGUE_AZURE.md](Arquitectura/DESPLIEGUE_AZURE.md).**
+Ahí están los comandos exactos, la configuración por ambiente y lo que nunca se debe hacer.
+
+Resumen:
+- Se desarrolla en `origin` (`jdaetzcemaco/surtido-planogramas`) y se publica en el remoto `fork`
+  (`DavidAVentura/Planogramas`), que es el repo oficial mientras no exista el repo de organización.
+- El fork nunca tiene commits propios. Publicar es empujar la rama de `origin` al fork, sin `--force`:
+  - DEV: `git push fork origin/develop:refs/heads/develop`
+  - PROD: fast-forward de `main` a `develop` en `origin` y luego `git push fork origin/main:refs/heads/main`
+- GitHub Actions del fork despliega a Azure: `develop` → App Service `planogramas-api-dev` + Static
+  Web App DEV; `main` → `planogramas-api-prod` + Static Web App prod.
+- Publicar solo cuando el usuario lo pida; prod, solo si lo pide explícitamente.
+- DigitalOcean y `jcddash.com/surtido` (`DEPLOY_SURTIDO.md`) eran del prototipo y ya no se usan.
 
 ## Convenciones de trabajo especificas de este repo
 
