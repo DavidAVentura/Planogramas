@@ -29,24 +29,20 @@
 
 ## Agente De Reconocimiento
 
-- Reemplazar simulacion actual por llamada real a modelo/agente.
-- Definir payload de entrada:
-  - tienda.
-  - categoria.
-  - mueble.
-  - fotos por modulo.
-  - catalogo filtrado.
-- Definir salida esperada:
-  - nivel.
-  - posicion.
-  - facings.
-  - sku candidato.
-  - confianza.
-  - candidatos alternos.
-  - motivo del match.
-- Evaluar si el primer agente usa OpenAI Vision u otro servicio.
-- Medir precision con fotos reales de tienda.
-- Registrar correcciones humanas para aprendizaje posterior.
+- HECHO: payload de entrada y salida definidos e implementados (ver INSTRUCTIONS.md seccion 8).
+- HECHO: workflow n8n con Claude vision + salida estructurada en `n8n/planograma-vision-workflow.json`.
+- HECHO: frontend llama al webhook si `VITE_AGENT_WEBHOOK_URL` esta configurada, con fallback a simulacion.
+- HECHO: etiquetado honesto en Revision ("Propuesta simulada" vs "Realogram detectado").
+- Pendiente: importar workflow en n8n, crear credencial Anthropic y configurar la variable en DigitalOcean.
+- Pendiente: medir precision con las 5 fotos reales de tienda (muro seguridad, pegboard semivacio, pasillo cables, vitrina audio, producto individual).
+- Pendiente: registrar correcciones humanas para aprendizaje posterior (requiere Postgres).
+
+## Hallazgos De Prueba En Tienda (julio 2026)
+
+- Mueble semivacio pasa validacion (estructura 45/100, apenas arriba del umbral): decidir si es advertencia o feature de deteccion de espacio vacio.
+- Analizador de fotos devolvio 0/255 en todas las metricas en un caso (canvas en blanco de iOS Safari): mitigado con deteccion de fallo + reintento; vigilar si reaparece.
+- Probar con catalogo de la categoria correcta: fotos de Seguridad Industrial contra catalogo Autos producen 0 matches por diseno.
+- La TV encendida en vitrinas es un distractor para el agente de vision: agregar a set de pruebas.
 
 ## Catalogo Y Datos
 

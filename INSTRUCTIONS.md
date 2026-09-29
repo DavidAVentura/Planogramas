@@ -13,7 +13,8 @@ Piloto: categoria Autos, Cemaco Pradera. Proyecto del trimestre Q3 2026.
 
 - Node.js 18 o superior (probado con npm)
 - Navegador moderno (la validacion de fotos usa Canvas API)
-- No requiere backend, base de datos ni variables de entorno (por ahora todo corre en el navegador)
+- No requiere backend ni base de datos; sin configurar nada la propuesta es simulada
+- Opcional: `VITE_AGENT_WEBHOOK_URL` conecta el agente real de vision (ver seccion 8)
 
 ## 2. Levantar el proyecto en local
 
@@ -84,7 +85,7 @@ redeploy automatico en cada push a `main`.
 | Modulo | Estado |
 |---|---|
 | Captura | Funcional: captura guiada por mueble (rack largo = 2 modulos) y validacion real de imagen en navegador (resolucion, luz, contraste, estructura) |
-| Revision | Simulado: las detecciones se generan del catalogo filtrado, NO de la foto. Confianza y alternos calculados por similitud categoria/marca |
+| Revision | Simulado por defecto (etiquetado "Propuesta simulada"); con `VITE_AGENT_WEBHOOK_URL` configurado llama al agente real de vision via n8n y etiqueta "Realogram detectado" |
 | Editor | Funcional: correccion de sku/facings, busqueda, export JSON/CSV. "Guardar" no persiste (no hay BD) |
 | Performance | Datos demo: toda la data de ventas/inventario es sintetica (formula deterministica sobre el sku) |
 
@@ -99,7 +100,54 @@ persistencia, e integraciones de solo lectura con VTEX, Microsoft Fabric y Stibo
 (muebles). El plan es reemplazar esta generacion estatica por un batch nocturno de n8n
 contra VTEX/Stibo que produzca un JSON consumido por la app.
 
-## 8. Principios del proyecto (no negociables)
+## 8. Agente de vision (n8n + Claude)
+
+El agente real vive en n8n: la app manda las fotos (reescaladas a 1568px) con el
+contexto y el catalogo filtrado a un webhook; n8n llama al API de Anthropic con
+salida estructurada y devuelve el realogram.
+
+Pasos para activarlo:
+
+1. Importar `n8n/planograma-vision-workflow.json` en n8n.
+2. Crear una credencial **Header Auth** llamada `Anthropic API Key` con
+   Name = `x-api-key` y Value = la API key de Anthropic. Asignarla al nodo
+   "Claude Vision API".
+3. Activar el workflow y copiar la URL de produccion del webhook
+   (`https://<tu-n8n>/webhook/planograma-vision`).
+4. Configurar `VITE_AGENT_WEBHOOK_URL` con esa URL:
+   - Local: archivo `.env` con `VITE_AGENT_WEBHOOK_URL=https://...`
+   - DigitalOcean: App Settings → Environment Variables (es build-time; dispara
+     un redeploy al guardarla).
+5. Probar: tomar fotos en la app y presionar "Usar esta foto". Si el webhook
+   falla, la app cae a la propuesta simulada y lo avisa con un toast.
+
+Contrato del webhook (POST JSON):
+
+```json
+{
+  "store": "Cemaco Pradera",
+  "category": "Todos autos",
+  "fixture": { "name": "...", "width": 122, "depth": 56, "levels": 4, "category": "..." },
+  "photos": [{ "id": "front", "label": "Foto frontal", "dataUrl": "data:image/jpeg;base64,..." }],
+  "catalog": [{ "sku": "sku 00989055", "name": "...", "brand": "...", "category": "...", "price": 219.99 }]
+}
+```
+
+Respuesta esperada:
+
+```json
+{
+  "fixtureSummary": "...",
+  "rows": [{
+    "name": "Nivel 1", "confidence": 82,
+    "items": [{ "sku": "sku 00989055", "detectedName": "...", "facings": 2,
+                "confidence": 85, "moduleId": "front", "reason": "...",
+                "alternatives": [{ "sku": "...", "name": "...", "confidence": 60 }] }]
+  }]
+}
+```
+
+## 9. Principios del proyecto (no negociables)
 
 - No inventar detecciones si la foto no sirve; la app rechaza fotos de producto individual.
 - Separar demo de reconocimiento real (etiquetas visibles de "modo demo").
