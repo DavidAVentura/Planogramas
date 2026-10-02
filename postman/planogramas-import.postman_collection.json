@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "b6f2e6a0-1e3d-4c9a-9f2b-0a8f6d3c7e11",
     "name": "planogramas",
-    "description": "Casos de éxito y de error para los 5 endpoints del módulo Planogramas (back/src/infrastructure/http/routes/planogramas.routes.js).\n\nUsa la variable de entorno {{HOST}} como base (ej. http://localhost:3000 o el host de staging) — configúrala en el entorno de Postman antes de ejecutar, no está definida en esta colección.\n\nLas variables de colección planogramaId / planogramaIdArchivado / planogramaIdConVersionesPublicadas / planogramaIdInexistente son ids de prueba: ajústalas a ids reales de tu base de datos según el escenario (uno en estado borrador/activo, uno ya archivado, uno con versiones publicadas asignadas a tiendas, y uno que no exista).",
+    "description": "Casos de éxito y de error para los 5 endpoints del módulo Planogramas (back/src/infrastructure/http/routes/planogramas.routes.js).\n\nUsa la variable de entorno {{HOST}} como base (ej. http://localhost:3000 o el host de staging) — configúrala en el entorno de Postman antes de ejecutar, no está definida en esta colección.\n\nCórrela completa con el Runner: '00 - Setup global (datos de prueba)' siembra los fixtures (POST /pruebas/fixtures, requiere PRUEBAS_HABILITADAS=true en el backend; solo local y DEV) y '99 - Limpieza (datos de prueba)' borra todo lo que la corrida creó. Ningún escenario usa tiendas, planogramas ni productos reales.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -20,15 +20,15 @@
     },
     {
       "key": "planogramaIdArchivado",
-      "value": "3",
+      "value": "",
       "type": "string",
-      "description": "Id de un planograma que ya está en estado archivado"
+      "description": "Lo llena '00 - Setup global (datos de prueba)' (POST /pruebas/fixtures) en cada corrida; no editar a mano. Lo borra '99 - Limpieza (datos de prueba)'."
     },
     {
       "key": "planogramaIdConVersionesPublicadas",
-      "value": "5",
+      "value": "",
       "type": "string",
-      "description": "Id de un planograma con versiones publicadas asignadas a tiendas (no archivable). Sembrado a mano vía SQL en PlanogramaVersion/VersionTienda porque el módulo de versiones/tiendas todavía no tiene endpoints."
+      "description": "Lo llena '00 - Setup global (datos de prueba)' (POST /pruebas/fixtures) en cada corrida; no editar a mano. Lo borra '99 - Limpieza (datos de prueba)'."
     },
     {
       "key": "planogramaIdInexistente",
@@ -38,15 +38,15 @@
     },
     {
       "key": "nombreExistente",
-      "value": "Planograma Existente",
+      "value": "",
       "type": "string",
-      "description": "Nombre + departamento que ya existen juntos en la BD, para forzar 409 por duplicado"
+      "description": "Lo llena '00 - Setup global (datos de prueba)' (POST /pruebas/fixtures) en cada corrida; no editar a mano. Lo borra '99 - Limpieza (datos de prueba)'."
     },
     {
       "key": "departamentoExistente",
-      "value": "Autos",
+      "value": "",
       "type": "string",
-      "description": "Departamento asociado a nombreExistente"
+      "description": "Lo llena '00 - Setup global (datos de prueba)' (POST /pruebas/fixtures) en cada corrida; no editar a mano. Lo borra '99 - Limpieza (datos de prueba)'."
     },
     {
       "key": "versionIdInexistente",
@@ -56,9 +56,9 @@
     },
     {
       "key": "versionIdConErroresBloqueantes",
-      "value": "82",
+      "value": "",
       "type": "string",
-      "description": "Id de una version en estado piloto que tiene al menos una Posicion con min_final > max_final. No se puede generar via Setup porque el modulo de posiciones (min_final/max_final) todavia no tiene endpoints. Script SQL minimo para recrearlo si la BD se limpia: crear una version en estado piloto, agregarle una Gondola/Nivel, e insertar una Posicion con min_final=5, max_final=4 -- ej. INSERT INTO Posicion (nivel_id, orden_horizontal, sku, ancho_asignado_cm, min_final, max_final) VALUES (<nivel_id>, 1, '<sku_existente>', 10, 5, 4)."
+      "description": "Lo llena '00 - Setup global (datos de prueba)' (POST /pruebas/fixtures) en cada corrida; no editar a mano. Lo borra '99 - Limpieza (datos de prueba)'."
     },
     {
       "key": "gondolaIdInexistente",
@@ -68,9 +68,9 @@
     },
     {
       "key": "gondolaIdConPosiciones",
-      "value": "31",
+      "value": "",
       "type": "string",
-      "description": "Id de una góndola que tiene al menos un Nivel con una Posicion asignada, para forzar 409 en DELETE sin forzar=true. No se puede generar via Setup porque los modulos de niveles y posiciones todavia no tienen endpoints. Debe pertenecer a una version en estado editable (borrador/en_desarrollo/piloto) para que el chequeo de 422 no se dispare antes. Script SQL minimo para recrearlo si la BD se limpia: crear un Planograma y una PlanogramaVersion (estado por defecto 'borrador'), una Gondola, un Nivel (INSERT INTO Nivel (gondola_id, orden, altura_desde_piso_cm, ancho_disponible_cm) VALUES (<gondola_id>, 1, 0, 100)), un Producto dummy (INSERT INTO Producto (sku, nombre) VALUES ('SKU-FIXTURE-GONDOLA', 'Producto fixture')) y una Posicion (INSERT INTO Posicion (nivel_id, orden_horizontal, sku, ancho_asignado_cm) VALUES (<nivel_id>, 1, 'SKU-FIXTURE-GONDOLA', 10))."
+      "description": "Lo llena '00 - Setup global (datos de prueba)' (POST /pruebas/fixtures) en cada corrida; no editar a mano. Lo borra '99 - Limpieza (datos de prueba)'."
     },
     {
       "key": "nivelIdInexistente",
@@ -86,9 +86,9 @@
     },
     {
       "key": "skuExistente",
-      "value": "SKU-FIXTURE-GONDOLA",
+      "value": "",
       "type": "string",
-      "description": "SKU de un Producto existente en la BD, requerido porque el módulo catálogo/producto todavía no tiene endpoint de creación vía API. Reutiliza el mismo fixture sembrado para la variable gondolaIdConPosiciones (INSERT INTO Producto (sku, nombre) VALUES ('SKU-FIXTURE-GONDOLA', 'Producto fixture'))."
+      "description": "Lo llena '00 - Setup global (datos de prueba)' (POST /pruebas/fixtures) en cada corrida; no editar a mano. Lo borra '99 - Limpieza (datos de prueba)'."
     },
     {
       "key": "skuInexistente",
@@ -110,9 +110,9 @@
     },
     {
       "key": "accesorioIdExistente",
-      "value": "1",
+      "value": "",
       "type": "string",
-      "description": "Id de un Accesorio existente en la BD, requerido porque el módulo de accesorios todavía no tiene endpoint de creación vía API. Script SQL mínimo para recrearlo si la BD se limpia: INSERT INTO Accesorio (codigo, nombre, tipo, longitud_cm) VALUES ('G-12-FIXTURE', 'Gancho fixture 12 pulgadas', 'GANCHO', 30) -- usar el id autogenerado si difiere de 1."
+      "description": "Lo llena '00 - Setup global (datos de prueba)' (POST /pruebas/fixtures) en cada corrida; no editar a mano. Lo borra '99 - Limpieza (datos de prueba)'."
     },
     {
       "key": "accesorioIdInexistente",
@@ -122,9 +122,9 @@
     },
     {
       "key": "tiendaIdExistente",
-      "value": "1",
+      "value": "",
       "type": "string",
-      "description": "Id de una Tienda existente en la BD (tipo GRANDE, estado activo), requerida porque el módulo de tiendas todavía no tiene endpoint de creación vía API (la tabla Tienda se carga por proceso de datos maestro, fuera del alcance del piloto). El valor '1' corresponde a Cemaco Pradera (codigo T0PC), ya sembrada en el entorno de referencia. Script SQL mínimo para recrearla si la BD se limpia: INSERT INTO Tienda (codigo, nombre, tipo, estado, region) VALUES ('T0PC', 'Cemaco Pradera', 'GRANDE', 'activo', 'Guatemala Metropolitana') -- usar el id autogenerado si difiere de 1."
+      "description": "Lo llena '00 - Setup global (datos de prueba)' (POST /pruebas/fixtures) en cada corrida; no editar a mano. Lo borra '99 - Limpieza (datos de prueba)'."
     },
     {
       "key": "tiendaIdInexistente",
@@ -188,9 +188,9 @@
     },
     {
       "key": "skuSinDimensiones",
-      "value": "SKU-FIXTURE-SIN-DIMENSIONES",
+      "value": "",
       "type": "string",
-      "description": "SKU de un Producto local sembrado a mano via SQL sin ancho_cm/alto_cm/profundidad_cm, requerido para probar el 422 de 'Validar dimensiones de producto' (no hay endpoint que cree un Producto sin dimensiones -- POST /niveles/:id/posiciones siempre trae las 3 medidas reales desde CATI via asegurarExistencia). Script SQL minimo para recrearlo si la BD se limpia: INSERT INTO Producto (sku, nombre) VALUES ('SKU-FIXTURE-SIN-DIMENSIONES', 'Producto fixture sin dimensiones')."
+      "description": "Lo llena '00 - Setup global (datos de prueba)' (POST /pruebas/fixtures) en cada corrida; no editar a mano. Lo borra '99 - Limpieza (datos de prueba)'."
     },
     {
       "key": "planogramaIdDosEspeciales",
@@ -364,7 +364,7 @@
       "key": "evidenciaIdDeOtroUsuario",
       "value": "",
       "type": "string",
-      "description": "Id de una EvidenciaImplementacion cuyo subido_por NO es el usuario de TOKEN_CAO, para el 403 FORBIDDEN de DELETE /evidencias/:id. No se puede crear vía API: con una sola sesión CAO toda evidencia queda a nombre de ese usuario. Script SQL mínimo para recrearlo (después de correr una vez el Setup de 17 - Evidencias): INSERT INTO EvidenciaImplementacion (planograma_version_id, tienda_id, gondola_id, nombre_original, tipo_mime, tamano_bytes, blob_container, blob_path, blob_url, subido_por) SELECT TOP 1 planograma_version_id, tienda_id, gondola_id, 'otro.png', 'image/png', 70, blob_container, 'evidencias/fixture/otro.png', blob_url, 'otro-usuario-postman' FROM EvidenciaImplementacion ORDER BY id DESC; y poner aquí el id resultante (SELECT MAX(id) FROM EvidenciaImplementacion WHERE subido_por = 'otro-usuario-postman'). El 403 se evalúa antes de tocar el blob, así que el blob_path ficticio no importa. Ojo: si se borra la versión dueña de la fila (CASCADE), hay que volver a sembrarla."
+      "description": "Lo llena '00 - Setup global (datos de prueba)' (POST /pruebas/fixtures) en cada corrida; no editar a mano. Lo borra '99 - Limpieza (datos de prueba)'."
     },
     {
       "key": "planogramaIdSimular",
@@ -400,9 +400,94 @@
       "key": "planogramaIdSinMontables",
       "value": "",
       "description": "Planograma temporal del Setup de asignaciones con solo una versión en borrador (para ?incluirPlanogramaId). Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "tiendaIdExistente2",
+      "type": "string",
+      "value": "",
+      "description": "Lo llena '00 - Setup global (datos de prueba)' (POST /pruebas/fixtures) en cada corrida; no editar a mano. Lo borra '99 - Limpieza (datos de prueba)'."
+    },
+    {
+      "key": "tiendaIdExistente3",
+      "type": "string",
+      "value": "",
+      "description": "Lo llena '00 - Setup global (datos de prueba)' (POST /pruebas/fixtures) en cada corrida; no editar a mano. Lo borra '99 - Limpieza (datos de prueba)'."
+    },
+    {
+      "key": "limpiezaPlanogramaIds",
+      "value": "[]",
+      "type": "string",
+      "description": "Arreglo JSON de los planogramas creados en la corrida (lo llena el script de test de la colección en cada POST /planogramas con 201, y el Setup global). Lo vacía '99 - Limpieza'."
+    },
+    {
+      "key": "limpiezaTiendaIds",
+      "value": "[]",
+      "type": "string",
+      "description": "Arreglo JSON de las tiendas creadas en la corrida (script de test de la colección en cada POST /tiendas con 201, y el Setup global). Lo vacía '99 - Limpieza'."
+    },
+    {
+      "key": "limpiezaAccesorioIds",
+      "value": "[]",
+      "type": "string",
+      "description": "Arreglo JSON con el accesorio fixture del Setup global. Lo vacía '99 - Limpieza'."
+    },
+    {
+      "key": "limpiezaBody",
+      "value": "",
+      "type": "string",
+      "description": "Body de POST /pruebas/limpieza, armado por su pre-request; no editar a mano."
     }
   ],
   "item": [
+    {
+      "name": "00 - Setup global (datos de prueba)",
+      "description": "Primer ítem de la colección. Siembra con POST /pruebas/fixtures los datos que la API no puede crear (productos y accesorio fixture, tres tiendas de prueba, planograma archivado, con versión publicada, con posiciones, versión con errores bloqueantes y evidencia de otro usuario) y guarda sus ids en variables de colección. Requiere PRUEBAS_HABILITADAS=true en el backend (solo local y DEV). Todo lo sembrado lo borra '99 - Limpieza (datos de prueba)'.",
+      "item": [
+        {
+          "name": "201 - Sembrar fixtures (setup)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{HOST}}/api/v1/pruebas/fixtures",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pruebas",
+                "fixtures"
+              ]
+            },
+            "description": "Crea los fixtures de la corrida. Las tiendas fixture reemplazan a las tiendas reales que antes usaba la colección (ids 1, 2 y 3)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "const variables = ['tiendaIdExistente', 'tiendaIdExistente2', 'tiendaIdExistente3', 'nombreExistente', 'departamentoExistente', 'planogramaIdArchivado', 'planogramaIdConVersionesPublicadas', 'versionIdConErroresBloqueantes', 'gondolaIdConPosiciones', 'skuExistente', 'skuSinDimensiones', 'accesorioIdExistente', 'evidenciaIdDeOtroUsuario'];",
+                  "pm.test('Trae los fixtures', () => variables.forEach((v) => pm.expect(body[v], v).to.not.be.undefined));",
+                  "variables.forEach((v) => pm.collectionVariables.set(v, body[v]));",
+                  "const sumar = (variable, ids) => {",
+                  "  const actuales = JSON.parse(pm.collectionVariables.get(variable) || '[]');",
+                  "  pm.collectionVariables.set(variable, JSON.stringify([...new Set([...actuales, ...ids])]));",
+                  "};",
+                  "sumar('limpiezaPlanogramaIds', body.limpieza.planogramaIds);",
+                  "sumar('limpiezaTiendaIds', body.limpieza.tiendaIds);",
+                  "sumar('limpiezaAccesorioIds', body.limpieza.accesorioIds);"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
     {
       "name": "auth",
       "description": "Sesión del usuario validada contra CAO (GET {CAO_BASE_URL}/auth/validar_token). El middleware de autenticación protege toda la API salvo /health.",
@@ -1812,7 +1897,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    {{tiendaIdExistente}}\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1984,7 +2069,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    {{tiendaIdExistente}}\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -2470,7 +2555,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    {{tiendaIdExistente}}\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -2946,7 +3031,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    {{tiendaIdExistente}}\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -3816,7 +3901,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"tipo\": \"GRANDE\",\n  \"versionBaseId\": \"{{versionIdBaseClonar}}\",\n  \"tiendaId\": 1,\n  \"notas\": \"Version especial Cemaco Pradera\"\n}",
+                  "raw": "{\n  \"tipo\": \"GRANDE\",\n  \"versionBaseId\": \"{{versionIdBaseClonar}}\",\n  \"tiendaId\": {{tiendaIdExistente}},\n  \"notas\": \"Version especial tienda fixture 1\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -3842,7 +3927,7 @@
               "response": []
             },
             {
-              "name": "201 - Crear version especial para tienda T004 (primera de dos especiales del mismo tipo)",
+              "name": "201 - Crear version especial para tienda fixture 2 (primera de dos especiales del mismo tipo)",
               "request": {
                 "method": "POST",
                 "header": [
@@ -3866,7 +3951,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"tipo\": \"MEDIANA\",\n  \"versionBaseId\": \"{{versionIdBaseDosEspeciales}}\",\n  \"tiendaId\": 2,\n  \"notas\": \"Especial Cemaco Zona Cuatro (T004)\"\n}",
+                  "raw": "{\n  \"tipo\": \"MEDIANA\",\n  \"versionBaseId\": \"{{versionIdBaseDosEspeciales}}\",\n  \"tiendaId\": {{tiendaIdExistente2}},\n  \"notas\": \"Especial tienda fixture 2\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -3890,7 +3975,7 @@
               "response": []
             },
             {
-              "name": "201 - Crear version especial para tienda T007, coexiste en borrador con la especial de T004 del mismo tipo",
+              "name": "201 - Crear version especial para tienda fixture 3, coexiste en borrador con la especial de la tienda fixture 2 del mismo tipo",
               "request": {
                 "method": "POST",
                 "header": [
@@ -3914,7 +3999,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"tipo\": \"MEDIANA\",\n  \"versionBaseId\": \"{{versionIdBaseDosEspeciales}}\",\n  \"tiendaId\": 3,\n  \"notas\": \"Especial Cemaco Zona Siete (T007)\"\n}",
+                  "raw": "{\n  \"tipo\": \"MEDIANA\",\n  \"versionBaseId\": \"{{versionIdBaseDosEspeciales}}\",\n  \"tiendaId\": {{tiendaIdExistente3}},\n  \"notas\": \"Especial tienda fixture 3\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -4103,7 +4188,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"tipo\": \"GRANDE\",\n  \"versionBaseId\": 999999,\n  \"tiendaId\": 1\n}",
+                  "raw": "{\n  \"tipo\": \"GRANDE\",\n  \"versionBaseId\": 999999,\n  \"tiendaId\": {{tiendaIdExistente}}\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -4252,7 +4337,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"tipo\": \"GRANDE\",\n  \"versionBaseId\": \"{{versionIdBaseClonar}}\",\n  \"tiendaId\": 1\n}",
+                  "raw": "{\n  \"tipo\": \"GRANDE\",\n  \"versionBaseId\": \"{{versionIdBaseClonar}}\",\n  \"tiendaId\": {{tiendaIdExistente}}\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -4880,7 +4965,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    {{tiendaIdExistente}}\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -4931,7 +5016,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    {{tiendaIdExistente}}\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -5177,7 +5262,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    {{tiendaIdExistente}}\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -5709,7 +5794,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "raw": "{\n  \"tiendaIds\": [\n    {{tiendaIdExistente}}\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -5851,7 +5936,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "raw": "{\n  \"tiendaIds\": [\n    {{tiendaIdExistente}}\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -5898,7 +5983,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "raw": "{\n  \"tiendaIds\": [\n    {{tiendaIdExistente}}\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -6738,7 +6823,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    {{tiendaIdExistente}}\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -8444,7 +8529,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    {{tiendaIdExistente}}\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -10661,7 +10746,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    1\n  ]\n}",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    {{tiendaIdExistente}}\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -20374,6 +20459,83 @@
           ]
         }
       ]
+    },
+    {
+      "name": "99 - Limpieza (datos de prueba)",
+      "description": "Último ítem de la colección. Borra con POST /pruebas/limpieza todo lo que creó la corrida: los planogramas y tiendas anotados por el script de colección (y los del Setup global) con sus versiones, góndolas, adjuntos, evidencias (incluidos los blobs), asignaciones y auditoría, más los productos y el accesorio fixture que ya no estén referenciados. Si una corrida se corta antes de llegar aquí, las listas se conservan y la siguiente corrida completa las limpia.",
+      "item": [
+        {
+          "name": "200 - Borrar los datos creados por la corrida",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{{limpiezaBody}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{HOST}}/api/v1/pruebas/limpieza",
+              "host": [
+                "{{HOST}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pruebas",
+                "limpieza"
+              ]
+            },
+            "description": "El body lo arma el pre-request a partir de las variables limpieza*. Incluye skuRealEnCatiNoLocal para que el producto que la prueba de posiciones da de alta desde CATI no quede en la tabla local (si no, esa prueba falla en la siguiente corrida)."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const lista = (v) => JSON.parse(pm.collectionVariables.get(v) || '[]');",
+                  "const skus = ['skuExistente', 'skuSinDimensiones', 'skuRealEnCatiNoLocal'].map((v) => pm.collectionVariables.get(v)).filter(Boolean);",
+                  "pm.collectionVariables.set('limpiezaBody', JSON.stringify({",
+                  "  planogramaIds: lista('limpiezaPlanogramaIds'),",
+                  "  tiendaIds:     lista('limpiezaTiendaIds'),",
+                  "  skus,",
+                  "  accesorioIds:  lista('limpiezaAccesorioIds'),",
+                  "}));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Borra todos los planogramas y tiendas de la corrida', () => {",
+                  "  const enviado = JSON.parse(pm.collectionVariables.get('limpiezaBody'));",
+                  "  pm.expect(body.planogramas).to.eql(enviado.planogramaIds.length);",
+                  "  pm.expect(body.tiendas).to.eql(enviado.tiendaIds.length);",
+                  "});",
+                  "pm.test('Sin blobs con error', () => pm.expect(body.blobsConError).to.eql([]));",
+                  "['limpiezaPlanogramaIds', 'limpiezaTiendaIds', 'limpiezaAccesorioIds'].forEach((v) => pm.collectionVariables.set(v, '[]'));",
+                  "pm.collectionVariables.set('limpiezaBody', '');"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
     }
   ],
   "auth": {
@@ -20385,5 +20547,28 @@
         "type": "string"
       }
     ]
-  }
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Registro de limpieza: anota cada planograma y tienda que crea la corrida para que",
+          "// '99 - Limpieza (datos de prueba)' los borre al final (con todo lo que cuelga de ellos).",
+          "if (pm.request.method === 'POST' && pm.response.code === 201) {",
+          "  const ruta = pm.request.url.getPath();",
+          "  const variable = /\\/planogramas$/.test(ruta) ? 'limpiezaPlanogramaIds' : /\\/tiendas$/.test(ruta) ? 'limpiezaTiendaIds' : null;",
+          "  let id;",
+          "  try { id = pm.response.json().id; } catch (e) { id = undefined; }",
+          "  if (variable && id) {",
+          "    const ids = JSON.parse(pm.collectionVariables.get(variable) || '[]');",
+          "    if (!ids.includes(id)) ids.push(id);",
+          "    pm.collectionVariables.set(variable, JSON.stringify(ids));",
+          "  }",
+          "}"
+        ]
+      }
+    }
+  ]
 }

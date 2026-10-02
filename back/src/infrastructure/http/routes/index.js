@@ -5,6 +5,7 @@
  */
 
 const { Router }    = require('express');
+const env           = require('../../../config/env');
 const autenticacion = require('../middlewares/autenticacion');
 
 const router = Router();
@@ -34,5 +35,10 @@ router.use('/catalog',        require('./catalogo.routes'));
 router.use('/catalog',        require('./producto.routes'));
 router.use('/agente-extractor', require('./agenteExtractor.routes'));
 router.use('/voz',            require('./voz.routes'));
+
+// ─── Soporte de pruebas Postman (solo local/DEV) ──────────────────────────────
+if (env.pruebas.habilitadas && env.NODE_ENV !== 'production') {
+  router.use('/pruebas',      require('./pruebas.routes'));
+}
 
 module.exports = router;
