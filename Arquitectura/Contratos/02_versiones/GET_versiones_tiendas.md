@@ -11,6 +11,11 @@
 
 Retorna las tiendas asignadas y disponibles para una versión, separadas en dos grupos. Permite al Analista visualizar el estado actual de asignación antes de modificarla.
 
+> **Uso desde el front:** la asignación de tiendas a una versión se hace en **Estructura** (matriz
+> planograma × tienda): el conteo de tiendas de la tabla de versiones lleva allá ya filtrado al
+> planograma (en modo piloto si la versión está en piloto). Este endpoint queda para integraciones,
+> pruebas y el resto de la API.
+
 ---
 
 ## Parámetros de entrada

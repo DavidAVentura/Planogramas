@@ -59,8 +59,10 @@ anterior de este documento (ver gap correspondiente en §5).
 └─ Listado de planogramas (filtros área/departamento/estado/búsqueda; tabla en desktop, cards en
    móvil; botón "+ Crear planograma" abre PlanogramaFormModal — analista)
    └─ /planogramas/:id — Detalle de planograma
-      (metadatos + subcategorías + tabla de versiones con acciones según estado; "Editar" abre
-      PlanogramaFormModal precargado, "Archivar" abre ArchivarModal — analista)
+      (encabezado en una fila + subcategorías plegables + tabla de versiones con acciones según
+      estado; "Editar" abre PlanogramaFormModal precargado, "Archivar" abre ArchivarModal,
+      "Publicar" abre PublicarVersionModal; "Tiendas", "Promover a piloto →" y el conteo de
+      tiendas llevan a /estructura con contexto — analista)
       └─ /planogramas/:id/versiones/:versionId/editor — Editor de planograma
          (estructura vertical: barra del editor → tabs de góndola → barra de góndola activa →
          lienzo de niveles con posiciones → toolbar contextual de espacio seleccionado)
@@ -70,9 +72,14 @@ anterior de este documento (ver gap correspondiente en §5).
          ├─ FichaProductoModal (clic derecho en una posición, o botón "Ficha")
          ├─ Modo sustitución (banner + selección múltiple en el lienzo) → SustitucionWizard
          ├─ HistorialSustitucionesModal
-         ├─ CrearVersionModal / VersionEspecialWizard / PromoverPilotoModal / TiendasAsignadasModal
+         ├─ CrearVersionModal / VersionEspecialWizard
          ├─ ExportMenu (JSON/CSV)
          └─ PublicarEditorPanel (validación con errores bloqueantes vs. advertencias)
+
+/estructura — Matriz planograma × tienda (asignaciones)
+   ?planogramaId=  → filtrada al planograma, todas las tiendas
+   ?planogramaId=&versionId=&modo=promover → promover a piloto una versión en desarrollo
+   ?planogramaId=&versionId=&modo=piloto   → sumar/sacar tiendas piloto de una versión en piloto
 
 /productos
 └─ Listado de productos (jerarquía CATI en cascada, búsqueda, tipo de aparición, estado; orden
@@ -107,9 +114,9 @@ Captura → Revisión → Editor (prototipo) → Performance
 | ACC-02-01 | Crear versión | Analista | Modal: tipo (GRANDE/MEDIANA/EXPRESS), notas; genera código `{DEPTO}-T{X}-{nn}` | CU-02-01 | `POST /planogramas/{id}/versiones` | Diseñado | `CrearVersionModal` |
 | ACC-02-02 | Crear versión especial por tienda | Analista | Wizard de **2 pasos** (no 3 como se había anticipado): (1) elegir versión base, (2) elegir tienda; clona toda la estructura | CU-02-02 | `POST /planogramas/{id}/versiones` (`versionBaseId`, `tiendaId`) | Diseñado | `VersionEspecialWizard` |
 | PANT-02-03 | Detalle de versión / Editor | Analista / Implementador | Ver la versión completa (ver 3.3) | CU-01-05 | `GET /versiones/{id}`, `GET /versiones/{id}/estructura` | Diseñado | Ver Editor de planograma (3.3) |
-| ACC-02-04 | Promover a piloto | Analista | Modal: selector múltiple de tiendas piloto | CU-02-03 | `POST /versiones/{id}/promover` | Diseñado | `PromoverPilotoModal` |
-| ACC-02-05 | Publicar versión | Analista | Dos puntos de entrada: desde el detalle (`PublicarVersionModal`, confirmación simple) y desde el editor (`PublicarEditorPanel`, corre validación con errores/advertencias, ver 3.5) | CU-02-04 | `GET /versiones/{id}/validar-publicacion`, `POST /versiones/{id}/promover` | Diseñado | `PublicarVersionModal`, `PublicarEditorPanel` |
-| PANT-02-06 | Tiendas asignadas a la versión | Analista | Ver/editar tiendas asignadas de una versión piloto/publicada | CU-02-05 | `GET/PUT /versiones/{id}/tiendas` | Diseñado | `TiendasAsignadasModal` |
+| ACC-02-04 | Promover a piloto | Analista | Desde el detalle ("Promover a piloto →") abre Estructura en modo promover: la versión se ve como piloto, solo se habilitan su pincel y "Quitar", exige al menos una tienda (se permiten tiendas de otro tipo, con aviso) y guarda en una sola llamada atómica | CU-02-03 | `GET /asignaciones?incluirPlanogramaId=`, `POST /versiones/{id}/promover` | Implementado | `EstructuraAsignacion`, `AvisoContextoEstructura`, `MatrizAsignaciones`, `BarraAsignacion` |
+| ACC-02-05 | Publicar versión | Analista | Dos puntos de entrada: desde el detalle (`PublicarVersionModal`, implementado: simula la publicación y muestra tiendas piloto que pasan a publicado, tiendas de la anterior que migran, versión que se archiva, aviso de tipo distinto, motivo opcional; con errores bloqueantes solo los lista y ofrece "Abrir en el editor"; al publicar, toast con "Ver en Estructura") y desde el editor (`PublicarEditorPanel`, corre validación con errores/advertencias, ver 3.5) | CU-02-04 | `GET /versiones/{id}/publicacion/simular`, `GET /versiones/{id}/validar-publicacion`, `POST /versiones/{id}/promover` | Implementado (detalle) / Diseñado (editor) | `PublicarVersionModal`, `PublicarEditorPanel` |
+| PANT-02-06 | Tiendas asignadas a la versión | Analista | Se resuelve en Estructura (ya no hay modal): el conteo de tiendas de la versión abre `/estructura` en modo piloto (versión en piloto; no deja guardar sin tiendas) o filtrada al planograma (resto) | CU-02-05 | `GET /asignaciones`, `POST /asignaciones/ediciones` | Implementado | `EstructuraAsignacion`, `MatrizAsignaciones` |
 
 ### 3.3 Editor de planograma — Góndolas, niveles y posiciones (módulos 03/04/05)
 
@@ -222,8 +229,8 @@ De dominio (`components/dominio/`, nombres del diseño — ver agrupamiento prop
 
 `AppTopbar`, `RoleSwitch`, `Breadcrumb`, `EstadoBadge`, `FiltrosBar`, `PlanogramasTable`,
 `PlanogramaCard`, `SubcategoriasCard`, `VersionesTable`, `VersionCard`, `PlanogramaFormModal`,
-`ArchivarModal`, `CrearVersionModal`, `VersionEspecialWizard`, `PromoverPilotoModal`,
-`PublicarVersionModal`, `PublicarEditorPanel`, `TiendasAsignadasModal`, `EditorToolbar`,
+`ArchivarModal`, `CrearVersionModal`, `VersionEspecialWizard`,
+`PublicarVersionModal`, `PublicarEditorPanel`, `EditorToolbar`,
 `ExportMenu`, `SustitucionBanner`, `GondolaTabs`, `GondolaInfoBar`, `EspacioToolbar`, `NivelRow`,
 `CapacityBar`, `PosicionCard`, `FacingTile`, `PosicionDrawer`, `FichaProductoModal`, `GondolaModal`,
 `NivelModal`, `DeleteConfirmModal`, `SustitucionWizard`, `HistorialSustitucionesModal`.
@@ -251,8 +258,13 @@ MVP formal. El prototipo nuevo usa el design system real de Cemaco, con tokens e
   versión anterior de este documento): `--success` (verde), `--warning` (ámbar, no bloquea) y
   `--danger` (rojo, bloquea — ver `editorPublicarBloqueado` en PANT-05-02).
 - **Estados de planograma/versión** (`ESTADO_META` en el prototipo): `borrador` → gris (`--ink-100`/
-  `--ink-700`), `en_desarrollo` → índigo tenue, `piloto` → ámbar (`--warning`/`--warning-bg`),
-  `publicado` → verde, `archivado` → gris apagado (`--fg-3`).
+  `--ink-700`), `en_desarrollo` → azul (`--estado-en-desarrollo*`), `piloto` → ámbar
+  (`--estado-piloto*`), `publicado` → verde (`--estado-publicado*`), `archivado` → gris apagado
+  (`--fg-3`).
+- **Versiones en Estructura** (paleta del prototipo, `front/src/styles/tokens.css`): TG rojo
+  (`--version-tg*`), TM morado (`--version-tm*`), TE azul (`--version-te*`), especial naranja
+  (`--version-esp*`), piloto verde (`--version-piloto*`). Se usa en matriz, chips, barra, resumen,
+  historial y ficha de versión.
 - **Tipografía**: display "Chalet NY" (fuente licenciada, uso interno — ver nota de licencia en
   `ESTRUCTURA_FRONTEND.md`) con fallback "Hanken Grotesk"; cuerpo "Hanken Grotesk"; monoespaciada
   "DM Mono" para SKUs y códigos.
@@ -269,14 +281,15 @@ Gaps de la versión anterior de este documento que **el diseño ya resolvió**:
 - ~~No existe patrón de tabla de datos~~ → resuelto, `Table`/`PlanogramasTable`/`VersionesTable`.
 - ~~No existe patrón de confirmación con impacto~~ → parcialmente resuelto: existe `ConfirmDialog`/
   `DeleteConfirmModal`, pero sin el resumen de conteos que pedían los casos de uso (ver ACC-03-03).
-- ~~No existe selector en cascada ni multi-select~~ → resuelto, `CascadingSelect` y
-  `PromoverPilotoModal` (multi-select de tiendas).
+- ~~No existe selector en cascada ni multi-select~~ → resuelto, `CascadingSelect`; la selección
+  de tiendas piloto se hace pintando celdas en la matriz de Estructura.
 
 Gaps que siguen abiertos, más los que introdujo el propio diseño:
 
-- **Modelo de permisos/roles no está definido.** `RoleSwitch` es un toggle manual en la UI, no auth
-  real — sigue sin login ni JWT de Entra ID. Al conectar a un backend real, decidir si el rol viene
-  del token o se sigue pudiendo togglear (probablemente no, en producción).
+- **Modelo de permisos/roles no está definido.** La autenticación ya es real (JWT de CAO, validado
+  con `validar_token` y con la sesión renovada por `keepalive` desde el backend), pero los permisos de
+  CAO todavía no se mapean a rol: `RoleSwitch` sigue siendo un toggle manual en la UI. Decidir si el
+  rol viene del token o se sigue pudiendo togglear (probablemente no, en producción).
 - **Consulta del Implementador en el teléfono, en duda.** El diseño unificó Analista/Implementador
   en las mismas 3 rutas (ver §3.6) en vez de un flujo mobile-first separado. El Editor de
   planograma no tiene tratamiento mobile específico — confirmar con el equipo si alcanza para el

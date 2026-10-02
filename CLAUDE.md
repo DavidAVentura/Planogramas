@@ -175,7 +175,15 @@ El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
   auditoría por edición (`EdicionAsignacion`/`AsignacionAuditoria`, migración 010). Las operaciones
   que corren dentro de una transacción ajena (montar/desmontar, registrar edición) viven en
   `infrastructure/repositories/asignacionTx.js` porque también las usan `promover` y
-  `PUT /versiones/:id/tiendas`. El usuario auditado es `USUARIO_SISTEMA` hasta que exista CAO.
+  `PUT /versiones/:id/tiendas`. El usuario auditado sale del JWT de CAO (`usuarioAuditoria` en
+  `application/compartido/validacion.js`); si falta, cae en `USUARIO_SISTEMA`.
+  - `GET /asignaciones?incluirPlanogramaId=` mete en la matriz un planograma sin versiones
+    publicadas ni en piloto (para promover su primera versión). Estructura lee su contexto de la URL
+    (`front/src/domain/estructura/contexto.ts`: `?planogramaId=` filtrada, `&versionId=&modo=promover`
+    o `&modo=piloto`); la asignación de tiendas a versiones ya no tiene modales en el detalle.
+  - Publicar: `GET /versiones/:id/publicacion/simular` (solo lectura) y `POST /versiones/:id/promover`
+    comparten `calcularPlanPublicacion` en `version.repository.js` (tiendas piloto ∪ tiendas de la
+    publicada anterior del mismo tipo) — no duplicar esa lógica.
 - **Implementado, sin carpeta Postman todavía**: `adjuntos` (13, CRUD sobre Azure Blob; la
   migración `009_adjuntos_version.js` puede estar pendiente de aplicar) y `agente-extractor`.
 - **Pendiente**: `sustituciones` (06) y `exportacion` (07) no están montados en

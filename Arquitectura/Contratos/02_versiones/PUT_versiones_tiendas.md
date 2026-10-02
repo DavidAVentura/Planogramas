@@ -11,6 +11,11 @@
 
 Reemplaza el listado completo de tiendas asignadas a la versión. Hace DELETE de todas las asignaciones actuales e INSERT de las nuevas en una transacción. Una versión archivada no puede modificarse.
 
+> **Uso desde el front:** la asignación de tiendas a una versión se hace en **Estructura** (matriz
+> planograma × tienda): el conteo de tiendas de la tabla de versiones lleva allá ya filtrado al
+> planograma (en modo piloto si la versión está en piloto). Este endpoint queda para integraciones,
+> pruebas y el resto de la API.
+
 ---
 
 ## Parámetros de entrada
@@ -35,7 +40,8 @@ Reemplaza el listado completo de tiendas asignadas a la versión. Hace DELETE de
 2. Una tienda puede asignarse a una versión sin importar su `tipo` (no se valida coincidencia).
 3. IDs inexistentes son ignorados silenciosamente (o retornan advertencia — a decisión de implementación; se recomienda retornar advertencia).
 4. La operación es idempotente: llamar dos veces con los mismos IDs produce el mismo resultado.
-5. Si la versión está `publicado` o `piloto`, aplica la regla "una tienda monta una sola versión por planograma": cada tienda agregada desmonta la versión que tenía del planograma. Las tiendas agregadas y quitadas se auditan en una edición con `origen = VERSION` (ver `15_asignaciones/`). En otros estados la lista se reemplaza tal cual, sin auditoría.
+5. Una versión en `piloto` puede quedar sin tiendas con `tiendaIds: []`, pero así no se puede publicar (`POST /versiones/{id}/promover` responde `422`). Estructura no deja guardar un piloto sin tiendas.
+6. Si la versión está `publicado` o `piloto`, aplica la regla "una tienda monta una sola versión por planograma": cada tienda agregada desmonta la versión que tenía del planograma. Las tiendas agregadas y quitadas se auditan en una edición con `origen = VERSION` (ver `15_asignaciones/`). En otros estados la lista se reemplaza tal cual, sin auditoría.
 
 ---
 

@@ -10,6 +10,14 @@
 - Ajustar textos de captura para lenguaje de tienda.
 - Probar en movil real la navegacion inferior y el espacio disponible en pantalla.
 
+## Estructura, Versiones Y Sesion CAO (2026-10-02)
+
+- HECHO: promover a piloto y ajustar tiendas piloto desde Estructura (contexto en la URL); `PublicarVersionModal` con simulacion de publicacion; `GET /asignaciones?incluirPlanogramaId=`; keepalive de la sesion CAO.
+- Pendiente: prueba manual end-to-end con sesion CAO real (detalle -> promover en Estructura -> ajustar piloto -> publicar -> ver en Estructura).
+- Pendiente: correr las pruebas Postman nuevas (simulacion de publicacion, publicar con motivo, 422 publicar piloto sin tiendas, casos de `incluirPlanogramaId`).
+- Pendiente: revisar el chequeo local de `exp` del JWT en `validarToken` frente al keepalive: si el `exp` del token es fijo, la app podria cortar la sesion antes que CAO.
+- Pendiente: mapear los permisos de CAO a rol (`RoleSwitch` sigue siendo manual).
+
 ## Captura Guiada
 
 - Definir reglas por tipo de mueble:

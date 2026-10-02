@@ -63,7 +63,7 @@ front/
 │   │
 │   ├── hooks/                         # Lógica de negocio y estado por dominio, sin JSX
 │   │   ├── usePlanogramas.ts          # Listar/filtrar/crear/editar/archivar (PANT-01-*)
-│   │   ├── useVersion.ts              # Crear versión/especial, promover, publicar, tiendas asignadas
+│   │   ├── useVersion.ts              # Crear versión/especial, promover, publicar (con simulación previa)
 │   │   ├── useEditorPlanograma.ts     # Estado del editor: tabs de góndola, selección, drag&drop, undo/redo
 │   │   ├── usePosicionEditor.ts       # PosicionDrawer: cálculos derivados (facings↔ancho, capacidad) + guardado
 │   │   ├── useSustitucionSku.ts       # Modo sustitución + SustitucionWizard
@@ -71,7 +71,7 @@ front/
 │   │
 │   ├── context/                       # Estado transversal, no específico de un dominio
 │   │   ├── AuthContext.tsx            # Usuario/rol (Analista/Implementador) — hoy es el RoleSwitch manual del prototipo, no auth real (ver gap en INVENTARIO §5)
-│   │   └── ToastContext.tsx           # Cola de notificaciones globales
+│   │   └── ToastContext.tsx           # Cola de notificaciones globales (acepta `accion: { etiqueta, to }`; con acción dura 8 s)
 │   │
 │   ├── types/                         # Modelo de datos compartido (ver ESPECIFICACION-PANTALLAS-COMPONENTES.md §4)
 │   │   ├── planograma.ts              # Planograma, Version, Gondola, Nivel, Posicion, ProductoCatalogo, MedidasMontaje, Sustitucion
@@ -87,7 +87,8 @@ front/
 │   │   ├── PlanogramaEditor/
 │   │   │   ├── PlanogramaEditor.tsx
 │   │   │   └── PlanogramaEditor.css
-│   │   └── ProductosListado/          # /productos (PANT-10-01) — filtros de jerarquía en backend, resto en cliente
+│   │   ├── ProductosListado/          # /productos (PANT-10-01) — filtros de jerarquía en backend, resto en cliente
+│   │   └── EstructuraAsignacion/      # /estructura — matriz planograma × tienda; lee contexto de la URL (ver Ruteo)
 │   │
 │   ├── components/
 │   │   ├── ui/                        # Primitivos genéricos — sin conocimiento del dominio
@@ -133,10 +134,8 @@ front/
 │   │       │   ├── ArchivarModal/
 │   │       │   ├── CrearVersionModal/
 │   │       │   ├── VersionEspecialWizard/
-│   │       │   ├── PromoverPilotoModal/
-│   │       │   ├── PublicarVersionModal/
+│   │       │   ├── PublicarVersionModal/  # usa la simulación de publicación: tiendas piloto, migrantes, versión que se archiva
 │   │       │   ├── PublicarEditorPanel/
-│   │       │   ├── TiendasAsignadasModal/
 │   │       │   ├── PosicionDrawer/
 │   │       │   ├── FichaProductoModal/
 │   │       │   ├── GondolaModal/
@@ -144,6 +143,11 @@ front/
 │   │       │   ├── DeleteConfirmModal/
 │   │       │   ├── SustitucionWizard/
 │   │       │   └── HistorialSustitucionesModal/
+│   │       ├── estructura/
+│   │       │   ├── MatrizAsignaciones/        # recibe `resolver` (función que resuelve el pincel por celda)
+│   │       │   ├── BarraAsignacion/           # pinceles; acepta `pincelesPermitidos` y `modoFijo`
+│   │       │   ├── AvisoContextoEstructura/   # reemplaza el título al llegar con contexto (Volver al planograma / Cancelar)
+│   │       │   └── ...                        # BarraCambiosAsignacion, ChipVersion, MenuCeldaAsignacion, VersionesPlanograma
 │   │       ├── productos/
 │   │       │   ├── ProductosFiltros/      # búsqueda, modo, estado + cascada de jerarquía CATI de 5 niveles
 │   │       │   ├── ProductosTable/        # tabla con orden anidado y filas expandibles
@@ -153,7 +157,12 @@ front/
 │   ├── styles/
 │   │   ├── tokens.css                 # :root { --cemaco-green, --cemaco-indigo, --ink-*, ... } — copiar de
 │   │   │                               #   front/design/_ds/.../colors_and_type.css, NO reinventar la paleta
+│   │   │                               #   + paleta de versiones y estados del prototipo (--version-*, --estado-*)
 │   │   └── global.css                 # Reset, tipografía base, body — importado una sola vez en main.tsx
+│   │
+│   ├── domain/
+│   │   └── estructura/
+│   │       └── contexto.ts            # leerContexto / rutaEstructura: contexto de /estructura en la URL
 │   │
 │   └── utils/                         # Funciones puras, sin estado ni JSX
 │       ├── capacidad.ts               # capacidad_maxima, min_estetico (espejo de posicion.entity.js del backend)
@@ -305,6 +314,17 @@ existente, no como rutas propias):
 
 Agregar `react-router-dom` (no está instalado todavía) y definir estas rutas en `router/routes.tsx`.
 Los modales/drawers/wizards son estado de UI de la página que los abre, no rutas.
+
+**Contexto de `/estructura` en la URL** (`domain/estructura/contexto.ts`): la asignación de tiendas a
+versiones se hace en Estructura, no en modales del detalle.
+
+- `/estructura?planogramaId=7` → filtrada a ese planograma, con todas las tiendas.
+- `/estructura?planogramaId=7&versionId=12&modo=promover` → promover a piloto una versión en
+  desarrollo (solo se edita esa versión; guarda con `POST /versiones/:id/promover`).
+- `/estructura?planogramaId=7&versionId=12&modo=piloto` → sumar o sacar tiendas piloto de una versión
+  en piloto.
+
+Si la versión ya no está en el estado esperado, Estructura queda solo filtrada y avisa.
 
 ## Testing
 

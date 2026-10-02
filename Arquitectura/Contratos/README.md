@@ -13,7 +13,7 @@ Los contratos están organizados por recurso e incluyen anotaciones de arquitect
 | Carpeta | Recurso | Endpoints |
 |---------|---------|-----------|
 | `01_planogramas/` | Planogramas | GET lista, POST crear, GET detalle, PATCH editar, POST archivar |
-| `02_versiones/` | Versiones | GET lista, POST crear, GET detalle, PATCH metadatos, POST promover, GET/PUT tiendas, PATCH guardar, GET estructura |
+| `02_versiones/` | Versiones | GET lista, POST crear, GET detalle, PATCH metadatos, POST promover, GET simular publicación, POST archivar, GET/PUT tiendas, GET resumen, PATCH guardar, GET estructura |
 | `03_gondolas/` | Góndolas | GET lista, POST agregar, PATCH editar, PATCH reordenar, DELETE, GET resumen |
 | `04_niveles/` | Niveles | POST agregar, PATCH editar, PATCH reordenar, DELETE, GET resumen |
 | `05_posiciones/` | Posiciones | POST agregar, PATCH editar, POST mover, POST copiar, DELETE, GET accesorios, POST accesorio, DELETE accesorio, GET capacidad, GET detalle implementador |
@@ -26,6 +26,9 @@ Los contratos están organizados por recurso e incluyen anotaciones de arquitect
 | `12_sesiones_captura/` | Captura *(fuera de MVP)* | Referencia de diseño |
 | `13_adjuntos/` | Adjuntos | GET lista, POST agregar, PUT reemplazar, DELETE eliminar, GET descargar |
 | `14_voz/` | Modo voz del chat (OpenAI) | POST transcribir, POST sesión streaming, POST tts |
+| `15_asignaciones/` | Asignaciones (vista Estructura) | GET matriz (con `incluirPlanogramaId` opcional), POST ediciones, GET historial |
+| `16_implementacion/` | Implementación en tienda (vista del Implementador) | GET resumen, GET productos |
+| `17_evidencias/` | Evidencias de implementación (fotos por góndola) | GET lista, POST agregar, GET descargar, DELETE eliminar |
 
 ---
 
@@ -35,7 +38,7 @@ Los contratos están organizados por recurso e incluyen anotaciones de arquitect
 - **Autenticación:** `Authorization: Bearer {jwt}` en todos los endpoints.
 - **Paginación:** `{ data: [], total, page, pageSize }` en endpoints de lista.
 - **Partial update:** los PATCH solo modifican los campos enviados.
-- **Errores:** schema estándar `{ error: string, campo?: string }` para 4xx.
+- **Errores:** schema estándar `{ error: { code, message, details? } }` para 4xx/5xx (ver "Convención de errores HTTP" en `CLAUDE.md`).
 
 ## Errores HTTP estándar
 

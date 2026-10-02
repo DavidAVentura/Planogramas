@@ -25,8 +25,8 @@ Actores:
 |---|---|---|---|
 | CU-02-01 | Crear versión | Analista | Crea una nueva versión (TG / TM / TE) de un planograma existente. |
 | CU-02-02 | Crear versión especial por tienda | Analista | Crea una versión derivada de una versión base para una tienda específica. |
-| CU-02-03 | Promover versión a piloto | Analista | Cambia el estado de una versión de `en_desarrollo` a `piloto` y asigna tiendas piloto. |
-| CU-02-04 | Promover versión a publicado | Analista | Aprueba el piloto y publica la versión; la versión anterior pasa a `archivado`. |
+| CU-02-03 | Promover versión a piloto | Analista | Cambia el estado de una versión de `en_desarrollo` a `piloto` y asigna tiendas piloto (al menos una; se permiten tiendas de otro tipo con aviso). Se hace desde Estructura, filtrada al planograma, en una sola operación atómica. |
+| CU-02-04 | Promover versión a publicado | Analista | Aprueba el piloto y publica la versión; la versión anterior pasa a `archivado`. Antes de confirmar, se simula la publicación: la versión queda montada en las tiendas del piloto más las que montaban la publicada anterior del mismo tipo. Requiere que el piloto tenga tiendas. |
 | CU-02-05 | Asignar tiendas a versión | Analista | Agrega o quita tiendas del listado de tiendas que usan una versión. |
 | CU-02-06 | Consultar versiones de un planograma | Analista | Ve el historial de versiones con sus estados y tiendas asignadas. |
 | CU-02-07 | Archivar versión manualmente | Analista | Retira una versión en `borrador`, `en_desarrollo` o `piloto` sin esperar a que otra la reemplace. |

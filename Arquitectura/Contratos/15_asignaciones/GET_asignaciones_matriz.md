@@ -17,7 +17,8 @@ especial) o en piloto. Solo cuentan como asignación las filas de `VersionTienda
 en `publicado` o `piloto`; una versión en borrador/en_desarrollo asignada a una tienda no se monta.
 
 - `tiendas`: solo tiendas activas.
-- `planogramas`: planogramas no archivados con al menos una versión publicada o en piloto. Cada
+- `planogramas`: planogramas no archivados con al menos una versión publicada o en piloto (más el
+  de `incluirPlanogramaId`, si se pide). Cada
   uno trae **todas** sus versiones no archivadas, para que el front sepa qué TG/TM/TE existen
   publicadas o en piloto y si una tienda ya tiene una especial en proceso (borrador/desarrollo).
 - `tiendaEspecialId`: tienda dueña de una versión especial. Sale de `VersionTienda`; si la
@@ -26,6 +27,22 @@ en `publicado` o `piloto`; una versión en borrador/en_desarrollo asignada a una
 
 Sin paginación ni filtros: la cadena tiene < 50 tiendas y los filtros (departamento, tipo de
 tienda, búsqueda) se resuelven en el cliente.
+
+---
+
+## Parámetros de entrada
+
+### Query Parameters
+
+| Parámetro | Tipo | Requerido | Descripción |
+|-----------|------|-----------|-------------|
+| `incluirPlanogramaId` | `integer` | No | Incluye ese planograma en `planogramas` aunque todavía no tenga versiones publicadas ni en piloto (siempre que no esté archivado y tenga alguna versión no archivada). Sin el parámetro la matriz no cambia. |
+
+Estructura lo envía cuando se abre desde el detalle de un planograma
+(`/estructura?planogramaId={id}`, con o sin `versionId` y `modo`). Es lo que permite **promover a
+piloto la primera versión** de un planograma: su versión en desarrollo viene en `versiones` y el
+front la muestra como piloto (vista previa) mientras se eligen las tiendas, que se guardan con
+`POST /versiones/{id}/promover` (ver `02_versiones/POST_versiones_promover.md`).
 
 ---
 
@@ -60,6 +77,7 @@ tienda, búsqueda) se resuelven en el cliente.
 
 | Código | Condición |
 |--------|-----------|
+| `400 Bad Request` | `incluirPlanogramaId` no es un entero positivo. |
 | `401 Unauthorized` | Sin sesión, cuando el guard de autenticación esté activo. |
 
 ---

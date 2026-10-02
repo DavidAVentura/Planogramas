@@ -118,7 +118,7 @@ reinicia la app y no requiere redeploy.
 | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_SCHEMA`, `DB_ENCRYPT`, `DB_TRUST_SERVER_CERTIFICATE` | SQL Server del ambiente. |
 | `CORS_ORIGIN` | URL del Static Web App del mismo ambiente. |
 | `JWT_TENANT_ID`, `JWT_AUDIENCE` | Entra ID. |
-| `CAO_BASE_URL`, `CAO_COD_MODULO` | Validación del token de usuario (CAO). |
+| `CAO_BASE_URL`, `CAO_COD_MODULO` | Validación del token de usuario (CAO, `/auth/validar_token`) y renovación de su sesión (`/auth/keepalive`). |
 | `CATI_BASE_URL`, `CATI_API_KEY` | Catálogo y jerarquía. |
 | `OPENIA_TOKEN`, `OPENAI_MODEL` | Agentes de `back/src/agents/`. |
 | `AZURE_STORAGE_CONNECTION_STRING`, `AZURE_STORAGE_CONTAINER_ADJUNTOS` | Adjuntos en Azure Blob. |

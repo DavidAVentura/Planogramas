@@ -27,7 +27,8 @@ publicada, así que la tienda la usa de inmediato y se edita después. Su códig
 Transaccional: o se aplican todos los cambios o ninguno. Los cambios que no modifican la celda
 (mismo valor que ya tiene) se ignoran; si ninguno la modifica, `422`.
 
-Usuario: mientras no exista la autenticación con CAO se registra `sistema` (número y nombre).
+Usuario: el de la sesión CAO (número de empleado y nombre). Solo si el request no trae usuario se
+registra `sistema`.
 
 ---
 
@@ -101,3 +102,10 @@ código y estado de ese momento). Acciones:
 `EdicionAsignacion.origen` es `MANUAL` para este endpoint. Los otros caminos que mueven tiendas
 también auditan: `VERSION` (`PUT /versiones/:id/tiendas`), `PILOTO` y `PUBLICACION`
 (`POST /versiones/:id/promover`).
+
+**Promover a piloto desde Estructura no usa este endpoint.** Una versión en desarrollo no es
+montable (este endpoint responde `422`), así que en el modo promoción de Estructura
+(`/estructura?planogramaId=…&versionId=…&modo=promover`) el guardado llama a
+`POST /versiones/:id/promover` con las tiendas pintadas. En el modo de ajuste de un piloto
+(`modo=piloto`) la versión ya es montable y el guardado sí usa este endpoint; el front no deja
+guardar si el piloto queda sin tiendas.

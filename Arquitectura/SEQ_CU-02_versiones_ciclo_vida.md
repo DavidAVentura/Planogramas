@@ -98,35 +98,38 @@ sequenceDiagram
     %% ════════════════════════════════════════════════════════
 
     rect rgba(89, 89, 89, 1)
-        Note over Analista,DB: CU-02-03 — Promover versión a piloto
+        Note over Analista,DB: CU-02-03 — Promover versión a piloto (desde Estructura)
 
-        Analista->>FE: Selecciona "Promover a piloto" en la versión en_desarrollo
-        FE->>API: GET /api/tiendas?tipo={tipo_version}
-        API->>DB: SELECT id, codigo, nombre, tipo FROM Tienda WHERE tipo = @tipoVersion ORDER BY nombre
-        DB-->>API: tiendas[]
-        API-->>FE: 200 OK [ { id, codigo, nombre, tipo }, ... ]
-        FE-->>Analista: Muestra selector de tiendas piloto (multi-selección)
+        Analista->>FE: En el detalle del planograma, "Promover a piloto →" en la versión en_desarrollo
+        FE->>FE: Navega a /estructura?planogramaId={pid}&versionId={id}&modo=promover
+        FE->>API: GET /api/v1/asignaciones?incluirPlanogramaId={pid}
+        Note over API,DB: incluirPlanogramaId mete el planograma en la matriz aunque<br/>aún no tenga versiones publicadas ni en piloto (primera versión)
+        API->>DB: SELECT tiendas activas, planogramas montables (+ el incluido),<br/>sus versiones no archivadas y VersionTienda
+        DB-->>API: matriz
+        API-->>FE: 200 OK { tiendas, planogramas, asignaciones }
+        FE-->>Analista: Matriz filtrada al planograma, la versión se ve como piloto (vista previa).<br/>Solo su pincel y "Quitar", selector fijo en Piloto.<br/>Aviso si una tienda es de otro tipo y si se archivará un piloto anterior del mismo tipo
 
-        Analista->>FE: Selecciona tiendas piloto y confirma
+        Analista->>FE: Pinta las tiendas piloto, escribe motivo (opcional) y guarda
         FE->>FE: Validación local: al menos 1 tienda piloto requerida
 
-        FE->>API: PATCH /api/versiones/{id}/promover-piloto<br/>Body: { tienda_ids: [int, ...] }
+        FE->>API: POST /api/v1/versiones/{id}/promover<br/>Body: { estadoDestino: "piloto", tiendaIds: [int, ...], motivo? }
 
         API->>DB: SELECT estado FROM PlanogramaVersion WHERE id = @id
         DB-->>API: estado
 
         alt Estado no es 'en_desarrollo'
-            API-->>FE: 422 Unprocessable<br/>{ error: "Solo versiones en_desarrollo pueden promoverse a piloto" }
+            API-->>FE: 422 Unprocessable<br/>{ error: { code: "UNPROCESSABLE", message: "No se puede promover de '...' a 'piloto'" } }
             FE-->>Analista: Muestra error
         else
             API->>DB: BEGIN TRANSACTION
+            Note over API,DB: Solo línea base: archiva el piloto anterior del mismo tipo,<br/>sus tiendas no elegidas vuelven a la publicada del mismo tipo
             API->>DB: UPDATE PlanogramaVersion SET estado='piloto' WHERE id=@id
-            API->>DB: DELETE FROM VersionTienda WHERE planograma_version_id = @id
-            API->>DB: INSERT INTO VersionTienda (planograma_version_id, tienda_id)<br/>— una fila por tienda piloto seleccionada
+            API->>DB: Monta la versión en cada tienda piloto<br/>(desmonta la que tenía del planograma, no se valida tipo de tienda)
+            API->>DB: INSERT EdicionAsignacion + AsignacionAuditoria<br/>(motivo o "Promoción a piloto de {codigo}")
             API->>DB: COMMIT
             DB-->>API: OK
-            API-->>FE: 200 OK { id, estado:'piloto', tiendas: [{ id, nombre }] }
-            FE-->>Analista: Muestra confirmación con las tiendas piloto asignadas
+            API-->>FE: 200 OK { ...version, estado:'piloto', tiendas, versionAnteriorArchivada }
+            FE-->>Analista: Pasa a modo piloto de esa versión (/estructura?...&modo=piloto)
         end
     end
 
@@ -137,35 +140,41 @@ sequenceDiagram
     rect rgba(89, 89, 89, 1)
         Note over Analista,DB: CU-02-04 — Promover versión a publicado
 
-        Analista->>FE: Selecciona "Publicar versión"
-        FE-->>Analista: Muestra resumen y solicita confirmación
-
-        Analista->>FE: Confirma publicación
-        FE->>API: PATCH /api/versiones/{id}/publicar
-
-        API->>DB: SELECT pv.estado, pv.tipo, pv.planograma_id<br/>FROM PlanogramaVersion pv WHERE pv.id = @id
-        DB-->>API: { estado, tipo, planogramaId }
-
+        Analista->>FE: Selecciona "Publicar" en la versión en piloto<br/>(deshabilitado si el piloto no tiene tiendas)
+        FE->>API: GET /api/v1/versiones/{id}/publicacion/simular
+        Note over API,DB: Solo lectura: calcularPlanPublicacion (misma función que la publicación real)
+        API->>DB: SELECT errores bloqueantes, publicada anterior del mismo tipo (línea base),<br/>tiendas del piloto y tiendas de la anterior
+        DB-->>API: plan
         alt Estado no es 'piloto'
-            API-->>FE: 422 Unprocessable { error: "Solo versiones en piloto pueden publicarse" }
+            API-->>FE: 422 Unprocessable
             FE-->>Analista: Muestra error
         else
-            Note over API,DB: Valida errores bloqueantes antes de publicar
-            API->>DB: SELECT COUNT(*) FROM Posicion p<br/>JOIN Nivel n ON n.id = p.nivel_id<br/>JOIN Gondola g ON g.id = n.gondola_id<br/>WHERE g.planograma_version_id = @versionId<br/>AND (p.min_final > p.max_final)
-            DB-->>API: erroresBloqueantesCnt
-
+            API-->>FE: 200 OK { versionId, codigo, tipo, esEspecial, erroresBloqueantes,<br/>versionAnterior, tiendasPiloto, tiendasMigran, totalTiendas }
             alt Hay errores bloqueantes
-                API-->>FE: 422 Unprocessable<br/>{ error: "Existen errores bloqueantes", detalle: [ ... ] }
-                FE-->>Analista: Muestra listado de errores bloqueantes a resolver
+                FE-->>Analista: Lista los errores y ofrece "Abrir en el editor"
             else Sin errores bloqueantes
-                API->>DB: BEGIN TRANSACTION
-                Note over API,DB: Solo si la versión es de línea base (version_base_id IS NULL)
-                API->>DB: UPDATE PlanogramaVersion SET estado='archivado'<br/>WHERE planograma_id=@planogramaId AND tipo=@tipo<br/>AND estado='publicado' AND version_base_id IS NULL AND id != @id
-                API->>DB: UPDATE PlanogramaVersion SET estado='publicado' WHERE id=@id
-                API->>DB: COMMIT
-                DB-->>API: OK
-                API-->>FE: 200 OK { id, estado:'publicado' }
-                FE-->>Analista: Muestra confirmación — versión publicada activa
+                FE-->>Analista: Resumen: N tiendas piloto pasan a publicado, M tiendas de la anterior<br/>migran a la nueva, versión que se archiva (o "Ninguna"), aviso si hay tiendas de otro tipo
+                Analista->>FE: Escribe motivo (opcional) y confirma "Publicar en N tiendas"
+                FE->>API: POST /api/v1/versiones/{id}/promover<br/>Body: { estadoDestino: "publicado", motivo? }
+
+                alt Errores bloqueantes
+                    API-->>FE: 422 Unprocessable<br/>{ error: { code: "UNPROCESSABLE", message, details: [errores] } }
+                    FE-->>Analista: Muestra listado de errores bloqueantes a resolver
+                else Piloto sin tiendas
+                    API-->>FE: 422 Unprocessable<br/>{ error: { code: "UNPROCESSABLE", message: "La versión en piloto no tiene tiendas..." } }
+                    FE-->>Analista: Muestra error
+                else OK
+                    API->>DB: BEGIN TRANSACTION
+                    Note over API,DB: Solo si la versión es de línea base (version_base_id IS NULL)
+                    API->>DB: UPDATE PlanogramaVersion SET estado='archivado'<br/>WHERE planograma_id=@planogramaId AND tipo=@tipo<br/>AND estado='publicado' AND version_base_id IS NULL AND id != @id
+                    API->>DB: UPDATE PlanogramaVersion SET estado='publicado' WHERE id=@id
+                    API->>DB: Monta esta versión en las tiendas que tenían la anterior<br/>(resultado = tiendas piloto ∪ migrantes, sin repetir)
+                    API->>DB: INSERT EdicionAsignacion + AsignacionAuditoria<br/>(motivo o "Publicación de {codigo}")
+                    API->>DB: COMMIT
+                    DB-->>API: OK
+                    API-->>FE: 200 OK { ...version, estado:'publicado', versionAnteriorArchivada }
+                    FE-->>Analista: Toast de confirmación con acción "Ver en Estructura"
+                end
             end
         end
     end
@@ -176,6 +185,7 @@ sequenceDiagram
 
     rect rgba(89, 89, 89, 1)
         Note over Analista,DB: CU-02-05 — Asignar tiendas a versión
+        Note over Analista,DB: En el front las tiendas de una versión se editan en Estructura<br/>(/estructura?planogramaId&versionId&modo=piloto, guarda con POST /asignaciones/ediciones,<br/>no deja guardar si la versión piloto queda sin tiendas). Este endpoint queda en la API.
 
         Analista->>FE: Abre panel de tiendas de la versión
         FE->>API: GET /api/versiones/{id}/tiendas

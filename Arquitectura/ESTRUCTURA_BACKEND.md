@@ -24,6 +24,7 @@ back/
     │   ├── http/
     │   │   ├── app.js                   # Configura Express: middlewares globales + router raíz
     │   │   ├── middlewares/
+    │   │   │   ├── autenticacion.js     # Valida el JWT de usuario con CAO y dispara el keepalive de su sesión
     │   │   │   ├── errorHandler.js      # Middleware de error global → { error: {code, message} }
     │   │   │   ├── notFound.js          # 404 catch-all
     │   │   │   └── validate.js          # Wrapper de validación Joi (reutilizable en controllers)
@@ -40,16 +41,19 @@ back/
     │   │       ├── producto.routes.js   # Escritura de dimensiones; montado también bajo /catalog
     │   │       ├── accesorios.routes.js
     │   │       ├── tiendas.routes.js
+    │   │       ├── asignaciones.routes.js # Matriz de Estructura, ediciones e historial
     │   │       └── jerarquia.routes.js
     │   │
+    │   ├── cao/
+    │   │   └── caoAuthClient.js         # GET /auth/validar_token (con cache) + POST /auth/keepalive (máx. 1 por token cada 60 s)
+    │   │
     │   ├── cati/
-    │   │   ├── caoClient.js             # POST /api/auth a CAO → devuelve tokenCAO
     │   │   ├── catiClient.js            # POST /Auth/exchange + llamadas CATI con Bearer + API key
     │   │   └── tokenManager.js          # Cachea accessToken, verifica expiración, refresca
     │   │
     │   └── repositories/               # Implementaciones concretas (SQL Server vía Knex)
     │       ├── planograma.repository.js
-    │       ├── version.repository.js
+    │       ├── version.repository.js    # Incluye calcularPlanPublicacion (solo lectura, la usan publicar y simular)
     │       ├── gondola.repository.js
     │       ├── nivel.repository.js
     │       ├── posicion.repository.js
@@ -65,7 +69,7 @@ back/
     │   │   └── planograma.repository.js # Contrato (interfaz) del repositorio
     │   ├── version/
     │   │   ├── version.entity.js
-    │   │   ├── version.usecases.js      # Promover estado, asignar tiendas, guardar borrador
+    │   │   ├── version.usecases.js      # Promover estado, simular publicación, asignar tiendas, guardar borrador
     │   │   └── version.repository.js
     │   ├── gondola/
     │   │   ├── gondola.entity.js

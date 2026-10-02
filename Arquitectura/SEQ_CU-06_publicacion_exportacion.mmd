@@ -53,6 +53,7 @@ sequenceDiagram
 
     rect rgba(89, 89, 89, 1)
         Note over Analista,DB: CU-06-02 — Publicar versión
+        Note over Analista,DB: Implementado hoy: desde el detalle del planograma, PublicarVersionModal usa<br/>GET /versiones/{id}/publicacion/simular (errores bloqueantes + tiendas piloto y migrantes)<br/>en lugar de validar-publicacion (módulo exportación, pendiente). Ver SEQ_CU-02, CU-02-04.
 
         Analista->>FE: Selecciona "Publicar versión"
 
@@ -77,18 +78,19 @@ sequenceDiagram
 
             Analista->>FE: Confirma publicación
 
-            FE->>API: POST /api/versiones/{id}/promover<br/>Body: { estado: "publicado" }
+            FE->>API: POST /api/v1/versiones/{id}/promover<br/>Body: { estadoDestino: "publicado", motivo? }
 
             API->>DB: SELECT estado, tipo, planograma_id<br/>FROM PlanogramaVersion WHERE id = @id
             DB-->>API: { estado, tipo, planogramaId }
 
             alt Estado no es 'piloto'
-                API-->>FE: 422 Unprocessable<br/>{ error: "Solo versiones en piloto pueden publicarse directamente.<br/>Use promover-piloto primero." }
+                API-->>FE: 422 Unprocessable<br/>{ error: { code: "UNPROCESSABLE", message: "No se puede promover de '...' a 'publicado'" } }
                 FE-->>Analista: Muestra error de flujo
             else
                 API->>DB: BEGIN TRANSACTION
                 API->>DB: UPDATE PlanogramaVersion SET estado='archivado'<br/>WHERE planograma_id=@planogramaId AND tipo=@tipo<br/>AND estado='publicado' AND id != @id
                 API->>DB: UPDATE PlanogramaVersion<br/>SET estado='publicado', updated_at=NOW()<br/>WHERE id=@id
+                API->>DB: Monta esta versión en las tiendas de la publicada anterior<br/>(tiendas piloto ∪ migrantes) y audita la edición con el motivo
                 API->>DB: COMMIT
                 DB-->>API: OK
                 API-->>FE: 200 OK { id, estado:'publicado', updatedAt }
