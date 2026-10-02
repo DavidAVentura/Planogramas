@@ -131,6 +131,36 @@ Para lograrlo:
 
 ---
 
+## 5.1 Setup global y limpieza: la corrida no deja datos en el entorno
+
+Regla: **al terminar una corrida, el entorno queda como estaba antes**. Ningún planograma, tienda,
+producto, accesorio, evidencia ni blob creado por la colección puede quedar en la BD (los datos de
+prueba que quedaban montados en tiendas reales llegaron a romper el inventario de "Mi tienda" en DEV).
+
+- La colección empieza con `00 - Setup global (datos de prueba)` y termina con
+  `99 - Limpieza (datos de prueba)`. Siempre se corre completa con el Runner.
+- `00` llama a `POST /pruebas/fixtures`, que siembra lo que la API no puede crear (productos y
+  accesorio fixture, tres tiendas de prueba, planograma archivado, con versión publicada, con
+  posiciones, versión con errores bloqueantes, evidencia de otro usuario) y guarda los ids en
+  variables de colección.
+- Un script de test **a nivel de colección** anota en `limpiezaPlanogramaIds` / `limpiezaTiendaIds`
+  el id de cada `POST /planogramas` y `POST /tiendas` que responde 201. Todo lo demás (versiones,
+  góndolas, niveles, posiciones, adjuntos, evidencias, asignaciones, auditoría) cuelga de esos dos y
+  se borra con ellos.
+- `99` llama a `POST /pruebas/limpieza` con esas listas, los SKUs fixture y `skuRealEnCatiNoLocal`
+  (el producto que la prueba de posiciones da de alta desde CATI), y vacía las listas. Si la corrida
+  se corta antes, las listas se conservan y la siguiente corrida completa las limpia.
+- Las rutas `/pruebas/*` solo existen con `PRUEBAS_HABILITADAS=true` y `NODE_ENV` distinto de
+  `production` (local y DEV). La colección no se corre contra prod.
+- **Nunca usar tiendas, planogramas ni productos reales** en una prueba que muta estado: usar
+  `tiendaIdExistente`, `tiendaIdExistente2`, `tiendaIdExistente3` (tiendas fixture) o crear el
+  recurso en el Setup del módulo.
+- Si un módulo nuevo crea un recurso raíz que no cuelga de un planograma ni de una tienda, extender
+  `POST /pruebas/limpieza` (`back/src/infrastructure/repositories/pruebas.repository.js`) y el
+  script de colección en el mismo cambio.
+
+---
+
 ## 6. Variables de colección: solo para fixtures que no se pueden crear vía API
 
 Las variables definidas en el nivel de colección (`variable: [...]`) son **exclusivamente** para
@@ -147,10 +177,10 @@ Cada variable de este tipo debe:
    puede generar vía Setup.
 2. Si el estado se puede crear vía API (aunque sea con varias llamadas), preferir automatizarlo en
    Setup en vez de dejarlo como variable estática — una variable estática es el último recurso.
-3. Si el estado **solo** se puede crear con SQL directo (porque el endpoint no existe todavía, ej.
-   `versiones`/`tiendas` en el piloto actual), documentar en la descripción de la variable (o en un
-   comentario junto al request que la usa) el script SQL mínimo para recrearlo si la BD se limpia,
-   igual que se hizo para `planogramaIdConVersionesPublicadas` (ver historial de la colección).
+3. Si el estado **solo** se puede crear con SQL directo, no se documenta un script SQL para correr
+   a mano: se agrega a `POST /pruebas/fixtures` (`sembrarFixtures` en
+   `back/src/infrastructure/repositories/pruebas.repository.js`), se devuelve su id en la respuesta
+   y se incluye en `limpieza` para que `99 - Limpieza` lo borre.
 4. Cuando el endpoint que faltaba se implemente, migrar esa variable estática al patrón de Setup
    automático (sección 5) en el mismo cambio que agrega las pruebas del endpoint nuevo.
 

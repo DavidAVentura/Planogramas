@@ -122,6 +122,7 @@ reinicia la app y no requiere redeploy.
 | `CATI_BASE_URL`, `CATI_API_KEY` | Catálogo y jerarquía. |
 | `OPENIA_TOKEN`, `OPENAI_MODEL` | Agentes de `back/src/agents/`. |
 | `AZURE_STORAGE_CONNECTION_STRING`, `AZURE_STORAGE_CONTAINER_ADJUNTOS` | Adjuntos en Azure Blob. |
+| `PRUEBAS_HABILITADAS` | `true` solo en DEV: monta `/pruebas/fixtures` y `/pruebas/limpieza` para la colección Postman. En prod no se define (y con `NODE_ENV=production` no se monta aunque esté). |
 
 ### Frontend (GitHub del fork → Settings → Secrets and variables → Actions)
 
