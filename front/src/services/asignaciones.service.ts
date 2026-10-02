@@ -8,7 +8,9 @@ import type {
 } from '../types/asignacion';
 
 export const asignacionesService = {
-  obtenerMatriz: () => httpClient.get<MatrizAsignaciones>('/asignaciones'),
+  /** `incluirPlanogramaId` trae ese planograma aunque aún no tenga versiones publicadas ni en piloto. */
+  obtenerMatriz: (incluirPlanogramaId?: number) =>
+    httpClient.get<MatrizAsignaciones>('/asignaciones', incluirPlanogramaId ? { incluirPlanogramaId } : undefined),
 
   guardarEdicion: (cambios: CambioAsignacion[], motivo: string) =>
     httpClient.post<ResultadoEdicion>('/asignaciones/ediciones', { cambios, motivo: motivo.trim() || null }),

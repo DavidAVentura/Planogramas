@@ -1,35 +1,118 @@
 .versiones-table__codigo {
+  font-size: 14px;
+  font-weight: 500;
   color: var(--cemaco-indigo);
   text-decoration: none;
 
   &:hover { text-decoration: underline; }
 }
 
+.versiones-table__tipo {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.versiones-table__numero {
+  font-variant-numeric: tabular-nums;
+}
+
+.versiones-table__numero--cero {
+  display: inline-block;
+  padding: 6px 10px;
+  color: var(--fg-4);
+}
+
+.versiones-table__conteo {
+  display: inline-block;
+  min-width: 16px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--cemaco-indigo);
+  text-decoration: none;
+
+  &:hover { background: var(--cemaco-indigo-50); }
+}
+
 .versiones-table__acciones {
   display: inline-flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  white-space: nowrap;
+}
 
-  button,
-  a {
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 6px 10px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--fg-1);
-    cursor: pointer;
-    white-space: nowrap;
-    text-decoration: none;
+/* Acción que avanza el estado: pill con borde azul. */
+.versiones-table__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  margin-right: 6px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  border: 1px solid var(--cemaco-indigo-200);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cemaco-indigo);
+  text-decoration: none;
+  cursor: pointer;
 
-    &:hover { background: var(--ink-50); }
+  svg {
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
-  .versiones-table__accion-peligro {
-    border-color: var(--danger);
-    color: var(--danger);
+  &:disabled {
+    border-color: var(--border);
+    color: var(--fg-4);
+    cursor: not-allowed;
+  }
 
-    &:hover { background: var(--danger); color: #fff; }
+  &:hover:not(:disabled) { background: var(--cemaco-indigo-50); }
+}
+
+/* Diseñar, Adjuntos y Archivar: botones de texto. */
+.versiones-table__accion {
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cemaco-indigo);
+  cursor: pointer;
+
+  &:disabled {
+    color: var(--ink-300);
+    cursor: not-allowed;
+  }
+
+  &:hover:not(:disabled) { background: var(--cemaco-indigo-50); }
+}
+
+.versiones-table__accion--peligro {
+  color: var(--danger);
+
+  &:hover:not(:disabled) { background: var(--danger-bg); }
+}
+
+.versiones-table__estado,
+.versiones-table__accion,
+.versiones-table__conteo,
+.versiones-table__codigo {
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 2px;
   }
 }

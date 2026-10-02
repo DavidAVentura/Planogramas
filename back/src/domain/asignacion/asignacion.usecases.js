@@ -86,8 +86,8 @@ async function resolverDestino(repo, cambio, refs, tienda, planograma) {
  * @param {object} repo
  * @returns {Promise<object>}
  */
-async function obtenerMatriz(repo) {
-  return repo.obtenerMatriz();
+async function obtenerMatriz(repo, opciones = {}) {
+  return repo.obtenerMatriz(opciones);
 }
 
 /**

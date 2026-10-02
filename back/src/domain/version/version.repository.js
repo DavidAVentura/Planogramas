@@ -149,9 +149,10 @@ module.exports = {
    * @param {number} id
    * @param {number[]} tiendaIds
    * @param {{ numero, nombre }} usuario
+   * @param {string|null} [motivo]  motivo de la edición auditada (si falta, uno por defecto)
    * @returns {Promise<{ tiendas: object[], versionAnteriorArchivada: object|null }>}
    */
-  promoverAPiloto: async (_id, _tiendaIds, _usuario) => { throw new Error('No implementado'); },
+  promoverAPiloto: async (_id, _tiendaIds, _usuario, _motivo) => { throw new Error('No implementado'); },
 
   /**
    * Promueve la versión a `publicado`. Si la versión es de línea base
@@ -161,9 +162,19 @@ module.exports = {
    * publicada anterior pasan a esta. Auditado. Transaccional.
    * @param {number} id
    * @param {{ numero, nombre }} usuario
+   * @param {string|null} [motivo]  motivo de la edición auditada (si falta, uno por defecto)
    * @returns {Promise<{ versionAnteriorArchivada: object|null }>}
    */
-  promoverAPublicado: async (_id, _usuario) => { throw new Error('No implementado'); },
+  promoverAPublicado: async (_id, _usuario, _motivo) => { throw new Error('No implementado'); },
+
+  /**
+   * Calcula, sin escribir nada, qué pasaría al publicar la versión: la publicada anterior que
+   * se archivaría, las tiendas del piloto que la quedan publicada y las de la anterior que
+   * migran a esta (sin repetir tiendas). Misma regla que promoverAPublicado.
+   * @param {number} id
+   * @returns {Promise<{ versionAnterior: object|null, tiendasPiloto: object[], tiendasMigran: object[], totalTiendas: number }>}
+   */
+  simularPublicacion: async (_id) => { throw new Error('No implementado'); },
 
   /**
    * Marca la versión como `en_desarrollo`. Si la versión es de línea base

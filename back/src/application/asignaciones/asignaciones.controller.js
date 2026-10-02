@@ -24,6 +24,11 @@ const schemaEdicion = Joi.object({
   motivo:  Joi.string().trim().max(500).allow(null, '').optional(),
 });
 
+// Planograma que se incluye en la matriz aunque aún no tenga versiones publicadas ni en piloto.
+const schemaMatrizQuery = Joi.object({
+  incluirPlanogramaId: Joi.number().integer().positive().optional(),
+});
+
 const schemaHistorialQuery = Joi.object({
   planogramaId: Joi.number().integer().positive().required(),
   tiendaId:     Joi.number().integer().positive().required(),
@@ -41,7 +46,8 @@ function validar(schema, datos) {
 
 async function obtenerMatriz(req, res, next) {
   try {
-    const matriz = await usecases.obtenerMatriz(asignacionRepo);
+    const opciones = validar(schemaMatrizQuery, req.query);
+    const matriz = await usecases.obtenerMatriz(asignacionRepo, opciones);
     res.json(matriz);
   } catch (err) {
     next(err);

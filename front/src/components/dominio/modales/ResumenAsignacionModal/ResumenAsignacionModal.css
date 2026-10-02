@@ -67,9 +67,9 @@
 
 .resumen-asignacion__conteo--piloto-entra,
 .resumen-asignacion__conteo--piloto-sale {
-  background: #f7f2fd;
-  border-color: #e3d5f5;
-  color: #5b2d91;
+  background: var(--version-piloto-suave);
+  border-color: var(--version-piloto-borde);
+  color: var(--version-piloto);
 }
 
 .resumen-asignacion__aviso {
@@ -109,7 +109,7 @@
 .resumen-asignacion__titulo--nueva { color: var(--cemaco-green-700); }
 
 .resumen-asignacion__titulo--piloto-entra,
-.resumen-asignacion__titulo--piloto-sale { color: #5b2d91; }
+.resumen-asignacion__titulo--piloto-sale { color: var(--version-piloto); }
 
 .resumen-asignacion__implicacion {
   margin: 4px 0 8px;

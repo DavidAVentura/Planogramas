@@ -4,6 +4,7 @@ import type {
   GuardarVersionResultado,
   PromoverAPilotoResultado,
   PromoverAPublicadoResultado,
+  SimulacionPublicacion,
   TiendaResumen,
   TiendasDeVersion,
   Version,
@@ -21,16 +22,20 @@ export const versionesService = {
 
   guardar: (id: number) => httpClient.patch<GuardarVersionResultado>(`/versiones/${id}/guardar`),
 
-  promoverAPiloto: (id: number, tiendaIds: number[]) =>
+  promoverAPiloto: (id: number, tiendaIds: number[], motivo = '') =>
     httpClient.post<PromoverAPilotoResultado>(`/versiones/${id}/promover`, {
       estadoDestino: 'piloto',
       tiendaIds,
+      motivo: motivo.trim() || null,
     }),
 
-  promoverAPublicado: (id: number) =>
+  promoverAPublicado: (id: number, motivo = '') =>
     httpClient.post<PromoverAPublicadoResultado>(`/versiones/${id}/promover`, {
       estadoDestino: 'publicado',
+      motivo: motivo.trim() || null,
     }),
+
+  simularPublicacion: (id: number) => httpClient.get<SimulacionPublicacion>(`/versiones/${id}/publicacion/simular`),
 
   archivar: (id: number) => httpClient.post<Version>(`/versiones/${id}/archivar`),
 

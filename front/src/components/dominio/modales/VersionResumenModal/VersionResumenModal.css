@@ -51,8 +51,8 @@
 }
 
 .version-resumen__estado--piloto {
-  background: #f3edfb;
-  color: #5b2d91;
+  background: var(--version-piloto-bg);
+  color: var(--version-piloto);
 }
 
 .version-resumen__cifras {

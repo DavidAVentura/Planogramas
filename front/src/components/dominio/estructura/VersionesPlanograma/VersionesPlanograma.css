@@ -13,28 +13,28 @@
 }
 
 .versiones-planograma__sigla--tg {
-  background: var(--cemaco-indigo-50);
-  color: var(--cemaco-indigo);
+  background: var(--version-tg-bg);
+  color: var(--version-tg);
 }
 
 .versiones-planograma__sigla--tm {
-  background: var(--cemaco-green-50);
-  color: var(--cemaco-green-700);
+  background: var(--version-tm-bg);
+  color: var(--version-tm);
 }
 
 .versiones-planograma__sigla--te {
-  background: var(--warning-bg);
-  color: #7a5900;
+  background: var(--version-te-bg);
+  color: var(--version-te);
 }
 
 .versiones-planograma__sigla--esp {
-  background: #fff1e5;
-  color: #9a4a00;
+  background: var(--version-esp-bg);
+  color: var(--version-esp);
 }
 
 .versiones-planograma__sigla--piloto {
-  background: #f3edfb;
-  color: #5b2d91;
+  background: var(--version-piloto-bg);
+  color: var(--version-piloto);
 }
 
 .versiones-planograma__sigla--falta {

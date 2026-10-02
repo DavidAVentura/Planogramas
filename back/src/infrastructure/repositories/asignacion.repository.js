@@ -63,7 +63,11 @@ async function versionesConDuena(rows) {
 
 // ─── obtenerMatriz ───────────────────────────────────────────────────────────
 
-async function obtenerMatriz() {
+/**
+ * @param {{ incluirPlanogramaId?: number }} [opciones] — planograma que se incluye aunque todavía no
+ *   tenga versiones montables (ej. promover su primera versión a piloto desde Estructura).
+ */
+async function obtenerMatriz({ incluirPlanogramaId } = {}) {
   const tiendas = await db(TABLA_TIENDA)
     .where('estado', 'activo')
     .orderBy('nombre', 'asc')
@@ -76,7 +80,9 @@ async function obtenerMatriz() {
     .select(`${TABLA_VERSION}.*`);
 
   const versiones = await versionesConDuena(filasVersion);
-  const planogramaIds = [...new Set(versiones.filter((v) => ESTADOS_MONTABLES.includes(v.estado)).map((v) => v.planogramaId))];
+  const conMontables = versiones.filter((v) => ESTADOS_MONTABLES.includes(v.estado)).map((v) => v.planogramaId);
+  const incluido = incluirPlanogramaId && versiones.some((v) => v.planogramaId === incluirPlanogramaId) ? [incluirPlanogramaId] : [];
+  const planogramaIds = [...new Set([...conMontables, ...incluido])];
   if (planogramaIds.length === 0) return { tiendas, planogramas: [], asignaciones: [] };
 
   const planogramas = await db(TABLA_PLANOGRAMA)

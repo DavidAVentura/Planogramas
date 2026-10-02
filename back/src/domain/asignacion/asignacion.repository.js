@@ -11,9 +11,10 @@ module.exports = {
   /**
    * Matriz de Estructura: tiendas activas, planogramas no archivados con al menos una versión
    * publicada o en piloto (con todas sus versiones no archivadas) y las asignaciones montadas.
+   * `incluirPlanogramaId` agrega ese planograma aunque aún no tenga versiones montables.
    * @returns {Promise<{ tiendas: object[], planogramas: object[], asignaciones: object[] }>}
    */
-  async obtenerMatriz() { throw new Error('No implementado'); },
+  async obtenerMatriz({ incluirPlanogramaId } = {}) { throw new Error('No implementado'); },
 
   /**
    * @param {number[]} ids

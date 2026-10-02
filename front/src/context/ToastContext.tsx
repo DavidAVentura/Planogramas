@@ -1,20 +1,23 @@
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
-import { Toast, type ToastTipo } from '../components/ui/Toast/Toast';
+import { Toast, type ToastAccion, type ToastTipo } from '../components/ui/Toast/Toast';
 import './ToastContext.css';
 
 interface ToastItem {
   id: number;
   mensaje: string;
   tipo: ToastTipo;
+  accion?: ToastAccion;
 }
 
 interface ToastContextValue {
-  mostrarToast: (mensaje: string, tipo?: ToastTipo) => void;
+  mostrarToast: (mensaje: string, tipo?: ToastTipo, accion?: ToastAccion) => void;
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
 const DURACION_MS = 4000;
+// Con un enlace se deja más tiempo para alcanzar a usarlo.
+const DURACION_CON_ACCION_MS = 8000;
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
@@ -24,10 +27,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((actual) => actual.filter((t) => t.id !== id));
   }, []);
 
-  const mostrarToast = useCallback((mensaje: string, tipo: ToastTipo = 'info') => {
+  const mostrarToast = useCallback((mensaje: string, tipo: ToastTipo = 'info', accion?: ToastAccion) => {
     const id = proximoId.current++;
-    setToasts((actual) => [...actual, { id, mensaje, tipo }]);
-    setTimeout(() => cerrarToast(id), DURACION_MS);
+    setToasts((actual) => [...actual, { id, mensaje, tipo, accion }]);
+    setTimeout(() => cerrarToast(id), accion ? DURACION_CON_ACCION_MS : DURACION_MS);
   }, [cerrarToast]);
 
   return (
@@ -35,7 +38,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div className="toast-viewport">
         {toasts.map((t) => (
-          <Toast key={t.id} mensaje={t.mensaje} tipo={t.tipo} onClose={() => cerrarToast(t.id)} />
+          <Toast key={t.id} mensaje={t.mensaje} tipo={t.tipo} accion={t.accion} onClose={() => cerrarToast(t.id)} />
         ))}
       </div>
     </ToastContext.Provider>

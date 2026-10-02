@@ -29,6 +29,9 @@ router.patch('/:id',                controller.editar);
 // POST  /versiones/:id/promover       — avanza el estado (en_desarrollo→piloto, piloto→publicado)
 router.post('/:id/promover',        controller.promover);
 
+// GET   /versiones/:id/publicacion/simular — impacto de publicar (errores bloqueantes y tiendas), sin guardar
+router.get('/:id/publicacion/simular', controller.simularPublicacion);
+
 // POST  /versiones/:id/archivar       — archiva la versión manualmente (borrador/en_desarrollo/piloto)
 router.post('/:id/archivar',        controller.archivar);
 

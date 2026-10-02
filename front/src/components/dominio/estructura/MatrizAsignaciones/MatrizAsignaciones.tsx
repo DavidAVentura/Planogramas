@@ -3,10 +3,9 @@ import { TIPO_TIENDA_META } from '../../../../constants/tiendas';
 import {
   clave,
   describirCelda,
-  resolverPincel,
   textoCelda,
   type MapaAsignaciones,
-  type Pincel,
+  type ResultadoPincel,
 } from '../../../../domain/estructura/asignaciones';
 import type { PlanogramaMatriz, TiendaMatriz, VersionMatriz } from '../../../../types/asignacion';
 import { VersionesPlanograma } from '../VersionesPlanograma/VersionesPlanograma';
@@ -21,8 +20,8 @@ interface MatrizAsignacionesProps {
   asignaciones: MapaAsignaciones;
   guardadas: MapaAsignaciones;
   versiones: Map<number, VersionMatriz>;
-  pincel: Pincel;
-  modoPiloto: boolean;
+  /** Qué dejaría el pincel activo en una celda, o por qué no se puede (se muestra como ayuda). */
+  resolver: (p: PlanogramaMatriz, t: TiendaMatriz) => ResultadoPincel;
   editable: boolean;
   onPintar: (p: PlanogramaMatriz, t: TiendaMatriz, inicioDeTrazo: boolean) => void;
   onTerminarTrazo: () => void;
@@ -46,8 +45,7 @@ export function MatrizAsignaciones({
   asignaciones,
   guardadas,
   versiones,
-  pincel,
-  modoPiloto,
+  resolver,
   editable,
   onPintar,
   onTerminarTrazo,
@@ -139,7 +137,7 @@ export function MatrizAsignaciones({
               const k = clave(p.id, t.id);
               const d = describirCelda(asignaciones[k], t, versiones);
               const cambiada = (asignaciones[k] ?? '') !== (guardadas[k] ?? '');
-              const resultado = editable ? resolverPincel(pincel, modoPiloto, p, t) : null;
+              const resultado = editable ? resolver(p, t) : null;
               const bloqueo = resultado && 'bloqueo' in resultado ? resultado.bloqueo : null;
               const ayuda = bloqueo ?? (d.distinta ? `Tienda ${TIPO_TIENDA_META[t.tipo].label.toLowerCase()} usando la versión ${d.etiqueta}` : undefined);
               const clases = [

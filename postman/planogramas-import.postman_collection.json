@@ -365,6 +365,41 @@
       "value": "",
       "type": "string",
       "description": "Id de una EvidenciaImplementacion cuyo subido_por NO es el usuario de TOKEN_CAO, para el 403 FORBIDDEN de DELETE /evidencias/:id. No se puede crear vía API: con una sola sesión CAO toda evidencia queda a nombre de ese usuario. Script SQL mínimo para recrearlo (después de correr una vez el Setup de 17 - Evidencias): INSERT INTO EvidenciaImplementacion (planograma_version_id, tienda_id, gondola_id, nombre_original, tipo_mime, tamano_bytes, blob_container, blob_path, blob_url, subido_por) SELECT TOP 1 planograma_version_id, tienda_id, gondola_id, 'otro.png', 'image/png', 70, blob_container, 'evidencias/fixture/otro.png', blob_url, 'otro-usuario-postman' FROM EvidenciaImplementacion ORDER BY id DESC; y poner aquí el id resultante (SELECT MAX(id) FROM EvidenciaImplementacion WHERE subido_por = 'otro-usuario-postman'). El 403 se evalúa antes de tocar el blob, así que el blob_path ficticio no importa. Ojo: si se borra la versión dueña de la fila (CASCADE), hay que volver a sembrarla."
+    },
+    {
+      "key": "planogramaIdSimular",
+      "value": "",
+      "description": "Planograma temporal del Setup de versiones para simular la publicación. Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "tiendaIdSimular",
+      "value": "",
+      "description": "Tienda GRANDE fresca (Setup de versiones) donde corre el piloto de versionIdSimular. Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "versionIdSimularAnterior",
+      "value": "",
+      "description": "Versión GRANDE que el Setup de versiones publica en tiendaIdExistente; se archiva al publicar versionIdSimular. Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "versionIdSimular",
+      "value": "",
+      "description": "Versión GRANDE que el Setup de versiones deja en piloto en tiendaIdSimular (simular y luego publicar). Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "planogramaIdPilotoSinTiendas",
+      "value": "",
+      "description": "Planograma temporal del Setup de versiones para el 422 de publicar sin tiendas piloto. Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "versionIdPilotoSinTiendas",
+      "value": "",
+      "description": "Versión en piloto a la que el Setup de versiones le quita todas las tiendas. Se sobrescribe en cada corrida."
+    },
+    {
+      "key": "planogramaIdSinMontables",
+      "value": "",
+      "description": "Planograma temporal del Setup de asignaciones con solo una versión en borrador (para ?incluirPlanogramaId). Se sobrescribe en cada corrida."
     }
   ],
   "item": [
@@ -2932,6 +2967,578 @@
                 }
               ],
               "response": []
+            },
+            {
+              "name": "201 - Crear planograma para simular publicacion (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Autos - Rack Simular {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\n    \"Aceites\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('planogramaIdSimular', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear tienda para el piloto de la simulacion (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/tiendas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "tiendas"
+                  ]
+                },
+                "description": "Tienda fresca distinta de tiendaIdExistente: el piloto corre aquí y la publicada anterior en tiendaIdExistente, para probar la unión sin repetir.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"codigo\": \"sim-{{$timestamp}}\",\n  \"nombre\": \"Tienda Simular {{$timestamp}}\",\n  \"tipo\": \"GRANDE\",\n  \"marca\": \"Cemaco\",\n  \"region\": \"Pruebas\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('tiendaIdSimular', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear version GRANDE que sera la publicada anterior (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdSimular}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdSimular}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdSimularAnterior', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Guardar publicada anterior, avanza a en_desarrollo (setup)",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdSimularAnterior}}/guardar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdSimularAnterior}}",
+                    "guardar"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Promover publicada anterior a piloto en tiendaIdExistente (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdSimularAnterior}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdSimularAnterior}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    {{tiendaIdExistente}}\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Publicar la anterior, queda montada en tiendaIdExistente (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdSimularAnterior}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdSimularAnterior}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"publicado\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear version GRANDE nueva que ira a piloto (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdSimular}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdSimular}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdSimular', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Promover version nueva a piloto en tiendaIdSimular (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdSimular}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdSimular}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    {{tiendaIdSimular}}\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear planograma para piloto sin tiendas (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Autos - Rack Piloto Sin Tiendas {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\n    \"Aceites\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('planogramaIdPilotoSinTiendas', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear version que quedara en piloto sin tiendas (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdPilotoSinTiendas}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdPilotoSinTiendas}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdPilotoSinTiendas', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Guardar version sin tiendas, avanza a en_desarrollo (setup)",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdPilotoSinTiendas}}/guardar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdPilotoSinTiendas}}",
+                    "guardar"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Promover version sin tiendas a piloto (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdPilotoSinTiendas}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdPilotoSinTiendas}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"piloto\",\n  \"tiendaIds\": [\n    {{tiendaIdExistente}}\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Quitar todas las tiendas del piloto (setup)",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdPilotoSinTiendas}}/tiendas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdPilotoSinTiendas}}",
+                    "tiendas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tiendaIds\": []\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Piloto sin tiendas', () => pm.expect(pm.response.json().tiendas).to.have.lengthOf(0));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
             }
           ]
         },
@@ -4060,6 +4667,192 @@
           ]
         },
         {
+          "name": "Simular publicacion de version (GET /versiones/:id/publicacion/simular)",
+          "item": [
+            {
+              "name": "200 - Piloto sobre una publicada anterior: tiendas del piloto y las que migran",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdSimular}}/publicacion/simular",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdSimular}}",
+                    "publicacion",
+                    "simular"
+                  ]
+                },
+                "description": "No escribe nada: la versión sigue en piloto y la anterior publicada."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "const piloto = Number(pm.collectionVariables.get('tiendaIdSimular'));",
+                      "const existente = Number(pm.collectionVariables.get('tiendaIdExistente'));",
+                      "pm.test('Informa la publicada anterior que se archivaría', () => pm.expect(body.versionAnterior.id).to.eql(Number(pm.collectionVariables.get('versionIdSimularAnterior'))));",
+                      "pm.test('Sin errores bloqueantes', () => pm.expect(body.erroresBloqueantes).to.be.an('array').that.is.empty);",
+                      "pm.test('Tiendas del piloto', () => pm.expect(body.tiendasPiloto.map((t) => t.id)).to.eql([piloto]));",
+                      "pm.test('Tiendas de la anterior que migran, sin repetir las del piloto', () => pm.expect(body.tiendasMigran.map((t) => t.id)).to.eql([existente]));",
+                      "pm.test('Total = piloto + migran', () => pm.expect(body.totalTiendas).to.eql(2));",
+                      "pm.test('Tiendas con código, nombre y tipo', () => pm.expect(body.tiendasPiloto[0]).to.include.keys('codigo', 'nombre', 'tipo'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Informa los errores bloqueantes sin publicar",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdConErroresBloqueantes}}/publicacion/simular",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdConErroresBloqueantes}}",
+                    "publicacion",
+                    "simular"
+                  ]
+                },
+                "description": "Usa el mismo fixture sembrado a mano que el 422 de promover (ver variable versionIdConErroresBloqueantes)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Trae erroresBloqueantes', () => pm.expect(pm.response.json().erroresBloqueantes).to.be.an('array').that.is.not.empty);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - id no es un entero positivo",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/abc/publicacion/simular",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "abc",
+                    "publicacion",
+                    "simular"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - version no encontrada",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdInexistente}}/publicacion/simular",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdInexistente}}",
+                    "publicacion",
+                    "simular"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Code NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - la version no esta en piloto",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdPromover}}/publicacion/simular",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdPromover}}",
+                    "publicacion",
+                    "simular"
+                  ]
+                },
+                "description": "versionIdPromover está en en_desarrollo en este punto (Promover corre después)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.test('Code UNPROCESSABLE', () => pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
           "name": "Promover version (POST /versiones/:id/promover)",
           "item": [
             {
@@ -4453,6 +5246,104 @@
                       "  pm.expect(body.error.code).to.eql('UNPROCESSABLE');",
                       "  pm.expect(body.error.details).to.be.an('array').that.is.not.empty;",
                       "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Publicar con motivo une las tiendas del piloto y de la anterior",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdSimular}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdSimular}}",
+                    "promover"
+                  ]
+                },
+                "description": "Complementa la simulación: la versión quedará en tiendaIdSimular (piloto) y tiendaIdExistente (migra de la anterior).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"publicado\",\n  \"motivo\": \"Piloto aprobado (Postman)\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "pm.test('Estado publicado', () => pm.expect(body.estado).to.eql('publicado'));",
+                      "pm.test('Archiva la publicada anterior del mismo tipo', () => pm.expect(body.versionAnteriorArchivada.id).to.eql(Number(pm.collectionVariables.get('versionIdSimularAnterior'))));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - publicar una piloto sin tiendas",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdPilotoSinTiendas}}/promover",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdPilotoSinTiendas}}",
+                    "promover"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estadoDestino\": \"publicado\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.test('Code UNPROCESSABLE', () => pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE'));",
+                      "pm.test('Sin details: no son errores bloqueantes', () => pm.expect(pm.response.json().error.details).to.be.undefined);"
                     ]
                   }
                 }
@@ -15349,6 +16240,97 @@
                 }
               ],
               "response": []
+            },
+            {
+              "name": "201 - Crear planograma sin versiones montables (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Asignaciones - Sin montables {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\n    \"Aceites y lubricantes\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('planogramaIdSinMontables', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear versión GRANDE en borrador del planograma sin montables (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdSinMontables}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdSinMontables}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
             }
           ]
         },
@@ -15386,6 +16368,113 @@
                       "pm.test('incluye el planograma del setup con sus versiones no archivadas', () => { pm.expect(p).to.be.an('object'); pm.expect(p.versiones.length).to.be.at.least(3); });",
                       "const asignadas = body.asignaciones.filter((a) => a.planogramaId === planogramaId && a.tiendaId === Number(pm.collectionVariables.get('tiendaIdExistente')));",
                       "pm.test('la tienda monta una sola versión del planograma: la piloto MEDIANA', () => { pm.expect(asignadas.length).to.eql(1); pm.expect(asignadas[0].versionId).to.eql(Number(pm.collectionVariables.get('versionIdAsignacionPilotoTM'))); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Sin incluirPlanogramaId no aparece un planograma sin versiones montables",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/asignaciones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "asignaciones"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('No incluye el planograma sin montables', () => pm.expect(pm.response.json().planogramas.map((p) => p.id)).to.not.include(Number(pm.collectionVariables.get('planogramaIdSinMontables'))));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - incluirPlanogramaId agrega un planograma sin versiones montables",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/asignaciones?incluirPlanogramaId={{planogramaIdSinMontables}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "asignaciones"
+                  ],
+                  "query": [
+                    {
+                      "key": "incluirPlanogramaId",
+                      "value": "{{planogramaIdSinMontables}}"
+                    }
+                  ]
+                },
+                "description": "Lo usa Estructura al promover a piloto la primera versión de un planograma."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const p = pm.response.json().planogramas.find((x) => x.id === Number(pm.collectionVariables.get('planogramaIdSinMontables')));",
+                      "pm.test('Incluye el planograma con su versión en borrador', () => { pm.expect(p).to.be.an('object'); pm.expect(p.versiones.map((v) => v.estado)).to.eql(['borrador']); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - incluirPlanogramaId no es un entero positivo",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/asignaciones?incluirPlanogramaId=abc",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "asignaciones"
+                  ],
+                  "query": [
+                    {
+                      "key": "incluirPlanogramaId",
+                      "value": "abc"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Code VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
                     ]
                   }
                 }

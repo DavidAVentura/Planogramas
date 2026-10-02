@@ -11,7 +11,7 @@ import type {
 } from '../types/asignacion';
 
 /** Matriz planograma × tienda de la vista Estructura. */
-export function useMatrizAsignaciones() {
+export function useMatrizAsignaciones(incluirPlanogramaId?: number) {
   const [matriz, setMatriz] = useState<MatrizAsignaciones | null>(null);
   const [cargando, setCargando] = useState(true);
   const [recargas, setRecargas] = useState(0);
@@ -21,14 +21,14 @@ export function useMatrizAsignaciones() {
     let vigente = true;
     setCargando(true);
     asignacionesService
-      .obtenerMatriz()
+      .obtenerMatriz(incluirPlanogramaId)
       .then((m) => vigente && setMatriz(m))
       .catch((err) => mostrarToast(mensajeDeError(err, 'No se pudo cargar la estructura'), 'error'))
       .finally(() => vigente && setCargando(false));
     return () => {
       vigente = false;
     };
-  }, [recargas, mostrarToast]);
+  }, [recargas, incluirPlanogramaId, mostrarToast]);
 
   const recargar = useCallback(() => setRecargas((n) => n + 1), []);
 

@@ -90,8 +90,8 @@
 }
 
 .historial-asignacion__evento--piloto {
-  --color-accion: #5b2d91;
-  --halo-accion: #ece2f9;
+  --color-accion: var(--version-piloto);
+  --halo-accion: var(--version-piloto-grupo);
 }
 
 .historial-asignacion__cabecera {
@@ -168,10 +168,10 @@
 .historial-asignacion__origen {
   padding: 2px 8px;
   border-radius: var(--radius-pill);
-  background: #f3edfb;
+  background: var(--version-piloto-bg);
   font-size: 11px;
   font-weight: 700;
-  color: #5b2d91;
+  color: var(--version-piloto);
 }
 
 .historial-asignacion__motivo {

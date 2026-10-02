@@ -1,9 +1,58 @@
-.publicar-version-modal__errores {
-  margin: 0;
-  padding-left: 20px;
+/* Reutiliza la base de ResumenAsignacionModal (conteos, secciones, lista antes → después, motivo). */
+
+.publicar-version__conteos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.publicar-version__archiva {
+  background: var(--ink-50);
+  color: var(--fg-2);
+}
+
+.publicar-version__archiva-codigo {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.9;
+  color: var(--fg-1);
+}
+
+.publicar-version .resumen-asignacion__item {
+  grid-template-columns: minmax(0, 1fr) 80px auto;
+}
+
+.publicar-version__tipo {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg-3);
+}
+
+.publicar-version__bloqueo {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--danger-bg);
   font-size: 13px;
-  color: var(--danger);
+  line-height: 1.45;
+  color: #7d1f0f;
+}
+
+.publicar-version__error {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
+  padding: 10px 12px;
+  font-size: 13px;
+
+  & + & { border-top: 1px solid var(--ink-100); }
 }
+
+.publicar-version__error-detalle {
+  color: var(--danger);
+}
+
+@media (width <= 600px) {
+  .publicar-version__conteos { grid-template-columns: 1fr; }
+}
+
+.publicar-version .button { text-decoration: none; }

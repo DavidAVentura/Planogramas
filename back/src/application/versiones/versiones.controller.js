@@ -38,6 +38,7 @@ const schemaPromover = Joi.object({
   estadoDestino: Joi.string().valid(ESTADOS.PILOTO, ESTADOS.PUBLICADO).required(),
   tiendaIds:     Joi.array().items(Joi.number().integer().positive()).min(1)
     .when('estadoDestino', { is: ESTADOS.PILOTO, then: Joi.required(), otherwise: Joi.optional() }),
+  motivo:        Joi.string().trim().max(500).allow(null, '').optional(),
 });
 
 const schemaTiendas = Joi.object({
@@ -132,6 +133,16 @@ async function promover(req, res, next) {
   }
 }
 
+async function simularPublicacion(req, res, next) {
+  try {
+    const id        = parsearId(req.params.id);
+    const resultado = await usecases.simularPublicacion(versionRepo, id);
+    res.json(resultado);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function archivar(req, res, next) {
   try {
     const id      = parsearId(req.params.id);
@@ -191,6 +202,7 @@ module.exports = {
   editar,
   guardar,
   promover,
+  simularPublicacion,
   archivar,
   obtenerTiendas,
   reemplazarTiendas,

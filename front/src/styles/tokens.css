@@ -59,6 +59,35 @@
   --border-strong: var(--ink-300);
   --border-subtle: var(--ink-100);
 
+  /* Versiones de un planograma: color por tamaño (TG rojo, TM morado, TE azul), especial
+     naranja y toda versión en piloto en verde (matriz de Estructura, chips, resúmenes). */
+  --version-tg-bg: #fdecec;
+  --version-tg-borde: #f3c2c2;
+  --version-tg: #a51c1c;
+  --version-tm-bg: #f4ecfa;
+  --version-tm-borde: #dcc6ee;
+  --version-tm: #6a2d98;
+  --version-te-bg: #eaf1fb;
+  --version-te-borde: #bfd3ef;
+  --version-te: #1f4f8f;
+  --version-esp-bg: #fff1e5;
+  --version-esp-borde: #f2c59c;
+  --version-esp: #9a4a00;
+  --version-piloto-bg: #eaf6e3;
+  --version-piloto-borde: #bfe0a8;
+  --version-piloto: #2f6b12;
+  --version-piloto-punto: #4f8f2a;
+  --version-piloto-grupo: #e3f1da;
+  --version-piloto-suave: #f3faee;
+
+  /* Estado de una versión (badge): en desarrollo azul, piloto ámbar, publicado verde. */
+  --estado-en-desarrollo-bg: #eaf1fb;
+  --estado-en-desarrollo: #1f4f8f;
+  --estado-piloto-bg: #fff1e5;
+  --estado-piloto: #9a4a00;
+  --estado-publicado-bg: #f4fbe3;
+  --estado-publicado: #4f7300;
+
   --font-display: 'Hanken Grotesk', 'Helvetica Neue', arial, sans-serif;
   --font-body: 'Hanken Grotesk', 'Helvetica Neue', arial, sans-serif;
   --font-mono: 'DM Mono', 'SFMono-Regular', menlo, consolas, monospace;

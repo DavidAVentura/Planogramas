@@ -65,6 +65,27 @@ export interface TiendasDeVersion {
   disponibles: TiendaResumen[];
 }
 
+/** Tienda con su tipo, como la devuelve la simulación de publicación. */
+export interface TiendaConTipo extends TiendaResumen {
+  tipo: VersionTipo;
+}
+
+/** `GET /versiones/{id}/publicacion/simular`: qué pasaría al publicar, sin guardar nada. */
+export interface SimulacionPublicacion {
+  versionId: number;
+  codigo: string;
+  tipo: VersionTipo;
+  esEspecial: boolean;
+  erroresBloqueantes: ErrorBloqueante[];
+  /** Publicada del mismo tipo que se archivaría; null si no hay (o si la versión es especial). */
+  versionAnterior: VersionAnteriorArchivada | null;
+  /** Tiendas del piloto: pasan de piloto a publicado. */
+  tiendasPiloto: TiendaConTipo[];
+  /** Tiendas que hoy usan la publicada anterior: migran a esta versión. */
+  tiendasMigran: TiendaConTipo[];
+  totalTiendas: number;
+}
+
 export interface ErrorBloqueante {
   posicionId: number;
   sku: string;

@@ -256,25 +256,69 @@ async function promoverVersion(versionRepo, id, datos, usuario) {
   if (!version) throw errorVersionNoEncontrada(id);
 
   validarTransicionPromover(version.estado, datos.estadoDestino);
+  const motivo = datos.motivo || null;
 
   if (datos.estadoDestino === ESTADOS.PILOTO) {
-    const { tiendas, versionAnteriorArchivada } = await versionRepo.promoverAPiloto(id, datos.tiendaIds, usuario);
+    const { tiendas, versionAnteriorArchivada } = await versionRepo.promoverAPiloto(id, datos.tiendaIds, usuario, motivo);
     const actualizada = await versionRepo.buscarPorId(id);
     return { ...actualizada, tiendas, versionAnteriorArchivada };
   }
 
-  const errores = await versionRepo.buscarErroresBloqueantes(id);
-  if (errores.length > 0) {
-    const err = new Error('Existen errores bloqueantes que impiden publicar');
-    err.status  = 422;
-    err.code    = 'UNPROCESSABLE';
-    err.details = errores;
-    throw err;
-  }
+  await validarPublicable(versionRepo, id);
 
-  const { versionAnteriorArchivada } = await versionRepo.promoverAPublicado(id, usuario);
+  const { versionAnteriorArchivada } = await versionRepo.promoverAPublicado(id, usuario, motivo);
   const actualizada = await versionRepo.buscarPorId(id);
   return { ...actualizada, versionAnteriorArchivada };
+}
+
+function errorNoProcesable(mensaje, details) {
+  const err = new Error(mensaje);
+  err.status = 422;
+  err.code   = 'UNPROCESSABLE';
+  if (details) err.details = details;
+  return err;
+}
+
+/**
+ * Reglas para publicar una versión en piloto: sin errores bloqueantes y con al menos una
+ * tienda piloto (si nadie la probó, el piloto no aportó nada).
+ */
+async function validarPublicable(versionRepo, id) {
+  const errores = await versionRepo.buscarErroresBloqueantes(id);
+  if (errores.length > 0) throw errorNoProcesable('Existen errores bloqueantes que impiden publicar', errores);
+
+  const { asignadas } = await versionRepo.listarTiendas(id);
+  if (asignadas.length === 0) {
+    throw errorNoProcesable('La versión en piloto no tiene tiendas; asigna al menos una tienda piloto antes de publicar');
+  }
+}
+
+/**
+ * Simula la publicación de una versión en piloto sin guardar nada: errores bloqueantes y
+ * qué pasaría con las tiendas. Responde 200 aun con errores, para que el front los muestre
+ * antes de ofrecer "Publicar".
+ * @param {object} versionRepo
+ * @param {number} id
+ * @returns {Promise<object>}
+ */
+async function simularPublicacion(versionRepo, id) {
+  const version = await versionRepo.buscarPorId(id);
+  if (!version) throw errorVersionNoEncontrada(id);
+
+  validarTransicionPromover(version.estado, ESTADOS.PUBLICADO);
+
+  const [erroresBloqueantes, plan] = await Promise.all([
+    versionRepo.buscarErroresBloqueantes(id),
+    versionRepo.simularPublicacion(id),
+  ]);
+  return {
+    versionId:  id,
+    codigo:     version.codigo,
+    tipo:       version.tipo,
+    esEspecial: version.versionBaseId !== null,
+    erroresBloqueantes,
+    ...plan,
+  };
 }
 
 // ─── Archivar ────────────────────────────────────────────────────────────────
@@ -337,6 +381,7 @@ module.exports = {
   editarMetadatos,
   guardarVersion,
   promoverVersion,
+  simularPublicacion,
   archivarVersion,
   listarTiendasVersion,
   reemplazarTiendasVersion,

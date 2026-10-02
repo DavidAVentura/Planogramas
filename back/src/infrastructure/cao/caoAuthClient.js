@@ -7,12 +7,19 @@
  *
  * Los tokens válidos se cachean en memoria un tiempo corto (TTL_VALIDACION_MS, acotado por el
  * `exp` del JWT) para no llamar a CAO en cada request de la misma pantalla.
+ *
+ * Además, cada request autenticado renueva la sesión en CAO (ventana deslizante) con:
+ *   POST {CAO_BASE_URL}/auth/keepalive   → { nuevaExpiracion }
+ * El keepalive no bloquea el request y se limita a uno por token cada INTERVALO_KEEPALIVE_MS.
  */
 
 const env = require('../../config/env');
 
 const TTL_VALIDACION_MS = 2 * 60 * 1000;
 const cache = new Map(); // jwt → { usuario, expiraEn }
+
+const INTERVALO_KEEPALIVE_MS = 60 * 1000;
+const ultimoKeepAlive = new Map(); // jwt → timestamp del último keepalive enviado
 
 function errorNoAutenticado(mensaje) {
   const err = new Error(mensaje);
@@ -146,6 +153,43 @@ function limpiarExpirados(ahora) {
   for (const [clave, entrada] of cache) {
     if (ahora >= entrada.expiraEn) cache.delete(clave);
   }
+  for (const [clave, enviadoEn] of ultimoKeepAlive) {
+    if (ahora - enviadoEn >= INTERVALO_KEEPALIVE_MS) ultimoKeepAlive.delete(clave);
+  }
 }
 
-module.exports = { validarToken };
+/**
+ * Renueva la sesión del usuario en CAO. Nunca lanza: está pensado para dispararse sin `await`
+ * desde el middleware. Si CAO responde 401 la sesión ya no es válida y se saca el token del
+ * cache, para que el siguiente request lo revalide (y responda 401) en vez de esperar el TTL.
+ * @param {string} token
+ * @returns {Promise<void>}
+ */
+async function mantenerSesionActiva(token) {
+  const ahora = Date.now();
+  const enviadoEn = ultimoKeepAlive.get(token);
+  if (enviadoEn && ahora - enviadoEn < INTERVALO_KEEPALIVE_MS) return;
+  ultimoKeepAlive.set(token, ahora);
+
+  try {
+    const response = await fetch(`${env.cao.baseUrl}/auth/keepalive`, {
+      method:  'POST',
+      headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+    });
+
+    if (response.status === 401) {
+      cache.delete(token);
+      ultimoKeepAlive.delete(token);
+      return;
+    }
+    if (!response.ok) {
+      ultimoKeepAlive.delete(token); // reintenta en el siguiente request
+      console.warn(`[caoAuthClient] Keepalive de CAO respondió con status ${response.status}`);
+    }
+  } catch (err) {
+    ultimoKeepAlive.delete(token);
+    console.warn('[caoAuthClient] No se pudo enviar el keepalive a CAO:', err.message);
+  }
+}
+
+module.exports = { validarToken, mantenerSesionActiva };

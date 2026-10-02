@@ -10,33 +10,33 @@
 }
 
 .chip-version--tg {
-  background: var(--cemaco-indigo-50);
-  border-color: var(--cemaco-indigo-200);
-  color: var(--cemaco-indigo);
+  background: var(--version-tg-bg);
+  border-color: var(--version-tg-borde);
+  color: var(--version-tg);
 }
 
 .chip-version--tm {
-  background: var(--cemaco-green-50);
-  border-color: #cfe79a;
-  color: var(--cemaco-green-700);
+  background: var(--version-tm-bg);
+  border-color: var(--version-tm-borde);
+  color: var(--version-tm);
 }
 
 .chip-version--te {
-  background: var(--warning-bg);
-  border-color: #ecd689;
-  color: #7a5900;
+  background: var(--version-te-bg);
+  border-color: var(--version-te-borde);
+  color: var(--version-te);
 }
 
 .chip-version--esp {
-  background: #fff1e5;
-  border-color: #f2c59c;
-  color: #9a4a00;
+  background: var(--version-esp-bg);
+  border-color: var(--version-esp-borde);
+  color: var(--version-esp);
 }
 
 .chip-version--piloto {
-  background: #f3edfb;
-  border-color: #cdb5ec;
-  color: #5b2d91;
+  background: var(--version-piloto-bg);
+  border-color: var(--version-piloto-borde);
+  color: var(--version-piloto);
 }
 
 .chip-version--vacia {

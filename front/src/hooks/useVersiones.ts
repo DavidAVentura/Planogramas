@@ -3,17 +3,23 @@ import { versionesService } from '../services/versiones.service';
 import { ApiError } from '../services/httpClient';
 import { useToast } from '../context/ToastContext';
 import { mensajeDeError } from '../utils/errors';
+import { rutaEstructura } from '../domain/estructura/contexto';
 import type {
   ErrorBloqueante,
   GuardarVersionResultado,
   PromoverAPilotoResultado,
   PromoverAPublicadoResultado,
+  SimulacionPublicacion,
   TiendaResumen,
   TiendasDeVersion,
   Version,
   VersionAnteriorArchivada,
   VersionListItem,
 } from '../types/version';
+
+function tiendasTexto(n: number): string {
+  return n === 1 ? '1 tienda' : `${n} tiendas`;
+}
 
 function conVersionArchivada(mensaje: string, versionAnteriorArchivada?: VersionAnteriorArchivada | null): string {
   return versionAnteriorArchivada
@@ -94,11 +100,14 @@ export function usePromoverAPiloto() {
   const [enviando, setEnviando] = useState(false);
   const { mostrarToast } = useToast();
 
-  async function promover(id: number, tiendaIds: number[]): Promise<PromoverAPilotoResultado | null> {
+  async function promover(id: number, tiendaIds: number[], motivo = ''): Promise<PromoverAPilotoResultado | null> {
     setEnviando(true);
     try {
-      const version = await versionesService.promoverAPiloto(id, tiendaIds);
-      mostrarToast(conVersionArchivada('Versión promovida a piloto', version.versionAnteriorArchivada), 'success');
+      const version = await versionesService.promoverAPiloto(id, tiendaIds, motivo);
+      mostrarToast(
+        conVersionArchivada(`${version.codigo} promovida a piloto en ${tiendasTexto(version.tiendas.length)}`, version.versionAnteriorArchivada),
+        'success',
+      );
       return version;
     } catch (err) {
       mostrarToast(mensajeDeError(err, 'No se pudo promover la versión'), 'error');
@@ -120,11 +129,17 @@ export function usePublicarVersion() {
   const [enviando, setEnviando] = useState(false);
   const { mostrarToast } = useToast();
 
-  async function publicar(id: number): Promise<ResultadoPublicar> {
+  /** `totalTiendas` (de la simulación) solo se usa para el aviso. */
+  async function publicar(id: number, motivo = '', totalTiendas?: number): Promise<ResultadoPublicar> {
     setEnviando(true);
     try {
-      const version = await versionesService.promoverAPublicado(id);
-      mostrarToast(conVersionArchivada(`Versión ${version.codigo} publicada`, version.versionAnteriorArchivada), 'success');
+      const version = await versionesService.promoverAPublicado(id, motivo);
+      const enTiendas = totalTiendas !== undefined ? ` en ${tiendasTexto(totalTiendas)}` : '';
+      mostrarToast(
+        conVersionArchivada(`${version.codigo} publicada${enTiendas}`, version.versionAnteriorArchivada),
+        'success',
+        { etiqueta: 'Ver en Estructura', to: rutaEstructura({ planogramaId: version.planogramaId }) },
+      );
       return { version };
     } catch (err) {
       if (err instanceof ApiError && Array.isArray(err.details)) {
@@ -138,6 +153,28 @@ export function usePublicarVersion() {
   }
 
   return { publicar, enviando };
+}
+
+/** Impacto de publicar una versión en piloto (errores bloqueantes y tiendas), sin guardar. */
+export function useSimulacionPublicacion(id: number) {
+  const [simulacion, setSimulacion] = useState<SimulacionPublicacion | null>(null);
+  const [cargando, setCargando] = useState(true);
+  const { mostrarToast } = useToast();
+
+  useEffect(() => {
+    let vigente = true;
+    setCargando(true);
+    versionesService
+      .simularPublicacion(id)
+      .then((s) => vigente && setSimulacion(s))
+      .catch((err) => mostrarToast(mensajeDeError(err, 'No se pudo calcular el impacto de publicar'), 'error'))
+      .finally(() => vigente && setCargando(false));
+    return () => {
+      vigente = false;
+    };
+  }, [id, mostrarToast]);
+
+  return { simulacion, cargando };
 }
 
 export function useArchivarVersion() {

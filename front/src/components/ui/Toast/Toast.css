@@ -16,6 +16,15 @@
 .toast--error { background: var(--danger); }
 .toast--info { background: var(--cemaco-indigo); }
 
+.toast__accion {
+  flex: none;
+  font-weight: 700;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+
 .toast__cerrar {
   margin-left: auto;
   background: transparent;

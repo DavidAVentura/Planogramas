@@ -33,6 +33,10 @@ interface BarraAsignacionProps {
   tiendas: TiendaSeleccionable[];
   tiendasPorPlanograma: ConteoPorElemento;
   planogramasPorTienda: ConteoPorElemento;
+  /** Pinceles que se pueden usar (el resto se ve deshabilitado); por defecto todos. */
+  pincelesPermitidos?: Pincel[];
+  /** El selector Publicado/Piloto no se puede cambiar (ej. al promover una versión a piloto). */
+  modoFijo?: boolean;
   onPincel: (pincel: Pincel) => void;
   onModoPiloto: (piloto: boolean) => void;
   onFiltros: (parciales: Partial<FiltrosEstructura>) => void;
@@ -85,6 +89,8 @@ export function BarraAsignacion({
   tiendas,
   tiendasPorPlanograma,
   planogramasPorTienda,
+  pincelesPermitidos,
+  modoFijo = false,
   onPincel,
   onModoPiloto,
   onFiltros,
@@ -113,6 +119,7 @@ export function BarraAsignacion({
                     type="button"
                     role="radio"
                     aria-checked={modoPiloto === piloto}
+                    disabled={modoFijo && modoPiloto !== piloto}
                     className={`barra-asignacion__modo-opcion${modoPiloto === piloto ? ' barra-asignacion__modo-opcion--activa' : ''}`}
                     title={piloto ? 'Asignar versiones en piloto: la tienda desmonta su versión actual y monta la piloto' : 'Asignar versiones publicadas'}
                     onClick={() => onModoPiloto(piloto)}
@@ -141,11 +148,13 @@ export function BarraAsignacion({
               <div role="group" aria-labelledby="barra-asignacion-lbl" className="barra-asignacion__pinceles">
                 {PINCELES.map((b) => {
                   const muestra = modoPiloto && b.nombre ? 'piloto' : b.id.toLowerCase();
+                  const permitido = !pincelesPermitidos || pincelesPermitidos.includes(b.id);
                   return (
                     <button
                       key={b.id}
                       type="button"
                       aria-pressed={pincel === b.id}
+                      disabled={!permitido}
                       className={`barra-asignacion__pincel${pincel === b.id ? ' barra-asignacion__pincel--activo' : ''}`}
                       title={ayudaPincel(b.id, b.nombre, modoPiloto)}
                       onClick={() => onPincel(b.id)}

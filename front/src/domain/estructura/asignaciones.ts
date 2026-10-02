@@ -104,6 +104,56 @@ export function resolverPincel(pincel: Pincel, modoPiloto: boolean, p: Planogram
   return { valor: `n${base.id}` };
 }
 
+// ─── Promover a piloto desde Estructura ──────────────────────────────────────
+// La versión está en desarrollo: no es montable todavía, así que la matriz la muestra como piloto
+// (vista previa) y al guardar se llama a POST /versiones/:id/promover con las tiendas elegidas.
+
+/** Sigla del pincel que corresponde a una versión: TG/TM/TE, o Especial si es por tienda. */
+export function pincelDeVersion(v: VersionMatriz): Pincel {
+  return v.versionBaseId !== null ? 'ESP' : (SIGLA_TIPO_TIENDA[v.tipo] as Pincel);
+}
+
+/** Planogramas con la versión que se promueve marcada como piloto, para verla así en la matriz. */
+export function conVistaPreviaPiloto(planogramas: PlanogramaMatriz[], versionId: number): PlanogramaMatriz[] {
+  return planogramas.map((p) =>
+    p.versiones.some((v) => v.id === versionId)
+      ? { ...p, versiones: p.versiones.map((v) => (v.id === versionId ? { ...v, estado: 'piloto' as const } : v)) }
+      : p,
+  );
+}
+
+/** Pincel durante una promoción: solo se pinta la versión que se promueve, en su planograma;
+ * "Quitar" devuelve la celda a lo que tenía guardado. */
+export function resolverPromocion(
+  pincel: Pincel,
+  version: VersionMatriz,
+  planogramaId: number,
+  guardadas: MapaAsignaciones,
+  p: PlanogramaMatriz,
+  t: TiendaMatriz,
+): ResultadoPincel {
+  if (p.id !== planogramaId) return { bloqueo: `Durante la promoción solo se asignan tiendas a ${version.codigo}` };
+  if (pincel === 'QUITAR') return { valor: guardadas[clave(p.id, t.id)] ?? '' };
+  if (version.versionBaseId !== null && version.tiendaEspecialId !== null && version.tiendaEspecialId !== t.id) {
+    return { bloqueo: `${version.codigo} es una versión especial de otra tienda` };
+  }
+  return { valor: valorDeVersion(version.id) };
+}
+
+/** Piloto de línea base del mismo tipo que se archivaría al promover `version` (no aplica a especiales). */
+export function pilotoQueSeArchiva(p: PlanogramaMatriz, version: VersionMatriz): VersionMatriz | undefined {
+  if (version.versionBaseId !== null) return undefined;
+  return p.versiones.find((v) => v.id !== version.id && v.versionBaseId === null && v.tipo === version.tipo && v.estado === 'piloto');
+}
+
+/** Tiendas que en `mapa` montan la versión (celdas con su valor). */
+export function tiendasConVersion(mapa: MapaAsignaciones, planogramaId: number, versionId: number): number[] {
+  const valor = valorDeVersion(versionId);
+  return Object.entries(mapa)
+    .filter(([k, v]) => v === valor && k.startsWith(`${planogramaId}|`))
+    .map(([k]) => Number(k.split('|')[1]));
+}
+
 export interface DescripcionCelda {
   vacia: boolean;
   /** 'TG' | 'TM' | 'TE' | 'Especial' */

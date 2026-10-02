@@ -11,10 +11,10 @@ interface EstadoMeta {
 export const ESTADO_META: Record<string, EstadoMeta> = {
   borrador:       { label: 'Borrador',       bg: 'var(--ink-100)',           color: 'var(--ink-700)' },
   activo:         { label: 'Activo',         bg: 'var(--cemaco-green-50)',   color: 'var(--cemaco-green-700)' },
-  publicado:      { label: 'Publicado',      bg: 'var(--cemaco-green-50)',   color: 'var(--cemaco-green-700)' },
+  publicado:      { label: 'Publicado',      bg: 'var(--estado-publicado-bg)', color: 'var(--estado-publicado)' },
   archivado:      { label: 'Archivado',      bg: 'var(--ink-100)',           color: 'var(--fg-3)' },
-  en_desarrollo:  { label: 'En desarrollo',  bg: 'var(--cemaco-indigo-50)',  color: 'var(--cemaco-indigo)' },
-  piloto:         { label: 'Piloto',         bg: 'var(--warning-bg)',       color: 'var(--warning)' },
+  en_desarrollo:  { label: 'En desarrollo',  bg: 'var(--estado-en-desarrollo-bg)', color: 'var(--estado-en-desarrollo)' },
+  piloto:         { label: 'Piloto',         bg: 'var(--estado-piloto-bg)', color: 'var(--estado-piloto)' },
 };
 
 export function EstadoBadge({ estado }: { estado: string }) {

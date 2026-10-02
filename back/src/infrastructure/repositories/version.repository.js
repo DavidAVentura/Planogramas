@@ -505,7 +505,7 @@ async function reemplazarTiendas(id, tiendaIds, usuario) {
 // archiva una piloto anterior, sus tiendas que no siguen en el piloto nuevo vuelven a la
 // versión publicada del mismo tipo (o quedan sin el planograma si no existe). Todo se audita.
 
-async function promoverAPiloto(id, tiendaIds, usuario) {
+async function promoverAPiloto(id, tiendaIds, usuario, motivo) {
   return db.transaction(async (trx) => {
     const version = await trx(TABLA_VERSION).where('id', id).select('planograma_id', 'tipo', 'version_base_id', 'codigo').first();
     const planogramaId = version.planograma_id;
@@ -571,38 +571,71 @@ async function promoverAPiloto(id, tiendaIds, usuario) {
       operaciones.push({ planogramaId, tiendaId, accion: calcularAccion(previa, vuelta), anterior: previa, nueva: vuelta });
     }
 
-    await registrarEdicion(trx, { usuario, motivo: `Promoción a piloto de ${version.codigo}`, origen: ORIGENES.PILOTO }, operaciones);
+    await registrarEdicion(trx, { usuario, motivo: motivo || `Promoción a piloto de ${version.codigo}`, origen: ORIGENES.PILOTO }, operaciones);
 
     return { tiendas: tiendasValidas, versionAnteriorArchivada: anterior ?? null };
   });
+}
+
+// ─── Plan de publicación ─────────────────────────────────────────────────────
+// Qué pasa al publicar una versión en piloto, sin escribir nada. Lo usan la publicación real
+// (dentro de su transacción) y la simulación (GET /versiones/:id/publicacion/simular), así
+// que las dos siempre coinciden. Resultado = tiendas del piloto ∪ tiendas de la publicada
+// anterior, sin repetir (una tienda monta una sola versión por planograma).
+
+async function calcularPlanPublicacion(conn, id) {
+  const version = await conn(TABLA_VERSION).where('id', id).select('planograma_id', 'tipo', 'version_base_id', 'codigo', 'estado').first();
+
+  // Ver nota en promoverAPiloto: solo la línea base archiva a su anterior.
+  const anterior = version.version_base_id === null
+    ? await conn(TABLA_VERSION)
+        .where('planograma_id', version.planograma_id)
+        .where('tipo', version.tipo)
+        .where('estado', ESTADOS.PUBLICADO)
+        .whereNull('version_base_id')
+        .whereNot('id', id)
+        .select('id', 'codigo')
+        .first()
+    : undefined;
+
+  const testers   = await conn(TABLA_VERSION_TIENDA).where('planograma_version_id', id).pluck('tienda_id');
+  const migrantes = anterior
+    ? (await conn(TABLA_VERSION_TIENDA).where('planograma_version_id', anterior.id).pluck('tienda_id'))
+        .filter((t) => !testers.includes(t))
+    : [];
+
+  return { version, anterior: anterior ?? null, testers, migrantes };
+}
+
+async function tiendasPorIds(ids) {
+  if (ids.length === 0) return [];
+  const rows = await db(TABLA_TIENDA)
+    .whereIn('id', ids)
+    .select('id', 'codigo', 'nombre', 'tipo', 'Marca as marca');
+  return rows.sort((a, b) => a.nombre.localeCompare(b.nombre));
+}
+
+// ─── simularPublicacion ──────────────────────────────────────────────────────
+
+async function simularPublicacion(id) {
+  const plan = await calcularPlanPublicacion(db, id);
+  const [tiendasPiloto, tiendasMigran] = await Promise.all([tiendasPorIds(plan.testers), tiendasPorIds(plan.migrantes)]);
+  return {
+    versionAnterior: plan.anterior,
+    tiendasPiloto,
+    tiendasMigran,
+    totalTiendas: tiendasPiloto.length + tiendasMigran.length,
+  };
 }
 
 // ─── promoverAPublicado ──────────────────────────────────────────────────────
 // Las tiendas que probaban esta versión en piloto quedan con ella publicada, y las que usaban
 // la publicada anterior del mismo tipo (que se archiva) pasan a esta. Todo se audita.
 
-async function promoverAPublicado(id, usuario) {
+async function promoverAPublicado(id, usuario, motivo) {
   return db.transaction(async (trx) => {
-    const version = await trx(TABLA_VERSION).where('id', id).select('planograma_id', 'tipo', 'version_base_id', 'codigo', 'estado').first();
+    const { version, anterior, testers, migrantes } = await calcularPlanPublicacion(trx, id);
     const planogramaId = version.planograma_id;
-
-    // Ver nota en promoverAPiloto: solo la línea base archiva a su anterior.
-    const anterior = version.version_base_id === null
-      ? await trx(TABLA_VERSION)
-          .where('planograma_id', planogramaId)
-          .where('tipo', version.tipo)
-          .where('estado', ESTADOS.PUBLICADO)
-          .whereNull('version_base_id')
-          .whereNot('id', id)
-          .select('id', 'codigo')
-          .first()
-      : undefined;
-
-    const testers   = await trx(TABLA_VERSION_TIENDA).where('planograma_version_id', id).pluck('tienda_id');
-    const migrantes = anterior
-      ? (await trx(TABLA_VERSION_TIENDA).where('planograma_version_id', anterior.id).pluck('tienda_id'))
-          .filter((t) => !testers.includes(t))
-      : [];
 
     if (anterior) {
       await trx(TABLA_VERSION).where('id', anterior.id).update({ estado: ESTADOS.ARCHIVADO, updated_at: trx.fn.now() });
@@ -623,9 +656,9 @@ async function promoverAPublicado(id, usuario) {
       operaciones.push({ planogramaId, tiendaId, accion: calcularAccion(previa, esta), anterior: previa, nueva: esta });
     }
 
-    await registrarEdicion(trx, { usuario, motivo: `Publicación de ${version.codigo}`, origen: ORIGENES.PUBLICACION }, operaciones);
+    await registrarEdicion(trx, { usuario, motivo: motivo || `Publicación de ${version.codigo}`, origen: ORIGENES.PUBLICACION }, operaciones);
 
-    return { versionAnteriorArchivada: anterior ?? null };
+    return { versionAnteriorArchivada: anterior };
   });
 }
 
@@ -795,6 +828,7 @@ module.exports = {
   reemplazarTiendas,
   promoverAPiloto,
   promoverAPublicado,
+  simularPublicacion,
   guardarComoEnDesarrollo,
   buscarErroresBloqueantes,
 };
