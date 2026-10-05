@@ -23,6 +23,13 @@ module.exports = {
   buscarPorId: async (_id) => { throw new Error('No implementado'); },
 
   /**
+   * Indica si algún adjunto ya apunta a esa ruta de blob.
+   * @param {string} blobPath
+   * @returns {Promise<boolean>}
+   */
+  existeBlobPath: async (_blobPath) => { throw new Error('No implementado'); },
+
+  /**
    * Crea un adjunto nuevo.
    * @param {{ planograma_version_id, nombre_original, tipo_mime, tamano_bytes, blob_container, blob_path, blob_url, subido_por }} adjunto
    * @returns {Promise<number>} id del adjunto creado

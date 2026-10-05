@@ -4,7 +4,7 @@ import { Button } from '../../../ui/Button/Button';
 import { ChipVersion } from '../../estructura/ChipVersion/ChipVersion';
 import { useResumenVersion } from '../../../../hooks/useAsignaciones';
 import { useAdjuntosDeVersion } from '../../../../hooks/useAdjuntos';
-import { adjuntosService } from '../../../../services/adjuntos.service';
+import { abrirAdjunto } from '../../../../utils/adjuntoArchivo';
 import { useToast } from '../../../../context/ToastContext';
 import { mensajeDeError } from '../../../../utils/errors';
 import { SIGLA_TIPO_TIENDA, TIPO_TIENDA_META } from '../../../../constants/tiendas';
@@ -41,17 +41,10 @@ export function VersionResumenModal({ versionId, tienda, onClose }: VersionResum
   const { adjuntos, cargando: cargandoAdjuntos } = useAdjuntosDeVersion(versionId);
   const { mostrarToast } = useToast();
 
-  // Igual que AdjuntosModal: la descarga exige el header Authorization, así que no sirve un
-  // <a href>. La ventana se abre antes del await para que el navegador no la bloquee.
   async function descargar(a: Adjunto) {
-    const ventana = window.open('', '_blank');
     try {
-      const url = URL.createObjectURL(await adjuntosService.descargar(a.id));
-      if (ventana) ventana.location.href = url;
-      else window.location.assign(url);
-      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      await abrirAdjunto(a);
     } catch (err) {
-      ventana?.close();
       mostrarToast(mensajeDeError(err, 'No se pudo descargar el adjunto'), 'error');
     }
   }

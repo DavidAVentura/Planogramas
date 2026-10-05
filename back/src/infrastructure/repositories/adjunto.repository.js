@@ -41,6 +41,13 @@ async function buscarPorId(id) {
   return row ? mapAdjunto(row) : null;
 }
 
+// ─── existeBlobPath ──────────────────────────────────────────────────────────
+
+async function existeBlobPath(blobPath) {
+  const row = await db(TABLA_ADJUNTO).where('blob_path', blobPath).first('id');
+  return Boolean(row);
+}
+
 // ─── crear ───────────────────────────────────────────────────────────────────
 
 async function crear(adjunto) {
@@ -65,6 +72,7 @@ async function eliminar(id) {
 module.exports = {
   listarPorVersion,
   buscarPorId,
+  existeBlobPath,
   crear,
   actualizarArchivo,
   eliminar,

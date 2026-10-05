@@ -3,11 +3,11 @@ import { Modal } from '../../../ui/Modal/Modal';
 import { Button } from '../../../ui/Button/Button';
 import { Table, type TableColumn } from '../../../ui/Table/Table';
 import { EmptyState } from '../../../ui/EmptyState/EmptyState';
-import { adjuntosService } from '../../../../services/adjuntos.service';
 import { useAdjuntosDeVersion } from '../../../../hooks/useAdjuntos';
 import { useToast } from '../../../../context/ToastContext';
 import { formatearFecha } from '../../../../utils/formatters';
 import { mensajeDeError } from '../../../../utils/errors';
+import { abrirAdjunto } from '../../../../utils/adjuntoArchivo';
 import type { Adjunto } from '../../../../types/adjunto';
 import type { VersionListItem } from '../../../../types/version';
 import './AdjuntosModal.css';
@@ -17,18 +17,6 @@ const ACEPTA_ARCHIVOS = [
   'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   '.xls', '.xlsx',
 ].join(',');
-
-// Imágenes y PDF se previsualizan en otra pestaña; el resto (Excel) se descarga con su nombre.
-function sePrevisualiza(tipoMime: string): boolean {
-  return tipoMime.startsWith('image/') || tipoMime === 'application/pdf';
-}
-
-function descargarComoArchivo(url: string, nombre: string) {
-  const enlace = document.createElement('a');
-  enlace.href = url;
-  enlace.download = nombre;
-  enlace.click();
-}
 
 function formatearTamano(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -75,7 +63,7 @@ interface AdjuntosModalProps {
 }
 
 export function AdjuntosModal({ version, onClose }: AdjuntosModalProps) {
-  const { adjuntos, cargando, enviando, agregar, reemplazar, eliminar } = useAdjuntosDeVersion(version.id);
+  const { adjuntos, cargando, enviando, progreso, agregar, reemplazar, eliminar } = useAdjuntosDeVersion(version.id);
   const { mostrarToast } = useToast();
   const inputReemplazoRef = useRef<HTMLInputElement>(null);
   const [idAReemplazar, setIdAReemplazar] = useState<number | null>(null);
@@ -98,20 +86,10 @@ export function AdjuntosModal({ version, onClose }: AdjuntosModalProps) {
     setIdAReemplazar(null);
   }
 
-  // La ventana se abre antes del await para que el navegador no la bloquee como popup; luego se
-  // le carga el archivo ya descargado con el token de sesión.
   async function onDescargarClick(a: Adjunto) {
-    const previsualizar = sePrevisualiza(a.tipoMime);
-    const ventana = previsualizar ? window.open('', '_blank') : null;
     try {
-      const archivo = await adjuntosService.descargar(a.id);
-      const url = URL.createObjectURL(archivo);
-      if (!previsualizar) descargarComoArchivo(url, a.nombreOriginal);
-      else if (ventana) ventana.location.href = url;
-      else window.location.assign(url);
-      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      await abrirAdjunto(a);
     } catch (err) {
-      ventana?.close();
       mostrarToast(mensajeDeError(err, 'No se pudo descargar el adjunto'), 'error');
     }
   }
@@ -170,10 +148,10 @@ export function AdjuntosModal({ version, onClose }: AdjuntosModalProps) {
       <div className="adjuntos-modal">
         <div className="adjuntos-modal__subir">
           <label className={`button button--outline${enviando ? ' button--disabled' : ''}`}>
-            {enviando ? 'Subiendo…' : '+ Añadir archivo'}
+            {enviando ? `Subiendo… ${progreso ?? 0}%` : '+ Añadir archivo'}
             <input type="file" accept={ACEPTA_ARCHIVOS} onChange={onSeleccionarNuevo} disabled={enviando} hidden />
           </label>
-          <span className="adjuntos-modal__hint">Imágenes (JPG, PNG, WEBP), PDF o Excel (XLS, XLSX) — máximo 10MB.</span>
+          <span className="adjuntos-modal__hint">Imágenes (JPG, PNG, WEBP), PDF o Excel (XLS, XLSX) — máximo 40MB.</span>
         </div>
 
         {!cargando && (

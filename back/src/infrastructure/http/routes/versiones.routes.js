@@ -53,7 +53,10 @@ router.get('/:id/resumen',          controller.obtenerResumen);
 // GET   /versiones/:id/adjuntos       — lista los adjuntos de la versión (módulo adjuntos)
 router.get('/:id/adjuntos',         adjuntosController.listar);
 
-// POST  /versiones/:id/adjuntos       — sube un adjunto nuevo a la versión (módulo adjuntos)
+// POST  /versiones/:id/adjuntos/subida — URL SAS para subir el archivo directo a Azure (módulo adjuntos)
+router.post('/:id/adjuntos/subida', adjuntosController.solicitarSubida);
+
+// POST  /versiones/:id/adjuntos       — confirma el archivo ya subido y crea el adjunto (módulo adjuntos)
 router.post('/:id/adjuntos',        adjuntosController.agregar);
 
 module.exports = router;

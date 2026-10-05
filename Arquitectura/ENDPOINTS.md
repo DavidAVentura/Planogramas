@@ -205,15 +205,17 @@ Quedan listados como referencia para el diseño; no se desarrollarán en la iter
 
 ## 14. Adjuntos
 
-Archivos (imágenes o PDFs) que el analista asocia a una versión de planograma — cada versión (TG/TM/TE, o especial por tienda) tiene su propio set de adjuntos, independiente de las demás. El binario vive en Azure Blob Storage, en un contenedor privado; el backend nunca expone una URL directa del blob — la descarga siempre pasa por `GET /adjuntos/{id}/descargar`, que hace streaming del archivo. Agregar, reemplazar y eliminar adjuntos se permite en cualquier estado de la versión (incluida publicada o archivada): son material de apoyo del analista, no parte del contenido versionado.
+Archivos (imágenes, PDF o Excel, hasta 40MB) que el analista asocia a una versión de planograma — cada versión (TG/TM/TE, o especial por tienda) tiene su propio set de adjuntos, independiente de las demás. El binario vive en Azure Blob Storage, en un contenedor privado, y **no pasa por el backend**: el navegador sube y descarga directo contra Azure con URLs SAS de corta duración que firma el backend (subir = solicitar URL → `PUT` a Azure → confirmar). `blobUrl` sin SAS nunca se usa como link. Agregar, reemplazar y eliminar adjuntos se permite en cualquier estado de la versión (incluida publicada o archivada): son material de apoyo del analista, no parte del contenido versionado.
 
 | Método | Ruta | Actor | CU | Descripción |
 |--------|------|-------|----|-------------|
 | `GET` | `/versiones/{id}/adjuntos` | Analista | CU-09-02 | Lista los adjuntos de una versión, más recientes primero. |
-| `POST` | `/versiones/{id}/adjuntos` | Analista | CU-09-01 | Sube un adjunto nuevo. Body: `nombre_original`, `tipo_mime`, `archivo_base64`. Admitido en cualquier estado de la versión. |
-| `PUT` | `/adjuntos/{id}` | Analista | CU-09-03 | Reemplaza el archivo de un adjunto existente, conservando su id. Mismo body que agregar. |
+| `POST` | `/versiones/{id}/adjuntos/subida` | Analista | CU-09-01 | Valida nombre/tipo/tamaño y devuelve la URL SAS (solo escritura, 30 min) para subir un adjunto nuevo directo a Azure. |
+| `POST` | `/versiones/{id}/adjuntos` | Analista | CU-09-01 | Confirma el blob ya subido y crea el adjunto. Body: `nombre_original`, `tipo_mime`, `blob_path`. Admitido en cualquier estado de la versión. |
+| `POST` | `/adjuntos/{id}/subida` | Analista | CU-09-03 | URL SAS para subir el archivo de reemplazo de un adjunto. |
+| `PUT` | `/adjuntos/{id}` | Analista | CU-09-03 | Confirma el blob de reemplazo, conservando el id del adjunto. Mismo body que agregar. |
 | `DELETE` | `/adjuntos/{id}` | Analista | CU-09-04 | Elimina un adjunto (fila + blob en Azure). Admitido en cualquier estado de la versión. |
-| `GET` | `/adjuntos/{id}/descargar` | Analista | CU-09-05 | Descarga el archivo — streaming desde Azure Blob Storage a través del backend. |
+| `GET` | `/adjuntos/{id}/url-descarga` | Analista / Implementador | CU-09-05 | URL SAS de solo lectura (5 min) para abrir (`modo=inline`) o descargar (`modo=attachment`) el archivo directo desde Azure. |
 
 ---
 

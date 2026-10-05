@@ -1,19 +1,19 @@
-# Contrato: Agregar Adjunto a una Versión
+# Contrato: Agregar Adjunto a una Versión (confirmar subida)
 
 **Método:** `POST`
 **Ruta:** `/api/v1/versiones/{id}/adjuntos`
 **Actor:** Analista
-**Caso de uso:** CU-09-01
+**Caso de uso:** CU-09-01 (paso 3 de 3)
 
 ---
 
 ## Descripción
 
-Sube un archivo (imagen o PDF) y lo asocia a una versión de planograma. El archivo viaja en el body como base64 (mismo patrón que el Agente Extractor de Imagen Numerada) — no se usa `multipart/form-data`.
+Registra como adjunto de la versión un archivo que el navegador **ya subió directo a Azure Blob** con la URL SAS de `POST /versiones/{id}/adjuntos/subida` (ver `POST_adjuntos_solicitar_subida.md`). El archivo no viaja en este request; solo se envía su `blob_path`.
 
-El binario se sube a Azure Blob Storage (contenedor privado) antes de crear la fila en BD; si la subida falla, no se crea el registro. La ruta del blob (`blob_path`) se genera en el backend (UUID + nombre sanitizado) — el cliente no la controla ni la conoce de antemano.
+Antes de crear la fila, el backend verifica en Azure que el blob exista y que su tipo y tamaño reales estén permitidos. Si no cumplen, **borra el blob** y responde con error.
 
-La operación se permite en cualquier estado de la versión (`borrador`, `en_desarrollo`, `piloto`, `publicado` o `archivado`): los adjuntos son material de apoyo del analista, no parte del contenido versionado del planograma, así que el analista siempre puede agregarlos, reemplazarlos o eliminarlos.
+La operación se permite en cualquier estado de la versión (`borrador`, `en_desarrollo`, `piloto`, `publicado` o `archivado`). Los adjuntos son material de apoyo del analista y no forman parte del contenido versionado del planograma, así que el analista siempre puede agregarlos, reemplazarlos o eliminarlos.
 
 ---
 
@@ -31,16 +31,19 @@ La operación se permite en cualquier estado de la versión (`borrador`, `en_des
 |-------|------|-----------|------------|
 | `nombre_original` | `string` | Sí | 1–255 chars. Nombre del archivo tal como lo ve el usuario. |
 | `tipo_mime` | `string` | Sí | Uno de: `image/jpeg`, `image/png`, `image/webp`, `application/pdf`, `application/vnd.ms-excel` (.xls), `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` (.xlsx). |
-| `archivo_base64` | `string` | Sí | Contenido del archivo codificado en base64 (sin el prefijo `data:...;base64,`). |
+| `blob_path` | `string` | Sí | El `blobPath` que devolvió la solicitud de subida. Máximo 500 chars. |
 
 ---
 
 ## Reglas de negocio
 
-1. La versión debe existir — `404` si no. No se valida su estado: se admite en cualquier estado, incluidos `publicado` y `archivado`.
-2. `tipo_mime` debe estar en la lista blanca — cualquier otro valor retorna `400`, incluso si Joi ya lo valida contra el enum (doble chequeo: Joi en el controller, `validarArchivo` en el dominio).
-3. El tamaño decodificado del archivo no puede superar 10MB — el límite global del body JSON es 15mb (`app.js`) y el base64 agrega ~33% de overhead sobre el binario, así que 10MB de binario (~13.4MB codificado) deja margen suficiente.
-4. `subido_por` se completa en el backend, no lo envía el cliente — hoy es siempre `'sistema'` porque no existe autenticación de usuario real (pendiente JWT vía CAO).
+1. La versión debe existir; si no, `404`. No se valida su estado: se admite en cualquier estado, incluidos `publicado` y `archivado`.
+2. `blob_path` debe empezar con `versiones/{id}/` (una ruta generada para esta versión); si no, `400`. Esto impide registrar un blob ajeno.
+3. `blob_path` no puede estar ya registrado en otro adjunto; si lo está, `409`.
+4. El blob debe existir en Azure; si no, `422` (la subida no terminó o falló).
+5. El tamaño real del blob no puede superar **40MB**, y su `Content-Type` debe ser igual a `tipo_mime` y estar en la lista blanca. Si alguna de estas condiciones falla, se borra el blob y se responde `400`.
+6. `tamano_bytes` se toma del blob real en Azure, no de lo que declaró el cliente.
+7. `subido_por` se completa en el backend con el usuario del JWT de CAO; el cliente no lo envía.
 
 ---
 
@@ -48,9 +51,9 @@ La operación se permite en cualquier estado de la versión (`borrador`, `en_des
 
 ```json
 {
-  "nombre_original": "foto-rack-frontal.jpg",
-  "tipo_mime": "image/jpeg",
-  "archivo_base64": "/9j/4AAQSkZJRgABAQAAAQABAAD..."
+  "nombre_original": "Surtido Autos Q4.xlsx",
+  "tipo_mime": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "blob_path": "versiones/10/3f2a1c9e-...-Surtido_Autos_Q4.xlsx"
 }
 ```
 
@@ -62,14 +65,14 @@ La operación se permite en cualquier estado de la versión (`borrador`, `en_des
 {
   "id": 5,
   "versionId": 10,
-  "nombreOriginal": "foto-rack-frontal.jpg",
-  "tipoMime": "image/jpeg",
-  "tamanoBytes": 842311,
+  "nombreOriginal": "Surtido Autos Q4.xlsx",
+  "tipoMime": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "tamanoBytes": 31457280,
   "blobContainer": "adjuntos",
-  "blobPath": "versiones/10/3f2a1c9e-foto-rack-frontal.jpg",
-  "blobUrl": "https://{cuenta}.blob.core.windows.net/adjuntos/versiones/10/3f2a1c9e-foto-rack-frontal.jpg",
-  "subidoPor": "sistema",
-  "createdAt": "2026-09-16T14:32:00.000Z"
+  "blobPath": "versiones/10/3f2a1c9e-...-Surtido_Autos_Q4.xlsx",
+  "blobUrl": "https://{cuenta}.blob.core.windows.net/adjuntos/versiones/10/3f2a1c9e-...-Surtido_Autos_Q4.xlsx",
+  "subidoPor": "usuario@cemaco.com",
+  "createdAt": "2026-10-05T15:02:00.000Z"
 }
 ```
 
@@ -79,20 +82,19 @@ La operación se permite en cualquier estado de la versión (`borrador`, `en_des
 
 | Código | Condición |
 |--------|-----------|
-| `400 Bad Request` | `tipo_mime` no permitido, archivo excede el tamaño máximo, o campos ausentes/mal formados. |
+| `400 Bad Request` | `blob_path` no pertenece a la versión; el tipo o tamaño real del blob no está permitido (el blob se borra); o campos ausentes o mal formados. |
 | `401 Unauthorized` | JWT ausente. |
-| `404 Not Found` | Versión no existe. |
-| `503 Service Unavailable` | Azure Blob Storage no respondió a la subida. |
+| `404 Not Found` | La versión no existe. |
+| `409 Conflict` | `blob_path` ya está registrado como adjunto. |
+| `422 Unprocessable Entity` | El blob no existe en Azure: la subida no terminó. |
+| `503 Service Unavailable` | Azure Blob Storage no respondió a la consulta. |
 
 ---
 
 ## Anotaciones de arquitectura
 
 > **[HEXAGONAL]**
-> `AgregarAdjuntoUseCase` recibe `(adjuntoRepo, versionRepo, blobStorage, versionId, datos, userId)` — `blobStorage` es un puerto inyectado igual que los repositorios; el dominio no importa el SDK de Azure directamente.
-
-> **[SOLID — SRP]**
-> La generación de `blob_path` es responsabilidad del dominio (`adjunto.entity.js#generarBlobPath`), no del cliente de Storage ni del controller.
+> `agregarAdjunto(adjuntoRepo, versionRepo, blobStorage, versionId, datos, userId)` usa el puerto `blobStorage.obtenerPropiedades` para medir el blob. El dominio no importa el SDK de Azure.
 
 > **[CLEAN CODE]**
-> El orden de operaciones (subir blob → recién entonces insertar fila) evita filas huérfanas apuntando a un blob que nunca se creó.
+> La fila se crea solo después de verificar el blob. Así no quedan filas apuntando a un archivo inexistente ni a uno que no cumple las reglas.

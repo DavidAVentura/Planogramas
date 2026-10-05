@@ -9,13 +9,16 @@ const controller = require('../../../application/adjuntos/adjuntos.controller');
 
 const router = Router();
 
-// GET    /adjuntos/:id/descargar — descarga el archivo (streaming desde Azure Blob Storage)
-router.get('/:id/descargar', controller.descargar);
+// GET    /adjuntos/:id/url-descarga — URL SAS de solo lectura para descargar directo desde Azure
+router.get('/:id/url-descarga', controller.urlDescarga);
 
-// PUT    /adjuntos/:id           — reemplaza el archivo, conservando el mismo id
-router.put('/:id',            controller.reemplazar);
+// POST   /adjuntos/:id/subida       — URL SAS para subir el archivo de reemplazo directo a Azure
+router.post('/:id/subida',      controller.solicitarSubidaReemplazo);
 
-// DELETE /adjuntos/:id           — elimina el adjunto (fila + blob en Azure)
-router.delete('/:id',         controller.eliminar);
+// PUT    /adjuntos/:id              — confirma el archivo ya subido y reemplaza el del adjunto (mismo id)
+router.put('/:id',              controller.reemplazar);
+
+// DELETE /adjuntos/:id              — elimina el adjunto (fila + blob en Azure)
+router.delete('/:id',           controller.eliminar);
 
 module.exports = router;

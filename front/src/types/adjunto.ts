@@ -16,14 +16,38 @@ export interface Adjunto {
   blobContainer: string;
   blobPath: string;
   /** URL del blob sin SAS — el contenedor es privado, no sirve para descarga directa. Usar
-   * `adjuntosService.descargar(id)` para descargar. */
+   * `abrirAdjunto` (utils/adjuntoArchivo.ts), que pide una URL SAS de lectura. */
   blobUrl: string;
   subidoPor: string;
   createdAt: string;
 }
 
-export interface AgregarAdjuntoInput {
+/** Paso 1 (`POST .../subida`): el archivo que se quiere subir, para validar tipo y tamaño. */
+export interface SolicitarSubidaAdjuntoInput {
   nombre_original: string;
   tipo_mime: AdjuntoTipoMime;
-  archivo_base64: string;
+  tamano_bytes: number;
+}
+
+/** URL SAS de solo escritura para subir el archivo directo a Azure Blob. */
+export interface SubidaAdjunto {
+  blobPath: string;
+  urlSubida: string;
+  expiraEn: string;
+  tipoMime: AdjuntoTipoMime;
+}
+
+/** Paso 3 (`POST /versiones/{id}/adjuntos` o `PUT /adjuntos/{id}`): confirma el blob ya subido. */
+export interface ConfirmarAdjuntoInput {
+  nombre_original: string;
+  tipo_mime: AdjuntoTipoMime;
+  blob_path: string;
+}
+
+/** `inline` abre el archivo en el navegador; `attachment` lo guarda con su nombre original. */
+export type ModoDescargaAdjunto = 'inline' | 'attachment';
+
+export interface UrlDescargaAdjunto {
+  url: string;
+  expiraEn: string;
 }

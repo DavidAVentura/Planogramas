@@ -121,8 +121,36 @@ reinicia la app y no requiere redeploy.
 | `CAO_BASE_URL`, `CAO_COD_MODULO` | Validación del token de usuario (CAO, `/auth/validar_token`) y renovación de su sesión (`/auth/keepalive`). |
 | `CATI_BASE_URL`, `CATI_API_KEY` | Catálogo y jerarquía. |
 | `OPENIA_TOKEN`, `OPENAI_MODEL` | Agentes de `back/src/agents/`. |
-| `AZURE_STORAGE_CONNECTION_STRING`, `AZURE_STORAGE_CONTAINER_ADJUNTOS` | Adjuntos en Azure Blob. |
+| `AZURE_STORAGE_CONNECTION_STRING`, `AZURE_STORAGE_CONTAINER_ADJUNTOS` | Adjuntos en Azure Blob. La connection string debe incluir `AccountKey`: con ella el backend firma las URLs SAS de subida y descarga de adjuntos. |
 | `PRUEBAS_HABILITADAS` | `true` solo en DEV: monta `/pruebas/fixtures` y `/pruebas/limpieza` para la colección Postman. En prod no se define (y con `NODE_ENV=production` no se monta aunque esté). |
+
+### Azure Blob Storage: CORS para adjuntos
+
+Los adjuntos se suben con un `PUT` directo del navegador a Azure Blob, usando una URL SAS que firma
+el backend. Sin CORS en la cuenta de storage, el navegador bloquea la subida (el front muestra "No
+se pudo subir el archivo"). Las descargas abren la URL SAS como navegación normal y no necesitan
+CORS.
+
+Configurarlo una vez en la cuenta (Portal → cuenta de storage → Configuración → Uso compartido de
+recursos (CORS) → Blob service), con una regla que incluya los orígenes de los dos Static Web Apps
+y el de desarrollo local:
+
+| Campo | Valor |
+|---|---|
+| Orígenes permitidos | URL del Static Web App de DEV, URL del de PROD, `http://localhost:5173` |
+| Métodos permitidos | `PUT`, `OPTIONS` |
+| Encabezados permitidos | `*` |
+| Encabezados expuestos | `*` |
+| Antigüedad máxima | `3600` |
+
+Equivalente con Azure CLI:
+
+```bash
+az storage cors add --services b --methods PUT OPTIONS \
+  --origins "https://<swa-dev>" "https://<swa-prod>" "http://localhost:5173" \
+  --allowed-headers "*" --exposed-headers "*" --max-age 3600 \
+  --account-name <cuenta-storage>
+```
 
 ### Frontend (GitHub del fork → Settings → Secrets and variables → Actions)
 

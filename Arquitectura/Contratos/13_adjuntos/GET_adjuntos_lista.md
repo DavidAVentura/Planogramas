@@ -44,7 +44,7 @@ No requiere que la versión esté en modo editable — la consulta está disponi
 ]
 ```
 
-`blobUrl` es la URL base del blob **sin SAS** — el contenedor es privado, así que no sirve para descarga directa desde el navegador; se incluye solo como referencia/debug. Para descargar el archivo, usar `GET /adjuntos/{id}/descargar` (ver contrato correspondiente).
+`blobUrl` es la URL base del blob **sin SAS** — el contenedor es privado, así que no sirve para descarga directa desde el navegador; se incluye solo como referencia/debug. Para abrir o descargar el archivo, pedir una URL SAS con `GET /adjuntos/{id}/url-descarga` (ver `GET_adjuntos_url_descarga.md`).
 
 ---
 

@@ -3,7 +3,7 @@
 **Método:** `PUT`
 **Ruta:** `/api/v1/adjuntos/{id}`
 **Actor:** Analista
-**Caso de uso:** CU-09-03
+**Caso de uso:** CU-09-03 (paso 3 de 3)
 
 ---
 
@@ -11,9 +11,16 @@
 
 Reemplaza el contenido de un adjunto existente por un archivo nuevo, **conservando el mismo id** — no se versiona el archivo en sí, solo queda el último que se subió.
 
-Orden de operaciones: (1) sube el archivo nuevo a un blob nuevo, (2) actualiza la fila en BD para apuntar al blob nuevo, (3) recién entonces borra el blob viejo. Si el paso 2 fallara, el blob viejo sigue intacto y el archivo no se pierde.
+El archivo nuevo **no viaja en este request**. Antes, el front pide una URL SAS con `POST /adjuntos/{id}/subida` (ver `POST_adjuntos_solicitar_subida.md`) y el navegador sube el archivo directo a Azure. Este endpoint solo confirma ese blob.
 
-Mismas reglas de validación que `POST /versiones/{id}/adjuntos` (ver ese contrato) — la única diferencia es el path (`{id}` es el id del adjunto, no de la versión).
+Orden de operaciones:
+1. Verifica el blob nuevo en Azure (ruta, tipo y tamaño reales).
+2. Actualiza la fila en la BD para que apunte al blob nuevo.
+3. Recién entonces borra el blob viejo.
+
+Si el paso 2 fallara, el blob viejo sigue intacto y el archivo no se pierde.
+
+Mismas reglas de validación que `POST /versiones/{id}/adjuntos` (ver ese contrato). La única diferencia es el path: `{id}` es el id del adjunto, no de la versión, y `blob_path` debe pertenecer a la versión de ese adjunto.
 
 ---
 
@@ -31,7 +38,7 @@ Mismas reglas de validación que `POST /versiones/{id}/adjuntos` (ver ese contra
 |-------|------|-----------|------------|
 | `nombre_original` | `string` | Sí | 1–255 chars. |
 | `tipo_mime` | `string` | Sí | Uno de: `image/jpeg`, `image/png`, `image/webp`, `application/pdf`, `application/vnd.ms-excel` (.xls), `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` (.xlsx). |
-| `archivo_base64` | `string` | Sí | Contenido del archivo nuevo, codificado en base64. |
+| `blob_path` | `string` | Sí | El `blobPath` que devolvió `POST /adjuntos/{id}/subida`. Máximo 500 chars. |
 
 ---
 
@@ -39,8 +46,8 @@ Mismas reglas de validación que `POST /versiones/{id}/adjuntos` (ver ese contra
 
 1. El adjunto debe existir — `404` si no.
 2. No se valida el estado de la versión a la que pertenece el adjunto: se admite en cualquier estado, incluidos `publicado` y `archivado`.
-3. Mismas validaciones de `tipo_mime` y tamaño máximo (10MB) que al agregar.
-4. `subido_por` se actualiza al usuario que hizo el reemplazo (hoy siempre `'sistema'`).
+3. Mismas validaciones que al agregar: `blob_path` de la versión del adjunto y no registrado (`400` / `409`); el blob debe existir (`422`); tipo y tamaño reales permitidos, hasta 40MB (si no, se borra el blob nuevo y se responde `400`).
+4. `subido_por` se actualiza al usuario que hizo el reemplazo (JWT de CAO).
 5. El blob viejo se borra **después** de confirmar la actualización de la fila — nunca antes.
 
 ---
@@ -51,7 +58,7 @@ Mismas reglas de validación que `POST /versiones/{id}/adjuntos` (ver ese contra
 {
   "nombre_original": "foto-rack-frontal-v2.jpg",
   "tipo_mime": "image/jpeg",
-  "archivo_base64": "/9j/4AAQSkZJRgABAQAAAQABAAD..."
+  "blob_path": "versiones/10/9c7b4e21-...-foto-rack-frontal-v2.jpg"
 }
 ```
 
@@ -82,10 +89,12 @@ El `id` no cambia respecto al adjunto reemplazado; `blobPath`/`blobUrl` sí, por
 
 | Código | Condición |
 |--------|-----------|
-| `400 Bad Request` | `tipo_mime` no permitido, archivo excede el tamaño máximo, o campos ausentes/mal formados. |
+| `400 Bad Request` | `blob_path` no pertenece a la versión del adjunto; el tipo o tamaño real del blob no está permitido; o campos ausentes o mal formados. |
+| `409 Conflict` | `blob_path` ya está registrado como adjunto. |
+| `422 Unprocessable Entity` | El blob nuevo no existe en Azure: la subida no terminó. |
 | `401 Unauthorized` | JWT ausente. |
 | `404 Not Found` | Adjunto no existe. |
-| `503 Service Unavailable` | Azure Blob Storage no respondió a la subida o al borrado del blob viejo. |
+| `503 Service Unavailable` | Azure Blob Storage no respondió a la consulta del blob nuevo o al borrado del viejo. |
 
 ---
 

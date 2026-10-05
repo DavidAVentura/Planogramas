@@ -4,7 +4,7 @@ import { Modal } from '../../../ui/Modal/Modal';
 import { Button } from '../../../ui/Button/Button';
 import { EstadoVersionBadge } from '../EstadoVersionBadge/EstadoVersionBadge';
 import { useAdjuntosDeVersion } from '../../../../hooks/useAdjuntos';
-import { adjuntosService } from '../../../../services/adjuntos.service';
+import { abrirAdjunto } from '../../../../utils/adjuntoArchivo';
 import { useToast } from '../../../../context/ToastContext';
 import { formatearFecha } from '../../../../utils/formatters';
 import { mensajeDeError } from '../../../../utils/errors';
@@ -17,24 +17,14 @@ const TIPO_CORTO: Record<string, string> = {
   'image/jpeg': 'JPG',
   'image/png': 'PNG',
   'image/webp': 'WEBP',
+  'application/vnd.ms-excel': 'XLS',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'XLSX',
 };
 
 function formatearTamano(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-/** Descarga el binario con el Bearer y lo entrega al navegador como archivo con su nombre. */
-function guardarComoArchivo(blob: Blob, nombre: string) {
-  const url = URL.createObjectURL(blob);
-  const enlace = document.createElement('a');
-  enlace.href = url;
-  enlace.download = nombre;
-  document.body.appendChild(enlace);
-  enlace.click();
-  enlace.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
 interface ArchivosVersionModalProps {
@@ -51,7 +41,7 @@ export function ArchivosVersionModal({ planograma, onClose }: ArchivosVersionMod
   async function descargar(adjunto: Adjunto) {
     setDescargando(adjunto.id);
     try {
-      guardarComoArchivo(await adjuntosService.descargar(adjunto.id), adjunto.nombreOriginal);
+      await abrirAdjunto(adjunto, true);
     } catch (err) {
       mostrarToast(mensajeDeError(err, 'No se pudo descargar el archivo'), 'error');
     } finally {
