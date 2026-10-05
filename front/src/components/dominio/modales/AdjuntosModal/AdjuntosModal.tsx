@@ -12,7 +12,23 @@ import type { Adjunto } from '../../../../types/adjunto';
 import type { VersionListItem } from '../../../../types/version';
 import './AdjuntosModal.css';
 
-const ACEPTA_ARCHIVOS = 'image/jpeg,image/png,image/webp,application/pdf';
+const ACEPTA_ARCHIVOS = [
+  'image/jpeg', 'image/png', 'image/webp', 'application/pdf',
+  'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  '.xls', '.xlsx',
+].join(',');
+
+// Imágenes y PDF se previsualizan en otra pestaña; el resto (Excel) se descarga con su nombre.
+function sePrevisualiza(tipoMime: string): boolean {
+  return tipoMime.startsWith('image/') || tipoMime === 'application/pdf';
+}
+
+function descargarComoArchivo(url: string, nombre: string) {
+  const enlace = document.createElement('a');
+  enlace.href = url;
+  enlace.download = nombre;
+  enlace.click();
+}
 
 function formatearTamano(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -85,11 +101,13 @@ export function AdjuntosModal({ version, onClose }: AdjuntosModalProps) {
   // La ventana se abre antes del await para que el navegador no la bloquee como popup; luego se
   // le carga el archivo ya descargado con el token de sesión.
   async function onDescargarClick(a: Adjunto) {
-    const ventana = window.open('', '_blank');
+    const previsualizar = sePrevisualiza(a.tipoMime);
+    const ventana = previsualizar ? window.open('', '_blank') : null;
     try {
       const archivo = await adjuntosService.descargar(a.id);
       const url = URL.createObjectURL(archivo);
-      if (ventana) ventana.location.href = url;
+      if (!previsualizar) descargarComoArchivo(url, a.nombreOriginal);
+      else if (ventana) ventana.location.href = url;
       else window.location.assign(url);
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (err) {
@@ -155,7 +173,7 @@ export function AdjuntosModal({ version, onClose }: AdjuntosModalProps) {
             {enviando ? 'Subiendo…' : '+ Añadir archivo'}
             <input type="file" accept={ACEPTA_ARCHIVOS} onChange={onSeleccionarNuevo} disabled={enviando} hidden />
           </label>
-          <span className="adjuntos-modal__hint">Imágenes (JPG, PNG, WEBP) o PDF — máximo 5MB.</span>
+          <span className="adjuntos-modal__hint">Imágenes (JPG, PNG, WEBP), PDF o Excel (XLS, XLSX) — máximo 10MB.</span>
         </div>
 
         {!cargando && (

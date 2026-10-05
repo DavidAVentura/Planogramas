@@ -7,15 +7,35 @@ import type { Adjunto, AdjuntoTipoMime } from '../types/adjunto';
 
 // Misma lista blanca y tope de tamaño que el backend (ver adjunto.entity.js) — validar acá evita
 // un viaje al servidor para un error que ya se puede detectar en el navegador.
-const TIPOS_PERMITIDOS: AdjuntoTipoMime[] = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
-const TAMANO_MAXIMO_BYTES = 5 * 1024 * 1024;
+const TIPOS_PERMITIDOS: AdjuntoTipoMime[] = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'application/pdf',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+];
+const TAMANO_MAXIMO_BYTES = 10 * 1024 * 1024;
+
+// Algunos navegadores/equipos sin Office registrado entregan `File.type` vacío (o genérico) para
+// Excel; en ese caso se deduce el tipo por la extensión.
+const TIPO_POR_EXTENSION: Record<string, AdjuntoTipoMime> = {
+  xls: 'application/vnd.ms-excel',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+};
+
+function tipoMimeDe(archivo: File): AdjuntoTipoMime | null {
+  if (TIPOS_PERMITIDOS.includes(archivo.type as AdjuntoTipoMime)) return archivo.type as AdjuntoTipoMime;
+  const extension = archivo.name.split('.').pop()?.toLowerCase() ?? '';
+  return TIPO_POR_EXTENSION[extension] ?? null;
+}
 
 function validarArchivo(archivo: File): string | null {
-  if (!TIPOS_PERMITIDOS.includes(archivo.type as AdjuntoTipoMime)) {
-    return 'Tipo de archivo no permitido. Se aceptan imágenes (JPG, PNG, WEBP) o PDF.';
+  if (!tipoMimeDe(archivo)) {
+    return 'Tipo de archivo no permitido. Se aceptan imágenes (JPG, PNG, WEBP), PDF o Excel (XLS, XLSX).';
   }
   if (archivo.size > TAMANO_MAXIMO_BYTES) {
-    return 'El archivo excede el tamaño máximo permitido (5MB).';
+    return 'El archivo excede el tamaño máximo permitido (10MB).';
   }
   return null;
 }
@@ -52,7 +72,7 @@ export function useAdjuntosDeVersion(versionId: number) {
       const archivo_base64 = await archivoABase64(archivo);
       const nuevo = await adjuntosService.agregar(versionId, {
         nombre_original: archivo.name,
-        tipo_mime: archivo.type as AdjuntoTipoMime,
+        tipo_mime: tipoMimeDe(archivo)!,
         archivo_base64,
       });
       setAdjuntos((actual) => [nuevo, ...actual]);
@@ -77,7 +97,7 @@ export function useAdjuntosDeVersion(versionId: number) {
       const archivo_base64 = await archivoABase64(archivo);
       const actualizado = await adjuntosService.reemplazar(id, {
         nombre_original: archivo.name,
-        tipo_mime: archivo.type as AdjuntoTipoMime,
+        tipo_mime: tipoMimeDe(archivo)!,
         archivo_base64,
       });
       setAdjuntos((actual) => actual.map((a) => (a.id === id ? actualizado : a)));

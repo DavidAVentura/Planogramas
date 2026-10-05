@@ -30,7 +30,7 @@ La operación se permite en cualquier estado de la versión (`borrador`, `en_des
 | Campo | Tipo | Requerido | Validación |
 |-------|------|-----------|------------|
 | `nombre_original` | `string` | Sí | 1–255 chars. Nombre del archivo tal como lo ve el usuario. |
-| `tipo_mime` | `string` | Sí | Uno de: `image/jpeg`, `image/png`, `image/webp`, `application/pdf`. |
+| `tipo_mime` | `string` | Sí | Uno de: `image/jpeg`, `image/png`, `image/webp`, `application/pdf`, `application/vnd.ms-excel` (.xls), `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` (.xlsx). |
 | `archivo_base64` | `string` | Sí | Contenido del archivo codificado en base64 (sin el prefijo `data:...;base64,`). |
 
 ---
@@ -39,7 +39,7 @@ La operación se permite en cualquier estado de la versión (`borrador`, `en_des
 
 1. La versión debe existir — `404` si no. No se valida su estado: se admite en cualquier estado, incluidos `publicado` y `archivado`.
 2. `tipo_mime` debe estar en la lista blanca — cualquier otro valor retorna `400`, incluso si Joi ya lo valida contra el enum (doble chequeo: Joi en el controller, `validarArchivo` en el dominio).
-3. El tamaño decodificado del archivo no puede superar 5MB — el límite global del body JSON es 8mb (`app.js`) y el base64 agrega ~33% de overhead sobre el binario, así que 5MB de binario deja margen suficiente.
+3. El tamaño decodificado del archivo no puede superar 10MB — el límite global del body JSON es 15mb (`app.js`) y el base64 agrega ~33% de overhead sobre el binario, así que 10MB de binario (~13.4MB codificado) deja margen suficiente.
 4. `subido_por` se completa en el backend, no lo envía el cliente — hoy es siempre `'sistema'` porque no existe autenticación de usuario real (pendiente JWT vía CAO).
 
 ---

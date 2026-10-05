@@ -9,11 +9,13 @@ const { sanitizarNombreArchivo } = require('../compartido/archivo');
 
 const MIME_TYPES_PERMITIDOS = Object.freeze([
   'image/jpeg', 'image/png', 'image/webp', 'application/pdf',
+  'application/vnd.ms-excel',                                          // .xls
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
 ]);
 
-// El body JSON global admite hasta 8mb (ver app.js) y el archivo viaja como base64 (~33% de
-// overhead sobre el binario) — 5MB de binario deja margen suficiente dentro de ese límite.
-const TAMANO_MAXIMO_BYTES = 5 * 1024 * 1024;
+// El body JSON global admite hasta 15mb (ver app.js) y el archivo viaja como base64 (~33% de
+// overhead sobre el binario) — 10MB de binario (~13.4MB en base64) deja margen dentro de ese límite.
+const TAMANO_MAXIMO_BYTES = 10 * 1024 * 1024;
 
 function errorBadRequest(mensaje) {
   const err = new Error(mensaje);

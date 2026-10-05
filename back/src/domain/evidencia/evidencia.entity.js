@@ -7,13 +7,12 @@
 
 const crypto = require('crypto');
 const { sanitizarNombreArchivo } = require('../compartido/archivo');
-const { TAMANO_MAXIMO_BYTES }    = require('../adjunto/adjunto.entity');
 
 /** Solo imágenes. */
 const MIME_TYPES_EVIDENCIA = Object.freeze(['image/jpeg', 'image/png', 'image/webp']);
 
-/** Mismo límite que Adjuntos (el archivo viaja en base64 dentro del body JSON de 8mb). */
-const TAMANO_MAXIMO_EVIDENCIA_BYTES = TAMANO_MAXIMO_BYTES;
+/** El archivo viaja en base64 dentro del body JSON (ver app.js); el front comprime la foto hasta este tope. */
+const TAMANO_MAXIMO_EVIDENCIA_BYTES = 5 * 1024 * 1024;
 
 // ─── Errores de dominio ──────────────────────────────────────────────────────
 

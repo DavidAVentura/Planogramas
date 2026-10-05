@@ -36,7 +36,7 @@ function validarBody(schema, body) {
 async function transcribir(req, res, next) {
   try {
     const datos = validarBody(schemaTranscribir, req.body);
-    // El tope de tamaño lo pone express.json({ limit: '8mb' }) en app.js.
+    // El tope de tamaño lo pone express.json({ limit: '15mb' }) en app.js.
     const buffer = Buffer.from(datos.audio_base64, 'base64');
     const resultado = await voz.transcribir({ buffer });
     res.json({ texto: resultado.texto });

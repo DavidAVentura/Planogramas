@@ -30,7 +30,7 @@ Mismas reglas de validación que `POST /versiones/{id}/adjuntos` (ver ese contra
 | Campo | Tipo | Requerido | Validación |
 |-------|------|-----------|------------|
 | `nombre_original` | `string` | Sí | 1–255 chars. |
-| `tipo_mime` | `string` | Sí | Uno de: `image/jpeg`, `image/png`, `image/webp`, `application/pdf`. |
+| `tipo_mime` | `string` | Sí | Uno de: `image/jpeg`, `image/png`, `image/webp`, `application/pdf`, `application/vnd.ms-excel` (.xls), `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` (.xlsx). |
 | `archivo_base64` | `string` | Sí | Contenido del archivo nuevo, codificado en base64. |
 
 ---
@@ -39,7 +39,7 @@ Mismas reglas de validación que `POST /versiones/{id}/adjuntos` (ver ese contra
 
 1. El adjunto debe existir — `404` si no.
 2. No se valida el estado de la versión a la que pertenece el adjunto: se admite en cualquier estado, incluidos `publicado` y `archivado`.
-3. Mismas validaciones de `tipo_mime` y tamaño máximo (5MB) que al agregar.
+3. Mismas validaciones de `tipo_mime` y tamaño máximo (10MB) que al agregar.
 4. `subido_por` se actualiza al usuario que hizo el reemplazo (hoy siempre `'sistema'`).
 5. El blob viejo se borra **después** de confirmar la actualización de la fila — nunca antes.
 

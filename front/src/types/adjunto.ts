@@ -1,4 +1,10 @@
-export type AdjuntoTipoMime = 'image/jpeg' | 'image/png' | 'image/webp' | 'application/pdf';
+export type AdjuntoTipoMime =
+  | 'image/jpeg'
+  | 'image/png'
+  | 'image/webp'
+  | 'application/pdf'
+  | 'application/vnd.ms-excel'
+  | 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
 /** Fila de `GET /versiones/{id}/adjuntos` — ver Arquitectura/Contratos/13_adjuntos/. */
 export interface Adjunto {

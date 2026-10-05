@@ -21,9 +21,9 @@ app.use(helmet());
 app.use(cors({ origin: env.CORS_ORIGIN }));
 
 // ─── Parseo de body ───────────────────────────────────────────────────────────
-// Límite subido de 100kb (default) a 8mb: el Agente Extractor de Imagen Numerada recibe fotos en
-// base64 (ya redimensionadas del lado del cliente antes de enviarse).
-app.use(express.json({ limit: '8mb' }));
+// Límite subido de 100kb (default) a 15mb: los adjuntos de versión viajan en base64 (hasta 10MB de
+// binario ≈ 13.4MB codificado) y el Agente Extractor de Imagen Numerada recibe fotos en base64.
+app.use(express.json({ limit: '15mb' }));
 
 // ─── Rutas ────────────────────────────────────────────────────────────────────
 app.use('/api/v1', router);
