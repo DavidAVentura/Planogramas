@@ -12,4 +12,7 @@ const router = Router();
 // GET /auth/sesion — usuario de la sesión actual (lo usa el front al entrar por /auth?token=)
 router.get('/sesion', controller.obtenerSesion);
 
+// POST /auth/keepalive — latido periódico del front para que la sesión CAO no se venza
+router.post('/keepalive', controller.mantenerSesion);
+
 module.exports = router;

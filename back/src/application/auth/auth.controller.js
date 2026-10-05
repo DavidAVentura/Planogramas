@@ -9,4 +9,11 @@ function obtenerSesion(req, res) {
   res.json(req.usuario);
 }
 
-module.exports = { obtenerSesion };
+// POST /auth/keepalive — latido del front mientras la app está abierta. No hace nada por sí
+// mismo: el middleware de autenticación ya validó el token y disparó la renovación de la sesión
+// en CAO (caoAuthClient.mantenerSesionActiva). Si la sesión ya no es válida, responde 401 antes.
+function mantenerSesion(req, res) {
+  res.status(204).end();
+}
+
+module.exports = { obtenerSesion, mantenerSesion };

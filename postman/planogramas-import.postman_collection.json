@@ -608,6 +608,122 @@
               "response": []
             }
           ]
+        },
+        {
+          "name": "Mantener sesión (POST /auth/keepalive)",
+          "item": [
+            {
+              "name": "204 - Latido con TOKEN_CAO",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/auth/keepalive",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "keepalive"
+                  ]
+                },
+                "description": "Usa la auth heredada de la colección (Bearer {{TOKEN_CAO}}). El middleware valida el token y dispara la renovación de la sesión en CAO."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 204', () => pm.response.to.have.status(204));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "401 - Sin header Authorization",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/auth/keepalive",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "keepalive"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "Sin token: el middleware rechaza antes de llamar a CAO."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));",
+                      "pm.test('Código UNAUTHORIZED', () => pm.expect(pm.response.json().error.code).to.eql('UNAUTHORIZED'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "401 - Token inválido",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/auth/keepalive",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "keepalive"
+                  ]
+                },
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "token.invalido.prueba",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "description": "Token no emitido por CAO: el backend responde 401 y el front invalida la sesión."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));",
+                      "pm.test('Código UNAUTHORIZED', () => pm.expect(pm.response.json().error.code).to.eql('UNAUTHORIZED'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
         }
       ]
     },

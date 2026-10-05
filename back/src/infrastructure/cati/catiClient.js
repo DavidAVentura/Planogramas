@@ -459,14 +459,14 @@ function primerArreglo(...candidatos) {
 }
 
 /**
- * Capa anti-corrupción de `POST /Stock/sap/bulkInventoryReport`: la forma de su respuesta NO está
- * documentada en el swagger de CATI ni se pudo confirmar contra CATI real (solo alcanzable desde la
- * red interna), así que se aceptan defensivamente las variantes plausibles:
+ * Capa anti-corrupción de `POST /Stock/sap/bulkInventoryReport`. Forma confirmada contra CATI real
+ * (2026-10-02): arreglo de filas agrupadas por SKU, con los centros anidados en `data`:
+ *   `[ { sku, productName, brand, data: [ { centroId, centro, stock, ... } ] } ]`.
+ * Se siguen aceptando defensivamente otras variantes plausibles:
  *   - arreglo plano de filas tipo `InventarioSap` (`{ sku, centroId, centro, stock, ... }`);
- *   - filas agrupadas por SKU (`{ sku, inventario|items|stock: [ { centroId, stock, ... } ] }`);
+ *   - filas agrupadas por SKU con otro nombre de arreglo (`inventario|items|stock`);
  *   - cualquiera de las dos envuelta en `{ data: [...] }` (o `items` / `result`).
- * Cualquier otra forma se trata como "sin filas". Cuando se confirme la forma real conviene
- * simplificar esta función y dejar solo esa variante.
+ * Cualquier otra forma se trata como "sin filas".
  * @param {any} cuerpo
  * @returns {Array<object>} filas crudas, cada una con su `sku`
  */
@@ -481,7 +481,7 @@ function extraerFilasStockBulk(cuerpo) {
 
   return lista.flatMap((fila) => {
     if (!fila || typeof fila !== 'object') return [];
-    const anidadas = primerArreglo(fila.inventario, fila.items, fila.stock);
+    const anidadas = primerArreglo(fila.data, fila.inventario, fila.items, fila.stock);
     if (anidadas) {
       return anidadas
         .filter((h) => h && typeof h === 'object')
