@@ -6,7 +6,12 @@
 
 const Joi             = require('joi');
 const usecases        = require('../../domain/version/version.usecases');
-const { TIPOS, ESTADOS } = require('../../domain/version/version.entity');
+const {
+  TIPOS,
+  ESTADOS,
+  CANTIDAD_GONDOLAS_DEFAULT,
+  CANTIDAD_GONDOLAS_MAXIMA,
+} = require('../../domain/version/version.entity');
 const versionRepo     = require('../../infrastructure/repositories/version.repository');
 const planogramaRepo  = require('../../infrastructure/repositories/planograma.repository');
 const { usuarioAuditoria } = require('../compartido/validacion');
@@ -23,6 +28,13 @@ const schemaCrear = Joi.object({
   versionBaseId: Joi.number().integer().positive().optional(),
   tiendaId:      Joi.number().integer().positive()
     .when('versionBaseId', { is: Joi.exist(), then: Joi.required(), otherwise: Joi.optional() }),
+  // La versión especial por tienda clona las góndolas de su base: no admite cantidad propia.
+  cantidadGondolas: Joi.number().integer().min(1).max(CANTIDAD_GONDOLAS_MAXIMA)
+    .when('versionBaseId', {
+      is:        Joi.exist(),
+      then:      Joi.forbidden(),
+      otherwise: Joi.optional().default(CANTIDAD_GONDOLAS_DEFAULT),
+    }),
 });
 
 const schemaVistaQuery = Joi.object({

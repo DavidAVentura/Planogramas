@@ -40,6 +40,9 @@ export interface CrearVersionInput {
   notas?: string;
   versionBaseId?: number;
   tiendaId?: number;
+  /** Góndolas vacías con las que nace la versión (1-20, default 1 en el API). No aplica con
+   * `versionBaseId`: la versión especial clona las góndolas de su base. */
+  cantidadGondolas?: number;
 }
 
 export interface VersionAnteriorArchivada {

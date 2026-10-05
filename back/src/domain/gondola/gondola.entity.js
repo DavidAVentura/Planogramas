@@ -7,6 +7,17 @@
 /** Estados de PlanogramaVersion en los que se admite editar sus góndolas. */
 const ESTADOS_VERSION_EDITABLE = Object.freeze(['borrador', 'en_desarrollo', 'piloto']);
 
+/**
+ * Medidas por defecto de Cemaco para una góndola nueva (cm). Las usan las góndolas que se crean
+ * junto con la versión y el Agente Extractor. Mismos valores que `GONDOLA_DEFAULTS` en
+ * front/src/constants/valoresPorDefecto.ts (duplicados allá porque el front no importa del back).
+ */
+const GONDOLA_DEFAULTS = Object.freeze({
+  ancho_cm:       200,
+  alto_cm:        230,
+  profundidad_cm: 50,
+});
+
 function errorBadRequest(mensaje) {
   const err = new Error(mensaje);
   err.status = 400;
@@ -54,6 +65,7 @@ function validarArrayOrden(orden) {
 
 module.exports = {
   ESTADOS_VERSION_EDITABLE,
+  GONDOLA_DEFAULTS,
   validarVersionEditable,
   validarArrayOrden,
 };

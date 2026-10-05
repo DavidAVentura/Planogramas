@@ -436,6 +436,18 @@
       "value": "",
       "type": "string",
       "description": "Body de POST /pruebas/limpieza, armado por su pre-request; no editar a mano."
+    },
+    {
+      "key": "planogramaIdCantidadGondolas",
+      "value": "",
+      "type": "string",
+      "description": "Planograma creado en versiones/Crear version para probar cantidadGondolas (se sobrescribe en la corrida)."
+    },
+    {
+      "key": "versionIdCantidadGondolas",
+      "value": "",
+      "type": "string",
+      "description": "Versión creada con cantidadGondolas 3 (se sobrescribe en la corrida)."
     }
   ],
   "item": [
@@ -3993,6 +4005,181 @@
               "response": []
             },
             {
+              "name": "200 - La version vacia nace con 1 gondola por defecto (Góndola 1, 200x230x50)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdSecundariaMismoPlanograma}}/gondolas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdSecundariaMismoPlanograma}}",
+                    "gondolas"
+                  ]
+                },
+                "description": "Sin cantidadGondolas en el body, el API crea 1 góndola vacía junto con la versión."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Una sola góndola vacía con nombre y medidas por defecto', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array').with.lengthOf(1);",
+                      "  pm.expect(body[0].nombre).to.eql('Góndola 1');",
+                      "  pm.expect(body[0].orden).to.eql(1);",
+                      "  pm.expect(Number(body[0].ancho_cm)).to.eql(200);",
+                      "  pm.expect(Number(body[0].alto_cm)).to.eql(230);",
+                      "  pm.expect(Number(body[0].profundidad_cm)).to.eql(50);",
+                      "  pm.expect(body[0].totalNiveles).to.eql(0);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear planograma para cantidadGondolas (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Autos - Rack Cantidad Gondolas {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\n    \"Aceites\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Planograma propio para no chocar con la regla de un borrador por tipo de los otros planogramas de setup."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('planogramaIdCantidadGondolas', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear version con cantidadGondolas 3",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdCantidadGondolas}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdCantidadGondolas}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\",\n  \"cantidadGondolas\": 3\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdCantidadGondolas', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - La version nace con 3 gondolas vacias ordenadas",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdCantidadGondolas}}/gondolas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdCantidadGondolas}}",
+                    "gondolas"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Góndola 1..3 con orden 1..3 y sin niveles', () => {",
+                      "  const body = pm.response.json();",
+                      "  pm.expect(body).to.be.an('array').with.lengthOf(3);",
+                      "  pm.expect(body.map((g) => g.nombre)).to.eql(['Góndola 1', 'Góndola 2', 'Góndola 3']);",
+                      "  pm.expect(body.map((g) => g.orden)).to.eql([1, 2, 3]);",
+                      "  pm.expect(body.every((g) => g.totalNiveles === 0)).to.eql(true);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
               "name": "201 - Crear version especial por tienda (clona estructura)",
               "request": {
                 "method": "POST",
@@ -4226,6 +4413,148 @@
                     "exec": [
                       "pm.test('Status 400', () => pm.response.to.have.status(400));",
                       "pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR');"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - cantidadGondolas menor a 1",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdCantidadGondolas}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdCantidadGondolas}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"MEDIANA\",\n  \"cantidadGondolas\": 0\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - cantidadGondolas mayor a 20",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdCantidadGondolas}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdCantidadGondolas}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"MEDIANA\",\n  \"cantidadGondolas\": 21\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - cantidadGondolas no se admite con versionBaseId",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdClonar}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdClonar}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\",\n  \"versionBaseId\": \"{{versionIdBaseClonar}}\",\n  \"tiendaId\": {{tiendaIdExistente}},\n  \"cantidadGondolas\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "La versión especial por tienda clona las góndolas de su base; pedir una cantidad propia es un error de validación."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
                     ]
                   }
                 }
@@ -18482,7 +18811,7 @@
                       "const body = pm.response.json();",
                       "pm.test('tienda y umbral', () => { pm.expect(body.tienda.id).to.eql(Number(pm.collectionVariables.get('tiendaIdImplementacion'))); pm.expect(body.tienda).to.have.all.keys('id', 'codigo', 'nombre', 'tipo'); pm.expect(body.umbralImplementable).to.eql(85); });",
                       "const v = body.planogramas.find((p) => p.versionId === Number(pm.collectionVariables.get('versionIdImplementacion')));",
-                      "pm.test('incluye la versión piloto con 1 producto y su góndola sin evidencia', () => { pm.expect(v).to.be.an('object'); pm.expect(v.estado).to.eql('piloto'); pm.expect(v.esEspecial).to.eql(false); pm.expect(v.planogramaId).to.eql(Number(pm.collectionVariables.get('planogramaIdImplementacion'))); pm.expect(v.totalProductos).to.eql(1); pm.expect(v.adjuntos).to.eql(0); pm.expect(v.evidencias).to.eql(0); pm.expect(v.gondolas.length).to.eql(1); pm.expect(v.gondolas[0].id).to.eql(Number(pm.collectionVariables.get('gondolaIdImplementacion'))); pm.expect(v.gondolas[0].evidencias).to.eql(0); });",
+                      "pm.test('incluye la versión piloto con 1 producto y sus 2 góndolas sin evidencia (la vacía con la que nace la versión + la del setup)', () => { pm.expect(v).to.be.an('object'); pm.expect(v.estado).to.eql('piloto'); pm.expect(v.esEspecial).to.eql(false); pm.expect(v.planogramaId).to.eql(Number(pm.collectionVariables.get('planogramaIdImplementacion'))); pm.expect(v.totalProductos).to.eql(1); pm.expect(v.adjuntos).to.eql(0); pm.expect(v.evidencias).to.eql(0); pm.expect(v.gondolas.length).to.eql(2); const g = v.gondolas.find((x) => x.id === Number(pm.collectionVariables.get('gondolaIdImplementacion'))); pm.expect(g).to.be.an('object'); pm.expect(v.gondolas.every((x) => x.evidencias === 0)).to.eql(true); });",
                       "pm.test('no incluye la versión en borrador sin asignar', () => pm.expect(body.planogramas.some((p) => p.versionId === Number(pm.collectionVariables.get('versionIdImplementacionNoAsignada')))).to.eql(false));",
                       "pm.test('inventarioDisponible es booleano', () => pm.expect(body.inventarioDisponible).to.be.a('boolean'));",
                       "if (body.inventarioDisponible) {",
@@ -19360,7 +19689,7 @@
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "const body = pm.response.json();",
-                      "pm.test('versionId, tiendaId y 2 góndolas ordenadas', () => { pm.expect(body.versionId).to.eql(Number(pm.collectionVariables.get('versionIdEvidencias'))); pm.expect(body.tiendaId).to.eql(Number(pm.collectionVariables.get('tiendaIdExistente'))); pm.expect(body.gondolas.length).to.eql(2); pm.expect(body.gondolas[0].orden).to.be.at.most(body.gondolas[1].orden); });",
+                      "pm.test('versionId, tiendaId y 3 góndolas ordenadas (la vacía con la que nace la versión + las 2 del setup)', () => { pm.expect(body.versionId).to.eql(Number(pm.collectionVariables.get('versionIdEvidencias'))); pm.expect(body.tiendaId).to.eql(Number(pm.collectionVariables.get('tiendaIdExistente'))); pm.expect(body.gondolas.length).to.eql(3); const ordenes = body.gondolas.map((g) => g.orden); pm.expect(ordenes).to.eql([...ordenes].sort((a, b) => a - b)); });",
                       "const g1 = body.gondolas.find((g) => g.id === Number(pm.collectionVariables.get('gondolaIdEvidencias')));",
                       "const g2 = body.gondolas.find((g) => g.id === Number(pm.collectionVariables.get('gondolaIdEvidenciasSinFotos')));",
                       "pm.test('la góndola 1 trae la foto del setup, eliminable por quien la subió', () => { const e = g1.evidencias.find((x) => x.id === Number(pm.collectionVariables.get('evidenciaIdListado'))); pm.expect(e).to.be.an('object'); pm.expect(e.tipo_mime).to.eql('image/png'); pm.expect(e.tamano_bytes).to.eql(70); pm.expect(e.puedeEliminar).to.eql(true); pm.expect(e.subido_por).to.be.a('string'); });",

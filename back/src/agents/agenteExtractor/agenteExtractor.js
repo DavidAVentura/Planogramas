@@ -9,6 +9,7 @@
  */
 
 const { TIPOS_ACCESORIO } = require('../../domain/nivel/nivel.entity');
+const { GONDOLA_DEFAULTS } = require('../../domain/gondola/gondola.entity');
 const { PERFILES_REDONDEO, MODOS, DECISIONES } = require('../../domain/posicion/posicion.entity');
 
 // Mismos valores por defecto que usa "Elegir producto" desde catálogo
@@ -20,12 +21,11 @@ const DEFAULTS = {
   perfil_redondeo: 'MRP',
   modo: 'PLANOGRAMA',
   decision: 'ACTIVO',
-  // Mismos valores por defecto de góndola/nivel que usan GondolaModal/NivelModal en el frontend
-  // (ver front/src/constants/valoresPorDefecto.ts — misma fuente de verdad, duplicada acá porque
-  // el backend no puede importar del frontend).
-  gondola_ancho_cm: 200,
-  gondola_alto_cm: 230,
-  gondola_profundidad_cm: 50,
+  // Medidas de góndola: las mismas del dominio (GONDOLA_DEFAULTS). Los de nivel replican
+  // front/src/constants/valoresPorDefecto.ts (el backend no puede importar del frontend).
+  gondola_ancho_cm: GONDOLA_DEFAULTS.ancho_cm,
+  gondola_alto_cm: GONDOLA_DEFAULTS.alto_cm,
+  gondola_profundidad_cm: GONDOLA_DEFAULTS.profundidad_cm,
   nivel_altura_desde_piso_cm: 5,
   nivel_tipo_accesorio: 'BANDEJA',
 };
@@ -201,6 +201,9 @@ Góndola:
   (${DEFAULTS.gondola_ancho_cm}×${DEFAULTS.gondola_alto_cm}×${DEFAULTS.gondola_profundidad_cm} cm,
   ancho×alto×profundidad) — si el usuario no las da, asumilas y avisale en tu respuesta que usaste
   esos valores por si quiere cambiarlos.
+  Las versiones nacen con góndolas vacías de nombre genérico ("Góndola 1", "Góndola 2"…): si el
+  usuario describe una góndola nueva y existe alguna de esas sin niveles, preferí "editar_gondola"
+  sobre ella (renombrarla/ajustar medidas) antes que "crear_gondola".
 - "editar_gondola": gondola_orden (la góndola a editar) + cualquiera de los campos de arriba (parcial).
 - "eliminar_gondola": gondola_orden. Borra en cascada sus niveles y posiciones — es irreversible.
   Nunca la agregues al borrador sin que el usuario haya confirmado explícitamente que quiere

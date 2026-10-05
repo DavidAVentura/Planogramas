@@ -6,6 +6,8 @@ import type { Version, VersionTipo } from '../../../../types/version';
 import './CrearVersionModal.css';
 
 const TIPOS: VersionTipo[] = ['GRANDE', 'MEDIANA', 'EXPRESS'];
+// Mismo tope que CANTIDAD_GONDOLAS_MAXIMA en back/src/domain/version/version.entity.js.
+const CANTIDAD_GONDOLAS_MAXIMA = 20;
 
 interface CrearVersionModalProps {
   planogramaId: number;
@@ -16,11 +18,16 @@ interface CrearVersionModalProps {
 export function CrearVersionModal({ planogramaId, onClose, onCreada }: CrearVersionModalProps) {
   const { crear, enviando } = useCrearVersion();
   const [tipo, setTipo] = useState<VersionTipo>('GRANDE');
+  const [cantidadGondolas, setCantidadGondolas] = useState('1');
   const [notas, setNotas] = useState('');
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    const version = await crear(planogramaId, { tipo, notas: notas.trim() || undefined });
+    const version = await crear(planogramaId, {
+      tipo,
+      cantidadGondolas: Number(cantidadGondolas),
+      notas: notas.trim() || undefined,
+    });
     if (version) onCreada(version);
   }
 
@@ -49,6 +56,23 @@ export function CrearVersionModal({ planogramaId, onClose, onCreada }: CrearVers
               </option>
             ))}
           </select>
+        </label>
+
+        <label className="crear-version-form__campo">
+          <span>¿Cuántas góndolas tiene o tendrá?</span>
+          <input
+            type="number"
+            min="1"
+            max={CANTIDAD_GONDOLAS_MAXIMA}
+            step="1"
+            value={cantidadGondolas}
+            onChange={(e) => setCantidadGondolas(e.target.value)}
+            required
+          />
+          <small className="crear-version-form__ayuda">
+            Entre 1 y {CANTIDAD_GONDOLAS_MAXIMA}. Se crean vacías (200 × 230 × 50 cm); puedes agregar, editar o
+            eliminar góndolas después en el editor.
+          </small>
         </label>
 
         <label className="crear-version-form__campo">

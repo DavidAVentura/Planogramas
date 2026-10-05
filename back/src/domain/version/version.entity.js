@@ -4,6 +4,8 @@
  * Sin dependencias de Express, Knex ni ninguna infraestructura.
  */
 
+const { GONDOLA_DEFAULTS } = require('../gondola/gondola.entity');
+
 const TIPOS = Object.freeze({
   GRANDE:  'GRANDE',
   MEDIANA: 'MEDIANA',
@@ -17,6 +19,10 @@ const ESTADOS = Object.freeze({
   PUBLICADO:      'publicado',
   ARCHIVADO:      'archivado',
 });
+
+/** Góndolas vacías que se crean junto con una versión nueva (no aplica a las especiales por tienda). */
+const CANTIDAD_GONDOLAS_DEFAULT = 1;
+const CANTIDAD_GONDOLAS_MAXIMA  = 20;
 
 const INICIALES_TIPO = Object.freeze({
   [TIPOS.GRANDE]:  'G',
@@ -125,10 +131,27 @@ function validarTransicionArchivar(estadoActual) {
   }
 }
 
+/**
+ * Arma las filas de las góndolas vacías con las que nace una versión: "Góndola 1".."Góndola N",
+ * en ese orden y con las medidas por defecto de Cemaco.
+ * @param {number} cantidad
+ * @returns {Array<{ nombre, ancho_cm, alto_cm, profundidad_cm, orden }>}
+ */
+function generarGondolasIniciales(cantidad) {
+  return Array.from({ length: cantidad }, (_, i) => ({
+    nombre: `Góndola ${i + 1}`,
+    ...GONDOLA_DEFAULTS,
+    orden:  i + 1,
+  }));
+}
+
 module.exports = {
   TIPOS,
   ESTADOS,
+  CANTIDAD_GONDOLAS_DEFAULT,
+  CANTIDAD_GONDOLAS_MAXIMA,
   generarCodigo,
+  generarGondolasIniciales,
   generarCodigoEspecial,
   validarPlanogramaNoArchivado,
   validarNoArchivada,

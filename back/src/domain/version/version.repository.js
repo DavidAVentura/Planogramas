@@ -17,11 +17,12 @@ module.exports = {
   listarPorPlanograma: async (_planogramaId, _filtros) => { throw new Error('No implementado'); },
 
   /**
-   * Crea una versión vacía.
+   * Crea una versión junto con sus góndolas vacías iniciales. Transacción única.
    * @param {{ planograma_id, tipo, codigo, estado, notas }} version
+   * @param {Array<{ nombre, ancho_cm, alto_cm, profundidad_cm, orden }>} gondolas
    * @returns {Promise<number>} id de la versión creada
    */
-  crear: async (_version) => { throw new Error('No implementado'); },
+  crearConGondolas: async (_version, _gondolas) => { throw new Error('No implementado'); },
 
   /**
    * Crea una versión especial por tienda clonando la estructura completa

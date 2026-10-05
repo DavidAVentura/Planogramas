@@ -104,11 +104,18 @@ async function listarPorPlanograma(planogramaId, { incluirArchivadas }) {
   }));
 }
 
-// ─── crear ───────────────────────────────────────────────────────────────────
+// ─── crearConGondolas ────────────────────────────────────────────────────────
 
-async function crear(version) {
-  const [{ id }] = await db(TABLA_VERSION).insert(version).returning('id');
-  return id;
+async function crearConGondolas(version, gondolas) {
+  return db.transaction(async (trx) => {
+    const [{ id: nuevaVersionId }] = await trx(TABLA_VERSION).insert(version).returning('id');
+
+    if (gondolas.length > 0) {
+      await trx(TABLA_GONDOLA).insert(gondolas.map((g) => ({ ...g, planograma_version_id: nuevaVersionId })));
+    }
+
+    return nuevaVersionId;
+  });
 }
 
 // ─── clonarEstructura ────────────────────────────────────────────────────────
@@ -811,7 +818,7 @@ async function obtenerResumen(id) {
 
 module.exports = {
   listarPorPlanograma,
-  crear,
+  crearConGondolas,
   crearConClon,
   clonarEstructura,
   obtenerResumen,

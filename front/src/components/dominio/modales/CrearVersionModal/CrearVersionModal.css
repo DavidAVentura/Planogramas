@@ -13,6 +13,7 @@
   font-weight: 600;
 
   select,
+  input,
   textarea {
     padding: 10px 12px;
     border: 1px solid var(--border);
@@ -28,8 +29,15 @@
     }
   }
 
-  select {
+  select,
+  input {
     height: 40px;
     padding: 0 12px;
   }
+}
+
+.crear-version-form__ayuda {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--fg-3);
 }

@@ -9,7 +9,7 @@
 
 ## Descripción
 
-Crea una nueva versión de planograma. Si se incluye `versionBaseId`, crea una **versión especial por tienda** copiando toda la estructura (góndolas, niveles, posiciones, accesorios) de la versión base. Sin `versionBaseId`, crea una versión vacía.
+Crea una nueva versión de planograma. Si se incluye `versionBaseId`, crea una **versión especial por tienda** copiando toda la estructura (góndolas, niveles, posiciones, accesorios) de la versión base. Sin `versionBaseId`, crea una versión nueva con `cantidadGondolas` góndolas vacías (1 por defecto).
 
 ---
 
@@ -29,27 +29,30 @@ Crea una nueva versión de planograma. Si se incluye `versionBaseId`, crea una *
 | `notas` | `string` | No | Notas internas. Máximo 500 chars. |
 | `versionBaseId` | `integer` | No | Si se envía: copia la estructura de esa versión (CU-02-02). |
 | `tiendaId` | `integer` | Condicional | Requerido si se envía `versionBaseId`. Tienda a la que aplica esta versión especial. |
+| `cantidadGondolas` | `integer` | No | Góndolas vacías con las que nace la versión. Entero entre 1 y 20; default `1`. **No se admite** junto con `versionBaseId` (la versión especial clona las góndolas de su base) → `400`. |
 
 ---
 
 ## Reglas de negocio
 
 1. No se pueden crear versiones en un planograma `archivado` → `422`.
-2. Solo puede existir **una versión en `borrador`** del mismo `tipo` en la **línea base** (versión vacía, sin `versionBaseId`) por planograma. Si ya existe, retorna `409`. Sí puede coexistir con versiones de la línea base del mismo `tipo` en `en_desarrollo`, `piloto` o `publicado` — cada estado admite como máximo una versión base por `tipo`, y avanzar una versión de estado archiva automáticamente a la que ocupaba el estado destino (ver `PATCH_versiones_guardar.md` y `POST_versiones_promover.md`). Esta regla **no aplica a las versiones especiales por tienda**: cada tienda puede tener su propia versión especial en cualquier estado, sin chocar entre sí ni con la línea base.
-3. El `codigo` se genera automáticamente con el patrón: `{NOMBRE_PLANOGRAMA}-T{INICIAL_TIPO}` para una versión vacía, y `{NOMBRE_PLANOGRAMA}-T{INICIAL_TIPO}-{CODIGO_TIENDA}` para una versión especial por tienda. Ej: `AUTOS 01-TG` y `AUTOS 01-TG-T010`.
+2. Solo puede existir **una versión en `borrador`** del mismo `tipo` en la **línea base** (versión nueva, sin `versionBaseId`) por planograma. Si ya existe, retorna `409`. Sí puede coexistir con versiones de la línea base del mismo `tipo` en `en_desarrollo`, `piloto` o `publicado` — cada estado admite como máximo una versión base por `tipo`, y avanzar una versión de estado archiva automáticamente a la que ocupaba el estado destino (ver `PATCH_versiones_guardar.md` y `POST_versiones_promover.md`). Esta regla **no aplica a las versiones especiales por tienda**: cada tienda puede tener su propia versión especial en cualquier estado, sin chocar entre sí ni con la línea base.
+3. El `codigo` se genera automáticamente con el patrón: `{NOMBRE_PLANOGRAMA}-T{INICIAL_TIPO}` para una versión nueva, y `{NOMBRE_PLANOGRAMA}-T{INICIAL_TIPO}-{CODIGO_TIENDA}` para una versión especial por tienda. Ej: `AUTOS 01-TG` y `AUTOS 01-TG-T010`.
 4. Si se envía `versionBaseId`:
    - La versión base debe existir y pertenecer al mismo planograma.
    - Se copia toda la estructura en una transacción única.
    - La tienda (`tiendaId`) no debe tener ya una versión especial derivada de esa base.
 5. La nueva versión inicia en estado `borrador`.
+6. Sin `versionBaseId`, la versión se crea en una transacción única junto con `cantidadGondolas` góndolas vacías (sin niveles): nombres `Góndola 1`..`Góndola N`, `orden` 1..N y medidas por defecto de Cemaco 200 × 230 × 50 cm (ancho × alto × profundidad, `GONDOLA_DEFAULTS` en `domain/gondola/gondola.entity.js`). El analista puede renombrarlas, ajustarlas o eliminarlas después mientras la versión sea editable (`borrador`, `en_desarrollo`, `piloto`). Las góndolas que no se eliminen cuentan para Evidencias.
 
 ---
 
-## Request JSON — versión nueva vacía (CU-02-01)
+## Request JSON — versión nueva (CU-02-01)
 
 ```json
 {
   "tipo": "GRANDE",
+  "cantidadGondolas": 3,
   "notas": "Rediseño Q3 2026"
 }
 ```
@@ -67,7 +70,7 @@ Crea una nueva versión de planograma. Si se incluye `versionBaseId`, crea una *
 
 ---
 
-## Response — 201 Created (versión vacía)
+## Response — 201 Created (versión nueva)
 
 ```json
 {
@@ -104,7 +107,7 @@ Crea una nueva versión de planograma. Si se incluye `versionBaseId`, crea una *
 
 | Código | Condición |
 |--------|-----------|
-| `400 Bad Request` | `tipo` inválido, `tiendaId` ausente cuando se envía `versionBaseId`, o campos con valores fuera de rango. |
+| `400 Bad Request` | `tipo` inválido, `tiendaId` ausente cuando se envía `versionBaseId`, `cantidadGondolas` fuera de 1-20 o enviado junto con `versionBaseId`, o campos con valores fuera de rango. |
 | `401 Unauthorized` | JWT ausente o inválido. |
 | `403 Forbidden` | Usuario sin rol de Analista. |
 | `404 Not Found` | Planograma o `versionBaseId` no encontrado. |

@@ -11,6 +11,7 @@ const {
   ESTADOS,
   generarCodigo,
   generarCodigoEspecial,
+  generarGondolasIniciales,
   validarPlanogramaNoArchivado,
   validarNoArchivada,
   calcularTransicionGuardar,
@@ -76,13 +77,16 @@ async function crearVersionVacia(versionRepo, planograma, datos) {
 
   const codigo = generarCodigo(planograma.nombre, datos.tipo);
 
-  const id = await versionRepo.crear({
-    planograma_id: planograma.id,
-    tipo:          datos.tipo,
-    codigo,
-    estado:        ESTADOS.BORRADOR,
-    notas:         datos.notas ?? null,
-  });
+  const id = await versionRepo.crearConGondolas(
+    {
+      planograma_id: planograma.id,
+      tipo:          datos.tipo,
+      codigo,
+      estado:        ESTADOS.BORRADOR,
+      notas:         datos.notas ?? null,
+    },
+    generarGondolasIniciales(datos.cantidadGondolas),
+  );
 
   return versionRepo.buscarPorId(id);
 }
@@ -125,11 +129,11 @@ async function crearVersionEspecial(versionRepo, planograma, datos) {
 /**
  * Crea una versión nueva. Si `datos.versionBaseId` está presente, crea una versión
  * especial por tienda clonando la estructura de esa versión base (CU-02-02);
- * de lo contrario crea una versión vacía (CU-02-01).
+ * de lo contrario crea una versión con `cantidadGondolas` góndolas vacías (CU-02-01).
  * @param {object} versionRepo
  * @param {object} planogramaRepo
  * @param {number} planogramaId
- * @param {{ tipo, notas?, versionBaseId?, tiendaId? }} datos
+ * @param {{ tipo, notas?, versionBaseId?, tiendaId?, cantidadGondolas? }} datos
  * @returns {Promise<object>}
  */
 async function crearVersion(versionRepo, planogramaRepo, planogramaId, datos) {
