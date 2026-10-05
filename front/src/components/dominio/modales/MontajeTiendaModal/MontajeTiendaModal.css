@@ -1,0 +1,125 @@
+.montaje-modal__contexto {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--fg-2);
+
+  strong {
+    color: var(--fg-1);
+    font-weight: 700;
+  }
+}
+
+.montaje-modal__conteo {
+  margin-left: auto;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-1);
+}
+
+.montaje-modal__cargando {
+  margin: 0;
+  padding: 24px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--fg-2);
+}
+
+.montaje-modal__gondolas {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.montaje-modal__nota {
+  margin: 0;
+  font-size: 12px;
+  color: var(--fg-3);
+}
+
+.montaje-gondola {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.montaje-gondola__nombre {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.montaje-gondola__conteo {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--fg-3);
+}
+
+.montaje-gondola__fotos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.montaje-foto {
+  width: 152px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.montaje-foto__imagen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 152px;
+  height: 108px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--ink-100);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg-3);
+  cursor: zoom-in;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &:hover {
+    border-color: var(--cemaco-indigo);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 2px;
+  }
+}
+
+.montaje-foto__pie {
+  display: flex;
+  flex-direction: column;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--fg-3);
+}
+
+.montaje-foto__autor {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

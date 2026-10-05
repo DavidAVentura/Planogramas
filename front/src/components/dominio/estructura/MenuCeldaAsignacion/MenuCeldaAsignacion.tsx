@@ -2,7 +2,7 @@ import { useEffect, useRef, type KeyboardEvent } from 'react';
 import './MenuCeldaAsignacion.css';
 
 const ANCHO_MENU = 244;
-const ALTO_MENU = 150;
+const ALTO_MENU = 196;
 
 interface MenuCeldaAsignacionProps {
   /** Coordenadas del viewport donde se hizo clic derecho. */
@@ -13,8 +13,11 @@ interface MenuCeldaAsignacionProps {
   estado: string;
   /** Si viene, "Ver versión" queda deshabilitado con este motivo. */
   motivoSinVersion: string | null;
+  /** Si viene, "Montaje de tienda" queda deshabilitado con este motivo. */
+  motivoSinMontaje: string | null;
   onHistorial: () => void;
   onVerVersion: () => void;
+  onMontaje: () => void;
   onClose: () => void;
 }
 
@@ -25,8 +28,10 @@ export function MenuCeldaAsignacion({
   tienda,
   estado,
   motivoSinVersion,
+  motivoSinMontaje,
   onHistorial,
   onVerVersion,
+  onMontaje,
   onClose,
 }: MenuCeldaAsignacionProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -102,6 +107,22 @@ export function MenuCeldaAsignacion({
         <span className="menu-celda-asignacion__texto">
           Ver versión
           {motivoSinVersion && <span className="menu-celda-asignacion__nota">{motivoSinVersion}</span>}
+        </span>
+      </button>
+      <button
+        type="button"
+        role="menuitem"
+        className="menu-celda-asignacion__opcion"
+        disabled={motivoSinMontaje !== null}
+        onClick={onMontaje}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+          <circle cx="12" cy="13" r="3.5" />
+        </svg>
+        <span className="menu-celda-asignacion__texto">
+          Montaje de tienda
+          {motivoSinMontaje && <span className="menu-celda-asignacion__nota">{motivoSinMontaje}</span>}
         </span>
       </button>
     </div>

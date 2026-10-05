@@ -12,6 +12,7 @@ import {
 import { ResumenAsignacionModal, type CambioResumen } from '../../components/dominio/modales/ResumenAsignacionModal/ResumenAsignacionModal';
 import { HistorialAsignacionModal } from '../../components/dominio/modales/HistorialAsignacionModal/HistorialAsignacionModal';
 import { VersionResumenModal } from '../../components/dominio/modales/VersionResumenModal/VersionResumenModal';
+import { MontajeTiendaModal } from '../../components/dominio/modales/MontajeTiendaModal/MontajeTiendaModal';
 import { EmptyState } from '../../components/ui/EmptyState/EmptyState';
 import { useGuardarEdicion, useMatrizAsignaciones } from '../../hooks/useAsignaciones';
 import { usePromoverAPiloto } from '../../hooks/useVersiones';
@@ -131,6 +132,7 @@ export function EstructuraAsignacion() {
   const [menu, setMenu] = useState<MenuAbierto | null>(null);
   const [celdaHistorial, setCeldaHistorial] = useState<CeldaAbierta | null>(null);
   const [versionAbierta, setVersionAbierta] = useState<{ versionId: number; tienda: TiendaMatriz } | null>(null);
+  const [montajeAbierto, setMontajeAbierto] = useState<(CeldaAbierta & { version: VersionMatriz }) | null>(null);
   const [extendida, setExtendida] = useState(false);
 
   // Al arrastrar se pintan varias celdas en un solo paso de "Deshacer": el ref guarda el mapa
@@ -408,6 +410,8 @@ export function EstructuraAsignacion() {
   }, [contexto, planogramaContexto, modo, promocion, versionContexto, recienPromovida, tiendasDeLaVersion, guardadas, matriz]);
 
   const menuDescripcion = menu ? describirCelda(asignaciones[clave(menu.planograma.id, menu.tienda.id)], menu.tienda, versiones) : null;
+  // Las fotos del montaje cuelgan de la versión guardada en la tienda, no de un cambio sin guardar.
+  const menuMontaje = menu ? describirCelda(guardadas[clave(menu.planograma.id, menu.tienda.id)], menu.tienda, versiones) : null;
 
   return (
     <div className={`estructura-asignacion${extendida ? ' estructura-asignacion--extendida' : ''}`}>
@@ -504,12 +508,17 @@ export function EstructuraAsignacion() {
           motivoSinVersion={
             menuDescripcion.vacia ? 'La tienda no usa este planograma' : menuDescripcion.esNueva ? 'La especial se crea al guardar' : null
           }
+          motivoSinMontaje={menuMontaje?.version ? null : 'La tienda no tiene este planograma montado'}
           onHistorial={() => {
             setCeldaHistorial({ planograma: menu.planograma, tienda: menu.tienda });
             setMenu(null);
           }}
           onVerVersion={() => {
             if (menuDescripcion.version) setVersionAbierta({ versionId: menuDescripcion.version.id, tienda: menu.tienda });
+            setMenu(null);
+          }}
+          onMontaje={() => {
+            if (menuMontaje?.version) setMontajeAbierto({ planograma: menu.planograma, tienda: menu.tienda, version: menuMontaje.version });
             setMenu(null);
           }}
           onClose={() => setMenu(null)}
@@ -547,6 +556,15 @@ export function EstructuraAsignacion() {
           versionId={versionAbierta.versionId}
           tienda={versionAbierta.tienda}
           onClose={() => setVersionAbierta(null)}
+        />
+      )}
+
+      {montajeAbierto && (
+        <MontajeTiendaModal
+          planograma={montajeAbierto.planograma}
+          version={montajeAbierto.version}
+          tienda={montajeAbierto.tienda}
+          onClose={() => setMontajeAbierto(null)}
         />
       )}
     </div>
