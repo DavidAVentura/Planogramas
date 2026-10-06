@@ -17,6 +17,8 @@ export interface Nivel {
   tamano_accesorio_pulgadas: number | null;
   ancho_disponible_cm: number;
   notas: string | null;
+  /** Sección (hoja) a la que pertenece; null si la góndola no está dividida en secciones. */
+  seccionId?: number | null;
 }
 
 export interface NivelEditado extends Nivel {
@@ -34,6 +36,8 @@ export interface NivelCampos {
 
 export interface NivelInput extends NivelCampos {
   orden: number;
+  /** Solo en góndolas divididas: sección (hoja) donde se crea el nivel. */
+  seccion_id?: number;
 }
 
 export type NivelCambios = Partial<NivelCampos>;

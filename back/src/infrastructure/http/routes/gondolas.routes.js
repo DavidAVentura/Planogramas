@@ -9,6 +9,7 @@
 const { Router }        = require('express');
 const controller        = require('../../../application/gondolas/gondolas.controller');
 const nivelesController = require('../../../application/niveles/niveles.controller');
+const seccionesController = require('../../../application/secciones/secciones.controller');
 
 const router = Router();
 
@@ -26,6 +27,12 @@ router.post('/:id/niveles',       nivelesController.agregar);
 
 // PATCH  /gondolas/:id/niveles/orden — reordena los niveles de la góndola (módulo niveles)
 router.patch('/:id/niveles/orden', nivelesController.reordenar);
+
+// GET    /gondolas/:id/secciones          — árbol de secciones (módulo secciones)
+router.get('/:id/secciones',          seccionesController.obtener);
+
+// POST   /gondolas/:id/secciones/dividir  — divide la góndola o una de sus secciones (módulo secciones)
+router.post('/:id/secciones/dividir', seccionesController.dividir);
 
 // PATCH  /gondolas/:id           — partial update de nombre, medidas o posición en tienda
 router.patch('/:id',        controller.editar);

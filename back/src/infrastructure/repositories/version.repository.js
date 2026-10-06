@@ -12,6 +12,7 @@ const TABLA_VERSION            = 'PlanogramaVersion';
 const TABLA_VERSION_TIENDA     = 'VersionTienda';
 const TABLA_GONDOLA            = 'Gondola';
 const TABLA_NIVEL              = 'Nivel';
+const TABLA_SECCION            = 'Seccion';
 const TABLA_POSICION           = 'Posicion';
 const TABLA_POSICION_ACCESORIO = 'PosicionAccesorio';
 const TABLA_ACCESORIO          = 'Accesorio';
@@ -135,14 +136,16 @@ async function clonarEstructura(trx, versionBaseId, nuevaVersionId) {
       .insert({ ...gondolaDatos, planograma_version_id: nuevaVersionId })
       .returning('id');
 
+    const seccionNueva = await clonarSecciones(trx, gondolaIdOriginal, nuevaGondolaId);
+
     const niveles = await trx(TABLA_NIVEL)
       .where('gondola_id', gondolaIdOriginal)
       .orderBy('orden', 'asc');
 
     for (const nivel of niveles) {
-      const { id: nivelIdOriginal, gondola_id, ...nivelDatos } = nivel;
+      const { id: nivelIdOriginal, gondola_id, seccion_id, ...nivelDatos } = nivel;
       const [{ id: nuevoNivelId }] = await trx(TABLA_NIVEL)
-        .insert({ ...nivelDatos, gondola_id: nuevaGondolaId })
+        .insert({ ...nivelDatos, gondola_id: nuevaGondolaId, seccion_id: seccion_id ? (seccionNueva.get(seccion_id) ?? null) : null })
         .returning('id');
 
       const posiciones = await trx(TABLA_POSICION)
@@ -167,6 +170,26 @@ async function clonarEstructura(trx, versionBaseId, nuevaVersionId) {
       }
     }
   }
+}
+
+// ─── clonarSecciones ─────────────────────────────────────────────────────────
+// Copia el árbol de secciones de una góndola (padres antes que hijas) y devuelve el mapa
+// idOriginal → idNuevo para reasignar `Nivel.seccion_id`. Góndola sin dividir → mapa vacío.
+
+async function clonarSecciones(trx, gondolaIdOriginal, nuevaGondolaId) {
+  const secciones = await trx(TABLA_SECCION).where('gondola_id', gondolaIdOriginal);
+  const mapa = new Map();
+  const pendientes = [...secciones];
+  while (pendientes.length) {
+    const i = pendientes.findIndex((s) => s.padre_id === null || mapa.has(s.padre_id));
+    if (i < 0) break; // árbol inconsistente: no debería ocurrir
+    const { id, gondola_id, padre_id, ...datos } = pendientes.splice(i, 1)[0];
+    const [{ id: nuevoId }] = await trx(TABLA_SECCION)
+      .insert({ ...datos, gondola_id: nuevaGondolaId, padre_id: padre_id === null ? null : mapa.get(padre_id) })
+      .returning('id');
+    mapa.set(id, nuevoId);
+  }
+  return mapa;
 }
 
 // ─── crearConClon ────────────────────────────────────────────────────────────

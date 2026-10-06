@@ -20,6 +20,16 @@ interface PosicionLienzoProps {
   /** Solo se usa para posiciones ya asignadas — igual que `PosicionCard`, una PENDIENTE no se arrastra, se hace clic para asignarle el SKU. */
   onDragStart: (e: DragEvent<HTMLDivElement>) => void;
   onSoltarProducto: (sku: string) => void;
+  /** Números de gancho calculados (uno por facing). Solo se dibujan si vienen — por defecto no. */
+  ganchos?: number[];
+}
+
+/** "04" o "04–07" (rango continuo) o "04, 09" — el número de gancho tal como lo lee la tienda. */
+function textoGanchos(ganchos: number[]): string {
+  const dos = (n: number) => String(n).padStart(2, '0');
+  if (ganchos.length === 1) return dos(ganchos[0]);
+  const continuo = ganchos.every((n, i) => i === 0 || n === ganchos[i - 1] + 1);
+  return continuo ? `${dos(ganchos[0])}–${dos(ganchos[ganchos.length - 1])}` : ganchos.map(dos).join(', ');
 }
 
 /**
@@ -39,7 +49,13 @@ export function PosicionLienzo({
   onAbrirFicha,
   onDragStart,
   onSoltarProducto,
+  ganchos,
 }: PosicionLienzoProps) {
+  const badgeGancho = ganchos && ganchos.length > 0 && (
+    <span className="posicion-lienzo__badge-gancho" title={`Gancho ${textoGanchos(ganchos)}`}>
+      {textoGanchos(ganchos)}
+    </span>
+  );
   const anchoPx = Math.max(posicion.anchoCm * PX_POR_CM, ANCHO_MIN_POSICION_PX);
   const altoPx = Math.min(Math.max(posicion.altoCm * PX_POR_CM, 24), 90);
 
@@ -63,6 +79,7 @@ export function PosicionLienzo({
         title={posicion.nombreDetectado ? `Detectado: ${posicion.nombreDetectado}` : 'Posición pendiente de asignación'}
       >
         <span className="posicion-lienzo__badge-pendiente">?</span>
+        {badgeGancho}
         <div className="posicion-lienzo__cuerpo">
           <span className="posicion-lienzo__icono">📦</span>
           {posicion.nombreDetectado && <span className="posicion-lienzo__nombre">{posicion.nombreDetectado}</span>}
@@ -94,6 +111,7 @@ export function PosicionLienzo({
       title={`${producto.nombre} · ${posicion.sku}`}
     >
       <span className="posicion-lienzo__badge-facings">×{posicion.facings}</span>
+      {badgeGancho}
       {posicion.confidence != null && posicion.confidence < 100 && (
         <span className="posicion-lienzo__badge-ia">IA · {posicion.confidence}%</span>
       )}

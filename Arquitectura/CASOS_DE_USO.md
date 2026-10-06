@@ -45,6 +45,10 @@ Actores:
 | CU-03-06 | Editar nivel | Analista | Modifica altura, accesorio o ancho disponible de un nivel existente. |
 | CU-03-07 | Reordenar niveles | Analista | Cambia el orden vertical de los niveles dentro de una góndola. |
 | CU-03-08 | Eliminar nivel | Analista | Elimina un nivel; requiere confirmación si tiene posiciones asignadas. |
+| CU-03-09 | Dividir sección de góndola | Analista | Desde el detalle de góndola, parte la góndola (o una de sus secciones) en columnas o en arriba/abajo, para que cada parte tenga sus propios niveles (ej. ganchos en columnas arriba y repisas de ancho completo abajo). |
+| CU-03-10 | Cambiar medida de sección | Analista | Ajusta el ancho o alto de una sección; la sección vecina absorbe la diferencia. |
+| CU-03-11 | Quitar sección | Analista | Quita una sección sin productos; su espacio pasa a la vecina. Si queda una sola, la góndola vuelve a estar sin dividir. |
+| CU-03-12 | Ver detalle de góndola | Analista | Desde el lienzo, con el botón de expandir del marco de una góndola, la abre sola con su panel de estructura (secciones, medidas, niveles) y de SKU en la versión; se vuelve al lienzo con el mismo botón. Los "+" entre niveles y entre productos siguen funcionando dentro de cada sección. |
 
 ---
 
@@ -67,6 +71,8 @@ Actores:
 | CU-04-13 | Validar dimensiones de producto | Analista | Confirma que las dimensiones físicas ya guardadas de un producto son correctas, sin modificarlas. Requiere que las tres medidas sean mayores a 0. |
 | CU-04-14 | Ver inventario de producto en ficha | Analista | Al abrir la ficha de un producto en el editor, el sistema consulta el stock SAP por centro (vía CATI) y lo muestra como bloque adicional, sin filtrar por tienda. |
 | CU-04-15 | Ver ficha técnica de producto en ficha | Analista | Al abrir la ficha de un producto en el editor, el sistema consulta la ficha técnica enriquecida por CATI (descripción, características, advertencias de uso) y la muestra como bloque adicional, colapsable igual que el resto de bloques de la ficha. |
+| CU-04-16 | Ver SKU en la versión | Analista | Consulta cada SKU de la versión con sus ubicaciones (góndola · sección · nivel), facings y capacidad sumados, mín./máx. y alertas; opcionalmente muestra en la góndola el número de gancho calculado de cada facing. |
+| CU-04-17 | Editar mín./máx. por SKU | Analista | Define mín./máx. final una sola vez por SKU; el sistema los aplica a todas sus ubicaciones en la versión. |
 
 ---
 

@@ -26,6 +26,7 @@ router.use('/gondolas',       require('./gondolas.routes'));
 router.use('/adjuntos',       require('./adjuntos.routes'));
 router.use('/evidencias',     require('./evidencias.routes'));
 router.use('/niveles',        require('./niveles.routes'));
+router.use('/secciones',      require('./secciones.routes'));
 router.use('/posiciones',     require('./posiciones.routes'));
 router.use('/accesorios',     require('./accesorios.routes'));
 router.use('/tiendas',        require('./tiendas.routes'));

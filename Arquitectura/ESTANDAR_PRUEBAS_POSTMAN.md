@@ -40,6 +40,12 @@ planogramas → versiones → gondolas → niveles → posiciones → sustitucio
 exportacion → catalogo → accesorios → tiendas → jerarquia
 ```
 
+Los módulos agregados después (asignaciones, `16 - Implementación`, `17 - Evidencias`,
+`18 - Secciones`, `19 - SKU en la versión`) van a continuación, antes de `voz` y de
+`99 - Limpieza`. `18 - Secciones` y `19 - SKU en la versión` reutilizan la góndola/versión publicada
+que arma el Setup de `niveles` para sus escenarios `422 - version no editable`, así que dependen de
+que `niveles` corra antes en la misma corrida.
+
 Dentro de cada módulo, **una sub-carpeta por endpoint**, nombrada:
 
 ```

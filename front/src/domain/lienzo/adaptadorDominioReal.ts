@@ -12,6 +12,7 @@
  * al backend.
  */
 import type { GondolaListItem } from '../../types/gondola';
+import type { EstructuraSecciones } from '../../types/seccion';
 import type { Nivel } from '../../types/nivel';
 import type { Capacidad, PosicionConProducto, PosicionesDeNivel } from '../../types/posicion';
 import type { ProductoCatalogo as ProductoCatalogoReal, ProductoDetalle } from '../../types/catalogo';
@@ -77,6 +78,7 @@ export function adaptarNivel(nivel: Nivel, posicionesDelNivel: PosicionConProduc
     alturaDesdePisoCm: nivel.altura_desde_piso_cm,
     tipoAccesorio: nivel.tipo_accesorio,
     notas: nivel.notas,
+    seccionId: nivel.seccionId ?? null,
     posiciones: posicionesDelNivel.map(adaptarPosicion),
   };
 }
@@ -87,6 +89,7 @@ export function adaptarGondola(
   nivelesDeLaGondola: Nivel[],
   posicionesPorNivel: Record<number, PosicionesDeNivel>,
   xy: { x: number; y: number },
+  estructura: EstructuraSecciones | null = null,
 ): GondolaLienzo {
   const niveles = [...nivelesDeLaGondola]
     .sort((a, b) => a.orden - b.orden)
@@ -99,6 +102,7 @@ export function adaptarGondola(
     x: xy.x,
     y: xy.y,
     niveles,
+    estructura,
   };
 }
 

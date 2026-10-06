@@ -176,3 +176,72 @@
 .gondola-frame-lienzo__acciones > button:not(.gondola-frame-lienzo__agregar-nivel):hover {
   color: var(--lienzo-danger);
 }
+
+/* ─── Botón expandir / contraer (detalle de góndola) ───────────────────────── */
+.gondola-frame-lienzo__acciones > button.gondola-frame-lienzo__expandir {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cemaco-indigo);
+  background: var(--lienzo-indigo-50);
+}
+
+.gondola-frame-lienzo__acciones > button.gondola-frame-lienzo__expandir:hover {
+  color: var(--cemaco-indigo);
+  filter: brightness(0.95);
+}
+
+/* ─── Góndola dividida en secciones ────────────────────────────────────────── */
+.gondola-frame-lienzo__secciones {
+  padding: 6px;
+}
+
+.gondola-frame-lienzo__division {
+  display: flex;
+  gap: 6px;
+}
+
+.gondola-frame-lienzo__division--columnas {
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.gondola-frame-lienzo__division--filas {
+  flex-direction: column;
+}
+
+.gondola-frame-lienzo__seccion {
+  position: relative;
+  flex: none;
+  border: 1px dashed var(--lienzo-border-strong);
+  border-radius: var(--radius-md, 8px);
+  background: var(--lienzo-bg-elevated);
+}
+
+.gondola-frame-lienzo__seccion--seleccionada {
+  border: 2px solid var(--cemaco-indigo);
+}
+
+.gondola-frame-lienzo__seccion-etiqueta {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 6;
+  border: none;
+  border-radius: var(--radius-md, 8px) 0 6px 0;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--lienzo-fg-2);
+  background: var(--lienzo-bg-sunken);
+  cursor: pointer;
+}
+
+.gondola-frame-lienzo__seccion-etiqueta:disabled {
+  cursor: default;
+}
+
+.gondola-frame-lienzo__seccion--seleccionada .gondola-frame-lienzo__seccion-etiqueta {
+  color: var(--white);
+  background: var(--cemaco-indigo);
+}

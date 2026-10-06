@@ -40,7 +40,9 @@ Crea una nueva versión de planograma. Si se incluye `versionBaseId`, crea una *
 3. El `codigo` se genera automáticamente con el patrón: `{NOMBRE_PLANOGRAMA}-T{INICIAL_TIPO}` para una versión nueva, y `{NOMBRE_PLANOGRAMA}-T{INICIAL_TIPO}-{CODIGO_TIENDA}` para una versión especial por tienda. Ej: `AUTOS 01-TG` y `AUTOS 01-TG-T010`.
 4. Si se envía `versionBaseId`:
    - La versión base debe existir y pertenecer al mismo planograma.
-   - Se copia toda la estructura en una transacción única.
+   - Se copia toda la estructura en una transacción única, incluidas las secciones de cada
+     góndola dividida (árbol con ids nuevos y `Nivel.seccion_id` reasignado a la copia — ver
+     `18_secciones/`).
    - La tienda (`tiendaId`) no debe tener ya una versión especial derivada de esa base.
 5. La nueva versión inicia en estado `borrador`.
 6. Sin `versionBaseId`, la versión se crea en una transacción única junto con `cantidadGondolas` góndolas vacías (sin niveles): nombres `Góndola 1`..`Góndola N`, `orden` 1..N y medidas por defecto de Cemaco 200 × 230 × 50 cm (ancho × alto × profundidad, `GONDOLA_DEFAULTS` en `domain/gondola/gondola.entity.js`). El analista puede renombrarlas, ajustarlas o eliminarlas después mientras la versión sea editable (`borrador`, `en_desarrollo`, `piloto`). Las góndolas que no se eliminen cuentan para Evidencias.

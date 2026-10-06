@@ -7,6 +7,7 @@ const db = require('../db/connection');
 
 const TABLA_GONDOLA            = 'Gondola';
 const TABLA_NIVEL              = 'Nivel';
+const TABLA_SECCION            = 'Seccion';
 const TABLA_POSICION           = 'Posicion';
 const TABLA_POSICION_ACCESORIO = 'PosicionAccesorio';
 
@@ -162,6 +163,11 @@ async function eliminar(id) {
 
       await trx(TABLA_NIVEL).whereIn('id', nivelIds).delete();
     }
+
+    // Secciones (migración 012): sin niveles que las referencien, se sueltan las auto-referencias
+    // y se borran antes que la góndola. Góndola sin dividir → no hay filas, no hace nada.
+    await trx(TABLA_SECCION).where('gondola_id', id).update({ padre_id: null });
+    await trx(TABLA_SECCION).where('gondola_id', id).delete();
 
     await trx(TABLA_GONDOLA).where('id', id).delete();
   });

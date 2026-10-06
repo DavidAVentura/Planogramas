@@ -17,6 +17,7 @@ export function AppRoutes() {
       <Route path="/planogramas/:id" element={<PlanogramaDetalle />} />
       <Route path="/planogramas/:id/versiones/:versionId/editor" element={<EditorPlanograma />} />
       <Route path="/planogramas/:id/versiones/:versionId/lienzo" element={<LienzoPlanograma />} />
+      <Route path="/planogramas/:id/versiones/:versionId/lienzo/gondola/:gondolaId" element={<LienzoPlanograma />} />
       <Route path="/tiendas" element={<TiendasListado />} />
       <Route path="/estructura" element={<EstructuraAsignacion />} />
       <Route path="/productos" element={<ProductosListado />} />

@@ -32,6 +32,7 @@ Agrega un nuevo nivel a una góndola. El nivel define la altura desde el piso, e
 | `tamano_accesorio_pulgadas` | `number` | No | Mayor a 0. Aplica principalmente para ganchos. |
 | `ancho_disponible_cm` | `number` | Sí | Ancho útil del nivel para posiciones. Por defecto = `gondola.ancho_cm`. |
 | `notas` | `string` | No | Máximo 200 chars. |
+| `seccion_id` | `integer` | No | Solo en góndolas divididas en secciones (módulo 18): sección final (hoja) donde se crea el nivel. Se omite en góndolas sin dividir. |
 
 ---
 
@@ -41,6 +42,10 @@ Agrega un nuevo nivel a una góndola. El nivel define la altura desde el piso, e
 2. `ancho_disponible_cm` por defecto se sugiere igual al `ancho_cm` de la góndola, pero puede ser menor (ej. si hay una columna o fijación).
 3. Si se envía `codigo_accesorio_id`, debe existir en la tabla `Accesorio`.
 4. `orden` puede no ser secuencial — el cliente define el valor deseado. Si hay conflicto de orden, el backend lo resuelve desplazando los siguientes.
+5. Si viene `seccion_id`, debe ser una hoja de esta góndola (ver `18_secciones/README.md`). El
+   `orden` sigue siendo de toda la góndola: el desplazamiento de la regla 4 conserva el orden
+   relativo de los niveles dentro de cada sección. En el front, `ancho_disponible_cm` se precarga
+   con el ancho de la sección.
 
 ---
 
@@ -76,9 +81,13 @@ Agrega un nuevo nivel a una góndola. El nivel define la altura desde el piso, e
   },
   "tamano_accesorio_pulgadas": 12,
   "ancho_disponible_cm": 120,
-  "notas": "Nivel para aceites largos"
+  "notas": "Nivel para aceites largos",
+  "seccionId": null
 }
 ```
+
+`seccionId` (migración 012) es `null` en góndolas sin dividir. Todas las respuestas de niveles
+(`GET /gondolas/{id}/niveles`, `GET /niveles/{id}`, `PATCH /niveles/{id}`) lo incluyen.
 
 ---
 
@@ -88,8 +97,8 @@ Agrega un nuevo nivel a una góndola. El nivel define la altura desde el piso, e
 |--------|-----------|
 | `400 Bad Request` | Campos inválidos. |
 | `401 Unauthorized` | JWT ausente. |
-| `404 Not Found` | Góndola no existe, o `codigo_accesorio_id` no existe. |
-| `422 Unprocessable Entity` | Versión no editable. |
+| `404 Not Found` | Góndola no existe, `codigo_accesorio_id` no existe, o `seccion_id` no pertenece a la góndola. |
+| `422 Unprocessable Entity` | Versión no editable, o `seccion_id` es una división (no una hoja). |
 
 ---
 

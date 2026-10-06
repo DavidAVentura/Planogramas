@@ -11,6 +11,7 @@
  * no debería necesitar cambios más allá de eso.
  */
 import type { ModoPosicion, DecisionPosicion } from '../../types/posicion';
+import type { EstructuraSecciones } from '../../types/seccion';
 
 // Se reexportan tal cual: son los mismos valores permitidos que ya usa el Editor real, no hay
 // motivo para duplicarlos.
@@ -66,6 +67,8 @@ export interface NivelLienzo {
   alturaDesdePisoCm: number;
   tipoAccesorio: string;
   notas: string | null;
+  /** Sección (hoja) a la que pertenece; null si la góndola no está dividida. */
+  seccionId: number | null;
   posiciones: PosicionLienzo[];
 }
 
@@ -78,6 +81,8 @@ export interface GondolaLienzo {
   x: number;
   y: number;
   niveles: NivelLienzo[];
+  /** Secciones de la góndola. Ausente o `dividida: false` → se dibuja igual que siempre. */
+  estructura?: EstructuraSecciones | null;
 }
 
 /** Resultado de `calcularCapacidadNivel` — mismo shape que la `Capacidad` del backend. */

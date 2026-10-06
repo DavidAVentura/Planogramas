@@ -10,6 +10,18 @@
 - Ajustar textos de captura para lenguaje de tienda.
 - Probar en movil real la navegacion inferior y el espacio disponible en pantalla.
 
+## Diseño De Gondola Por Secciones (2026-10-05)
+
+- HECHO: secciones de gondola (columnas/franjas con sus propios niveles, migracion 012), detalle de gondola desde el lienzo (boton expandir), panel "SKU en la version" (totales por SKU, min./max. una vez por SKU) y numeracion de ganchos calculada. Contratos 18 y 19, carpetas Postman 18 y 19.
+- Pendiente: prueba manual en local con sesion CAO real (dividir, medidas, "+" de nivel y de espacio dentro de secciones, asignar SKU a un espacio pendiente, copiar version especial de una gondola dividida).
+- Pendiente: correr las carpetas Postman 18 y 19 con token CAO real (solo se corrieron con newman contra una app local sin el middleware de CAO).
+- Pendiente: unificar la convencion de `Nivel.orden` (la migracion 001 dice 1 = abajo; el lienzo dibuja 1 arriba y los ganchos siguen al lienzo).
+- Pendiente: confirmar la regla de numeracion de ganchos con tienda: hoy es un numero por facing; en el mueble de cintas metricas un producto colgado de una barra con 4 unidades tiene un solo numero (¿un numero por gancho fisico segun el tipo de nivel?).
+- Pendiente: exportar el Excel de tienda con los ganchos calculados (modulo `exportacion` 07, no montado).
+- Pendiente: decidir si "max. supera capacidad" debe bloquear la publicacion (hoy solo avisa en el panel).
+- Pendiente: al cambiar el ancho de una gondola dividida (`PATCH /gondolas/:id`), `ancho_disponible_cm` de sus niveles no se re-sincroniza con las secciones hasta la siguiente operacion de estructura.
+- Opcional: en "Mi tienda > Productos" agregar columnas Seccion y Gancho (no se toco para no cambiar esa vista).
+
 ## Estructura, Versiones Y Sesion CAO (2026-10-02)
 
 - HECHO: promover a piloto y ajustar tiendas piloto desde Estructura (contexto en la URL); `PublicarVersionModal` con simulacion de publicacion; `GET /asignaciones?incluirPlanogramaId=`; keepalive de la sesion CAO.

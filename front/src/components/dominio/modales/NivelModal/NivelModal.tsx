@@ -22,11 +22,13 @@ interface NivelModalProps {
   gondolaAnchoCm: number;
   nivel?: Nivel | null;
   proximoOrden: number;
+  /** Solo en góndolas divididas: sección donde se crea el nivel (su ancho llega en `gondolaAnchoCm`). */
+  seccionId?: number | null;
   onClose: () => void;
   onGuardada: (nivel: Nivel) => void;
 }
 
-export function NivelModal({ gondolaId, gondolaAnchoCm, nivel, proximoOrden, onClose, onGuardada }: NivelModalProps) {
+export function NivelModal({ gondolaId, gondolaAnchoCm, nivel, proximoOrden, seccionId, onClose, onGuardada }: NivelModalProps) {
   const esEdicion = Boolean(nivel);
   const { agregar, enviando: agregando } = useAgregarNivel();
   const { editar, enviando: editando } = useEditarNivel();
@@ -59,7 +61,9 @@ export function NivelModal({ gondolaId, gondolaAnchoCm, nivel, proximoOrden, onC
     };
 
     const resultado =
-      esEdicion && nivel ? await editar(nivel.id, campos) : await agregar(gondolaId, { ...campos, orden: Number(orden) });
+      esEdicion && nivel
+        ? await editar(nivel.id, campos)
+        : await agregar(gondolaId, { ...campos, orden: Number(orden), ...(seccionId ? { seccion_id: seccionId } : {}) });
     if (resultado) onGuardada(resultado);
   }
 

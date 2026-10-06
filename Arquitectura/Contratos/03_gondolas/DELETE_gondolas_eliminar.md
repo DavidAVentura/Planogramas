@@ -32,7 +32,7 @@ Elimina una góndola y en cascada: sus niveles, posiciones y accesorios de posic
 ## Reglas de negocio
 
 1. Si la góndola tiene posiciones y `forzar=false` → `409 Conflict`.
-2. Si `forzar=true` → elimina en cascada: `PosicionAccesorio` → `Posicion` → `Nivel` → `Gondola`.
+2. Si `forzar=true` → elimina en cascada: `PosicionAccesorio` → `Posicion` → `Nivel` → `Seccion` (si la góndola está dividida, ver `18_secciones/`) → `Gondola`.
 3. La operación es atómica.
 4. La versión padre debe estar en modo editable.
 5. Después de eliminar, **no** se reajustan los valores de `orden` de las góndolas restantes automáticamente — el frontend reordena visualmente y puede llamar al endpoint de reordenamiento si lo requiere.

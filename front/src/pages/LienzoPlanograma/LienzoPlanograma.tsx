@@ -21,6 +21,9 @@ import { MoverPosicionModal } from '../../components/dominio/modales/MoverPosici
 import { CopiarPosicionModal } from '../../components/dominio/modales/CopiarPosicionModal/CopiarPosicionModal';
 import { EliminarPosicionModal } from '../../components/dominio/modales/EliminarPosicionModal/EliminarPosicionModal';
 import { FichaProductoModal } from '../../components/dominio/modales/FichaProductoModal/FichaProductoModal';
+import { DetalleGondolaPanel } from '../../components/dominio/lienzoEditor/DetalleGondolaPanel/DetalleGondolaPanel';
+import { useEditarSecciones, useSeccionesDeVersion, useSkusDeVersion } from '../../hooks/useSecciones';
+import type { DireccionSeccion } from '../../types/seccion';
 import { CHROME_GONDOLA_PX, PX_POR_CM, calcularAnchoFramePx } from '../../components/dominio/lienzoEditor/constantesLienzo';
 import { POSICION_PENDIENTE_ANCHO_CM } from '../../constants/valoresPorDefecto';
 import { usePlanogramaDetalle } from '../../hooks/usePlanogramas';
@@ -70,9 +73,12 @@ function parseSubcategoria(raw: string): string {
 }
 
 export function LienzoPlanograma() {
-  const { id, versionId } = useParams<{ id: string; versionId: string }>();
+  const { id, versionId, gondolaId: gondolaIdParam } = useParams<{ id: string; versionId: string; gondolaId?: string }>();
   const planogramaId = Number(id);
   const versionIdNumerico = Number(versionId);
+  // Detalle de góndola: misma página, enfocada en una sola góndola y con el panel lateral.
+  const gondolaEnfocadaId = gondolaIdParam ? Number(gondolaIdParam) : null;
+  const rutaLienzo = `/planogramas/${planogramaId}/versiones/${versionIdNumerico}/lienzo`;
   const navigate = useNavigate();
   const { puedeEscribir } = useAuth();
   const { mostrarToast } = useToast();
@@ -89,6 +95,21 @@ export function LienzoPlanograma() {
   const { copiar: copiarPosicion } = useCopiarPosicion();
   const { mover: moverPosicion } = useMoverPosicion();
   const { agregar: agregarPosicion } = useAgregarPosicion();
+  const { porGondola: seccionesPorGondola, recargar: recargarSecciones } = useSeccionesDeVersion(gondolas);
+  const editarSecciones = useEditarSecciones();
+  const [mostrarGanchos, setMostrarGanchos] = useState(false);
+  const [seccionSeleccionadaId, setSeccionSeleccionadaId] = useState<number | null>(null);
+  const { datos: skusVersion, recargar: recargarSkus, editar: editarSku } = useSkusDeVersion(
+    versionIdNumerico,
+    gondolaEnfocadaId !== null || mostrarGanchos,
+  );
+
+  // Totales por SKU y ganchos se recalculan en el backend: se vuelven a pedir cuando cambia algo
+  // de la estructura o de las posiciones (solo si se están mostrando).
+  useEffect(() => {
+    recargarSkus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [posicionesPorNivel, niveles, seccionesPorGondola]);
 
   const viewport = useCanvasViewport();
   const { tema, alternarTema } = useTemaLienzo();
@@ -102,7 +123,13 @@ export function LienzoPlanograma() {
 
   const [modalGondola, setModalGondola] = useState<'crear' | GondolaListItem | null>(null);
   const [gondolaAEliminar, setGondolaAEliminar] = useState<GondolaListItem | null>(null);
-  const [modalNivel, setModalNivel] = useState<{ gondolaId: number; gondolaAnchoCm: number; nivel: Nivel | null; proximoOrden: number } | null>(null);
+  const [modalNivel, setModalNivel] = useState<{
+    gondolaId: number;
+    gondolaAnchoCm: number;
+    nivel: Nivel | null;
+    proximoOrden: number;
+    seccionId?: number | null;
+  } | null>(null);
   const [nivelAEliminar, setNivelAEliminar] = useState<Nivel | null>(null);
   const [posicionPendiente, setPosicionPendiente] = useState<PosicionConProducto | null>(null);
   const [posicionDetalleId, setPosicionDetalleId] = useState<number | null>(null);
@@ -131,16 +158,20 @@ export function LienzoPlanograma() {
 
   const gondolasLienzo = useMemo(
     () =>
-      gondolas.map((g) =>
-        adaptarGondola(
-          g,
-          niveles.filter((n) => n.gondolaId === g.id),
-          posicionesPorNivel,
-          posicionesEnCanvas[g.id] ?? { x: 40, y: 40 },
+      gondolas
+        .filter((g) => gondolaEnfocadaId === null || g.id === gondolaEnfocadaId)
+        .map((g) =>
+          adaptarGondola(
+            g,
+            niveles.filter((n) => n.gondolaId === g.id),
+            posicionesPorNivel,
+            gondolaEnfocadaId === null ? (posicionesEnCanvas[g.id] ?? { x: 40, y: 40 }) : { x: 40, y: 40 },
+            seccionesPorGondola[g.id] ?? null,
+          ),
         ),
-      ),
-    [gondolas, niveles, posicionesPorNivel, posicionesEnCanvas],
+    [gondolas, niveles, posicionesPorNivel, posicionesEnCanvas, seccionesPorGondola, gondolaEnfocadaId],
   );
+  const gondolaEnfocada = gondolaEnfocadaId === null ? null : (gondolas.find((g) => g.id === gondolaEnfocadaId) ?? null);
 
   const productosPorSku = useMemo(() => {
     const mapa = new Map<string, ProductoCatalogo>();
@@ -177,6 +208,36 @@ export function LienzoPlanograma() {
     recargarNiveles();
     recargarGondolas();
     recargarPosiciones();
+    recargarSecciones();
+  }
+
+  function onExpandirGondola(gondolaIdTexto: string) {
+    setSeccionSeleccionadaId(null);
+    navigate(gondolaEnfocadaId === null ? `${rutaLienzo}/gondola/${gondolaIdTexto}` : rutaLienzo);
+  }
+
+  async function onDividirSeccion(direccion: DireccionSeccion, seccionId: number | null) {
+    if (!gondolaEnfocada) return;
+    const ok = await editarSecciones.dividir(gondolaEnfocada.id, { direccion, ...(seccionId ? { seccion_id: seccionId } : {}) });
+    if (ok) {
+      recargarSecciones();
+      recargarNiveles();
+    }
+  }
+
+  async function onRedimensionarSeccion(nodoId: number, tamCm: number) {
+    if (await editarSecciones.redimensionar(nodoId, tamCm)) {
+      recargarSecciones();
+      recargarNiveles();
+    }
+  }
+
+  async function onQuitarSeccion(seccionId: number) {
+    if (await editarSecciones.quitar(seccionId)) {
+      setSeccionSeleccionadaId(null);
+      recargarSecciones();
+      recargarNiveles();
+    }
   }
 
   function onSeleccionarPosicion(idTexto: string) {
@@ -289,10 +350,26 @@ export function LienzoPlanograma() {
     }
   }
 
-  function onAgregarNivel(gondolaIdTexto: string, ordenDestino: number) {
+  function onAgregarNivel(gondolaIdTexto: string, ordenDestino: number, seccionId?: number | null) {
     const gondola = gondolas.find((g) => g.id === Number(gondolaIdTexto));
     if (!gondola) return;
-    setModalNivel({ gondolaId: gondola.id, gondolaAnchoCm: gondola.ancho_cm, nivel: null, proximoOrden: ordenDestino });
+    // En una góndola dividida el nivel nuevo toma el ancho de su sección.
+    const hoja = seccionId ? seccionesPorGondola[gondola.id]?.hojas.find((h) => h.id === seccionId) : undefined;
+    setModalNivel({
+      gondolaId: gondola.id,
+      gondolaAnchoCm: hoja?.anchoCm ?? gondola.ancho_cm,
+      nivel: null,
+      proximoOrden: ordenDestino,
+      seccionId: seccionId ?? null,
+    });
+  }
+
+  /** "+ Agregar nivel" del panel de detalle: al final (abajo) de la sección. */
+  function onAgregarNivelEnSeccion(seccionId: number | null) {
+    if (!gondolaEnfocada) return;
+    const delaSeccion = niveles.filter((n) => n.gondolaId === gondolaEnfocada.id && (seccionId === null || (n.seccionId ?? null) === seccionId));
+    const ordenDestino = delaSeccion.reduce((max, n) => Math.max(max, n.orden), 0) + 1;
+    onAgregarNivel(String(gondolaEnfocada.id), ordenDestino, seccionId);
   }
 
   function onEditarNivel(nivelIdTexto: string) {
@@ -340,6 +417,14 @@ export function LienzoPlanograma() {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [layoutListo]);
+
+  // Al entrar o salir del detalle de una góndola, se vuelve a encuadrar lo que se ve.
+  useEffect(() => {
+    if (!layoutListo) return;
+    const t = setTimeout(() => viewport.ajustarAContenido(calcularLimite(gondolasLienzo)), 50);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gondolaEnfocadaId]);
 
   function onBuscarSkuSubmit(valor: string) {
     const q = valor.trim().toLowerCase();
@@ -389,7 +474,12 @@ export function LienzoPlanograma() {
             segmentos={[
               { label: 'Planogramas', to: '/planogramas' },
               { label: cargandoPlanograma ? '…' : (planograma?.nombre ?? ''), to: `/planogramas/${planogramaId}` },
-              { label: cargandoVersiones ? '…' : `${version?.codigo ?? ''} · Lienzo` },
+              ...(gondolaEnfocadaId === null
+                ? [{ label: cargandoVersiones ? '…' : `${version?.codigo ?? ''} · Lienzo` }]
+                : [
+                    { label: cargandoVersiones ? '…' : `${version?.codigo ?? ''} · Lienzo`, to: rutaLienzo },
+                    { label: gondolaEnfocada?.nombre ?? '…' },
+                  ]),
             ]}
           />
         }
@@ -463,6 +553,11 @@ export function LienzoPlanograma() {
                   return datos ? adaptarCapacidad(datos.capacidad) : { ocupadoCm: 0, disponibleCm: 0, libreCm: 0, sobreOcupado: false };
                 }}
                 resolverDesborda={(posicionLienzo) => posicionLienzo.desbordaGondola}
+                resolverGanchos={mostrarGanchos && skusVersion ? (posicionId) => skusVersion.ganchosPorPosicion[posicionId] : undefined}
+                onExpandir={onExpandirGondola}
+                expandida={gondolaEnfocadaId !== null}
+                seccionSeleccionadaId={gondolaEnfocadaId !== null ? seccionSeleccionadaId : null}
+                onSeleccionarSeccion={gondolaEnfocadaId !== null ? setSeccionSeleccionadaId : undefined}
                 onMoverGondola={onMoverGondola}
                 onEditarGondola={onEditarGondola}
                 onEliminarGondola={onEliminarGondola}
@@ -479,6 +574,27 @@ export function LienzoPlanograma() {
               />
             ))}
           </LienzoCanvas>
+
+          {gondolaEnfocada && (
+            <DetalleGondolaPanel
+              gondola={gondolaEnfocada}
+              estructura={seccionesPorGondola[gondolaEnfocada.id]}
+              niveles={niveles.filter((n) => n.gondolaId === gondolaEnfocada.id)}
+              posicionesPorNivelId={Object.fromEntries(Object.entries(posicionesPorNivel).map(([nivelId, d]) => [nivelId, d.posiciones.length]))}
+              puedeEscribir={puedeEscribir}
+              seccionSeleccionadaId={seccionSeleccionadaId}
+              onSeleccionarSeccion={setSeccionSeleccionadaId}
+              onDividir={onDividirSeccion}
+              onRedimensionar={onRedimensionarSeccion}
+              onQuitarSeccion={onQuitarSeccion}
+              onAgregarNivel={onAgregarNivelEnSeccion}
+              skus={skusVersion}
+              onEditarSku={editarSku}
+              onIrAPosicion={(posicionId) => onSeleccionarPosicion(String(posicionId))}
+              mostrarGanchos={mostrarGanchos}
+              onAlternarGanchos={() => setMostrarGanchos((v) => !v)}
+            />
+          )}
         </div>
 
         {exportarAbierto && (
@@ -516,6 +632,7 @@ export function LienzoPlanograma() {
           gondolaAnchoCm={modalNivel.gondolaAnchoCm}
           nivel={modalNivel.nivel}
           proximoOrden={modalNivel.proximoOrden}
+          seccionId={modalNivel.seccionId}
           onClose={() => setModalNivel(null)}
           onGuardada={() => {
             setModalNivel(null);

@@ -1,10 +1,11 @@
 erDiagram
 
-    %% Verificado en vivo contra la BD real (Azure SQL, servidor comerciales, base OTB, 2026-09-29) —
+    %% Verificado en vivo contra la BD real (Azure SQL, servidor comerciales, base OTB, 2026-09-29;
+    %% Seccion y Nivel.seccion_id re-verificados el 2026-10-05 tras aplicar la migración 012) —
     %% no reconstruido solo desde las migraciones. Se consultó INFORMATION_SCHEMA.COLUMNS,
-    %% sys.foreign_keys, sys.indexes, sys.check_constraints y knex_migrations: las 11 migraciones
-    %% (001 a 011_evidencia_implementacion) están aplicadas y coinciden columna por columna con lo que
-    %% aquí se documenta. Estas 16 tablas son el dominio de planogramas; la misma BD "OTB" también
+    %% sys.foreign_keys, sys.indexes, sys.check_constraints y knex_migrations: las 12 migraciones
+    %% (001 a 012_secciones_gondola) están aplicadas y coinciden columna por columna con lo que
+    %% aquí se documenta. Estas 17 tablas son el dominio de planogramas; la misma BD "OTB" también
     %% tiene tablas ajenas a este dominio (EFGDepartamento, Presupuesto, Recompra, Transito, Transitos,
     %% Ventas, msg — de otro sistema, probablemente forecasting/OTB) y las tablas internas de Knex
     %% (knex_migrations, knex_migrations_lock), que se omiten aquí a propósito.
@@ -76,10 +77,30 @@ erDiagram
         int         orden
     }
 
+    %% Migración 012_secciones_gondola.js (aplicada 2026-10-05). Partición de una góndola en columnas
+    %% o franjas anidables, cada una con sus propios niveles (Contratos/18_secciones/). Árbol por
+    %% góndola: una DIVISIÓN (es_division = 1) reparte su espacio entre sus hijas según `direccion`;
+    %% una HOJA (es_division = 0) es la sección donde viven los niveles. La última hija toma lo que
+    %% sobre del espacio del padre (su tam_cm es informativo). Góndola sin filas aquí = sin dividir:
+    %% se comporta igual que antes y sus niveles quedan con seccion_id NULL.
+    %% FKs: gondola_id ON DELETE CASCADE; padre_id (auto-referencia) y Nivel.seccion_id NO ACTION
+    %% (SQL Server rechaza una segunda ruta de cascada Gondola → Seccion → Nivel, error 1785).
+    %% Índice IX_Seccion_gondola (gondola_id).
+    Seccion {
+        int         id              PK
+        int         gondola_id      FK  "ON DELETE CASCADE"
+        int         padre_id        FK  "FK self, nullable (null = raíz) — NO ACTION"
+        bit         es_division         "default 0 — 1 = reparte entre sus hijas, 0 = hoja con niveles"
+        nvarchar    direccion           "COLUMNAS | FILAS — solo divisiones; nullable, sin CHECK"
+        int         orden               "default 1 — orden entre hermanas"
+        decimal     tam_cm              "medida en la dirección del padre (mín. 10 cm, validado en el dominio)"
+    }
+
     Nivel {
         int         id                          PK
         int         gondola_id                  FK
-        int         orden                           "1 = nivel más bajo"
+        int         seccion_id                  FK  "agregado en migración 012, nullable, NO ACTION — hoja de Seccion; NULL = góndola sin dividir"
+        int         orden                           "migración 001 dice 1 = nivel más bajo, pero el lienzo dibuja orden 1 ARRIBA y la numeración de ganchos (Contratos/19_skus/) sigue al lienzo — convención pendiente de unificar. Único por góndola, no por sección"
         decimal     altura_desde_piso_cm            "ingreso manual obligatorio por el analista"
         decimal     ancho_disponible_cm
         nvarchar    tipo_accesorio                  "GANCHO | BANDEJA | BARRA | CANASTA | OTRO"
@@ -301,6 +322,9 @@ erDiagram
     EdicionAsignacion    ||--o{ AsignacionAuditoria   : "agrupa cambios de celda"
 
     Gondola              ||--o{ Nivel                 : "tiene niveles"
+    Gondola              ||--o{ Seccion               : "dividida en secciones (CASCADE)"
+    Seccion              |o--o{ Seccion               : "padre_id (árbol)"
+    Seccion              |o--o{ Nivel                 : "niveles de la sección (NO ACTION)"
     Nivel                ||--o{ Posicion              : "tiene posiciones"
     Nivel                }o--o| Accesorio             : "accesorio principal del nivel"
 

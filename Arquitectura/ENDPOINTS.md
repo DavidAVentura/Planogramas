@@ -231,6 +231,32 @@ Qué versión de cada planograma monta cada tienda. Regla: **una tienda monta un
 
 ---
 
+## 18. Secciones de góndola
+
+Parte una góndola en columnas o franjas (anidables), cada una con sus propios niveles (tabla `Seccion`, migración 012). Aditivo: una góndola sin secciones se comporta igual que antes. Las escrituras exigen versión editable y responden con la estructura completa actualizada. Contratos en `Contratos/18_secciones/`.
+
+| Método | Ruta | Actor | CU | Descripción |
+|--------|------|-------|----|-------------|
+| `GET` | `/gondolas/{id}/secciones` | Analista | CU-03-12 | Árbol de secciones y, por cada sección final, su rectángulo en cm y sus niveles. Sin dividir: `dividida: false`. |
+| `POST` | `/gondolas/{id}/secciones/dividir` | Analista | CU-03-09 | Parte una sección (o la góndola completa) en `COLUMNAS` o `FILAS`. En columnas la nueva copia los niveles vacíos; en franjas se lleva la mitad inferior de los niveles. |
+| `PATCH` | `/secciones/{id}` | Analista | CU-03-10 | Cambia la medida de la sección en la dirección de su padre; la diferencia la absorbe la vecina (mínimo 10 cm cada una). |
+| `DELETE` | `/secciones/{id}` | Analista | CU-03-11 | Quita una sección sin productos (`409` si tiene); su espacio pasa a la vecina. Con una sola sección restante, la góndola vuelve a "sin dividir". |
+
+`POST /gondolas/{id}/niveles` acepta además `seccion_id` (opcional) para crear el nivel dentro de una sección, y las respuestas de niveles incluyen `seccionId`.
+
+---
+
+## 19. SKU en la versión
+
+Vista por SKU de una versión: totales sumando todas sus ubicaciones y numeración de ganchos calculada (no se guarda). Sin tabla nueva: mín./máx. siguen en cada `Posicion`. Contratos en `Contratos/19_skus/`.
+
+| Método | Ruta | Actor | CU | Descripción |
+|--------|------|-------|----|-------------|
+| `GET` | `/versiones/{id}/skus` | Analista | CU-04-16 | Cada SKU con ubicaciones, facings y capacidad sumados, mín./máx. comunes, alertas (`MINMAX_VARIA`, `MIN_MAYOR_MAX`, `MAX_SUPERA_CAPACIDAD`) y ganchos; más `ganchosPorPosicion` para dibujarlos. |
+| `PATCH` | `/versiones/{id}/skus/{sku}` | Analista | CU-04-17 | Aplica `min_final`/`max_final` a todas las posiciones del SKU en la versión. `422` si mín. > máx. o la versión no es editable. |
+
+---
+
 ## Notas generales de diseño
 
 - **Autenticación**: todos los endpoints (salvo `/health`) requieren el JWT de usuario emitido por CAO. El header es `Authorization: Bearer {token}`. El backend lo valida con `GET {CAO_BASE_URL}/auth/validar_token` y, sin esperar, renueva la sesión en CAO con `POST {CAO_BASE_URL}/auth/keepalive` (máximo uno por token cada 60 s; nunca bloquea el request).

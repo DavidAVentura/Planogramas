@@ -8,6 +8,7 @@ const { Router }         = require('express');
 const controller         = require('../../../application/versiones/versiones.controller');
 const gondolasController = require('../../../application/gondolas/gondolas.controller');
 const adjuntosController = require('../../../application/adjuntos/adjuntos.controller');
+const skusController     = require('../../../application/skusVersion/skusVersion.controller');
 
 const router = Router();
 
@@ -58,5 +59,11 @@ router.post('/:id/adjuntos/subida', adjuntosController.solicitarSubida);
 
 // POST  /versiones/:id/adjuntos       — confirma el archivo ya subido y crea el adjunto (módulo adjuntos)
 router.post('/:id/adjuntos',        adjuntosController.agregar);
+
+// GET   /versiones/:id/skus           — SKU de la versión con totales y ganchos calculados (módulo skus)
+router.get('/:id/skus',             skusController.listar);
+
+// PATCH /versiones/:id/skus/:sku      — aplica mín./máx. final a todas las posiciones del SKU (módulo skus)
+router.patch('/:id/skus/:sku',      skusController.editar);
 
 module.exports = router;

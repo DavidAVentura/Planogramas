@@ -9,6 +9,7 @@
  */
 
 const { validarVersionEditable, validarArrayOrden, calcularAdvertenciasEdicion } = require('./nivel.entity');
+const { validarHojaDeGondola } = require('../seccion/seccion.usecases');
 
 // ─── Helpers privados ────────────────────────────────────────────────────────
 
@@ -101,15 +102,17 @@ async function obtenerResumenNivel(nivelRepo, id) {
  * @param {object} gondolaRepo
  * @param {object} versionRepo
  * @param {number} gondolaId
- * @param {{ orden, altura_desde_piso_cm, tipo_accesorio, codigo_accesorio_id?, tamano_accesorio_pulgadas?, ancho_disponible_cm, notas? }} datos
+ * @param {{ orden, altura_desde_piso_cm, tipo_accesorio, codigo_accesorio_id?, tamano_accesorio_pulgadas?, ancho_disponible_cm, notas?, seccion_id? }} datos
+ * @param {object} [seccionRepo]  requerido solo si `datos.seccion_id` viene (góndola dividida en secciones)
  * @returns {Promise<object>}
  */
-async function agregarNivel(nivelRepo, gondolaRepo, versionRepo, gondolaId, datos) {
+async function agregarNivel(nivelRepo, gondolaRepo, versionRepo, gondolaId, datos, seccionRepo) {
   const gondola = await buscarGondolaOFallar(gondolaRepo, gondolaId);
   const version = await buscarVersionOFallar(versionRepo, gondola.versionId);
   validarVersionEditable(version.estado);
 
   await validarAccesorioSiAplica(nivelRepo, datos.codigo_accesorio_id);
+  if (datos.seccion_id) await validarHojaDeGondola(seccionRepo, gondolaId, datos.seccion_id);
 
   const id = await nivelRepo.crearConOrden({
     gondola_id:                gondolaId,
@@ -120,6 +123,7 @@ async function agregarNivel(nivelRepo, gondolaRepo, versionRepo, gondolaId, dato
     tamano_accesorio_pulgadas: datos.tamano_accesorio_pulgadas ?? null,
     ancho_disponible_cm:       datos.ancho_disponible_cm,
     notas:                     datos.notas ?? null,
+    ...(datos.seccion_id ? { seccion_id: datos.seccion_id } : {}),
   });
 
   return nivelRepo.buscarPorId(id);

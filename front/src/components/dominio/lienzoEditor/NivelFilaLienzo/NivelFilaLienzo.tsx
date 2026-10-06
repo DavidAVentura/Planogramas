@@ -29,6 +29,8 @@ interface NivelFilaLienzoProps {
   onSoltarPosicionEnNivel: (posicionId: string, nivelDestinoId: string) => void;
   onAsignarSkuPorDrop: (posicionId: string, sku: string) => void;
   onAgregarPosicionPendiente: (nivelId: string, ordenDestino: number) => void;
+  /** Números de gancho calculados por posición (opcional: solo se pasa cuando se quieren ver). */
+  resolverGanchos?: (posicionId: string) => number[] | undefined;
 }
 
 /**
@@ -54,6 +56,7 @@ export function NivelFilaLienzo({
   onSoltarPosicionEnNivel,
   onAsignarSkuPorDrop,
   onAgregarPosicionPendiente,
+  resolverGanchos,
 }: NivelFilaLienzoProps) {
   const porcentaje = capacidad.disponibleCm > 0 ? Math.min((capacidad.ocupadoCm / capacidad.disponibleCm) * 100, 100) : 0;
 
@@ -131,6 +134,7 @@ export function NivelFilaLienzo({
               onAbrirFicha={onAbrirFichaPosicion}
               onDragStart={(e) => onDragStartPosicion(e, posicion.id)}
               onSoltarProducto={(sku) => onAsignarSkuPorDrop(posicion.id, sku)}
+              ganchos={resolverGanchos?.(posicion.id)}
             />
             {puedeEscribir && (
               <GapInsercionPosicion nivelId={nivel.id} ordenDestino={indice + 2} onAgregarPosicionPendiente={onAgregarPosicionPendiente} />

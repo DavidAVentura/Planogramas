@@ -10,6 +10,7 @@ const usecases    = require('../../domain/nivel/nivel.usecases');
 const nivelRepo   = require('../../infrastructure/repositories/nivel.repository');
 const gondolaRepo = require('../../infrastructure/repositories/gondola.repository');
 const versionRepo = require('../../infrastructure/repositories/version.repository');
+const seccionRepo = require('../../infrastructure/repositories/seccion.repository');
 
 // ─── Esquemas de validación ───────────────────────────────────────────────────
 
@@ -21,6 +22,7 @@ const schemaCrear = Joi.object({
   tamano_accesorio_pulgadas: Joi.number().positive().optional(),
   ancho_disponible_cm:       Joi.number().positive().required(),
   notas:                     Joi.string().trim().max(200).allow(null, '').optional(),
+  seccion_id:                Joi.number().integer().positive().optional(),
 });
 
 const schemaEditar = Joi.object({
@@ -82,7 +84,7 @@ async function agregar(req, res, next) {
   try {
     const gondolaId = parsearId(req.params.id);
     const datos     = validarBody(schemaCrear, req.body);
-    const nivel     = await usecases.agregarNivel(nivelRepo, gondolaRepo, versionRepo, gondolaId, datos);
+    const nivel     = await usecases.agregarNivel(nivelRepo, gondolaRepo, versionRepo, gondolaId, datos, seccionRepo);
     res.status(201).json(nivel);
   } catch (err) {
     next(err);

@@ -184,13 +184,31 @@ El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
   - Publicar: `GET /versiones/:id/publicacion/simular` (solo lectura) y `POST /versiones/:id/promover`
     comparten `calcularPlanPublicacion` en `version.repository.js` (tiendas piloto ∪ tiendas de la
     publicada anterior del mismo tipo) — no duplicar esa lógica.
+- **Implementado end-to-end: `secciones` (18) y `skus` (19), diseño de góndola por secciones**.
+  Aditivo: una góndola sin secciones se comporta igual que antes (ningún endpoint existente cambió).
+  - `secciones`: árbol por góndola en la tabla `Seccion` (migración 012) — columnas/franjas
+    anidables, la última hija toma lo que sobre; `Nivel.seccion_id` nullable (null = sin dividir).
+    Toda operación carga el árbol, lo modifica en memoria y lo persiste de una vez con
+    `seccionRepo.guardarEstructura` (ids negativos = nodos nuevos). Nunca toca posiciones.
+    `clonarEstructura` (`version.repository.js`) copia también las secciones (`clonarSecciones`) y
+    reasigna `seccion_id`; no copiar niveles con `...nivelDatos` sin remapear `seccion_id`.
+  - `skus` (`GET/PATCH /versiones/:id/skus`): sin tabla nueva — mín./máx. siguen en cada `Posicion`
+    (así los leen sin cambios publicación, drawer, Implementador y % de inventario); el PATCH por
+    SKU los aplica a todas sus posiciones. Los **números de gancho no se guardan**: se calculan en
+    `skuVersion.entity.js` (`recorrerVersion`: góndola por `orden` → sección → nivel por `orden` →
+    posición por `orden_horizontal` → un número por facing, pendientes incluidos).
+  - Front: el detalle de góndola es la MISMA página del lienzo enfocada en una góndola
+    (`/planogramas/:id/versiones/:versionId/lienzo/gondola/:gondolaId`, botón de expandir del
+    marco) + `DetalleGondolaPanel`; `GondolaFrameLienzo` dibuja las secciones solo si la góndola
+    está dividida.
+  - Postman: carpetas `18 - Secciones` y `19 - SKU en la versión`.
 - **Implementado, sin carpeta Postman todavía**: `adjuntos` (13, CRUD sobre Azure Blob; la
   migración `009_adjuntos_version.js` puede estar pendiente de aplicar) y `agente-extractor`.
 - **Pendiente**: `sustituciones` (06) y `exportacion` (07) no están montados en
   `back/src/infrastructure/http/routes/index.js`. Su contrato ya existe en `Arquitectura/Contratos/`.
-- Migraciones: `001` a `010` en `back/src/infrastructure/db/migrations/`. Antes de implementar un
+- Migraciones: `001` a `012` en `back/src/infrastructure/db/migrations/`. Antes de implementar un
   módulo nuevo, revisa si el esquema ya cubre las tablas que necesita o si hace falta una migración
-  adicional (`010_...`, ver convención de nombres en `ESTRUCTURA_BACKEND.md`). Un valor nuevo de
+  adicional (`013_...`, ver convención de nombres en `ESTRUCTURA_BACKEND.md`). Un valor nuevo de
   una columna `varchar` sin CHECK (ej. `Posicion.modo = 'IMPULSO'`) no requiere migración: basta
   con la entidad de dominio (`MODOS` en `posicion.entity.js`) y el tipo del front.
 

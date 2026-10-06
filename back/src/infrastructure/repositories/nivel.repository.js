@@ -21,6 +21,7 @@ const COLUMNAS_NIVEL = [
   `${TABLA_NIVEL}.codigo_accesorio_id`,
   `${TABLA_NIVEL}.tamano_accesorio_pulgadas`,
   `${TABLA_NIVEL}.notas`,
+  `${TABLA_NIVEL}.seccion_id`,
   `${TABLA_ACCESORIO}.codigo as accesorio_codigo`,
   `${TABLA_ACCESORIO}.nombre as accesorio_nombre`,
 ];
@@ -46,6 +47,7 @@ function mapNivel(row) {
     tamano_accesorio_pulgadas: row.tamano_accesorio_pulgadas != null ? Number(row.tamano_accesorio_pulgadas) : null,
     ancho_disponible_cm:       Number(row.ancho_disponible_cm),
     notas:                     row.notas,
+    seccionId:                 row.seccion_id ?? null,
   };
 }
 
