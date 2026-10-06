@@ -1,0 +1,210 @@
+.revision-pdf {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.revision-pdf__ayuda {
+  margin: 0;
+  font-size: 13px;
+  color: var(--fg-3);
+}
+
+.revision-pdf__aviso {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  background: var(--ink-50);
+  border-left: 3px solid var(--warning);
+  font-size: 13px;
+  color: var(--fg-2);
+}
+
+.revision-pdf__advertencias {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: var(--warning);
+}
+
+/* ─── Cuerpo ─────────────────────────────────────────────────────────────── */
+
+.revision-pdf__cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.revision-pdf__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.revision-pdf__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--fg-3);
+
+  & input,
+  & select {
+    height: 34px;
+    padding: 0 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    color: var(--fg-1);
+    background: #fff;
+  }
+}
+
+.revision-pdf__campo--nombre {
+  flex: 1 1 260px;
+}
+
+.revision-pdf__cuerpo-contenido {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.revision-pdf__cuerpo--omitido .revision-pdf__cuerpo-contenido {
+  opacity: 0.45;
+}
+
+.revision-pdf__lado {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.revision-pdf__tabla {
+  flex: 1 1 420px;
+  min-width: 0;
+  max-height: 520px;
+  overflow: auto;
+}
+
+.revision-pdf__medidas {
+  margin: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+
+  & div {
+    display: flex;
+    gap: 6px;
+  }
+
+  & dt {
+    color: var(--fg-3);
+  }
+
+  & dd {
+    margin: 0;
+    color: var(--fg-1);
+    font-weight: 600;
+  }
+}
+
+.revision-pdf__niveles {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 12px;
+  color: var(--fg-2);
+  max-width: 320px;
+}
+
+.revision-pdf__select {
+  width: 100%;
+  min-width: 200px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  background: #fff;
+}
+
+.revision-pdf__estado {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--ink-100);
+  color: var(--fg-2);
+}
+
+.revision-pdf__estado--identificado {
+  background: color-mix(in srgb, var(--success) 15%, #fff);
+  color: var(--success);
+}
+
+.revision-pdf__estado--candidatos {
+  background: color-mix(in srgb, var(--warning) 15%, #fff);
+  color: var(--warning);
+}
+
+/* ─── Vista previa a escala ──────────────────────────────────────────────── */
+
+.vista-previa-pdf {
+  position: relative;
+  flex: 0 0 auto;
+  background: var(--ink-50);
+  border: 2px solid var(--ink-400);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.vista-previa-pdf__seccion {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px dashed var(--cemaco-indigo);
+}
+
+.vista-previa-pdf__nivel {
+  position: absolute;
+  height: 3px;
+  margin-top: -3px;
+  background: var(--ink-500);
+}
+
+.vista-previa-pdf__nivel--gancho {
+  height: 2px;
+  background: var(--ink-300);
+}
+
+.vista-previa-pdf__espacio {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 2px;
+  border: 1px solid #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--fg-1);
+  overflow: hidden;
+}
+
+.vista-previa-pdf__espacio--asignado {
+  background: color-mix(in srgb, var(--success) 30%, #fff);
+}
+
+.vista-previa-pdf__espacio--candidatos {
+  background: color-mix(in srgb, var(--warning) 30%, #fff);
+}
+
+.vista-previa-pdf__espacio--pendiente {
+  background: var(--ink-200);
+}

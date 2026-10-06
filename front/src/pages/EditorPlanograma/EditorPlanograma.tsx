@@ -271,6 +271,7 @@ export function EditorPlanograma() {
 
               <NivelRow
                 niveles={niveles}
+                altoGondolaCm={gondolaActiva.alto_cm}
                 puedeEscribir={puedeEscribir}
                 extendido={nivelesExtendido}
                 subcategorias={planograma?.subcategorias ?? []}

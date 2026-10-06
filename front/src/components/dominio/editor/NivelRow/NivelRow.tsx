@@ -3,10 +3,13 @@ import { PosicionesPanel } from '../PosicionesPanel/PosicionesPanel';
 import type { Nivel } from '../../../../types/nivel';
 import type { PosicionConProducto, PosicionesDeNivel } from '../../../../types/posicion';
 import type { DatosArrastrePosicion } from '../../../../utils/dragPosicion';
+import { altoUtilDeNivelCm } from '../../../../utils/usoEspacio';
 import './NivelRow.css';
 
 interface NivelRowProps {
   niveles: Nivel[];
+  /** Alto de la góndola: techo del nivel más alto para el uso vertical de la barra de llenado. */
+  altoGondolaCm?: number | null;
   puedeEscribir: boolean;
   extendido: boolean;
   subcategorias: string[];
@@ -27,6 +30,7 @@ interface NivelRowProps {
 
 export function NivelRow({
   niveles,
+  altoGondolaCm = null,
   puedeEscribir,
   extendido,
   subcategorias,
@@ -97,6 +101,9 @@ export function NivelRow({
 
           <PosicionesPanel
             nivel={nivel}
+            // Con secciones no se conoce el techo de cada una: el nivel más alto de una sección
+            // queda sin alto (el tooltip lo indica) en vez de medirse contra toda la góndola.
+            altoUtilCm={altoUtilDeNivelCm(nivel, niveles, nivel.seccionId == null ? altoGondolaCm : null)}
             datos={posicionesPorNivel[nivel.id]}
             cargando={cargandoPosiciones}
             puedeEscribir={puedeEscribir}

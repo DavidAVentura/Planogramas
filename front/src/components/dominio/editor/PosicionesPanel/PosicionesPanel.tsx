@@ -6,6 +6,7 @@ import { PosicionFormModal } from '../../modales/PosicionFormModal/PosicionFormM
 import { ElegirProductoModal } from '../../modales/ElegirProductoModal/ElegirProductoModal';
 import { AsignarSkuModal } from '../../modales/AsignarSkuModal/AsignarSkuModal';
 import { leerDatosArrastre, type DatosArrastrePosicion } from '../../../../utils/dragPosicion';
+import { calcularUsoHorizontal, calcularUsoVertical } from '../../../../utils/usoEspacio';
 import type { Nivel } from '../../../../types/nivel';
 import type { PosicionConProducto, PosicionesDeNivel } from '../../../../types/posicion';
 import './PosicionesPanel.css';
@@ -14,6 +15,8 @@ type ModoAgregarPosicion = 'seleccion' | 'manual' | 'producto' | null;
 
 interface PosicionesPanelProps {
   nivel: Nivel;
+  /** Alto útil del nivel (cm); null si no se conoce. */
+  altoUtilCm: number | null;
   datos: PosicionesDeNivel | undefined;
   cargando: boolean;
   puedeEscribir: boolean;
@@ -28,6 +31,7 @@ interface PosicionesPanelProps {
 
 export function PosicionesPanel({
   nivel,
+  altoUtilCm,
   datos,
   cargando,
   puedeEscribir,
@@ -92,7 +96,16 @@ export function PosicionesPanel({
 
       {datos && (
         <div className="posiciones-panel__capacidad">
-          <CapacityBar ocupadoCm={datos.capacidad.ancho_ocupado_cm} disponibleCm={datos.capacidad.ancho_disponible_cm} />
+          <CapacityBar
+            titulo={`Uso del espacio · nivel ${nivel.orden}`}
+            horizontal={calcularUsoHorizontal(datos.capacidad.ancho_ocupado_cm, datos.capacidad.ancho_disponible_cm, posiciones.length)}
+            vertical={calcularUsoVertical(
+              altoUtilCm,
+              posiciones
+                .filter((p) => p.sku)
+                .map((p) => ({ etiqueta: p.sku!, altoCm: p.producto?.alto_cm ?? null, apilable: p.cantidad_apilable })),
+            )}
+          />
         </div>
       )}
 

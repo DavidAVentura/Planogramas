@@ -24,6 +24,10 @@ app.use(cors({ origin: env.CORS_ORIGIN }));
 // Límite subido de 100kb (default) a 8mb: el Agente Extractor de Imagen Numerada y las evidencias
 // (hasta 5MB) reciben fotos en base64. Los adjuntos de versión no pasan por aquí: se suben directo
 // a Azure Blob con URL SAS.
+// El Agente Importador de PDF recibe el PDF completo en base64 (hasta 15MB decodificado, ver
+// extractorPdfPlanograma.controller.js): esa ruta se parsea antes con su propio límite y el
+// parser general la deja pasar porque el body ya viene leído.
+app.use('/api/v1/agente-extractor/pdf-planograma', express.json({ limit: '21mb' }));
 app.use(express.json({ limit: '8mb' }));
 
 // ─── Rutas ────────────────────────────────────────────────────────────────────

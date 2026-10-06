@@ -49,6 +49,11 @@ module.exports = {
   openai: {
     apiKey: process.env.OPENIA_TOKEN,
     model:  process.env.OPENAI_MODEL || 'gpt-4o-mini',
+    // Agente Importador de PDF de planograma: lee el layout completo de un PDF, necesita un
+    // modelo grande con visión y entrada de archivos. El esfuerzo de razonamiento solo se envía
+    // a modelos que lo soportan (familia gpt-5 / o-series).
+    modelPdf:           process.env.OPENAI_MODEL_PDF || 'gpt-5',
+    razonamientoPdf:    process.env.OPENAI_REASONING_PDF || 'medium',
   },
 
   // Soporte de pruebas Postman (POST /pruebas/fixtures y /pruebas/limpieza). Solo se monta con

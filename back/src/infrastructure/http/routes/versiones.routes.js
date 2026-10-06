@@ -9,6 +9,7 @@ const controller         = require('../../../application/versiones/versiones.con
 const gondolasController = require('../../../application/gondolas/gondolas.controller');
 const adjuntosController = require('../../../application/adjuntos/adjuntos.controller');
 const skusController     = require('../../../application/skusVersion/skusVersion.controller');
+const importacionController = require('../../../application/importacion/importacion.controller');
 
 const router = Router();
 
@@ -65,5 +66,9 @@ router.get('/:id/skus',             skusController.listar);
 
 // PATCH /versiones/:id/skus/:sku      — aplica mín./máx. final a todas las posiciones del SKU (módulo skus)
 router.patch('/:id/skus/:sku',      skusController.editar);
+
+// POST  /versiones/:id/importar-layout — crea/reemplaza góndolas completas (secciones, niveles,
+//        posiciones) en una transacción; lo usa el Agente Importador de PDF (módulo importacion)
+router.post('/:id/importar-layout', importacionController.importarLayout);
 
 module.exports = router;

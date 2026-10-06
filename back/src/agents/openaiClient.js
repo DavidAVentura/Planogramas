@@ -125,4 +125,62 @@ async function completarConImagen({ instrucciones, imagenBase64, mimeType, jsonS
   }
 }
 
-module.exports = { completarConTools, completarConImagen, obtenerCliente, errorServicioNoDisponible };
+/** Los modelos de razonamiento (gpt-5 / o-series) aceptan `reasoning_effort`; el resto lo rechaza. */
+function soportaRazonamiento(modelo) {
+  return /^(gpt-5|o\d)/.test(modelo);
+}
+
+/**
+ * Llamada de una sola vuelta con un archivo adjunto (ej. un PDF) — el modelo recibe el texto y
+ * la imagen de cada página. Usa su propio modelo (`modelo`), normalmente uno más grande que el
+ * del chat, porque leer un layout completo exige más capacidad visual.
+ * @param {object} opciones
+ * @param {string} opciones.instrucciones - prompt de sistema
+ * @param {string} opciones.texto - instrucción del mensaje de usuario que acompaña al archivo
+ * @param {string} opciones.archivoBase64 - archivo en base64 puro (sin el prefijo data:...;base64,)
+ * @param {string} opciones.nombreArchivo
+ * @param {string} opciones.mimeType - ej. 'application/pdf'
+ * @param {{name: string, schema: object}} opciones.jsonSchema - schema strict de la respuesta final
+ * @param {string} opciones.modelo
+ * @param {string} [opciones.razonamiento] - reasoning_effort, solo si el modelo lo soporta
+ * @returns {Promise<object>} - objeto ya parseado que cumple jsonSchema
+ */
+async function completarConArchivo({ instrucciones, texto, archivoBase64, nombreArchivo, mimeType, jsonSchema, modelo, razonamiento }) {
+  const openai = obtenerCliente();
+
+  let respuesta;
+  try {
+    respuesta = await openai.chat.completions.create({
+      model: modelo,
+      ...(razonamiento && soportaRazonamiento(modelo) && { reasoning_effort: razonamiento }),
+      messages: [
+        { role: 'system', content: instrucciones },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: texto },
+            { type: 'file', file: { filename: nombreArchivo, file_data: `data:${mimeType};base64,${archivoBase64}` } },
+          ],
+        },
+      ],
+      response_format: {
+        type: 'json_schema',
+        json_schema: { name: jsonSchema.name, schema: jsonSchema.schema, strict: true },
+      },
+    });
+  } catch (err) {
+    throw errorServicioNoDisponible('No se pudo conectar con OpenAI', err);
+  }
+
+  const mensaje = respuesta.choices?.[0]?.message;
+  if (mensaje?.refusal) throw errorServicioNoDisponible(`OpenAI rechazó analizar el archivo: ${mensaje.refusal}`);
+  if (!mensaje?.content) throw errorServicioNoDisponible('OpenAI no devolvió ninguna respuesta');
+
+  try {
+    return JSON.parse(mensaje.content);
+  } catch (err) {
+    throw errorServicioNoDisponible('OpenAI devolvió una respuesta que no es JSON válido', err);
+  }
+}
+
+module.exports = { completarConTools, completarConImagen, completarConArchivo, obtenerCliente, errorServicioNoDisponible };

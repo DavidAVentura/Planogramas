@@ -6,6 +6,8 @@ import type {
   PosicionLienzo as PosicionLienzoModelo,
   ProductoCatalogo,
 } from '../../../../domain/lienzo/lienzo.types';
+import { ConTooltipUso } from '../../UsoEspacio/UsoEspacioTooltip';
+import { calcularUsoHorizontal, calcularUsoVertical } from '../../../../utils/usoEspacio';
 import './NivelFilaLienzo.css';
 
 const TIPO_ARRASTRE_PRODUCTO = 'application/x-lienzo-producto';
@@ -14,6 +16,8 @@ const TIPO_ARRASTRE_POSICION = 'application/x-lienzo-posicion';
 interface NivelFilaLienzoProps {
   nivel: NivelLienzo;
   alturaPx: number;
+  /** Alto útil del nivel (cm) hasta el nivel de arriba — para el uso vertical del tooltip. */
+  altoCm: number;
   capacidad: CapacidadNivel;
   puedeEscribir: boolean;
   posicionSeleccionadaId: string | null;
@@ -42,6 +46,7 @@ interface NivelFilaLienzoProps {
 export function NivelFilaLienzo({
   nivel,
   alturaPx,
+  altoCm,
   capacidad,
   puedeEscribir,
   posicionSeleccionadaId,
@@ -61,6 +66,14 @@ export function NivelFilaLienzo({
   const porcentaje = capacidad.disponibleCm > 0 ? Math.min((capacidad.ocupadoCm / capacidad.disponibleCm) * 100, 100) : 0;
 
   const mostrarLibre = capacidad.libreCm > 2;
+
+  const usoH = calcularUsoHorizontal(capacidad.ocupadoCm, capacidad.disponibleCm, nivel.posiciones.length);
+  const usoV = calcularUsoVertical(
+    altoCm,
+    nivel.posiciones
+      .filter((p) => p.sku)
+      .map((p) => ({ etiqueta: p.sku!, altoCm: resolverProducto(p.sku!)?.altoRealCm ?? null, apilable: p.apilable })),
+  );
 
   function onDragStartPosicion(e: DragEvent<HTMLDivElement>, posicionId: string) {
     e.dataTransfer.setData(TIPO_ARRASTRE_POSICION, posicionId);
@@ -149,7 +162,13 @@ export function NivelFilaLienzo({
         )}
       </div>
 
-      <div className="nivel-fila-lienzo__capacidad">
+      <ConTooltipUso
+        className="nivel-fila-lienzo__capacidad"
+        titulo={`Uso del espacio · nivel ${nivel.orden}`}
+        horizontal={usoH}
+        vertical={usoV}
+        eje="horizontal"
+      >
         <div className="nivel-fila-lienzo__capbar">
           <div
             className={`nivel-fila-lienzo__capbar-fill${capacidad.sobreOcupado ? ' nivel-fila-lienzo__capbar-fill--sobre' : ''}`}
@@ -160,7 +179,7 @@ export function NivelFilaLienzo({
           {capacidad.ocupadoCm.toFixed(1)} / {capacidad.disponibleCm.toFixed(1)} cm
           {capacidad.sobreOcupado && ' · sobre-ocupado'}
         </span>
-      </div>
+      </ConTooltipUso>
     </div>
   );
 }

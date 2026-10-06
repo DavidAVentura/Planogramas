@@ -5,6 +5,8 @@ import type { HojaSeccion } from '../../../../types/seccion';
 import { distribuirNiveles } from '../../../../domain/lienzo/secciones.service';
 import { calcularCapacidadNivel } from '../../../../domain/lienzo/capacidad.service';
 import { PX_POR_CM } from '../constantesLienzo';
+import { calcularUsoHorizontal, calcularUsoVertical, claseUso } from '../../../../utils/usoEspacio';
+import { UsoEspacioDetalle } from '../../UsoEspacio/UsoEspacioTooltip';
 import './GondolaEscalaLienzo.css';
 
 const TIPO_ARRASTRE_PRODUCTO = 'application/x-lienzo-producto';
@@ -27,14 +29,6 @@ interface HojaDibujo {
   niveles: NivelLienzo[];
 }
 
-/** Color de una barra de uso: verde hasta 85 %, ámbar hasta 100 %, rojo si se pasa. Gris = sin dato. */
-function claseUso(ratio: number | null): string {
-  if (ratio === null) return 'sin-dato';
-  if (ratio > 1) return 'excedido';
-  if (ratio > 0.85) return 'justo';
-  return 'ok';
-}
-
 const dos = (n: number) => String(n).padStart(2, '0');
 
 /**
@@ -46,7 +40,8 @@ const dos = (n: number) => String(n).padStart(2, '0');
  *
  * Cada nivel lleva dos barras de uso, solo con color: horizontal (ancho ocupado vs. disponible) a lo
  * largo de su base, y vertical (producto más alto × apilable vs. alto del nivel) en su borde derecho.
- * Al pasar el mouse o hacer clic se abre un tooltip con el detalle.
+ * Al pasar el mouse o hacer clic sobre cualquiera de las dos se abre el tooltip con el espacio
+ * ocupado y libre de ambos ejes (resaltando el de la barra).
  */
 export function GondolaEscalaLienzo(props: GondolaFrameLienzoProps) {
   const { gondola, onExpandir, expandida, puedeEscribir, onEditarGondola, onEliminarGondola, onMoverGondola, scale } = props;
@@ -293,19 +288,17 @@ function NivelEscala({
 
   // ── Uso horizontal: el del backend (ancho ocupado vs. disponible del nivel).
   const capacidad: CapacidadNivel = (resolverCapacidad ?? ((n) => calcularCapacidadNivel(n, anchoCm)))(nivel);
-  const ratioH = capacidad.disponibleCm > 0 ? capacidad.ocupadoCm / capacidad.disponibleCm : null;
+  const usoH = calcularUsoHorizontal(capacidad.ocupadoCm, capacidad.disponibleCm, nivel.posiciones.length);
+  const ratioH = usoH.ratio;
 
   // ── Uso vertical: el producto más alto (× apilable) vs. el alto del nivel.
-  const alturas = nivel.posiciones
-    .filter((p) => p.sku)
-    .map((p) => {
-      const alto = resolverProducto(p.sku!)?.altoRealCm ?? null;
-      return { sku: p.sku!, altoTotal: alto === null ? null : alto * Math.max(1, p.apilable) };
-    });
-  const conAlto = alturas.filter((a) => a.altoTotal !== null) as { sku: string; altoTotal: number }[];
-  const masAlto = conAlto.reduce<{ sku: string; altoTotal: number } | null>((max, a) => (!max || a.altoTotal > max.altoTotal ? a : max), null);
-  const sinAlto = alturas.length - conAlto.length;
-  const ratioV = masAlto && altoCm > 0 ? masAlto.altoTotal / altoCm : null;
+  const usoV = calcularUsoVertical(
+    altoCm,
+    nivel.posiciones
+      .filter((p) => p.sku)
+      .map((p) => ({ etiqueta: p.sku!, altoCm: resolverProducto(p.sku!)?.altoRealCm ?? null, apilable: p.apilable })),
+  );
+  const ratioV = usoV.ratio;
 
   const skuSeleccionado = posicionSeleccionadaId ? nivel.posiciones.find((p) => p.id === posicionSeleccionadaId)?.sku : null;
 
@@ -408,32 +401,7 @@ function NivelEscala({
 
       {tooltipAqui && (
         <div className={`gondola-escala__tooltip gondola-escala__tooltip--${tooltipAqui.eje}`} role="tooltip" onClick={(e) => e.stopPropagation()}>
-          {tooltipAqui.eje === 'horizontal' ? (
-            <>
-              <strong>Uso horizontal · nivel {nivel.orden}</strong>
-              <span>
-                Ocupado {capacidad.ocupadoCm.toFixed(1)} de {capacidad.disponibleCm.toFixed(1)} cm
-                {ratioH !== null && ` (${Math.round(ratioH * 100)} %)`}
-              </span>
-              <span className={capacidad.sobreOcupado ? 'gondola-escala__tooltip-alerta' : undefined}>
-                {capacidad.sobreOcupado ? `Se pasa por ${Math.abs(capacidad.libreCm).toFixed(1)} cm` : `Libre ${capacidad.libreCm.toFixed(1)} cm`}
-              </span>
-              <span>{nivel.posiciones.length} posiciones</span>
-            </>
-          ) : (
-            <>
-              <strong>Uso vertical · nivel {nivel.orden}</strong>
-              <span>Alto del nivel {altoCm.toFixed(1)} cm</span>
-              {masAlto ? (
-                <span className={ratioV !== null && ratioV > 1 ? 'gondola-escala__tooltip-alerta' : undefined}>
-                  Más alto: {masAlto.sku} · {masAlto.altoTotal.toFixed(1)} cm{ratioV !== null && ` (${Math.round(ratioV * 100)} %)`}
-                </span>
-              ) : (
-                <span>Sin productos con alto registrado</span>
-              )}
-              {sinAlto > 0 && <span>{sinAlto} producto(s) sin alto registrado</span>}
-            </>
-          )}
+          <UsoEspacioDetalle titulo={`Uso del espacio · nivel ${nivel.orden}`} horizontal={usoH} vertical={usoV} eje={tooltipAqui.eje} />
         </div>
       )}
     </div>

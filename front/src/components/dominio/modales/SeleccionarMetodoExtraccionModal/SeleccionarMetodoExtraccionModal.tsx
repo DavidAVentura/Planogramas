@@ -7,6 +7,7 @@ interface SeleccionarMetodoExtraccionModalProps {
   onSeleccionarVisionCatalogo: () => void;
   onSeleccionarLienzo: () => void;
   onSeleccionarJCv2: () => void;
+  onSeleccionarPdf: () => void;
 }
 
 export function SeleccionarMetodoExtraccionModal({
@@ -15,6 +16,7 @@ export function SeleccionarMetodoExtraccionModal({
   onSeleccionarVisionCatalogo,
   onSeleccionarLienzo,
   onSeleccionarJCv2,
+  onSeleccionarPdf,
 }: SeleccionarMetodoExtraccionModalProps) {
   return (
     <Modal titulo="Extraer de otra fuente" onClose={onClose} ancho="sm">
@@ -44,6 +46,13 @@ export function SeleccionarMetodoExtraccionModal({
           <span className="seleccionar-metodo-extraccion__descripcion">
             Hasta 4 fotos del mueble — el agente compara visualmente lo que ve contra las imágenes
             de referencia del catálogo Cemaco, producto a producto, sin necesitar SKUs visibles.
+          </span>
+        </button>
+        <button type="button" className="seleccionar-metodo-extraccion__opcion" onClick={onSeleccionarPdf}>
+          <span className="seleccionar-metodo-extraccion__titulo">PDF Planograma</span>
+          <span className="seleccionar-metodo-extraccion__descripcion">
+            Ficha de montaje en PDF — el agente reconstruye el layout de cada cuerpo (secciones,
+            niveles, accesorios y espacios numerados) y luego identifica los productos de cada espacio.
           </span>
         </button>
       </div>

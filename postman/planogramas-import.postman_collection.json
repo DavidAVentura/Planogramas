@@ -508,6 +508,26 @@
       "key": "seccionIdColumna",
       "value": "",
       "description": "Se llena en la corrida (Setup / escenarios de 18 - Secciones)."
+    },
+    {
+      "key": "planogramaIdImportacion",
+      "value": "",
+      "description": "Se llena en el Setup de \"20 - Importación de layout\"."
+    },
+    {
+      "key": "versionIdImportacion",
+      "value": "",
+      "description": "Se llena en el Setup de \"20 - Importación de layout\"."
+    },
+    {
+      "key": "gondolaIdImportacionReemplazo",
+      "value": "",
+      "description": "Se llena en el Setup de \"20 - Importación de layout\"."
+    },
+    {
+      "key": "gondolaIdImportada",
+      "value": "",
+      "description": "Se llena en el Setup de \"20 - Importación de layout\"."
     }
   ],
   "item": [
@@ -22357,6 +22377,1054 @@
                       "// La versión publicada del Setup de niveles no es editable: se rechaza antes de buscar el SKU.",
                       "pm.test('Status 422', () => pm.response.to.have.status(422));",
                       "pm.test('error.code = UNPROCESSABLE', () => pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "20 - Importación de layout",
+      "item": [
+        {
+          "name": "Setup - datos de prueba",
+          "item": [
+            {
+              "name": "201 - Crear planograma para pruebas de importación (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Herramientas - Importación PDF {{$timestamp}}\",\n  \"departamento\": \"Herramientas\",\n  \"subcategorias\": [\n    \"Cintas metricas\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('planogramaIdImportacion', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear version base GRANDE para importación (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/planogramas/{{planogramaIdImportacion}}/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "planogramas",
+                    "{{planogramaIdImportacion}}",
+                    "versiones"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"tipo\": \"GRANDE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('versionIdImportacion', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear gondola que sera reemplazada (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacion}}/gondolas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacion}}",
+                    "gondolas"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Góndola a reemplazar\",\n  \"ancho_cm\": 100,\n  \"alto_cm\": 200,\n  \"profundidad_cm\": 40\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('gondolaIdImportacionReemplazo', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Crear nivel en la gondola que sera reemplazada (setup)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdImportacionReemplazo}}/niveles",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdImportacionReemplazo}}",
+                    "niveles"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"orden\": 1,\n  \"altura_desde_piso_cm\": 50,\n  \"tipo_accesorio\": \"BANDEJA\",\n  \"ancho_disponible_cm\": 100\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Importar layout (POST /versiones/:id/importar-layout)",
+          "item": [
+            {
+              "name": "201 - Crear gondola nueva con secciones, niveles y posiciones",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacion}}/importar-layout",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacion}}",
+                    "importar-layout"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cuerpos\": [{\n    \"destino\": \"NUEVA\",\n    \"nombre\": \"HERRAMIENTAS TG-27 · cuerpo 1/1\",\n    \"ancho_cm\": 122, \"alto_cm\": 229, \"profundidad_cm\": 56,\n    \"secciones\": [\n      { \"clave\": \"raiz\", \"padre_clave\": null, \"es_division\": true, \"direccion\": \"FILAS\", \"orden\": 1, \"tam_cm\": 229 },\n      { \"clave\": \"ganchos\", \"padre_clave\": \"raiz\", \"es_division\": false, \"direccion\": null, \"orden\": 1, \"tam_cm\": 60 },\n      { \"clave\": \"bandejas\", \"padre_clave\": \"raiz\", \"es_division\": false, \"direccion\": null, \"orden\": 2, \"tam_cm\": 1 }\n    ],\n    \"niveles\": [\n      { \"seccion_clave\": \"ganchos\", \"orden\": 1, \"altura_desde_piso_cm\": 190, \"tipo_accesorio\": \"GANCHO\", \"codigo_accesorio_id\": {{accesorioIdExistente}}, \"tamano_accesorio_pulgadas\": 12, \"notas\": \"Ganchos 1-2\",\n        \"posiciones\": [\n          { \"orden_horizontal\": 1, \"sku\": \"{{skuExistente}}\", \"ancho_asignado_cm\": 12, \"facings_horizontal\": 1, \"nombre_detectado\": null, \"confidence\": 100, \"datos_vision\": null },\n          { \"orden_horizontal\": 2, \"sku\": null, \"ancho_asignado_cm\": 12, \"facings_horizontal\": 1, \"nombre_detectado\": \"cinta métrica Truper\", \"confidence\": 40,\n            \"datos_vision\": { \"detectedName\": \"cinta métrica Truper\", \"facings\": 1, \"confidence\": 40, \"moduleId\": \"TG-27 · gancho 2\", \"reason\": \"Importado del PDF\", \"alternatives\": [] } }\n        ] },\n      { \"seccion_clave\": \"bandejas\", \"orden\": 1, \"altura_desde_piso_cm\": 150, \"tipo_accesorio\": \"BANDEJA\", \"codigo_accesorio_id\": null, \"tamano_accesorio_pulgadas\": 22, \"notas\": null,\n        \"posiciones\": [\n          { \"orden_horizontal\": 1, \"sku\": \"{{skuInexistente}}\", \"ancho_asignado_cm\": 30, \"facings_horizontal\": 2, \"nombre_detectado\": null, \"confidence\": 100, \"datos_vision\": null }\n        ] },\n      { \"seccion_clave\": \"bandejas\", \"orden\": 2, \"altura_desde_piso_cm\": 20, \"tipo_accesorio\": \"BANDEJA\", \"codigo_accesorio_id\": null, \"tamano_accesorio_pulgadas\": 22, \"notas\": null, \"posiciones\": [] }\n    ]\n  }]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "const b = pm.response.json();",
+                      "pm.test('Crea una gondola nueva', () => { pm.expect(b.gondolas.length).to.eql(1); pm.expect(b.gondolas[0].destino).to.eql('NUEVA'); });",
+                      "pm.test('Persiste secciones, niveles y posiciones', () => { const g = b.gondolas[0]; pm.expect(g.totalSecciones).to.eql(3); pm.expect(g.totalNiveles).to.eql(3); pm.expect(g.totalPosiciones).to.eql(3); });",
+                      "pm.test('El SKU inexistente queda pendiente con advertencia', () => { pm.expect(b.advertencias.some((a) => a.includes(pm.collectionVariables.get('skuInexistente') || pm.environment.get('skuInexistente') || ''))).to.eql(true); });",
+                      "pm.collectionVariables.set('gondolaIdImportada', b.gondolas[0].id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - La gondola importada queda dividida en dos franjas",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/gondolas/{{gondolaIdImportada}}/secciones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "gondolas",
+                    "{{gondolaIdImportada}}",
+                    "secciones"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const b = pm.response.json();",
+                      "pm.test('Dividida en FILAS con 2 hojas', () => { pm.expect(b.dividida).to.eql(true); pm.expect(b.raiz.direccion).to.eql('FILAS'); pm.expect(b.hojas.length).to.eql(2); });",
+                      "pm.test('La franja de ganchos tiene 1 nivel y la de bandejas 2', () => { pm.expect(b.hojas[0].nivelIds.length).to.eql(1); pm.expect(b.hojas[1].nivelIds.length).to.eql(2); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Reemplazar gondola existente sin dividir",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacion}}/importar-layout",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacion}}",
+                    "importar-layout"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cuerpos\": [\n    {\n      \"destino\": \"REEMPLAZAR\",\n      \"nombre\": \"TG Importado Simple\",\n      \"ancho_cm\": 122,\n      \"alto_cm\": 229,\n      \"profundidad_cm\": 56,\n      \"secciones\": [],\n      \"niveles\": [\n        {\n          \"seccion_clave\": null,\n          \"orden\": 1,\n          \"altura_desde_piso_cm\": 150,\n          \"tipo_accesorio\": \"BANDEJA\",\n          \"codigo_accesorio_id\": null,\n          \"tamano_accesorio_pulgadas\": 22,\n          \"notas\": null,\n          \"posiciones\": [\n            {\n              \"orden_horizontal\": 1,\n              \"sku\": null,\n              \"ancho_asignado_cm\": 30,\n              \"facings_horizontal\": 1,\n              \"nombre_detectado\": \"cinta métrica\",\n              \"confidence\": 40,\n              \"datos_vision\": null\n            }\n          ]\n        }\n      ],\n      \"gondola_id\": \"{{gondolaIdImportacionReemplazo}}\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "const b = pm.response.json();",
+                      "pm.test('Reemplaza la misma gondola', () => { pm.expect(b.gondolas[0].destino).to.eql('REEMPLAZAR'); pm.expect(b.gondolas[0].id).to.eql(Number(pm.collectionVariables.get('gondolaIdImportacionReemplazo'))); });",
+                      "pm.test('Queda con el layout nuevo', () => { pm.expect(b.gondolas[0].totalNiveles).to.eql(1); pm.expect(b.gondolas[0].totalPosiciones).to.eql(1); pm.expect(b.gondolas[0].totalSecciones).to.eql(0); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - id no es un entero positivo",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/abc/importar-layout",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "abc",
+                    "importar-layout"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cuerpos\": [\n    {\n      \"destino\": \"NUEVA\",\n      \"nombre\": \"TG Importado Simple\",\n      \"ancho_cm\": 122,\n      \"alto_cm\": 229,\n      \"profundidad_cm\": 56,\n      \"secciones\": [],\n      \"niveles\": [\n        {\n          \"seccion_clave\": null,\n          \"orden\": 1,\n          \"altura_desde_piso_cm\": 150,\n          \"tipo_accesorio\": \"BANDEJA\",\n          \"codigo_accesorio_id\": null,\n          \"tamano_accesorio_pulgadas\": 22,\n          \"notas\": null,\n          \"posiciones\": [\n            {\n              \"orden_horizontal\": 1,\n              \"sku\": null,\n              \"ancho_asignado_cm\": 30,\n              \"facings_horizontal\": 1,\n              \"nombre_detectado\": \"cinta métrica\",\n              \"confidence\": 40,\n              \"datos_vision\": null\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - body sin cuerpos",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacion}}/importar-layout",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacion}}",
+                    "importar-layout"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cuerpos\": []\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - REEMPLAZAR sin gondola_id",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacion}}/importar-layout",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacion}}",
+                    "importar-layout"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cuerpos\": [\n    {\n      \"destino\": \"REEMPLAZAR\",\n      \"nombre\": \"TG Importado Simple\",\n      \"ancho_cm\": 122,\n      \"alto_cm\": 229,\n      \"profundidad_cm\": 56,\n      \"secciones\": [],\n      \"niveles\": [\n        {\n          \"seccion_clave\": null,\n          \"orden\": 1,\n          \"altura_desde_piso_cm\": 150,\n          \"tipo_accesorio\": \"BANDEJA\",\n          \"codigo_accesorio_id\": null,\n          \"tamano_accesorio_pulgadas\": 22,\n          \"notas\": null,\n          \"posiciones\": [\n            {\n              \"orden_horizontal\": 1,\n              \"sku\": null,\n              \"ancho_asignado_cm\": 30,\n              \"facings_horizontal\": 1,\n              \"nombre_detectado\": \"cinta métrica\",\n              \"confidence\": 40,\n              \"datos_vision\": null\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - misma gondola reemplazada dos veces",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacion}}/importar-layout",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacion}}",
+                    "importar-layout"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cuerpos\": [\n    {\n      \"destino\": \"REEMPLAZAR\",\n      \"nombre\": \"TG Importado Simple\",\n      \"ancho_cm\": 122,\n      \"alto_cm\": 229,\n      \"profundidad_cm\": 56,\n      \"secciones\": [],\n      \"niveles\": [\n        {\n          \"seccion_clave\": null,\n          \"orden\": 1,\n          \"altura_desde_piso_cm\": 150,\n          \"tipo_accesorio\": \"BANDEJA\",\n          \"codigo_accesorio_id\": null,\n          \"tamano_accesorio_pulgadas\": 22,\n          \"notas\": null,\n          \"posiciones\": [\n            {\n              \"orden_horizontal\": 1,\n              \"sku\": null,\n              \"ancho_asignado_cm\": 30,\n              \"facings_horizontal\": 1,\n              \"nombre_detectado\": \"cinta métrica\",\n              \"confidence\": 40,\n              \"datos_vision\": null\n            }\n          ]\n        }\n      ],\n      \"gondola_id\": \"{{gondolaIdImportacionReemplazo}}\"\n    },\n    {\n      \"destino\": \"REEMPLAZAR\",\n      \"nombre\": \"TG Importado Simple\",\n      \"ancho_cm\": 122,\n      \"alto_cm\": 229,\n      \"profundidad_cm\": 56,\n      \"secciones\": [],\n      \"niveles\": [\n        {\n          \"seccion_clave\": null,\n          \"orden\": 1,\n          \"altura_desde_piso_cm\": 150,\n          \"tipo_accesorio\": \"BANDEJA\",\n          \"codigo_accesorio_id\": null,\n          \"tamano_accesorio_pulgadas\": 22,\n          \"notas\": null,\n          \"posiciones\": [\n            {\n              \"orden_horizontal\": 1,\n              \"sku\": null,\n              \"ancho_asignado_cm\": 30,\n              \"facings_horizontal\": 1,\n              \"nombre_detectado\": \"cinta métrica\",\n              \"confidence\": 40,\n              \"datos_vision\": null\n            }\n          ]\n        }\n      ],\n      \"gondola_id\": \"{{gondolaIdImportacionReemplazo}}\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - version no encontrada",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdInexistente}}/importar-layout",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdInexistente}}",
+                    "importar-layout"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cuerpos\": [\n    {\n      \"destino\": \"NUEVA\",\n      \"nombre\": \"TG Importado Simple\",\n      \"ancho_cm\": 122,\n      \"alto_cm\": 229,\n      \"profundidad_cm\": 56,\n      \"secciones\": [],\n      \"niveles\": [\n        {\n          \"seccion_clave\": null,\n          \"orden\": 1,\n          \"altura_desde_piso_cm\": 150,\n          \"tipo_accesorio\": \"BANDEJA\",\n          \"codigo_accesorio_id\": null,\n          \"tamano_accesorio_pulgadas\": 22,\n          \"notas\": null,\n          \"posiciones\": [\n            {\n              \"orden_horizontal\": 1,\n              \"sku\": null,\n              \"ancho_asignado_cm\": 30,\n              \"facings_horizontal\": 1,\n              \"nombre_detectado\": \"cinta métrica\",\n              \"confidence\": 40,\n              \"datos_vision\": null\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('error.code = NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - gondola a reemplazar no encontrada",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacion}}/importar-layout",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacion}}",
+                    "importar-layout"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cuerpos\": [\n    {\n      \"destino\": \"REEMPLAZAR\",\n      \"nombre\": \"TG Importado Simple\",\n      \"ancho_cm\": 122,\n      \"alto_cm\": 229,\n      \"profundidad_cm\": 56,\n      \"secciones\": [],\n      \"niveles\": [\n        {\n          \"seccion_clave\": null,\n          \"orden\": 1,\n          \"altura_desde_piso_cm\": 150,\n          \"tipo_accesorio\": \"BANDEJA\",\n          \"codigo_accesorio_id\": null,\n          \"tamano_accesorio_pulgadas\": 22,\n          \"notas\": null,\n          \"posiciones\": [\n            {\n              \"orden_horizontal\": 1,\n              \"sku\": null,\n              \"ancho_asignado_cm\": 30,\n              \"facings_horizontal\": 1,\n              \"nombre_detectado\": \"cinta métrica\",\n              \"confidence\": 40,\n              \"datos_vision\": null\n            }\n          ]\n        }\n      ],\n      \"gondola_id\": \"{{gondolaIdInexistente}}\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('error.code = NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - accesorio no encontrado",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacion}}/importar-layout",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacion}}",
+                    "importar-layout"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cuerpos\": [\n    {\n      \"destino\": \"NUEVA\",\n      \"nombre\": \"TG Importado Simple\",\n      \"ancho_cm\": 122,\n      \"alto_cm\": 229,\n      \"profundidad_cm\": 56,\n      \"secciones\": [],\n      \"niveles\": [\n        {\n          \"seccion_clave\": null,\n          \"orden\": 1,\n          \"altura_desde_piso_cm\": 150,\n          \"tipo_accesorio\": \"BANDEJA\",\n          \"codigo_accesorio_id\": \"{{accesorioIdInexistente}}\",\n          \"tamano_accesorio_pulgadas\": 22,\n          \"notas\": null,\n          \"posiciones\": [\n            {\n              \"orden_horizontal\": 1,\n              \"sku\": null,\n              \"ancho_asignado_cm\": 30,\n              \"facings_horizontal\": 1,\n              \"nombre_detectado\": \"cinta métrica\",\n              \"confidence\": 40,\n              \"datos_vision\": null\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('error.code = NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - version no editable",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdNivelesPublicada}}/importar-layout",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdNivelesPublicada}}",
+                    "importar-layout"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cuerpos\": [\n    {\n      \"destino\": \"NUEVA\",\n      \"nombre\": \"TG Importado Simple\",\n      \"ancho_cm\": 122,\n      \"alto_cm\": 229,\n      \"profundidad_cm\": 56,\n      \"secciones\": [],\n      \"niveles\": [\n        {\n          \"seccion_clave\": null,\n          \"orden\": 1,\n          \"altura_desde_piso_cm\": 150,\n          \"tipo_accesorio\": \"BANDEJA\",\n          \"codigo_accesorio_id\": null,\n          \"tamano_accesorio_pulgadas\": 22,\n          \"notas\": null,\n          \"posiciones\": [\n            {\n              \"orden_horizontal\": 1,\n              \"sku\": null,\n              \"ancho_asignado_cm\": 30,\n              \"facings_horizontal\": 1,\n              \"nombre_detectado\": \"cinta métrica\",\n              \"confidence\": 40,\n              \"datos_vision\": null\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.test('error.code = UNPROCESSABLE', () => pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - la raiz de las secciones no es una division",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacion}}/importar-layout",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacion}}",
+                    "importar-layout"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cuerpos\": [\n    {\n      \"destino\": \"NUEVA\",\n      \"nombre\": \"TG Importado Simple\",\n      \"ancho_cm\": 122,\n      \"alto_cm\": 229,\n      \"profundidad_cm\": 56,\n      \"secciones\": [\n        {\n          \"clave\": \"raiz\",\n          \"padre_clave\": null,\n          \"es_division\": false,\n          \"direccion\": null,\n          \"orden\": 1,\n          \"tam_cm\": 229\n        }\n      ],\n      \"niveles\": [\n        {\n          \"seccion_clave\": null,\n          \"orden\": 1,\n          \"altura_desde_piso_cm\": 150,\n          \"tipo_accesorio\": \"BANDEJA\",\n          \"codigo_accesorio_id\": null,\n          \"tamano_accesorio_pulgadas\": 22,\n          \"notas\": null,\n          \"posiciones\": [\n            {\n              \"orden_horizontal\": 1,\n              \"sku\": null,\n              \"ancho_asignado_cm\": 30,\n              \"facings_horizontal\": 1,\n              \"nombre_detectado\": \"cinta métrica\",\n              \"confidence\": 40,\n              \"datos_vision\": null\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.test('error.code = UNPROCESSABLE', () => pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - seccion menor al minimo",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacion}}/importar-layout",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacion}}",
+                    "importar-layout"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cuerpos\": [\n    {\n      \"destino\": \"NUEVA\",\n      \"nombre\": \"TG Importado Simple\",\n      \"ancho_cm\": 122,\n      \"alto_cm\": 229,\n      \"profundidad_cm\": 56,\n      \"secciones\": [\n        {\n          \"clave\": \"raiz\",\n          \"padre_clave\": null,\n          \"es_division\": true,\n          \"direccion\": \"COLUMNAS\",\n          \"orden\": 1,\n          \"tam_cm\": 122\n        },\n        {\n          \"clave\": \"a\",\n          \"padre_clave\": \"raiz\",\n          \"es_division\": false,\n          \"direccion\": null,\n          \"orden\": 1,\n          \"tam_cm\": 5\n        },\n        {\n          \"clave\": \"b\",\n          \"padre_clave\": \"raiz\",\n          \"es_division\": false,\n          \"direccion\": null,\n          \"orden\": 2,\n          \"tam_cm\": 117\n        }\n      ],\n      \"niveles\": [\n        {\n          \"seccion_clave\": \"b\",\n          \"orden\": 1,\n          \"altura_desde_piso_cm\": 150,\n          \"tipo_accesorio\": \"BANDEJA\",\n          \"codigo_accesorio_id\": null,\n          \"tamano_accesorio_pulgadas\": 22,\n          \"notas\": null,\n          \"posiciones\": [\n            {\n              \"orden_horizontal\": 1,\n              \"sku\": null,\n              \"ancho_asignado_cm\": 30,\n              \"facings_horizontal\": 1,\n              \"nombre_detectado\": \"cinta métrica\",\n              \"confidence\": 40,\n              \"datos_vision\": null\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.test('error.code = UNPROCESSABLE', () => pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - nivel que no indica una seccion hoja",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacion}}/importar-layout",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacion}}",
+                    "importar-layout"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cuerpos\": [\n    {\n      \"destino\": \"NUEVA\",\n      \"nombre\": \"TG Importado Simple\",\n      \"ancho_cm\": 122,\n      \"alto_cm\": 229,\n      \"profundidad_cm\": 56,\n      \"secciones\": [\n        {\n          \"clave\": \"raiz\",\n          \"padre_clave\": null,\n          \"es_division\": true,\n          \"direccion\": \"COLUMNAS\",\n          \"orden\": 1,\n          \"tam_cm\": 122\n        },\n        {\n          \"clave\": \"a\",\n          \"padre_clave\": \"raiz\",\n          \"es_division\": false,\n          \"direccion\": null,\n          \"orden\": 1,\n          \"tam_cm\": 60\n        },\n        {\n          \"clave\": \"b\",\n          \"padre_clave\": \"raiz\",\n          \"es_division\": false,\n          \"direccion\": null,\n          \"orden\": 2,\n          \"tam_cm\": 62\n        }\n      ],\n      \"niveles\": [\n        {\n          \"seccion_clave\": \"raiz\",\n          \"orden\": 1,\n          \"altura_desde_piso_cm\": 150,\n          \"tipo_accesorio\": \"BANDEJA\",\n          \"codigo_accesorio_id\": null,\n          \"tamano_accesorio_pulgadas\": 22,\n          \"notas\": null,\n          \"posiciones\": [\n            {\n              \"orden_horizontal\": 1,\n              \"sku\": null,\n              \"ancho_asignado_cm\": 30,\n              \"facings_horizontal\": 1,\n              \"nombre_detectado\": \"cinta métrica\",\n              \"confidence\": 40,\n              \"datos_vision\": null\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.test('error.code = UNPROCESSABLE', () => pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - nivel con seccion en una gondola sin dividir",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacion}}/importar-layout",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacion}}",
+                    "importar-layout"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cuerpos\": [\n    {\n      \"destino\": \"NUEVA\",\n      \"nombre\": \"TG Importado Simple\",\n      \"ancho_cm\": 122,\n      \"alto_cm\": 229,\n      \"profundidad_cm\": 56,\n      \"secciones\": [],\n      \"niveles\": [\n        {\n          \"seccion_clave\": \"s1\",\n          \"orden\": 1,\n          \"altura_desde_piso_cm\": 150,\n          \"tipo_accesorio\": \"BANDEJA\",\n          \"codigo_accesorio_id\": null,\n          \"tamano_accesorio_pulgadas\": 22,\n          \"notas\": null,\n          \"posiciones\": [\n            {\n              \"orden_horizontal\": 1,\n              \"sku\": null,\n              \"ancho_asignado_cm\": 30,\n              \"facings_horizontal\": 1,\n              \"nombre_detectado\": \"cinta métrica\",\n              \"confidence\": 40,\n              \"datos_vision\": null\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.test('error.code = UNPROCESSABLE', () => pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Leer PDF de planograma (POST /agente-extractor/pdf-planograma)",
+          "description": "Solo escenarios de validación: el caso de éxito llama a OpenAI con un PDF real (costo y tiempo), se prueba a mano desde el chat del lienzo.",
+          "item": [
+            {
+              "name": "400 - falta pdf_base64",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/agente-extractor/pdf-planograma",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "agente-extractor",
+                    "pdf-planograma"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre_archivo\": \"planograma.pdf\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - nombre de archivo sin extension .pdf",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/agente-extractor/pdf-planograma",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "agente-extractor",
+                    "pdf-planograma"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"pdf_base64\": \"JVBERi0xLjcK\",\n  \"nombre_archivo\": \"planograma.png\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - el contenido no es un PDF",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/agente-extractor/pdf-planograma",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "agente-extractor",
+                    "pdf-planograma"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"pdf_base64\": \"iVBORw0KGgoAAAANSUhEUg==\",\n  \"nombre_archivo\": \"planograma.pdf\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
                     ]
                   }
                 }

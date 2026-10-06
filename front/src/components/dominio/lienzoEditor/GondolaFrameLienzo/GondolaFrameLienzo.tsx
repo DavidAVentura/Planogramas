@@ -279,6 +279,7 @@ function ColumnaNiveles({
               <NivelFilaLienzo
                 nivel={nivel}
                 alturaPx={geometria.pxAlto}
+                altoCm={geometria.gapCm}
                 puedeEscribir={puedeEscribir}
                 capacidad={(resolverCapacidad ?? ((n) => resolverCapacidadPorDefecto(n, anchoCm)))(nivel)}
                 resolverDesborda={(posicion) => (resolverDesborda ?? resolverDesbordaPorDefecto)(posicion, geometria.gapCm)}

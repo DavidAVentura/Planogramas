@@ -1,0 +1,78 @@
+.uso-espacio {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 200px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--fg-1);
+}
+
+.uso-espacio__titulo {
+  font-size: 12px;
+}
+
+.uso-espacio__eje {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px 6px;
+  border-left: 2px solid var(--ink-200);
+  border-radius: 2px;
+}
+
+.uso-espacio__eje--activo {
+  border-left-color: var(--cemaco-indigo);
+  background: var(--ink-50);
+}
+
+.uso-espacio__eje-nombre {
+  font-weight: 700;
+  color: var(--fg-2);
+}
+
+.uso-espacio__libre {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.uso-espacio__alerta {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.uso-espacio__nota {
+  color: var(--fg-3);
+}
+
+/* ─── Ancla + burbuja (barras del Lienzo por filas y del Editor) ──────────── */
+
+.uso-espacio-ancla {
+  position: relative;
+  outline: none;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px var(--cemaco-indigo);
+    border-radius: 2px;
+  }
+}
+
+.uso-espacio-flotante {
+  position: absolute;
+  left: 0;
+  z-index: 50;
+  padding: 8px 10px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 14%);
+  pointer-events: none;
+}
+
+.uso-espacio-flotante--arriba {
+  bottom: calc(100% + 6px);
+}
+
+.uso-espacio-flotante--abajo {
+  top: calc(100% + 6px);
+}
