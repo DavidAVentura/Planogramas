@@ -47,7 +47,7 @@ No persiste nada. El body admite hasta ~21 MB (PDF de hasta 15 MB en base64).
       "ancho_disponible_cm": 121.9, "tipo_accesorio": "GANCHO", "codigo_accesorio": "R45-12-212P2",
       "codigo_accesorio_id": 9, "tamano_accesorio_pulgadas": 12,
       "espacios": [{
-        "orden_horizontal": 1, "ganchos": [1], "numeros_sistema": [1], "facings": 1, "ancho_cm": 12,
+        "orden_horizontal": 1, "ganchos": [1], "facings": 1, "ancho_cm": 12,
         "sku_impreso": "1171592", "descripcion_visual": "cinta métrica", "confianza": 90,
         "producto": { "sku": "1171592", "nombre": "...", "marca": "...", "ancho_cm": null, "imagen_url": null },
         "candidatos": [], "estado_producto": "IDENTIFICADO"
@@ -55,15 +55,17 @@ No persiste nada. El body admite hasta ~21 MB (PDF de hasta 15 MB en base64).
     }],
     "accesorios_montaje": [{ "codigo": "SUS 4*22", "tipo": "BANDEJA", "medida_pulgadas": 22, "cantidad": 4, "especificaciones": "...", "accesorio_id": null }],
     "notas": null,
-    "advertencias": ["1 espacio(s) quedarán con un número de gancho distinto al impreso en el PDF ..."]
+    "advertencias": ["1 espacio(s) sin número de gancho legible: el sistema les asignará el siguiente número libre. ..."]
   }]
 }
 ```
 
-- `numeros_sistema`: números de gancho que asignará el sistema al importar (uno por facing). Si
-  difieren de `ganchos` (los impresos), se advierte.
+- `ganchos`: números impresos en el PDF. Al importar se guardan en `Posicion.ganchos` y mandan
+  sobre la numeración calculada, así que se conservan tal cual (la secuencia del PDF es
+  correlativa entre todos los cuerpos). Un espacio sin números legibles recibe el siguiente número
+  libre y se advierte en su cuerpo; un número repetido en el PDF se advierte en `advertencias`.
 - Las advertencias de un cuerpo (accesorio fuera de catálogo, anchos reescalados, secciones
-  inválidas, numeración distinta) van en `cuerpos[].advertencias`; las generales del PDF y de CATI,
+  inválidas, espacios sin número de gancho) van en `cuerpos[].advertencias`; las generales del PDF y de CATI,
   en `advertencias`.
 
 ---

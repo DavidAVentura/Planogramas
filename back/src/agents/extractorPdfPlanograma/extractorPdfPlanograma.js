@@ -17,9 +17,11 @@
  * y back/src/domain/skuVersion/skuVersion.entity.js):
  *   - Nivel `orden` 1 = el de ARRIBA; las alturas desde el piso bajan a medida que sube el orden.
  *   - `altura_desde_piso_cm` = base del nivel (donde se apoya o cuelga el producto).
- *   - Los números de gancho del sistema se calculan recorriendo hojas → niveles por orden →
- *     espacios por orden_horizontal → un número por facing. Por eso `facings` = cantidad de
- *     números impresos del espacio: así la numeración del sistema coincide con la del PDF.
+ *   - Cada posición importada guarda los números de gancho impresos (`Posicion.ganchos`, migración
+ *     013), que mandan sobre la numeración calculada. La numeración del PDF es correlativa entre
+ *     todos los cuerpos, así que se conserva tal cual. Solo los espacios sin números legibles
+ *     reciben uno calculado (el siguiente libre en el recorrido de la versión). `facings` =
+ *     cantidad de números impresos del espacio.
  */
 
 const { calcularHojas } = require('../../domain/seccion/seccion.entity');
@@ -404,18 +406,28 @@ function normalizarNiveles(niveles, hojas, accesorios, advertir) {
 }
 
 /**
- * Calcula los números de gancho que el sistema asignará (un número por facing, en orden de
- * recorrido) y los compara con los impresos en el PDF.
+ * Avisa de los espacios sin números de gancho legibles: al importarse reciben uno calculado, que
+ * puede no coincidir con el de la ficha.
  */
-function numerarYComparar(niveles, advertir) {
-  let numero = 0;
-  let distintos = 0;
-  niveles.forEach((nivel) => nivel.espacios.forEach((espacio) => {
-    espacio.numeros_sistema = Array.from({ length: espacio.facings }, () => ++numero);
-    if (espacio.numeros_sistema.join(',') !== espacio.ganchos.join(',')) distintos += 1;
-  }));
-  if (distintos > 0) {
-    advertir(`${distintos} espacio(s) quedarán con un número de gancho distinto al impreso en el PDF (el sistema numera de forma correlativa de arriba hacia abajo y de izquierda a derecha).`);
+function advertirEspaciosSinGancho(niveles, advertir) {
+  const sinGancho = niveles.reduce((t, n) => t + n.espacios.filter((e) => !e.ganchos.length).length, 0);
+  if (sinGancho > 0) {
+    advertir(`${sinGancho} espacio(s) sin número de gancho legible: el sistema les asignará el siguiente número libre. Revisalos.`);
+  }
+}
+
+/** Los números de gancho siguen una sola secuencia en todo el PDF: un número repetido entre
+ * cuerpos (o dentro de uno) indica una mala lectura. */
+function advertirGanchosRepetidos(cuerpos, advertencias) {
+  const vistos = new Map(); // número → nombre del primer cuerpo que lo usa
+  const repetidos = new Set();
+  cuerpos.forEach((c) => c.niveles.forEach((n) => n.espacios.forEach((e) => e.ganchos.forEach((g) => {
+    if (vistos.has(g)) repetidos.add(g);
+    else vistos.set(g, c.nombre);
+  }))));
+  if (repetidos.size) {
+    const lista = [...repetidos].sort((a, b) => a - b);
+    advertencias.push(`Números de gancho repetidos en el PDF: ${lista.slice(0, 20).join(', ')}${lista.length > 20 ? '…' : ''}. Revisá esos espacios antes de importar.`);
   }
 }
 
@@ -428,7 +440,7 @@ function normalizarCuerpo(cuerpo, indice, accesorios) {
   if (raiz) ajustarTamanos(raiz, medidas.ancho_cm, medidas.alto_cm);
   const hojas = hojasDelCuerpo(raiz, medidas);
   const niveles = normalizarNiveles(cuerpo.niveles ?? [], hojas, accesorios, advertir);
-  numerarYComparar(niveles, advertir);
+  advertirEspaciosSinGancho(niveles, advertir);
 
   return {
     clave: `c${indice + 1}`,
@@ -532,6 +544,7 @@ async function procesarPdf({ pdfBase64, nombreArchivo }, { openaiClient, catiCli
   const advertencias = [...(resultado.advertencias ?? [])];
   const cuerpos = (resultado.cuerpos ?? []).map((c, i) => normalizarCuerpo(c, i, accesorios));
   if (cuerpos.length === 0) advertencias.push('No se reconoció ningún cuerpo de mueble en el PDF.');
+  advertirGanchosRepetidos(cuerpos, advertencias);
 
   await identificarProductos(cuerpos, catiClient, advertencias);
 

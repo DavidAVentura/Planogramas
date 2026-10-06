@@ -22,8 +22,6 @@ export interface EspacioPdf {
   orden_horizontal: number;
   /** Números impresos en el PDF. */
   ganchos: number[];
-  /** Números que les asignará el sistema al importar (uno por facing). */
-  numeros_sistema: number[];
   facings: number;
   ancho_cm: number;
   sku_impreso: string | null;
