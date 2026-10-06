@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Modal } from '../../../ui/Modal/Modal';
 import { Button } from '../../../ui/Button/Button';
 import { Table, type TableColumn } from '../../../ui/Table/Table';
+import { ZonaArrastreArchivo } from '../../../ui/ZonaArrastreArchivo/ZonaArrastreArchivo';
+import { UsarAdjuntos } from '../../UsarAdjuntos/UsarAdjuntos';
 import { AccesorioFormModal } from '../AccesorioFormModal/AccesorioFormModal';
 import { useAccesorios } from '../../../../hooks/useAccesorios';
 import { useToast } from '../../../../context/ToastContext';
@@ -19,7 +21,10 @@ interface ImportarExcelProductosModalProps {
   onImportado: () => void;
 }
 
-const normalizar = (codigo: string) => codigo.trim().replace(/\s+/g, ' ').toUpperCase();
+/** El Excel se lee en el navegador; el tope evita colgar la pestaña con archivos que no son el listado. */
+const MAX_BYTES_EXCEL = 10 * 1024 * 1024;
+
+const normalizar =(codigo: string) => codigo.trim().replace(/\s+/g, ' ').toUpperCase();
 
 /** Tipo sugerido para dar de alta un accesorio que trae el Excel (el usuario lo puede cambiar). */
 function tipoSugerido(codigo: string, tamano: number | null): TipoAccesorioCatalogo {
@@ -211,10 +216,20 @@ export function ImportarExcelProductosModal({ versionId, onClose, onImportado }:
           Subí el Excel del planograma (una fila por SKU con sus ganchos TG1…TG10, facings, cantidades, mín./máx., accesorio
           y observaciones). Se lee la primera hoja; la jerarquía, marca, modelo, temporada y sustitución no se importan.
         </p>
-        <input
-          type="file"
-          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-          onChange={(e) => setArchivo(e.target.files?.[0] ?? null)}
+        <ZonaArrastreArchivo
+          accept=".xlsx"
+          formatos="Excel (.xlsx)"
+          maxBytes={MAX_BYTES_EXCEL}
+          indicacion="Una fila por SKU; se lee solo la primera hoja."
+          archivo={archivo}
+          onSeleccionar={setArchivo}
+          disabled={leyendo}
+        />
+        <UsarAdjuntos
+          versionId={versionId}
+          accept=".xlsx"
+          maxBytes={MAX_BYTES_EXCEL}
+          onSeleccionar={setArchivo}
           disabled={leyendo}
         />
       </div>

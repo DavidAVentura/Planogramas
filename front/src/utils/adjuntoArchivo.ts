@@ -64,3 +64,20 @@ export async function abrirAdjunto(adjunto: Adjunto, forzarDescarga = false): Pr
     throw err;
   }
 }
+
+/**
+ * Baja el adjunto a memoria como `File`, para reusarlo como entrada de otro proceso (ej. importar
+ * el Excel o el PDF del planograma). A diferencia de `abrirAdjunto`, esto es un `fetch` a Azure:
+ * requiere que el CORS de la cuenta de storage permita `GET` (ver Arquitectura/DESPLIEGUE_AZURE.md).
+ */
+export async function descargarAdjuntoComoArchivo(adjunto: Adjunto): Promise<File> {
+  const { url } = await adjuntosService.obtenerUrlDescarga(adjunto.id, 'attachment');
+  let respuesta: Response;
+  try {
+    respuesta = await fetch(url);
+  } catch {
+    throw new Error('No se pudo descargar el adjunto. Revisá tu conexión o el CORS del storage (GET).');
+  }
+  if (!respuesta.ok) throw new Error(`Azure rechazó la descarga del adjunto (HTTP ${respuesta.status}).`);
+  return new File([await respuesta.blob()], adjunto.nombreOriginal, { type: adjunto.tipoMime });
+}

@@ -34,3 +34,26 @@
   font-size: 13px;
   color: var(--fg-3);
 }
+
+.seleccionar-metodo-extraccion__paso {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cemaco-indigo);
+}
+
+.seleccionar-metodo-extraccion__mas {
+  align-self: center;
+  padding: 6px 12px;
+  border: none;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cemaco-indigo);
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

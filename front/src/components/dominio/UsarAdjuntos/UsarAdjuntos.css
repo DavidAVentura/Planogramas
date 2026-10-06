@@ -1,0 +1,134 @@
+.usar-adjuntos {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: #fff;
+}
+
+.usar-adjuntos__encabezado {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-1);
+  text-align: left;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: var(--cemaco-indigo);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.usar-adjuntos__chevron {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.usar-adjuntos__chevron--abierto {
+  transform: rotate(90deg);
+}
+
+.usar-adjuntos__conteo {
+  margin-left: auto;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--ink-100);
+  font-size: 11px;
+  color: var(--fg-3);
+}
+
+.usar-adjuntos__cuerpo {
+  padding: 0 14px 12px;
+}
+
+.usar-adjuntos__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.usar-adjuntos__item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 12px;
+  align-items: center;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunken);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+
+  &:hover:not(:disabled) {
+    border-color: var(--cemaco-indigo-400);
+    background: var(--cemaco-indigo-50);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.usar-adjuntos__item--elegido {
+  border-color: var(--cemaco-green-600);
+  background: var(--cemaco-green-50);
+
+  & .usar-adjuntos__accion {
+    color: var(--cemaco-green-700);
+  }
+}
+
+.usar-adjuntos__nombre {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-1);
+  word-break: break-word;
+}
+
+.usar-adjuntos__detalle {
+  grid-column: 1;
+  font-size: 12px;
+  color: var(--fg-3);
+}
+
+.usar-adjuntos__accion {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cemaco-indigo);
+}
+
+.usar-adjuntos__mensaje {
+  margin: 0;
+  font-size: 13px;
+  color: var(--fg-3);
+}
+
+.usar-adjuntos__error {
+  margin: 8px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--danger);
+}

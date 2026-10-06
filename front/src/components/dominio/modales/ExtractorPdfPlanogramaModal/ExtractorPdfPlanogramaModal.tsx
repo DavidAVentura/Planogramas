@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Modal } from '../../../ui/Modal/Modal';
 import { Button } from '../../../ui/Button/Button';
+import { ZonaArrastreArchivo } from '../../../ui/ZonaArrastreArchivo/ZonaArrastreArchivo';
+import { UsarAdjuntos } from '../../UsarAdjuntos/UsarAdjuntos';
 import { extractorPdfPlanogramaService } from '../../../../services/extractorPdfPlanograma.service';
 import { archivoABase64 } from '../../../../utils/archivoABase64';
 import { useToast } from '../../../../context/ToastContext';
@@ -50,17 +52,6 @@ export function ExtractorPdfPlanogramaModal({ versionId, gondolas, productosPorU
   const usarPorUbicar = eleccionPorUbicar ?? productosPorUbicar.length > 0;
   const porGancho = usarPorUbicar && productosPorUbicar.length ? indicePorGancho(productosPorUbicar) : null;
   const { mostrarToast } = useToast();
-
-  function onSeleccionarArchivo(e: React.ChangeEvent<HTMLInputElement>) {
-    const seleccionado = e.target.files?.[0] ?? null;
-    if (seleccionado && seleccionado.size > MAX_BYTES_PDF) {
-      mostrarToast('El PDF supera el máximo de 15 MB', 'error');
-      e.target.value = '';
-      setArchivo(null);
-      return;
-    }
-    setArchivo(seleccionado);
-  }
 
   async function analizarPdf() {
     if (!archivo || analizando) return;
@@ -187,11 +178,26 @@ export function ExtractorPdfPlanogramaModal({ versionId, gondolas, productosPorU
     >
       <div className="revision-pdf">
         <p className="revision-pdf__ayuda">
-          Subí la ficha de montaje del planograma en PDF (máximo 15 MB). El agente reconstruye el layout de cada cuerpo
+          Subí la ficha de montaje del planograma en PDF. El agente reconstruye el layout de cada cuerpo
           (secciones, niveles, accesorios y espacios con sus números de gancho) y después identifica los productos contra
           el catálogo.
         </p>
-        <input type="file" accept="application/pdf,.pdf" onChange={onSeleccionarArchivo} disabled={analizando} />
+        <ZonaArrastreArchivo
+          accept="application/pdf,.pdf"
+          formatos="PDF (.pdf)"
+          maxBytes={MAX_BYTES_PDF}
+          indicacion="Ficha de montaje con los cuerpos y los números de gancho legibles."
+          archivo={archivo}
+          onSeleccionar={setArchivo}
+          disabled={analizando}
+        />
+        <UsarAdjuntos
+          versionId={versionId}
+          accept="application/pdf,.pdf"
+          maxBytes={MAX_BYTES_PDF}
+          onSeleccionar={setArchivo}
+          disabled={analizando}
+        />
         {analizando && (
           <p className="revision-pdf__ayuda">Leyendo el PDF… puede tardar uno o dos minutos.</p>
         )}

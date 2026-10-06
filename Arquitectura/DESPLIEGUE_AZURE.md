@@ -128,8 +128,10 @@ reinicia la app y no requiere redeploy.
 
 Los adjuntos se suben con un `PUT` directo del navegador a Azure Blob, usando una URL SAS que firma
 el backend. Sin CORS en la cuenta de storage, el navegador bloquea la subida (el front muestra "No
-se pudo subir el archivo"). Las descargas abren la URL SAS como navegación normal y no necesitan
-CORS.
+se pudo subir el archivo"). Abrir o descargar un adjunto es navegación normal y no necesita CORS,
+pero **"Utilizar adjuntos"** (modales de Excel de productos y PDF Planograma) baja el archivo con un
+`GET` vía `fetch` para reusarlo como entrada, y ese sí lo necesita (sin él, el front muestra "No se
+pudo descargar el adjunto").
 
 Configurarlo una vez en la cuenta (Portal → cuenta de storage → Configuración → Uso compartido de
 recursos (CORS) → Blob service), con una regla que incluya los orígenes de los dos Static Web Apps
@@ -138,7 +140,7 @@ y el de desarrollo local:
 | Campo | Valor |
 |---|---|
 | Orígenes permitidos | URL del Static Web App de DEV, URL del de PROD, `http://localhost:5173` |
-| Métodos permitidos | `PUT`, `OPTIONS` |
+| Métodos permitidos | `GET`, `PUT`, `OPTIONS` |
 | Encabezados permitidos | `*` |
 | Encabezados expuestos | `*` |
 | Antigüedad máxima | `3600` |
@@ -146,7 +148,7 @@ y el de desarrollo local:
 Equivalente con Azure CLI:
 
 ```bash
-az storage cors add --services b --methods PUT OPTIONS \
+az storage cors add --services b --methods GET PUT OPTIONS \
   --origins "https://<swa-dev>" "https://<swa-prod>" "http://localhost:5173" \
   --allowed-headers "*" --exposed-headers "*" --max-age 3600 \
   --account-name <cuenta-storage>
