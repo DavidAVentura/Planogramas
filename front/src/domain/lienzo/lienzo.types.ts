@@ -38,6 +38,10 @@ export interface ProductoCatalogo {
    * vista sin necesitar fotos reales.
    */
   colorFoto: string | null;
+  /** Alto físico real del producto (catálogo local) — `null` si no está registrado. A diferencia de
+   * `altoCm` (que siempre trae un valor para poder dibujar), este es el que usa la barra de uso
+   * vertical del detalle de góndola. */
+  altoRealCm?: number | null;
 }
 
 /** Una posición (SKU colocado, o slot pendiente de asignar) dentro de un nivel. */
@@ -77,6 +81,8 @@ export interface GondolaLienzo {
   id: string;
   nombre: string;
   anchoCm: number;
+  /** Alto físico de la góndola (cm) — lo usa el dibujo a escala del detalle de góndola. */
+  altoCm?: number;
   /** Posición del frame en coordenadas de "mundo" del lienzo (no de pantalla). */
   x: number;
   y: number;

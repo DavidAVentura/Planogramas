@@ -54,6 +54,7 @@ export function adaptarProductoDePosicion(p: PosicionConProducto): ProductoCatal
     apilableDefecto: p.cantidad_apilable,
     imagenUrl: p.producto?.imagen_url ?? null,
     colorFoto: null,
+    altoRealCm: p.producto?.alto_cm ?? null,
   };
 }
 
@@ -99,6 +100,7 @@ export function adaptarGondola(
     id: String(gondola.id),
     nombre: gondola.nombre,
     anchoCm: gondola.ancho_cm,
+    altoCm: gondola.alto_cm,
     x: xy.x,
     y: xy.y,
     niveles,

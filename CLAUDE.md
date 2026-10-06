@@ -199,8 +199,9 @@ El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
     posición por `orden_horizontal` → un número por facing, pendientes incluidos).
   - Front: el detalle de góndola es la MISMA página del lienzo enfocada en una góndola
     (`/planogramas/:id/versiones/:versionId/lienzo/gondola/:gondolaId`, botón de expandir del
-    marco) + `DetalleGondolaPanel`; `GondolaFrameLienzo` dibuja las secciones solo si la góndola
-    está dividida.
+    marco) + `DetalleGondolaPanel`. Lienzo general y detalle dibujan cada góndola con
+    `GondolaEscalaLienzo` (a escala, estilo del prototipo de diseño, con barras de uso horizontal y
+    vertical); `GondolaFrameLienzo` ya no se dibuja, solo se conserva por su tipo de props compartido.
   - Postman: carpetas `18 - Secciones` y `19 - SKU en la versión`.
 - **Implementado, sin carpeta Postman todavía**: `adjuntos` (13, CRUD sobre Azure Blob; la
   migración `009_adjuntos_version.js` puede estar pendiente de aplicar) y `agente-extractor`.

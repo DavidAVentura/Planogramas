@@ -14,7 +14,8 @@ disponible restante del nivel. Es el endpoint que alimenta la grilla de tarjetas
 
 A diferencia de `GET /posiciones/{id}` (vista Analista para el panel de edición, ver
 `GET_posiciones_detalle_analista.md`), cada posición de este listado incluye un campo `producto`
-con datos livianos (`nombre`, `imagen_url`, `ancho_cm`) leídos de la tabla local `Producto` — sin
+con datos livianos (`nombre`, `imagen_url`, `ancho_cm`, `alto_cm` — este último agregado el
+2026-10-05 para la barra de uso vertical del detalle de góndola) leídos de la tabla local `Producto` — sin
 llamar a CATI — para que el Editor pueda pintar la imagen real de cada tarjeta sin un request
 adicional por SKU.
 
@@ -59,7 +60,8 @@ adicional por SKU.
       "producto": {
         "nombre": "Aceite Motor 10W30 1L",
         "imagen_url": "https://vtex.cemaco.com/productos/10012345_XL.jpg",
-        "ancho_cm": 9.0
+        "ancho_cm": 9.0,
+        "alto_cm": 22.5
       }
     }
   ],

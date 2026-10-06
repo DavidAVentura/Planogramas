@@ -1,0 +1,563 @@
+/* Detalle de góndola a escala (estilo del prototipo de diseño). Todo en tokens --lienzo-* para
+   respetar el tema claro/oscuro del lienzo. */
+
+.gondola-escala {
+  position: absolute;
+  display: inline-flex;
+  flex-direction: column;
+  background: var(--lienzo-bg-elevated);
+  border: 1px solid var(--lienzo-border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.gondola-escala__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  background: var(--lienzo-bg-sunken);
+  border-bottom: 1px solid var(--lienzo-border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.gondola-escala__nombre {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--lienzo-fg-1);
+  white-space: nowrap;
+}
+
+.gondola-escala__chip {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--lienzo-fg-3);
+  border: 1px solid var(--lienzo-border);
+  border-radius: var(--radius-pill);
+  padding: 1px 7px;
+  white-space: nowrap;
+}
+
+.gondola-escala__acciones {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+}
+
+.gondola-escala__accion {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--lienzo-bg-elevated);
+  color: var(--lienzo-fg-3);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.gondola-escala__accion--primaria {
+  color: var(--cemaco-indigo);
+  background: var(--lienzo-indigo-50);
+}
+
+.gondola-escala__accion--peligro:hover {
+  color: var(--lienzo-danger);
+}
+
+.gondola-escala__cuerpo {
+  display: flex;
+  align-items: flex-start;
+  padding: 16px 18px 18px 6px;
+}
+
+/* ─── Regla en pies y postes ──────────────────────────────────────────────── */
+.gondola-escala__regla {
+  position: relative;
+  width: 30px;
+  flex: none;
+  border-right: 1px solid var(--lienzo-border-strong);
+}
+
+.gondola-escala__marca {
+  position: absolute;
+  right: 0;
+  width: 8px;
+  border-top: 1px solid var(--lienzo-fg-4);
+}
+
+.gondola-escala__marca span {
+  position: absolute;
+  right: 11px;
+  top: -7px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--lienzo-fg-3);
+}
+
+.gondola-escala__poste {
+  width: 7px;
+  flex: none;
+  margin-left: 6px;
+  background: #3b403d;
+  border-radius: 2px;
+}
+
+.gondola-escala__poste:last-child {
+  margin-left: 0;
+}
+
+.gondola-escala__mueble {
+  position: relative;
+  flex: none;
+  background: #f3f1ec;
+}
+
+/* ─── Secciones ───────────────────────────────────────────────────────────── */
+.gondola-escala__seccion {
+  position: absolute;
+  box-sizing: border-box;
+}
+
+.gondola-escala__seccion--dividida {
+  outline: 1px dashed #a7ada4;
+  outline-offset: -1px;
+  cursor: pointer;
+}
+
+.gondola-escala__seccion--seleccionada {
+  outline: 2px solid var(--cemaco-indigo);
+  outline-offset: -2px;
+  z-index: 2;
+}
+
+.gondola-escala__etiqueta {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 8;
+  height: 16px;
+  padding: 0 6px;
+  border: none;
+  border-radius: 0 0 4px;
+  background: rgb(255 255 255 / 88%);
+  color: #2e3631;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 16px;
+  cursor: pointer;
+}
+
+.gondola-escala__seccion--seleccionada .gondola-escala__etiqueta {
+  background: var(--cemaco-indigo);
+  color: var(--white);
+}
+
+.gondola-escala__vacia {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 6px 10px;
+  border: 1px dashed var(--cemaco-indigo);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--cemaco-indigo);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* ─── Niveles ─────────────────────────────────────────────────────────────── */
+.gondola-escala__nivel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  box-sizing: border-box;
+  border-top: 1px dotted #cfd3cc;
+  background-color: #fbfaf7;
+}
+
+.gondola-escala__nivel--primero {
+  border-top: none;
+}
+
+/* Tablero perforado (ganchos / barra): un punto por pulgada a escala. */
+.gondola-escala__nivel--panel {
+  background-image: radial-gradient(circle, #c3c8c0 1px, transparent 1.4px);
+}
+
+.gondola-escala__pista {
+  position: absolute;
+  inset: 0 10px 0 0;
+  display: flex;
+  gap: 2px;
+  padding: 0 4px;
+}
+
+.gondola-escala__pista--arriba {
+  align-items: flex-start;
+  padding-top: 6px;
+}
+
+.gondola-escala__pista--abajo {
+  align-items: flex-end;
+  padding-bottom: 9px;
+}
+
+.gondola-escala__repisa {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 5px;
+  background: #8d857a;
+}
+
+.gondola-escala__nivel-acciones {
+  position: absolute;
+  top: 2px;
+  right: 14px;
+  z-index: 7;
+  display: none;
+  gap: 3px;
+}
+
+.gondola-escala__nivel:hover .gondola-escala__nivel-acciones {
+  display: flex;
+}
+
+.gondola-escala__nivel-acciones button {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--lienzo-border);
+  border-radius: 50%;
+  background: var(--lienzo-bg-elevated);
+  color: var(--lienzo-fg-2);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* ─── Posiciones y facings ────────────────────────────────────────────────── */
+.gondola-escala__posicion {
+  position: relative;
+  flex: none;
+  display: flex;
+  gap: 1px;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.gondola-escala__posicion--seleccionada {
+  outline: 2px solid var(--cemaco-indigo);
+  outline-offset: 1px;
+  z-index: 3;
+}
+
+.gondola-escala__posicion--mismo-sku {
+  outline: 2px solid var(--cemaco-indigo-400);
+  outline-offset: 1px;
+}
+
+.gondola-escala__facing {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--white);
+  border: 1px solid #d6d9d3;
+  border-radius: 2px;
+}
+
+.gondola-escala__facing img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.gondola-escala__facing-sku {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: #4a524d;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.gondola-escala__gancho {
+  position: absolute;
+  top: 1px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0 2px;
+  border-radius: 2px;
+  background: var(--ink-900);
+  color: var(--white);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  line-height: 10px;
+}
+
+.gondola-escala__apilable {
+  position: absolute;
+  right: -4px;
+  bottom: -6px;
+  padding: 0 4px;
+  border-radius: var(--radius-pill);
+  background: var(--cemaco-green);
+  color: var(--cemaco-indigo);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.gondola-escala__posicion--pendiente {
+  align-items: center;
+  justify-content: center;
+  border: 1.5px dashed var(--lienzo-fg-3);
+  background: var(--lienzo-bg-elevated);
+}
+
+.gondola-escala__posicion--pendiente:hover {
+  background: var(--lienzo-indigo-50);
+}
+
+.gondola-escala__pendiente-icono {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--lienzo-warning-bg);
+  color: var(--lienzo-warning);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* ─── "+" de inserción (aparecen al pasar el mouse) ────────────────────────── */
+.gondola-escala__gap-nivel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 12px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gondola-escala__gap-pos {
+  position: relative;
+  align-self: stretch;
+  flex: none;
+  width: 0;
+  z-index: 6;
+}
+
+.gondola-escala__gap-boton {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--cemaco-green);
+  color: var(--cemaco-indigo);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 16px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgb(17 24 17 / 30%);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.gondola-escala__gap-pos > * {
+  position: absolute;
+}
+
+.gondola-escala__gap-pos .gondola-escala__gap-boton {
+  top: 50%;
+  left: 0;
+  transform: translate(-50%, -50%) scale(0.4);
+}
+
+.gondola-escala__gap-nivel:hover .gondola-escala__gap-boton,
+.gondola-escala__gap-nivel .gondola-escala__gap-boton:focus-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.gondola-escala__gap-pos:hover .gondola-escala__gap-boton,
+.gondola-escala__gap-pos .gondola-escala__gap-boton:focus-visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* La zona de hover del "+" entre productos es más ancha que el elemento (ancho 0). */
+.gondola-escala__gap-pos::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -6px;
+  width: 12px;
+}
+
+.gondola-escala__gap-linea {
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.gondola-escala__gap-linea--h {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 5px;
+  border-top: 2px dashed var(--cemaco-indigo-400);
+}
+
+.gondola-escala__gap-linea--v {
+  top: 3px;
+  bottom: 3px;
+  left: -1px;
+  border-left: 2px dashed var(--cemaco-indigo-400);
+}
+
+.gondola-escala__gap-nivel:hover .gondola-escala__gap-linea,
+.gondola-escala__gap-pos:hover .gondola-escala__gap-linea {
+  opacity: 1;
+}
+
+/* ─── Barras de uso (solo color; el detalle va en el tooltip) ──────────────── */
+.gondola-escala__uso {
+  position: absolute;
+  z-index: 5;
+  padding: 0;
+  border: none;
+  border-radius: 3px;
+  background: rgb(17 24 17 / 10%);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.gondola-escala__uso > span {
+  position: absolute;
+  display: block;
+  border-radius: 3px;
+}
+
+.gondola-escala__uso--h {
+  left: 4px;
+  right: 14px;
+  bottom: 1px;
+  height: 4px;
+}
+
+.gondola-escala__uso--h > span {
+  left: 0;
+  top: 0;
+  bottom: 0;
+}
+
+.gondola-escala__uso--v {
+  top: 4px;
+  bottom: 8px;
+  right: 3px;
+  width: 4px;
+}
+
+.gondola-escala__uso--v > span {
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.gondola-escala__uso--h:hover,
+.gondola-escala__uso--h:focus-visible {
+  height: 7px;
+}
+
+.gondola-escala__uso--v:hover,
+.gondola-escala__uso--v:focus-visible {
+  width: 7px;
+}
+
+.gondola-escala__uso--ok > span {
+  background: #3f9e2f;
+}
+
+.gondola-escala__uso--justo > span {
+  background: #d99a00;
+}
+
+.gondola-escala__uso--excedido > span {
+  background: var(--lienzo-danger);
+}
+
+.gondola-escala__uso--excedido {
+  background: var(--lienzo-danger);
+}
+
+.gondola-escala__uso--sin-dato {
+  background: repeating-linear-gradient(45deg, rgb(17 24 17 / 12%) 0 3px, transparent 3px 6px);
+}
+
+.gondola-escala__tooltip {
+  position: absolute;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 190px;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  background: #111811;
+  color: var(--white);
+  font-size: 11.5px;
+  line-height: 1.35;
+  box-shadow: var(--shadow-md);
+  pointer-events: auto;
+}
+
+.gondola-escala__tooltip strong {
+  font-size: 12px;
+}
+
+.gondola-escala__tooltip--horizontal {
+  left: 4px;
+  bottom: 12px;
+}
+
+.gondola-escala__tooltip--vertical {
+  right: 12px;
+  top: 4px;
+}
+
+.gondola-escala__tooltip-alerta {
+  color: #ff9c8a;
+  font-weight: 700;
+}
+
+.gondola-escala--arrastrando {
+  box-shadow: var(--shadow-lg);
+}
+
+.gondola-escala__header--movible {
+  cursor: grab;
+  user-select: none;
+}
+
+.gondola-escala--arrastrando .gondola-escala__header--movible {
+  cursor: grabbing;
+}

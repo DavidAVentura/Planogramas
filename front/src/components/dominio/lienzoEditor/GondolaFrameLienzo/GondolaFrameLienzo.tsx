@@ -10,7 +10,7 @@ import './GondolaFrameLienzo.css';
 /** Separación (px) entre secciones hermanas dentro de una góndola dividida. */
 const GAP_SECCIONES_PX = 6;
 
-interface GondolaFrameLienzoProps {
+export interface GondolaFrameLienzoProps {
   gondola: GondolaLienzo;
   /** Escala actual del lienzo (`view.scale` de `useCanvasViewport`) — necesaria para convertir
    * el desplazamiento en píxeles de pantalla al arrastrar el encabezado a desplazamiento en

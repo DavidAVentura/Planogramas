@@ -29,6 +29,47 @@ export function rectangulosDeNodos(raiz: NodoSeccion, anchoCm: number, altoCm: n
   return mapa;
 }
 
+export interface FranjaNivel<N> {
+  nivel: N;
+  /** Altura desde el piso (cm) de la base del nivel (la repisa o la línea de ganchos). */
+  baseCm: number;
+  /** Altura desde el piso (cm) hasta donde llega su espacio (la base del nivel de arriba o el techo de la sección). */
+  techoCm: number;
+}
+
+/**
+ * Espacio vertical de cada nivel dentro de una sección. `niveles` va en orden visual (de arriba
+ * hacia abajo). Si sus alturas desde el piso son coherentes (bajan de arriba hacia abajo y caen
+ * dentro de la sección) se usan tal cual: cada nivel ocupa desde su base hasta la base del de
+ * arriba. Si no, el alto de la sección se reparte en partes iguales y `repartidas` avisa que las
+ * alturas guardadas no sirven para dibujar.
+ */
+export function distribuirNiveles<N extends { alturaDesdePisoCm: number }>(
+  niveles: N[],
+  pisoCm: number,
+  techoCm: number,
+): { franjas: FranjaNivel<N>[]; repartidas: boolean } {
+  const coherentes =
+    niveles.length > 0 &&
+    niveles.every((n, i) => {
+      const dentro = n.alturaDesdePisoCm >= pisoCm && n.alturaDesdePisoCm < techoCm;
+      return dentro && (i === 0 || n.alturaDesdePisoCm < niveles[i - 1].alturaDesdePisoCm);
+    });
+
+  if (coherentes) {
+    return {
+      repartidas: false,
+      franjas: niveles.map((n, i) => ({ nivel: n, baseCm: n.alturaDesdePisoCm, techoCm: i === 0 ? techoCm : niveles[i - 1].alturaDesdePisoCm })),
+    };
+  }
+
+  const alto = (techoCm - pisoCm) / Math.max(1, niveles.length);
+  return {
+    repartidas: niveles.length > 0,
+    franjas: niveles.map((n, i) => ({ nivel: n, techoCm: techoCm - i * alto, baseCm: techoCm - (i + 1) * alto })),
+  };
+}
+
 /** Nodos desde la raíz hasta `id` (inclusive), o [] si no está. */
 export function rutaHasta(raiz: NodoSeccion, id: number): NodoSeccion[] {
   if (raiz.id === id) return [raiz];

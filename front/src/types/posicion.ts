@@ -67,6 +67,8 @@ export interface ProductoResumenPosicion {
   nombre: string | null;
   imagen_url: string | null;
   ancho_cm: number | null;
+  /** Alto físico del producto (tabla local); se usa para la barra de uso vertical del nivel. */
+  alto_cm?: number | null;
 }
 
 /** Posición enriquecida con `producto`, tal como la devuelve `GET /niveles/{id}/posiciones`. */

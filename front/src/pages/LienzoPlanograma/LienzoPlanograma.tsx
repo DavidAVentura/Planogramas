@@ -7,7 +7,6 @@ import { LienzoTopbar } from '../../components/dominio/lienzoEditor/LienzoTopbar
 import { LienzoToolbar } from '../../components/dominio/lienzoEditor/LienzoToolbar/LienzoToolbar';
 import { LienzoCatalogoPanel } from '../../components/dominio/lienzoEditor/LienzoCatalogoPanel/LienzoCatalogoPanel';
 import { LienzoCanvas } from '../../components/dominio/lienzoEditor/LienzoCanvas/LienzoCanvas';
-import { GondolaFrameLienzo } from '../../components/dominio/lienzoEditor/GondolaFrameLienzo/GondolaFrameLienzo';
 import { ModalExportarLienzo } from '../../components/dominio/lienzoEditor/ModalExportarLienzo/ModalExportarLienzo';
 import { BarraAccionesPosicion } from '../../components/dominio/editor/BarraAccionesPosicion/BarraAccionesPosicion';
 import { AgenteExtractorBubble } from '../../components/dominio/editor/AgenteExtractorBubble/AgenteExtractorBubble';
@@ -22,6 +21,7 @@ import { CopiarPosicionModal } from '../../components/dominio/modales/CopiarPosi
 import { EliminarPosicionModal } from '../../components/dominio/modales/EliminarPosicionModal/EliminarPosicionModal';
 import { FichaProductoModal } from '../../components/dominio/modales/FichaProductoModal/FichaProductoModal';
 import { DetalleGondolaPanel } from '../../components/dominio/lienzoEditor/DetalleGondolaPanel/DetalleGondolaPanel';
+import { GondolaEscalaLienzo } from '../../components/dominio/lienzoEditor/GondolaEscalaLienzo/GondolaEscalaLienzo';
 import { useEditarSecciones, useSeccionesDeVersion, useSkusDeVersion } from '../../hooks/useSecciones';
 import type { DireccionSeccion } from '../../types/seccion';
 import { CHROME_GONDOLA_PX, PX_POR_CM, calcularAnchoFramePx } from '../../components/dominio/lienzoEditor/constantesLienzo';
@@ -50,18 +50,25 @@ const ALTO_REFERENCIA_GONDOLA_PX = 420;
 /** Separación horizontal (px) entre góndolas la primera vez que aparecen en el lienzo. */
 const SEPARACION_GONDOLA_PX = 90;
 
-function calcularLimite(gondolas: { x: number; y: number; anchoCm: number; niveles: { posiciones: unknown[] }[] }[]): LimiteRectangulo {
+/** Espacio extra (px) que suma el marco del dibujo a escala: encabezado, regla, postes y márgenes. */
+const MARCO_ESCALA_PX = { ancho: 80, alto: 90 };
+
+function calcularLimite(
+  gondolas: { x: number; y: number; anchoCm: number; altoCm?: number; niveles: { posiciones: unknown[] }[] }[],
+  aEscala = true,
+): LimiteRectangulo {
   if (gondolas.length === 0) return { minX: 0, minY: 0, maxX: 400, maxY: 400 };
   let minX = Infinity;
   let minY = Infinity;
   let maxX = -Infinity;
   let maxY = -Infinity;
   for (const g of gondolas) {
-    const ancho = calcularAnchoFramePx(g.anchoCm, g.niveles);
+    const ancho = aEscala ? g.anchoCm * PX_POR_CM + MARCO_ESCALA_PX.ancho : calcularAnchoFramePx(g.anchoCm, g.niveles);
+    const alto = aEscala ? (g.altoCm ?? 213) * PX_POR_CM + MARCO_ESCALA_PX.alto : ALTO_REFERENCIA_GONDOLA_PX;
     minX = Math.min(minX, g.x);
     minY = Math.min(minY, g.y);
     maxX = Math.max(maxX, g.x + ancho);
-    maxY = Math.max(maxY, g.y + ALTO_REFERENCIA_GONDOLA_PX);
+    maxY = Math.max(maxY, g.y + alto);
   }
   return { minX, minY, maxX, maxY };
 }
@@ -541,7 +548,7 @@ export function LienzoPlanograma() {
             handlers={viewport.handlers}
           >
             {gondolasLienzo.map((gondola) => (
-              <GondolaFrameLienzo
+              <GondolaEscalaLienzo
                 key={gondola.id}
                 gondola={gondola}
                 scale={viewport.view.scale}
