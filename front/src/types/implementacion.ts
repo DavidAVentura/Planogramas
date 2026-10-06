@@ -67,6 +67,8 @@ export interface ProductoImplementacion {
   gondolaId: number;
   gondola: string;
   gondolaOrden: number;
+  /** La fila está en la góndola "Por ubicar" (importada del Excel, sin lugar definitivo aún). */
+  porUbicar: boolean;
   nivelId: number;
   /** `Nivel.orden` (1 = nivel más bajo). */
   nivel: number;
@@ -80,10 +82,16 @@ export interface ProductoImplementacion {
   unidades_por_facing: number;
   capacidad_maxima: number | null;
   min_estetico: number | null;
+  min_final: number | null;
+  max_final: number | null;
   perfil_redondeo: PerfilRedondeo;
   modo: ModoPosicion;
   decision: DecisionPosicion;
   observaciones: string | null;
+  /** Números de gancho donde se monta (guardados del Excel o calculados por el sistema). */
+  ganchos: number[];
+  /** Accesorios de montaje con su medida (ej. R45-12-212P2 · 12"). */
+  accesorios: { codigo: string; nombre: string; tamano_pulgadas: number | null }[];
   sku_sustituto: string | null;
   sustituto_nombre: string | null;
   /** `null` cuando el inventario no está disponible. */

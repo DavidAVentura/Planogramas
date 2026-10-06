@@ -8,6 +8,7 @@ import { ExtractorVisionCatalogoModal } from '../../modales/ExtractorVisionCatal
 import { ExtractorLienzoModal } from '../../modales/ExtractorLienzoModal/ExtractorLienzoModal';
 import { ExtractorJCv2Modal } from '../../modales/ExtractorJCv2Modal/ExtractorJCv2Modal';
 import { ExtractorPdfPlanogramaModal } from '../../modales/ExtractorPdfPlanogramaModal/ExtractorPdfPlanogramaModal';
+import { ImportarExcelProductosModal } from '../../modales/ImportarExcelProductosModal/ImportarExcelProductosModal';
 import { useAgenteExtractor } from '../../../../hooks/useAgenteExtractor';
 import { useNivelesDeVersion } from '../../../../hooks/useNiveles';
 import { usePosicionesDeNiveles } from '../../../../hooks/usePosiciones';
@@ -22,7 +23,7 @@ const ALTO_BURBUJA = 48;
 const ANCHO_PANEL = 360;
 const ALTO_PANEL = 520;
 
-type MetodoExtraccion = 'ninguno' | 'elegir' | 'imagen-numerada' | 'vision-catalogo' | 'lienzo' | 'jcv2' | 'pdf';
+type MetodoExtraccion = 'ninguno' | 'elegir' | 'imagen-numerada' | 'vision-catalogo' | 'lienzo' | 'jcv2' | 'pdf' | 'excel';
 
 interface AgenteExtractorBubbleProps {
   puedeEscribir: boolean;
@@ -67,6 +68,15 @@ export function AgenteExtractorBubble({
   const { porNivel: posicionesPorNivel, recargar: recargarPosiciones } = usePosicionesDeNiveles(niveles);
   const { accesorios } = useAccesorios();
 
+  // Productos de la góndola "Por ubicar" (Excel) con ganchos: el importador de PDF los usa para
+  // llenar los espacios con esos mismos números.
+  const idsPorUbicar = new Set(gondolas.filter((g) => g.por_ubicar).map((g) => g.id));
+  const productosPorUbicar = niveles
+    .filter((n) => idsPorUbicar.has(n.gondolaId))
+    .flatMap((n) => posicionesPorNivel[n.id]?.posiciones ?? [])
+    .filter((p) => p.ganchos?.length)
+    .map((p) => ({ sku: p.sku, nombre: p.producto?.nombre ?? p.nombre_detectado ?? p.sku ?? 'Sin nombre', ganchos: p.ganchos! }));
+
   const contexto = construirContextoAgente(gondolas, niveles, posicionesPorNivel, accesorios, subcategorias);
   const agente = useAgenteExtractor(contexto, versionId);
 
@@ -84,8 +94,8 @@ export function AgenteExtractorBubble({
     setAbierto(!abierto);
   }
 
-  // El selector siempre se abre: "PDF Planograma" crea sus propias góndolas, así que sirve en una
-  // versión vacía. Los métodos por foto trabajan sobre la góndola activa y la exigen.
+  // El selector siempre se abre: "PDF Planograma" y "Excel de productos" crean sus propias
+  // góndolas, así que sirven en una versión vacía. Los métodos por foto trabajan sobre la góndola activa y la exigen.
   function extraerDeOtraFuente() {
     setMetodoExtraccion('elegir');
   }
@@ -165,6 +175,20 @@ export function AgenteExtractorBubble({
           onSeleccionarLienzo={() => elegirMetodoConGondola('lienzo')}
           onSeleccionarJCv2={() => elegirMetodoConGondola('jcv2')}
           onSeleccionarPdf={() => setMetodoExtraccion('pdf')}
+          onSeleccionarExcel={() => setMetodoExtraccion('excel')}
+        />
+      )}
+
+      {metodoExtraccion === 'excel' && (
+        <ImportarExcelProductosModal
+          versionId={versionId}
+          onClose={() => setMetodoExtraccion('ninguno')}
+          onImportado={() => {
+            setMetodoExtraccion('ninguno');
+            recargarNiveles();
+            recargarPosiciones();
+            onConfirmado();
+          }}
         />
       )}
 
@@ -172,6 +196,7 @@ export function AgenteExtractorBubble({
         <ExtractorPdfPlanogramaModal
           versionId={versionId}
           gondolas={gondolas}
+          productosPorUbicar={productosPorUbicar}
           onClose={() => setMetodoExtraccion('ninguno')}
           onImportado={() => {
             setMetodoExtraccion('ninguno');

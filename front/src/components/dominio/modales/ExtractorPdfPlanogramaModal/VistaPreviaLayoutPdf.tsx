@@ -1,4 +1,4 @@
-import type { CuerpoPdf } from '../../../../types/extractorPdfPlanograma';
+import type { CuerpoPdf, EspacioPdf } from '../../../../types/extractorPdfPlanograma';
 import { claveEspacio, franjasDeNiveles, hojasDelCuerpo, type SeleccionProductos } from './importacionPdf';
 
 interface VistaPreviaLayoutPdfProps {
@@ -6,11 +6,13 @@ interface VistaPreviaLayoutPdfProps {
   seleccion: SeleccionProductos;
   /** Alto máximo del dibujo en px; el ancho sale de la proporción de la góndola. */
   altoPx?: number;
+  /** El espacio se llenará con un producto de "Por ubicar" (Excel). */
+  esDelExcel?: (espacio: EspacioPdf) => boolean;
 }
 
 /** Dibujo a escala del layout leído del PDF: secciones, niveles a su altura real y espacios con
  * sus números de gancho, coloreados según el producto quedó asignado o pendiente. */
-export function VistaPreviaLayoutPdf({ cuerpo, seleccion, altoPx = 360 }: VistaPreviaLayoutPdfProps) {
+export function VistaPreviaLayoutPdf({ cuerpo, seleccion, altoPx = 360, esDelExcel }: VistaPreviaLayoutPdfProps) {
   const escala = altoPx / cuerpo.alto_cm;
   const px = (cm: number) => `${cm * escala}px`;
   const hojas = [...hojasDelCuerpo(cuerpo).values()];
@@ -45,7 +47,7 @@ export function VistaPreviaLayoutPdf({ cuerpo, seleccion, altoPx = 360 }: VistaP
               const izquierda = x;
               x += ancho;
               const asignado = Boolean(seleccion[claveEspacio(cuerpo, nivel, espacio)]);
-              const estado = asignado ? 'asignado' : espacio.candidatos.length ? 'candidatos' : 'pendiente';
+              const estado = esDelExcel?.(espacio) ? 'excel' : asignado ? 'asignado' : espacio.candidatos.length ? 'candidatos' : 'pendiente';
               return (
                 <div
                   key={espacio.orden_horizontal}

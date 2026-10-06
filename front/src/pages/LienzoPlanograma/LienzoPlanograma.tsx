@@ -22,6 +22,7 @@ import { EliminarPosicionModal } from '../../components/dominio/modales/Eliminar
 import { FichaProductoModal } from '../../components/dominio/modales/FichaProductoModal/FichaProductoModal';
 import { DetalleGondolaPanel } from '../../components/dominio/lienzoEditor/DetalleGondolaPanel/DetalleGondolaPanel';
 import { GondolaEscalaLienzo } from '../../components/dominio/lienzoEditor/GondolaEscalaLienzo/GondolaEscalaLienzo';
+import { MenuPosicionLienzo } from '../../components/dominio/lienzoEditor/MenuPosicionLienzo/MenuPosicionLienzo';
 import { useEditarSecciones, useSeccionesDeVersion, useSkusDeVersion } from '../../hooks/useSecciones';
 import type { DireccionSeccion } from '../../types/seccion';
 import { CHROME_GONDOLA_PX, PX_POR_CM, calcularAnchoFramePx } from '../../components/dominio/lienzoEditor/constantesLienzo';
@@ -144,6 +145,8 @@ export function LienzoPlanograma() {
   const [posicionACopiar, setPosicionACopiar] = useState<PosicionConProducto | null>(null);
   const [posicionAEliminar, setPosicionAEliminar] = useState<PosicionConProducto | null>(null);
   const [fichaSku, setFichaSku] = useState<string | null>(null);
+  // Clic derecho sobre un producto: menú con reasignar / confirmar / detalle / ficha.
+  const [menuPosicion, setMenuPosicion] = useState<{ id: string; x: number; y: number } | null>(null);
 
   // Ubica cada góndola nueva de izquierda a derecha la primera vez que aparece — la posición
   // en el lienzo es un dato puramente visual/local, el dominio real no la registra.
@@ -255,6 +258,20 @@ export function LienzoPlanograma() {
       return;
     }
     setPosicionSeleccionadaId(idTexto);
+  }
+
+  /** "Confirmar producto": un producto colocado por un agente (confidence < 100) queda confirmado
+   * tal cual, sin cambiar SKU, modo ni ancho. */
+  async function onConfirmarPosicion(idTexto: string) {
+    const posicion = encontrarPosicionReal(idTexto);
+    if (!posicion) return;
+    try {
+      await posicionesService.editar(posicion.id, { confidence: 100 });
+      recargarPosiciones();
+      mostrarToast('Producto confirmado', 'success');
+    } catch (err) {
+      mostrarToast(err instanceof Error ? err.message : 'No se pudo confirmar el producto', 'error');
+    }
   }
 
   /** Doble clic sobre una posición: va directo al panel de edición, sin pasar por seleccionar + "Editar" en la barra de acciones. */
@@ -574,6 +591,7 @@ export function LienzoPlanograma() {
                 onSeleccionarPosicion={onSeleccionarPosicion}
                 onAbrirDetallePosicion={onAbrirDetallePosicion}
                 onAbrirFichaPosicion={setFichaSku}
+                onMenuPosicion={(id, x, y) => setMenuPosicion({ id, x, y })}
                 onSoltarProductoEnNivel={onSoltarProductoEnNivel}
                 onSoltarPosicionEnNivel={onSoltarPosicionEnNivel}
                 onAsignarSkuPorDrop={onAsignarSkuPorDrop}
@@ -717,6 +735,29 @@ export function LienzoPlanograma() {
       )}
 
       {fichaSku && <FichaProductoModal sku={fichaSku} onClose={() => setFichaSku(null)} />}
+
+      {menuPosicion && (() => {
+        const posicion = encontrarPosicionReal(menuPosicion.id);
+        if (!posicion) return null;
+        const nombre = posicion.sku ? (productosPorSku.get(posicion.sku)?.nombre ?? posicion.sku) : (posicion.nombre_detectado ?? 'Espacio pendiente');
+        const sinConfirmar = Boolean(posicion.sku) && posicion.confidence < 100;
+        return (
+          <MenuPosicionLienzo
+            x={menuPosicion.x}
+            y={menuPosicion.y}
+            titulo={nombre}
+            subtitulo={`${posicion.sku ? `SKU ${posicion.sku}` : 'Sin SKU'}${sinConfirmar ? ` · sin confirmar (${posicion.confidence} %)` : ''}`}
+            sinConfirmar={sinConfirmar}
+            puedeEscribir={puedeEscribir}
+            tieneSku={Boolean(posicion.sku)}
+            onReasignar={() => setPosicionPendiente(posicion)}
+            onConfirmar={() => onConfirmarPosicion(menuPosicion.id)}
+            onDetalle={() => onAbrirDetallePosicion(menuPosicion.id)}
+            onFicha={() => posicion.sku && setFichaSku(posicion.sku)}
+            onClose={() => setMenuPosicion(null)}
+          />
+        );
+      })()}
 
       {!cargandoInicial && (
         <AgenteExtractorBubble

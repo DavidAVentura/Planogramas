@@ -24,5 +24,5 @@ export function useAccesorios(tipo?: string) {
     cargar();
   }, [cargar]);
 
-  return { accesorios, cargando };
+  return { accesorios, cargando, recargar: cargar };
 }

@@ -1,0 +1,52 @@
+.accesorios-listado__contenido {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.accesorios-listado__barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+
+  .button {
+    margin-left: auto;
+  }
+}
+
+.accesorios-listado__conteo {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg-2);
+}
+
+.accesorios-listado__busqueda,
+.accesorios-listado__tipo {
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  background: #fff;
+}
+
+.accesorios-listado__busqueda {
+  flex: 1 1 240px;
+  max-width: 360px;
+}
+
+.accesorios-listado__acciones {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.accesorios-listado__vacio {
+  font-size: 14px;
+  color: var(--fg-3);
+}

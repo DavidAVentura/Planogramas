@@ -1,9 +1,10 @@
 import { Table, type TableColumn } from '../../../ui/Table/Table';
-import type { CuerpoPdf, EspacioPdf, NivelPdf } from '../../../../types/extractorPdfPlanograma';
+import type { CuerpoPdf, EspacioPdf, NivelPdf, ProductoPorUbicar } from '../../../../types/extractorPdfPlanograma';
 import type { GondolaListItem } from '../../../../types/gondola';
 import { VistaPreviaLayoutPdf } from './VistaPreviaLayoutPdf';
 import {
   claveEspacio,
+  fuentePorUbicar,
   rangoGanchos,
   type DecisionCuerpo,
   type DestinoCuerpo,
@@ -17,6 +18,8 @@ interface RevisionCuerpoPdfProps {
   seleccion: SeleccionProductos;
   onCambiarDecision: (decision: DecisionCuerpo) => void;
   onElegirProducto: (clave: string, sku: string | null) => void;
+  /** Productos de "Por ubicar" por número de gancho; null si no se usan para llenar el layout. */
+  porGancho: Map<number, ProductoPorUbicar> | null;
 }
 
 interface FilaEspacio {
@@ -46,11 +49,14 @@ export function RevisionCuerpoPdf({
   seleccion,
   onCambiarDecision,
   onElegirProducto,
+  porGancho,
 }: RevisionCuerpoPdfProps) {
+  const delExcel = (espacio: EspacioPdf) => (porGancho ? fuentePorUbicar(espacio, porGancho) : null);
   const filas: FilaEspacio[] = cuerpo.niveles.flatMap((nivel) =>
     nivel.espacios.map((espacio) => ({ clave: claveEspacio(cuerpo, nivel, espacio), nivel, espacio })),
   );
-  const asignados = filas.filter((f) => seleccion[f.clave]).length;
+  const asignados = filas.filter((f) => seleccion[f.clave] || delExcel(f.espacio)?.sku).length;
+  const desdeExcel = filas.filter((f) => delExcel(f.espacio)).length;
   const omitido = decision.destino === 'OMITIR';
   const reemplaza = typeof decision.destino === 'number';
 
@@ -61,16 +67,27 @@ export function RevisionCuerpoPdf({
     {
       key: 'estado',
       header: 'Estado',
-      render: (f) => (
-        <span className={`revision-pdf__estado revision-pdf__estado--${f.espacio.estado_producto.toLowerCase()}`}>
-          {ETIQUETA_ESTADO[f.espacio.estado_producto]}
-        </span>
-      ),
+      render: (f) =>
+        delExcel(f.espacio) ? (
+          <span className="revision-pdf__estado revision-pdf__estado--excel">Del Excel</span>
+        ) : (
+          <span className={`revision-pdf__estado revision-pdf__estado--${f.espacio.estado_producto.toLowerCase()}`}>
+            {ETIQUETA_ESTADO[f.espacio.estado_producto]}
+          </span>
+        ),
     },
     {
       key: 'producto',
       header: 'Producto a asignar',
       render: (f) => {
+        const fuente = delExcel(f.espacio);
+        if (fuente) {
+          return (
+            <span className="revision-pdf__excel" title="Producto de la góndola Por ubicar con estos mismos ganchos; se mueve aquí con sus datos del Excel">
+              {fuente.sku ? `${fuente.sku} · ${fuente.nombre}` : fuente.nombre}
+            </span>
+          );
+        }
         const opciones = [f.espacio.producto, ...f.espacio.candidatos].filter((p): p is NonNullable<typeof p> => p !== null);
         return (
           <select
@@ -113,7 +130,7 @@ export function RevisionCuerpoPdf({
             onChange={(e) => onCambiarDecision({ ...decision, destino: parsearDestino(e.target.value) })}
           >
             <option value="NUEVA">Crear góndola nueva</option>
-            {gondolas.map((g) => (
+            {gondolas.filter((g) => !g.por_ubicar).map((g) => (
               <option key={g.id} value={g.id}>
                 Reemplazar «{g.nombre}»
               </option>
@@ -131,11 +148,12 @@ export function RevisionCuerpoPdf({
 
       <div className="revision-pdf__cuerpo-contenido">
         <div className="revision-pdf__lado">
-          <VistaPreviaLayoutPdf cuerpo={cuerpo} seleccion={seleccion} />
+          <VistaPreviaLayoutPdf cuerpo={cuerpo} seleccion={seleccion} esDelExcel={(e) => Boolean(delExcel(e))} />
           <dl className="revision-pdf__medidas">
             <div><dt>Medidas</dt><dd>{cuerpo.ancho_cm} × {cuerpo.alto_cm} × {cuerpo.profundidad_cm} cm</dd></div>
             <div><dt>Secciones</dt><dd>{cuerpo.secciones.length ? cuerpo.secciones.filter((s) => !s.es_division).length : 'Sin dividir'}</dd></div>
             <div><dt>Productos</dt><dd>{asignados} de {filas.length} asignados</dd></div>
+            {porGancho && <div><dt>Del Excel</dt><dd>{desdeExcel} espacio(s)</dd></div>}
             {cuerpo.categoria && <div><dt>Categoría</dt><dd>{cuerpo.categoria}</dd></div>}
           </dl>
           <ul className="revision-pdf__niveles">

@@ -52,6 +52,9 @@ export interface GondolaFrameLienzoProps {
   onSeleccionarPosicion: (id: string) => void;
   onAbrirDetallePosicion: (id: string) => void;
   onAbrirFichaPosicion: (sku: string) => void;
+  /** Clic derecho sobre un producto (coordenadas de pantalla): abre el menú contextual de la
+   * página (reasignar, confirmar, ficha). Sin él, el clic derecho abre la ficha como antes. */
+  onMenuPosicion?: (posicionId: string, x: number, y: number) => void;
   onSoltarProductoEnNivel: (nivelId: string, sku: string) => void;
   onSoltarPosicionEnNivel: (posicionId: string, nivelDestinoId: string) => void;
   onAsignarSkuPorDrop: (posicionId: string, sku: string) => void;

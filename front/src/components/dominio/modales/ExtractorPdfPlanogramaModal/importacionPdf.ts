@@ -6,6 +6,7 @@ import type {
   CuerpoPdf,
   EspacioPdf,
   NivelPdf,
+  ProductoPorUbicar,
   SeccionPdf,
 } from '../../../../types/extractorPdfPlanograma';
 
@@ -146,8 +147,12 @@ export function construirCuerpoImportar(
           ancho_asignado_cm: espacio.ancho_cm,
           facings_horizontal: espacio.facings,
           nombre_detectado: sku ? null : nombreDetectado(espacio),
-          confidence: sku ? 100 : espacio.confianza,
+          // Producto identificado por el agente (SKU impreso en el PDF): se coloca sin confirmar,
+          // con la confianza del modelo; se confirma o reasigna con clic derecho en el lienzo.
+          // Uno elegido a mano en la revisión queda confirmado.
+          confidence: sku ? (sku === espacio.producto?.sku ? Math.min(espacio.confianza, 99) : 100) : espacio.confianza,
           datos_vision: sku ? null : datosVision(cuerpo, espacio, archivo),
+          ganchos: espacio.ganchos,
         };
       }),
     })),
@@ -160,4 +165,23 @@ export function rangoGanchos(nivel: NivelPdf): string {
   const min = Math.min(...numeros);
   const max = Math.max(...numeros);
   return min === max ? String(min) : `${min}-${max}`;
+}
+
+// ─── Cruce con la góndola "Por ubicar" ───────────────────────────────────────
+
+/**
+ * Producto de "Por ubicar" que llenará el espacio: el que tiene todos sus ganchos (mismo criterio
+ * que `cruzarConPorUbicar` en el back). null si no hay o si los ganchos son de varios productos.
+ */
+export function fuentePorUbicar(espacio: EspacioPdf, porGancho: Map<number, ProductoPorUbicar>): ProductoPorUbicar | null {
+  if (!espacio.ganchos.length) return null;
+  const fuentes = new Set(espacio.ganchos.map((g) => porGancho.get(g)));
+  if (fuentes.size !== 1 || fuentes.has(undefined)) return null;
+  return [...fuentes][0]!;
+}
+
+export function indicePorGancho(productos: ProductoPorUbicar[]): Map<number, ProductoPorUbicar> {
+  const mapa = new Map<number, ProductoPorUbicar>();
+  productos.forEach((p) => p.ganchos.forEach((g) => mapa.set(g, p)));
+  return mapa;
 }

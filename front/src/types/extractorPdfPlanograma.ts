@@ -99,6 +99,8 @@ export interface PosicionImportar {
   nombre_detectado: string | null;
   confidence: number;
   datos_vision: (DatosVision & Record<string, unknown>) | null;
+  /** Números impresos en el PDF: se guardan para que la numeración del lienzo sea la del PDF. */
+  ganchos: number[];
 }
 
 export interface NivelImportar {
@@ -134,5 +136,14 @@ export interface GondolaImportada {
 
 export interface ResultadoImportacion {
   gondolas: GondolaImportada[];
+  /** Espacios que se llenaron con productos de la góndola "Por ubicar" (Excel). */
+  desdePorUbicar: number;
   advertencias: string[];
+}
+
+/** Producto de la góndola "Por ubicar" (importado del Excel), para cruzarlo con el PDF por gancho. */
+export interface ProductoPorUbicar {
+  sku: string | null;
+  nombre: string;
+  ganchos: number[];
 }

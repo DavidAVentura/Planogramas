@@ -11,12 +11,22 @@ const TABLA_NIVEL    = 'Nivel';
 const TABLA_POSICION = 'Posicion';
 const TABLA_PRODUCTO = 'Producto';
 
+function parsearGanchos(valor) {
+  if (!valor) return null;
+  try {
+    const ganchos = JSON.parse(valor);
+    return Array.isArray(ganchos) && ganchos.length ? ganchos.map(Number) : null;
+  } catch {
+    return null;
+  }
+}
+
 // ─── cargarVersion ───────────────────────────────────────────────────────────
 
 async function cargarVersion(versionId) {
   const gondolas = await db(TABLA_GONDOLA)
     .where('planograma_version_id', versionId)
-    .select('id', 'nombre', 'orden', 'ancho_cm', 'alto_cm');
+    .select('id', 'nombre', 'orden', 'ancho_cm', 'alto_cm', 'por_ubicar');
   const gondolaIds = gondolas.map((g) => g.id);
   if (gondolaIds.length === 0) return { gondolas: [], secciones: [], niveles: [], posiciones: [] };
 
@@ -36,12 +46,13 @@ async function cargarVersion(versionId) {
         `${TABLA_POSICION}.capacidad_maxima`,
         `${TABLA_POSICION}.min_final`,
         `${TABLA_POSICION}.max_final`,
+        `${TABLA_POSICION}.ganchos`,
         `${TABLA_PRODUCTO}.nombre as nombre`,
       ),
   ]);
 
   return {
-    gondolas: gondolas.map((g) => ({ id: g.id, nombre: g.nombre, orden: g.orden, anchoCm: Number(g.ancho_cm), altoCm: Number(g.alto_cm) })),
+    gondolas: gondolas.map((g) => ({ id: g.id, nombre: g.nombre, orden: g.orden, anchoCm: Number(g.ancho_cm), altoCm: Number(g.alto_cm), porUbicar: Boolean(g.por_ubicar) })),
     secciones: secciones.map((s) => ({
       id: s.id, gondolaId: s.gondola_id, padreId: s.padre_id, esDivision: Boolean(s.es_division),
       direccion: s.direccion, orden: s.orden, tamCm: Number(s.tam_cm),
@@ -57,6 +68,7 @@ async function cargarVersion(versionId) {
       capacidadMaxima: p.capacidad_maxima,
       minFinal:        p.min_final,
       maxFinal:        p.max_final,
+      ganchos:         parsearGanchos(p.ganchos),
     })),
   };
 }

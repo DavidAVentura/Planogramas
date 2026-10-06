@@ -1,6 +1,6 @@
 /**
  * accesorios.routes.js
- * Define las 2 rutas del módulo Accesorios y las conecta al controller.
+ * Define las rutas del módulo Accesorios (catálogo con CRUD) y las conecta al controller.
  */
 
 const { Router } = require('express');
@@ -13,5 +13,14 @@ router.get('/',    controller.listar);
 
 // GET /accesorios/:id  — detalle de un accesorio
 router.get('/:id', controller.obtener);
+
+// POST /accesorios     — da de alta un accesorio (código único)
+router.post('/',   controller.crear);
+
+// PATCH /accesorios/:id — partial update
+router.patch('/:id', controller.editar);
+
+// DELETE /accesorios/:id — elimina un accesorio que no está en uso (409 si lo usan)
+router.delete('/:id', controller.eliminar);
 
 module.exports = router;

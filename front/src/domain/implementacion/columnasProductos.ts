@@ -25,11 +25,15 @@ export const CLAVES_COLUMNA = [
   'gondola',
   'nivel',
   'orden',
+  'ganchos',
+  'accesorio',
   'facings',
   'apilable',
   'capacidadFacing',
   'capacidadMaxima',
   'minEstetico',
+  'minFinal',
+  'maxFinal',
   'perfil',
   'modo',
   'decision',
@@ -78,6 +82,11 @@ export function estadoInventario(f: ProductoImplementacion): EstadoInventario | 
   return f.conInventario ? 'con' : 'sin';
 }
 
+/** "R45-12-212P2 12"" — un accesorio por línea lógica, separados por coma. */
+export function textoAccesorios(f: ProductoImplementacion): string {
+  return f.accesorios.map((a) => `${a.codigo}${a.tamano_pulgadas ? ` ${a.tamano_pulgadas}"` : ''}`).join(', ');
+}
+
 const opcionesDe = <K extends string>(claves: readonly K[], etiqueta: (k: K) => string): OpcionEnum[] =>
   claves.map((valor) => ({ valor, etiqueta: etiqueta(valor) }));
 
@@ -102,6 +111,22 @@ export const COLUMNAS_PRODUCTO: ColumnaProducto[] = [
   { clave: 'gondola', etiqueta: 'Góndola', ancho: 140, filtro: 'texto', texto: (f) => f.gondola, orden: (f) => f.gondola },
   { clave: 'nivel', etiqueta: 'Nivel', ancho: 88, filtro: 'numero', numero: (f) => f.nivel },
   { clave: 'orden', etiqueta: 'Posición en nivel', ancho: 104, filtro: 'numero', numero: (f) => f.orden },
+  {
+    clave: 'ganchos',
+    etiqueta: 'Ganchos',
+    ancho: 130,
+    filtro: 'texto',
+    texto: (f) => f.ganchos.join(', '),
+    orden: (f) => (f.ganchos.length ? Math.min(...f.ganchos) : null),
+  },
+  {
+    clave: 'accesorio',
+    etiqueta: 'Accesorio de montaje',
+    ancho: 170,
+    filtro: 'texto',
+    texto: textoAccesorios,
+    orden: (f) => textoAccesorios(f) || null,
+  },
   { clave: 'facings', etiqueta: 'Facing horizontal', ancho: 110, filtro: 'numero', numero: (f) => f.facings_horizontal },
   { clave: 'apilable', etiqueta: 'Cantidad apilable', ancho: 110, filtro: 'numero', numero: (f) => f.cantidad_apilable },
   {
@@ -113,6 +138,8 @@ export const COLUMNAS_PRODUCTO: ColumnaProducto[] = [
   },
   { clave: 'capacidadMaxima', etiqueta: 'Capacidad máxima', ancho: 116, filtro: 'numero', numero: (f) => f.capacidad_maxima },
   { clave: 'minEstetico', etiqueta: 'Mín. estético', ancho: 104, filtro: 'numero', numero: (f) => f.min_estetico },
+  { clave: 'minFinal', etiqueta: 'Mín. final', ancho: 96, filtro: 'numero', numero: (f) => f.min_final },
+  { clave: 'maxFinal', etiqueta: 'Máx. final', ancho: 96, filtro: 'numero', numero: (f) => f.max_final },
   {
     clave: 'perfil',
     etiqueta: 'Perfil de redondeo',

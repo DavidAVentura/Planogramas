@@ -332,15 +332,18 @@ function normalizarEspacios(espacios, anchoDisponible, etiquetaNivel, advertir) 
     anchos = anchos.map((a) => (a * anchoDisponible) / suma);
   }
 
-  return ordenados.map((e, i) => ({
+  return ordenados.map((e, i) => {
+    const ganchos = [...new Set(e.ganchos.filter((g) => Number.isInteger(g) && g > 0))];
+    return {
     orden_horizontal: i + 1,
-    ganchos: [...e.ganchos],
-    facings: Math.max(1, e.ganchos.length),
+    ganchos,
+    facings: Math.max(1, ganchos.length),
     ancho_cm: redondear(Math.max(1, anchos[i])),
     sku_impreso: e.sku_impreso && normalizarCodigo(e.sku_impreso) ? String(e.sku_impreso).trim().replace(/\s+/g, '') : null,
     descripcion_visual: e.descripcion_visual?.trim() || null,
     confianza: acotar(Math.round(e.confianza ?? 0), 0, 100),
-  }));
+    };
+  });
 }
 
 function buscarAccesorio(codigo, accesorios) {

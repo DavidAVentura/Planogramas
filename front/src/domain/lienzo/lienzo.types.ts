@@ -89,6 +89,8 @@ export interface GondolaLienzo {
   niveles: NivelLienzo[];
   /** Secciones de la góndola. Ausente o `dividida: false` → se dibuja igual que siempre. */
   estructura?: EstructuraSecciones | null;
+  /** Góndola "Por ubicar" del importador de productos (niveles de relleno). */
+  porUbicar?: boolean;
 }
 
 /** Resultado de `calcularCapacidadNivel` — mismo shape que la `Capacidad` del backend. */

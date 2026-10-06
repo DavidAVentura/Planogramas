@@ -80,6 +80,8 @@ export interface SimulacionPublicacion {
   tipo: VersionTipo;
   esEspecial: boolean;
   erroresBloqueantes: ErrorBloqueante[];
+  /** Avisos que no impiden publicar (ej. productos que siguen en la góndola "Por ubicar"). */
+  advertencias?: { codigo: string; mensaje: string }[];
   /** Publicada del mismo tipo que se archivaría; null si no hay (o si la versión es especial). */
   versionAnterior: VersionAnteriorArchivada | null;
   /** Tiendas del piloto: pasan de piloto a publicado. */

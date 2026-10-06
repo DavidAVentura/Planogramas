@@ -23,6 +23,7 @@ function mapGondola(row) {
     profundidad_cm:     Number(row.profundidad_cm),
     posicion_en_tienda: row.posicion_en_tienda,
     orden:              row.orden,
+    por_ubicar:         Boolean(row.por_ubicar),
   };
 }
 

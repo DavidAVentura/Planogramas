@@ -153,6 +153,7 @@ async function agregarPosicion(posicionRepo, nivelRepo, gondolaRepo, versionRepo
     nombre_detectado:    datos.nombre_detectado ?? null,
     confidence:          datos.confidence ?? CONFIDENCE_CONFIRMADO,
     datos_vision:        datos.datos_vision ?? null,
+    ganchos:             datos.ganchos ?? null,
     ancho_asignado_cm:   datos.ancho_asignado_cm,
     facings_horizontal:  datos.facings_horizontal,
     cantidad_apilable:   datos.cantidad_apilable,

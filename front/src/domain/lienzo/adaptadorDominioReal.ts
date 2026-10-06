@@ -105,6 +105,7 @@ export function adaptarGondola(
     y: xy.y,
     niveles,
     estructura,
+    porUbicar: Boolean(gondola.por_ubicar),
   };
 }
 

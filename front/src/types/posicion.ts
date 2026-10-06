@@ -47,6 +47,8 @@ export interface Posicion {
   nota_desborde: string | null;
   decision: DecisionPosicion;
   observaciones: string | null;
+  /** Números de gancho guardados (importados del Excel); null = se calculan. */
+  ganchos: number[] | null;
 }
 
 export interface PosicionAccesorioEmbebido {
@@ -56,6 +58,7 @@ export interface PosicionAccesorioEmbebido {
   nombre: string;
   tipo: string;
   nota_libre: string | null;
+  tamano_pulgadas: number | null;
 }
 
 export interface PosicionDetalle extends Posicion {
@@ -116,6 +119,9 @@ export interface PosicionCambiosCompletos extends PosicionCambios {
   desborda_gondola?: boolean;
   nota_desborde?: string | null;
   observaciones?: string | null;
+  /** 100 = confirmado por el usuario (ej. "Confirmar producto" sobre uno colocado por un agente). */
+  confidence?: number;
+  ganchos?: number[] | null;
 }
 
 export interface Capacidad {
@@ -146,12 +152,14 @@ export interface PosicionAccesorio {
     longitud_cm: number | null;
   };
   nota_libre: string | null;
+  tamano_pulgadas: number | null;
   orden: number;
 }
 
 export interface PosicionAccesorioInput {
   accesorio_id: number;
   nota_libre?: string | null;
+  tamano_pulgadas?: number | null;
 }
 
 export interface PosicionPorSkuItem {

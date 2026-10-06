@@ -3,12 +3,17 @@
  * Reglas de negocio puras de "SKU en la versión": agregados por SKU (sumando todas sus
  * ubicaciones) y numeración de ganchos. Sin dependencias de Express, Knex ni infraestructura.
  *
- * Los números de gancho NO se guardan: se calculan recorriendo las góndolas por `orden`, dentro
+ * Los números de gancho se calculan recorriendo las góndolas por `orden`, dentro
  * de cada góndola sus secciones (arriba antes que abajo, izquierda antes que derecha), dentro de
  * cada sección sus niveles por `orden` (el mismo orden en que el lienzo los dibuja, de arriba
  * hacia abajo) y dentro de cada nivel sus posiciones por `orden_horizontal`. Cada facing recibe un
  * número; los espacios pendientes (sin SKU) también, para que asignarles producto no corra la
  * numeración del resto.
+ *
+ * Excepciones (migración 013): una posición con `ganchos` guardados (importados del Excel) usa
+ * esos números tal cual — pueden no ser correlativos, ej. una columna de 4 filas = [4,9,14,19] —
+ * y la numeración calculada se los salta para no repetirlos. Las posiciones de la góndola
+ * "Por ubicar" sin ganchos guardados no reciben número (sus niveles son de relleno).
  */
 
 const { construirArbol, calcularHojas } = require('../seccion/seccion.entity');
@@ -27,6 +32,13 @@ function errorUnprocessable(mensaje, details) {
  * @returns {Array<{ posicion, gondola, seccionIndice, nivelIndice, ganchos: number[] }>}
  */
 function recorrerVersion({ gondolas, secciones, niveles, posiciones }) {
+  const usados = new Set(posiciones.flatMap((p) => p.ganchos ?? []));
+  let numero = 0;
+  const siguiente = () => {
+    do { numero += 1; } while (usados.has(numero));
+    return numero;
+  };
+
   const posicionesPorNivel = new Map();
   posiciones.forEach((p) => {
     if (!posicionesPorNivel.has(p.nivelId)) posicionesPorNivel.set(p.nivelId, []);
@@ -35,7 +47,6 @@ function recorrerVersion({ gondolas, secciones, niveles, posiciones }) {
   posicionesPorNivel.forEach((lista) => lista.sort((a, b) => a.ordenHorizontal - b.ordenHorizontal || a.id - b.id));
 
   const salida = [];
-  let numero = 0;
   [...gondolas].sort((a, b) => a.orden - b.orden || a.id - b.id).forEach((g) => {
     const raiz = construirArbol(secciones.filter((s) => s.gondolaId === g.id));
     const hojas = raiz ? calcularHojas(raiz, g.anchoCm, g.altoCm).map((h) => h.nodo.id) : [null];
@@ -46,8 +57,9 @@ function recorrerVersion({ gondolas, secciones, niveles, posiciones }) {
         .sort((a, b) => a.orden - b.orden || a.id - b.id);
       propios.forEach((n, ni) => {
         (posicionesPorNivel.get(n.id) ?? []).forEach((p) => {
-          const ganchos = [];
-          for (let f = 0; f < Math.max(1, p.facings); f++) ganchos.push(++numero);
+          let ganchos = [];
+          if (p.ganchos?.length) ganchos = [...p.ganchos];
+          else if (!g.porUbicar) for (let f = 0; f < Math.max(1, p.facings); f++) ganchos.push(siguiente());
           salida.push({ posicion: p, gondola: g, seccionIndice: raiz ? hi + 1 : null, nivelId: n.id, nivelIndice: ni + 1, ganchos });
         });
       });
@@ -95,6 +107,7 @@ function agregarPorSku(recorrido) {
         seccion:       r.seccionIndice,
         nivelId:       r.nivelId,
         nivel:         r.nivelIndice,
+        porUbicar:     Boolean(r.gondola.porUbicar),
         facings:       r.posicion.facings,
         ganchos:       r.ganchos,
       })),

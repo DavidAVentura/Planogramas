@@ -20,6 +20,23 @@
   color: var(--fg-2);
 }
 
+.revision-pdf__por-ubicar {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--cemaco-indigo);
+  border-radius: var(--radius-md);
+  background: var(--ink-50);
+  font-size: 13px;
+  color: var(--fg-2);
+  cursor: pointer;
+
+  input {
+    margin-top: 2px;
+  }
+}
+
 .revision-pdf__advertencias {
   margin: 0;
   padding-left: 18px;
@@ -148,6 +165,17 @@
   color: var(--success);
 }
 
+.revision-pdf__estado--excel {
+  background: color-mix(in srgb, var(--cemaco-indigo) 12%, #fff);
+  color: var(--cemaco-indigo);
+}
+
+.revision-pdf__excel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cemaco-indigo);
+}
+
 .revision-pdf__estado--candidatos {
   background: color-mix(in srgb, var(--warning) 15%, #fff);
   color: var(--warning);
@@ -203,6 +231,10 @@
 
 .vista-previa-pdf__espacio--candidatos {
   background: color-mix(in srgb, var(--warning) 30%, #fff);
+}
+
+.vista-previa-pdf__espacio--excel {
+  background: color-mix(in srgb, var(--cemaco-indigo) 25%, #fff);
 }
 
 .vista-previa-pdf__espacio--pendiente {

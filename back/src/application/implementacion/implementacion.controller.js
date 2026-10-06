@@ -8,6 +8,7 @@
 const usecases           = require('../../domain/implementacion/implementacion.usecases');
 const implementacionRepo = require('../../infrastructure/repositories/implementacion.repository');
 const inventarioTienda   = require('../../infrastructure/cati/inventarioTienda');
+const skuVersionRepo     = require('../../infrastructure/repositories/skuVersion.repository');
 const { parsearEnteroPositivo, parsearListaEnterosPositivos } = require('../compartido/validacion');
 
 // ─── Handlers ────────────────────────────────────────────────────────────────
@@ -27,7 +28,7 @@ async function obtenerProductos(req, res, next) {
     const tiendaId   = parsearEnteroPositivo(req.params.tiendaId, 'tiendaId');
     const versionIds = parsearListaEnterosPositivos(req.query.versionIds, 'versionIds');
     const resultado  = await usecases.obtenerProductosImplementacion(
-      implementacionRepo, inventarioTienda, tiendaId, versionIds,
+      implementacionRepo, inventarioTienda, tiendaId, versionIds, skuVersionRepo,
     );
     res.json(resultado);
   } catch (err) {

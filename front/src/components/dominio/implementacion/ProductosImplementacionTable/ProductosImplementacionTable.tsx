@@ -9,6 +9,7 @@ import {
 import {
   columnaProducto,
   estadoInventario,
+  textoAccesorios,
   type ClaveColumna,
   type CriterioOrdenProducto,
   type FiltrosColumna,
@@ -45,7 +46,13 @@ const CELDA: Record<ClaveColumna, (f: ProductoImplementacion) => ReactNode> = {
   sku: (f) => <span className="productos-impl__mono">{f.sku}</span>,
   producto: (f) => conSecundario(f.nombre ?? 'Sin nombre', f.marca, 'productos-impl__fuerte'),
   version: (f) => conSecundario(f.codigoVersion, f.planogramaNombre, 'productos-impl__mono'),
-  gondola: (f) => <span className="productos-impl__texto">{f.gondola}</span>,
+  gondola: (f) =>
+    f.porUbicar ? conSecundario(f.gondola, 'Sin ubicar en el lienzo · guiarse por los ganchos', 'productos-impl__texto') : <span className="productos-impl__texto">{f.gondola}</span>,
+  ganchos: (f) => (f.ganchos.length ? <span className="productos-impl__mono">{f.ganchos.join(', ')}</span> : SIN_DATO),
+  accesorio: (f) =>
+    f.accesorios.length
+      ? conSecundario(textoAccesorios(f), f.accesorios.map((a) => a.nombre).join(', '), 'productos-impl__mono')
+      : SIN_DATO,
   nivel: (f) => numero(f.nivel),
   orden: (f) => numero(f.orden),
   facings: (f) => numero(f.facings_horizontal),
@@ -53,6 +60,8 @@ const CELDA: Record<ClaveColumna, (f: ProductoImplementacion) => ReactNode> = {
   capacidadFacing: (f) => numero(f.unidades_por_facing),
   capacidadMaxima: (f) => numero(f.capacidad_maxima),
   minEstetico: (f) => numero(f.min_estetico),
+  minFinal: (f) => numero(f.min_final),
+  maxFinal: (f) => numero(f.max_final),
   perfil: (f) => {
     const meta = PERFIL_REDONDEO_META[f.perfil_redondeo];
     if (!meta) return f.perfil_redondeo;

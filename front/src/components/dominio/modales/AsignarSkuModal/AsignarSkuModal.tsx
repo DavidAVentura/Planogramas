@@ -109,7 +109,7 @@ export function AsignarSkuModal({ posicion, subcategorias, onClose, onAsignado }
 
   return (
     <Modal
-      titulo="Asignar SKU"
+      titulo={posicion.sku ? `Reasignar producto · SKU actual ${posicion.sku}` : 'Asignar SKU'}
       onClose={onClose}
       ancho="md"
       footer={

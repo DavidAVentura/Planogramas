@@ -7,6 +7,8 @@ export interface Gondola {
   profundidad_cm: number;
   posicion_en_tienda: string | null;
   orden: number;
+  /** Góndola "Por ubicar" que crea el importador de productos (niveles de relleno). */
+  por_ubicar?: boolean;
 }
 
 export interface GondolaListItem extends Gondola {

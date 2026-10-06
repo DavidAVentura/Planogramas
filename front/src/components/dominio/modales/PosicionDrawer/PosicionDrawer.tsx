@@ -91,6 +91,8 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
 
   const [accesorioSeleccionado, setAccesorioSeleccionado] = useState('');
   const [notaAccesorio, setNotaAccesorio] = useState('');
+  const [tamanoAccesorio, setTamanoAccesorio] = useState('');
+  const [ganchosTexto, setGanchosTexto] = useState('');
 
   const [dimAnchoCm, setDimAnchoCm] = useState('');
   const [dimAltoCm, setDimAltoCm] = useState('');
@@ -112,6 +114,7 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
     setObservaciones(posicion.observaciones ?? '');
     setDesbordaGondola(posicion.desborda_gondola);
     setNotaDesborde(posicion.nota_desborde ?? '');
+    setGanchosTexto(posicion.ganchos?.join(', ') ?? '');
   }, [posicion]);
 
   // Se hidrata solo cuando cambia el SKU (producto distinto), no en cada refetch del mismo
@@ -144,11 +147,14 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
   }
 
   const notaDesbordeInvalida = desbordaGondola && !notaDesborde.trim();
+  // "4, 9, 14, 19" → [4, 9, 14, 19]; vacío = sin ganchos guardados (el sistema los calcula).
+  const ganchosLeidos = ganchosTexto.split(/[\s,;]+/).filter(Boolean).map(Number);
+  const ganchosInvalidos = ganchosLeidos.some((n) => !Number.isInteger(n) || n < 1) || new Set(ganchosLeidos).size !== ganchosLeidos.length;
   const minMaxInvalido = minFinal !== '' && maxFinal !== '' && Number(minFinal) > Number(maxFinal);
   const dimensionesCompletas = Number(dimAnchoCm) > 0 && Number(dimAltoCm) > 0 && Number(dimProfundidadCm) > 0;
 
   async function onGuardar() {
-    if (notaDesbordeInvalida || minMaxInvalido) return;
+    if (notaDesbordeInvalida || minMaxInvalido || ganchosInvalidos) return;
 
     const dimAnchoNum = Number(dimAnchoCm) || 0;
     const anchoAsignadoFinal =
@@ -171,6 +177,7 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
       observaciones: observaciones.trim() || null,
       desborda_gondola: desbordaGondola,
       nota_desborde: desbordaGondola ? notaDesborde.trim() : null,
+      ganchos: ganchosLeidos.length ? ganchosLeidos : null,
     });
 
     if (resultado) {
@@ -217,10 +224,12 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
     const agregado = await agregarAccesorio(posicionId, {
       accesorio_id: Number(accesorioSeleccionado),
       nota_libre: notaAccesorio.trim() || null,
+      tamano_pulgadas: Number(tamanoAccesorio) > 0 ? Number(tamanoAccesorio) : null,
     });
     if (agregado) {
       setAccesorioSeleccionado('');
       setNotaAccesorio('');
+      setTamanoAccesorio('');
       recargarAccesorios();
       onCambio();
     }
@@ -244,7 +253,7 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
           <Button variante="outline" onClick={onClose} disabled={enviando}>
             Cerrar
           </Button>
-          <Button onClick={onGuardar} disabled={enviando || notaDesbordeInvalida || minMaxInvalido}>
+          <Button onClick={onGuardar} disabled={enviando || notaDesbordeInvalida || minMaxInvalido || ganchosInvalidos}>
             Guardar cambios
           </Button>
         </>
@@ -409,11 +418,23 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
       </Seccion>
 
       <Seccion titulo="Montaje">
+        <label className="posicion-drawer__campo">
+          <span>Ganchos (opcional)</span>
+          <input
+            type="text"
+            value={ganchosTexto}
+            onChange={(e) => setGanchosTexto(e.target.value)}
+            placeholder="Ej. 4, 9, 14, 19 — vacío: los numera el sistema"
+            aria-invalid={ganchosInvalidos}
+          />
+        </label>
+        {ganchosInvalidos && <p className="posicion-drawer__error">Los ganchos deben ser números enteros positivos, sin repetir.</p>}
         <ul className="posicion-drawer__accesorios">
           {accesorios.map((a) => (
             <li key={a.id}>
               <span>
                 {a.accesorio.codigo} · {a.accesorio.nombre} ({a.accesorio.tipo})
+                {a.tamano_pulgadas != null && ` · ${a.tamano_pulgadas}"`}
                 {a.nota_libre && ` — ${a.nota_libre}`}
               </span>
               <button type="button" onClick={() => onQuitarAccesorio(a.id)} disabled={eliminandoAccesorio}>
@@ -445,6 +466,10 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
           <label className="posicion-drawer__campo">
             <span>Nota (opcional)</span>
             <input type="text" value={notaAccesorio} onChange={(e) => setNotaAccesorio(e.target.value)} maxLength={200} />
+          </label>
+          <label className="posicion-drawer__campo">
+            <span>Tamaño (pulgadas)</span>
+            <input type="number" min="0" step="0.5" value={tamanoAccesorio} onChange={(e) => setTamanoAccesorio(e.target.value)} />
           </label>
         </div>
         <Button

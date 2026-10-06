@@ -27,6 +27,7 @@ Agrega un accesorio de montaje (gancho, bandeja, etc.) a una posición, con una 
 |-------|------|-----------|-------------|
 | `accesorio_id` | `integer` | Sí | FK a tabla `Accesorio`. |
 | `nota_libre` | `string` | No | Instrucción de colocación. Ej: "a la derecha", "colocar frontal". Máximo 200 chars. |
+| `tamano_pulgadas` | `number` | No | Medida del accesorio para este producto (ej. `12` para un gancho de 12"). Migración 013. |
 
 ---
 

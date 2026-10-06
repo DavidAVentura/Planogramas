@@ -311,16 +311,23 @@ async function simularPublicacion(versionRepo, id) {
 
   validarTransicionPromover(version.estado, ESTADOS.PUBLICADO);
 
-  const [erroresBloqueantes, plan] = await Promise.all([
+  const [erroresBloqueantes, plan, porUbicar] = await Promise.all([
     versionRepo.buscarErroresBloqueantes(id),
     versionRepo.simularPublicacion(id),
+    versionRepo.contarPosicionesPorUbicar(id),
   ]);
+  // No bloquea: el Implementador puede montar guiándose por los ganchos aunque el analista no
+  // haya terminado de ubicar los productos en el lienzo.
+  const advertencias = porUbicar > 0
+    ? [{ codigo: 'PRODUCTOS_POR_UBICAR', mensaje: `Hay ${porUbicar} producto(s) en la góndola "Por ubicar" sin su lugar definitivo en el lienzo` }]
+    : [];
   return {
     versionId:  id,
     codigo:     version.codigo,
     tipo:       version.tipo,
     esEspecial: version.versionBaseId !== null,
     erroresBloqueantes,
+    advertencias,
     ...plan,
   };
 }

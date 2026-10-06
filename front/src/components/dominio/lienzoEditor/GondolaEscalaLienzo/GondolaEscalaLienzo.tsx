@@ -106,6 +106,11 @@ export function GondolaEscalaLienzo(props: GondolaFrameLienzoProps) {
           {anchoCm} × {altoCm} cm
         </span>
         {dividida && <span className="gondola-escala__chip">{estructura!.hojas.length} secciones</span>}
+        {gondola.porUbicar && (
+          <span className="gondola-escala__chip gondola-escala__chip--por-ubicar" title="Productos importados del Excel: arrastralos a su lugar real">
+            Por ubicar
+          </span>
+        )}
         <span className="gondola-escala__acciones">
           {onExpandir && (
             <button
@@ -448,6 +453,8 @@ function PosicionEscala({
   const { puedeEscribir } = props;
   const anchoPx = Math.max(posicion.anchoCm * PX_POR_CM, 14);
   const pendiente = posicion.modo === 'PENDIENTE' || !posicion.sku;
+  // Producto colocado por un agente (PDF, fotos) que nadie confirmó todavía.
+  const sinConfirmar = !pendiente && posicion.confidence != null && posicion.confidence < 100;
   const producto = posicion.sku ? props.resolverProducto(posicion.sku) : undefined;
   const altoReal = producto?.altoRealCm ?? null;
   const altoPx = Math.max(
@@ -511,11 +518,14 @@ function PosicionEscala({
         }}
         onContextMenu={(e) => {
           e.preventDefault();
+          e.stopPropagation();
           props.onSeleccionarPosicion(posicion.id);
-          if (posicion.sku) props.onAbrirFichaPosicion(posicion.sku);
+          if (props.onMenuPosicion) props.onMenuPosicion(posicion.id, e.clientX, e.clientY);
+          else if (posicion.sku) props.onAbrirFichaPosicion(posicion.sku);
         }}
-        title={`${producto?.nombre ?? posicion.sku} · ${posicion.sku} · ${posicion.facings} facing${posicion.facings === 1 ? '' : 's'}`}
+        title={`${producto?.nombre ?? posicion.sku} · ${posicion.sku} · ${posicion.facings} facing${posicion.facings === 1 ? '' : 's'}${sinConfirmar ? ` · sin confirmar (${posicion.confidence} %) · clic derecho para reasignar` : ''}`}
       >
+        {sinConfirmar && <span className="gondola-escala__ia">IA {posicion.confidence}%</span>}
         {Array.from({ length: Math.max(1, posicion.facings) }).map((_, i) => (
           <span key={i} className="gondola-escala__facing">
             {producto?.imagenUrl ? (

@@ -161,6 +161,7 @@ async function listarPosicionesConProducto(versionIds) {
       `${TABLA_GONDOLA}.id as gondolaId`,
       `${TABLA_GONDOLA}.nombre as gondola`,
       `${TABLA_GONDOLA}.orden as gondolaOrden`,
+      `${TABLA_GONDOLA}.por_ubicar as porUbicar`,
       `${TABLA_NIVEL}.id as nivelId`,
       `${TABLA_NIVEL}.orden as nivel`,
       `${TABLA_POSICION}.orden_horizontal as orden`,
@@ -172,6 +173,8 @@ async function listarPosicionesConProducto(versionIds) {
       `${TABLA_POSICION}.unidades_por_facing`,
       `${TABLA_POSICION}.capacidad_maxima`,
       `${TABLA_POSICION}.min_estetico`,
+      `${TABLA_POSICION}.min_final`,
+      `${TABLA_POSICION}.max_final`,
       `${TABLA_POSICION}.perfil_redondeo`,
       `${TABLA_POSICION}.modo`,
       `${TABLA_POSICION}.decision`,
@@ -179,6 +182,8 @@ async function listarPosicionesConProducto(versionIds) {
       'producto.sku_sustituto as sku_sustituto',
       'sustituto.nombre as sustituto_nombre',
     );
+
+  const accesoriosPorPosicion = await accesoriosDePosiciones(rows.map((r) => r.posicionId));
 
   return rows.map((r) => ({
     posicionId:          r.posicionId,
@@ -189,6 +194,7 @@ async function listarPosicionesConProducto(versionIds) {
     gondolaId:           r.gondolaId,
     gondola:             r.gondola,
     gondolaOrden:        r.gondolaOrden,
+    porUbicar:           Boolean(r.porUbicar),
     nivelId:             r.nivelId,
     nivel:               r.nivel,
     orden:               r.orden,
@@ -200,13 +206,38 @@ async function listarPosicionesConProducto(versionIds) {
     unidades_por_facing: r.unidades_por_facing,
     capacidad_maxima:    r.capacidad_maxima,
     min_estetico:        r.min_estetico,
+    min_final:           r.min_final,
+    max_final:           r.max_final,
     perfil_redondeo:     r.perfil_redondeo,
     modo:                r.modo,
     decision:            r.decision,
     observaciones:       r.observaciones,
+    accesorios:          accesoriosPorPosicion.get(r.posicionId) ?? [],
     sku_sustituto:       r.sku_sustituto ?? null,
     sustituto_nombre:    r.sustituto_nombre ?? null,
   }));
+}
+
+/** Accesorios de montaje por posición (código, nombre, tamaño), en lotes para no pasar el límite
+ * de 2100 parámetros de SQL Server. */
+async function accesoriosDePosiciones(posicionIds) {
+  const porPosicion = new Map();
+  for (let i = 0; i < posicionIds.length; i += 1000) {
+    const filas = await db('PosicionAccesorio')
+      .join('Accesorio', 'PosicionAccesorio.accesorio_id', 'Accesorio.id')
+      .whereIn('PosicionAccesorio.posicion_id', posicionIds.slice(i, i + 1000))
+      .orderBy('PosicionAccesorio.orden', 'asc')
+      .select('PosicionAccesorio.posicion_id', 'Accesorio.codigo', 'Accesorio.nombre', 'PosicionAccesorio.tamano_pulgadas');
+    filas.forEach((f) => {
+      if (!porPosicion.has(f.posicion_id)) porPosicion.set(f.posicion_id, []);
+      porPosicion.get(f.posicion_id).push({
+        codigo: f.codigo,
+        nombre: f.nombre,
+        tamano_pulgadas: f.tamano_pulgadas != null ? Number(f.tamano_pulgadas) : null,
+      });
+    });
+  }
+  return porPosicion;
 }
 
 // ─── Exportación ─────────────────────────────────────────────────────────────

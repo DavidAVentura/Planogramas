@@ -8,6 +8,7 @@ interface SeleccionarMetodoExtraccionModalProps {
   onSeleccionarLienzo: () => void;
   onSeleccionarJCv2: () => void;
   onSeleccionarPdf: () => void;
+  onSeleccionarExcel: () => void;
 }
 
 export function SeleccionarMetodoExtraccionModal({
@@ -17,6 +18,7 @@ export function SeleccionarMetodoExtraccionModal({
   onSeleccionarLienzo,
   onSeleccionarJCv2,
   onSeleccionarPdf,
+  onSeleccionarExcel,
 }: SeleccionarMetodoExtraccionModalProps) {
   return (
     <Modal titulo="Extraer de otra fuente" onClose={onClose} ancho="sm">
@@ -53,6 +55,13 @@ export function SeleccionarMetodoExtraccionModal({
           <span className="seleccionar-metodo-extraccion__descripcion">
             Ficha de montaje en PDF — el agente reconstruye el layout de cada cuerpo (secciones,
             niveles, accesorios y espacios numerados) y luego identifica los productos de cada espacio.
+          </span>
+        </button>
+        <button type="button" className="seleccionar-metodo-extraccion__opcion" onClick={onSeleccionarExcel}>
+          <span className="seleccionar-metodo-extraccion__titulo">Excel de productos</span>
+          <span className="seleccionar-metodo-extraccion__descripcion">
+            Listado de productos del planograma (ganchos, cantidades, mín./máx., accesorio) — se
+            importan a la góndola "Por ubicar" para luego arrastrarlos a su lugar en el lienzo.
           </span>
         </button>
       </div>

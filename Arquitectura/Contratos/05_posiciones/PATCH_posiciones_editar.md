@@ -41,6 +41,8 @@ Modifica atributos de una posición existente: facings, capacidad, mínimos, má
 | `nota_desborde` | `string \| null` | Descripción de hacia dónde desborda. |
 | `decision` | `string` | `ACTIVO`, `INACTIVO`. |
 | `observaciones` | `string \| null` | Notas libres del Analista. Máximo 500 chars. |
+| `confidence` | `integer` | 0–100. `100` = confirmado ("Confirmar producto" en el lienzo, sobre uno colocado por un agente). |
+| `ganchos` | `integer[] \| null` | Números de gancho guardados (ej. `[4,9,14,19]`), sin repetir. `null` o `[]` = los calcula el sistema. Migración 013. |
 
 ---
 
@@ -92,7 +94,7 @@ Modifica atributos de una posición existente: facings, capacidad, mínimos, má
 
 | Código | Condición |
 |--------|-----------|
-| `400 Bad Request` | `desborda_gondola=true` sin `nota_desborde`, o `min_final > max_final`. |
+| `400 Bad Request` | `desborda_gondola=true` sin `nota_desborde`, o `min_final > max_final`, o `ganchos` con números repetidos o no positivos. |
 | `401 Unauthorized` | JWT ausente. |
 | `404 Not Found` | Posición no existe. |
 | `422 Unprocessable Entity` | Versión no editable. |

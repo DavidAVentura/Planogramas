@@ -21,4 +21,40 @@ module.exports = {
    * @returns {Promise<object|null>}
    */
   buscarPorId: async (_id) => { throw new Error('No implementado'); },
+
+  /**
+   * Busca un accesorio por código ya normalizado (ver `normalizarCodigo` en accesorio.entity.js).
+   * @param {string} codigoNormalizado
+   * @returns {Promise<object|null>}
+   */
+  buscarPorCodigo: async (_codigoNormalizado) => { throw new Error('No implementado'); },
+
+  /**
+   * Inserta un accesorio y devuelve su id.
+   * @param {{ codigo, nombre, tipo, longitud_cm?, ancho_cm?, notas_capacidad? }} datos
+   * @returns {Promise<number>}
+   */
+  crear: async (_datos) => { throw new Error('No implementado'); },
+
+  /**
+   * Partial update de los campos editables.
+   * @param {number} id
+   * @param {object} cambios
+   * @returns {Promise<void>}
+   */
+  actualizar: async (_id, _cambios) => { throw new Error('No implementado'); },
+
+  /**
+   * Cuántos niveles (codigo_accesorio_id) y posiciones (PosicionAccesorio) usan el accesorio.
+   * @param {number} id
+   * @returns {Promise<{ niveles: number, posiciones: number }>}
+   */
+  contarUsos: async (_id) => { throw new Error('No implementado'); },
+
+  /**
+   * Elimina el accesorio (el caso de uso ya validó que no está en uso).
+   * @param {number} id
+   * @returns {Promise<void>}
+   */
+  eliminar: async (_id) => { throw new Error('No implementado'); },
 };

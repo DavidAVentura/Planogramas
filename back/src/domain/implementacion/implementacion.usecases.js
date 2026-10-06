@@ -9,6 +9,8 @@
  * advertencia.
  */
 
+const { recorrerVersion } = require('../skuVersion/skuVersion.entity');
+
 const {
   UMBRAL_IMPLEMENTABLE,
   ADVERTENCIA_INVENTARIO_NO_DISPONIBLE,
@@ -143,6 +145,16 @@ async function obtenerResumenImplementacion(repo, inventarioPort, tiendaId) {
   return { ...base, ...marcaDisponibilidad(consulta), planogramas };
 }
 
+/** Números de gancho por posición de cada versión — mismo recorrido que la vista de SKU. */
+async function ganchosPorPosicion(skuRepo, versionIds) {
+  const mapa = new Map();
+  if (!skuRepo) return mapa;
+  for (const versionId of versionIds) {
+    recorrerVersion(await skuRepo.cargarVersion(versionId)).forEach((r) => mapa.set(r.posicion.id, r.ganchos));
+  }
+  return mapa;
+}
+
 /**
  * Productos del Implementador: una fila por posición (con sku) de las versiones pedidas, con el
  * inventario del SKU en la tienda.
@@ -150,9 +162,10 @@ async function obtenerResumenImplementacion(repo, inventarioPort, tiendaId) {
  * @param {{ obtenerInventarioTienda: Function }} inventarioPort
  * @param {number} tiendaId
  * @param {number[]} [versionIds]  sin él, todas las versiones asignadas
+ * @param {{ cargarVersion: Function }} [skuRepo]  para los números de gancho (guardados o calculados)
  * @returns {Promise<object>}
  */
-async function obtenerProductosImplementacion(repo, inventarioPort, tiendaId, versionIds) {
+async function obtenerProductosImplementacion(repo, inventarioPort, tiendaId, versionIds, skuRepo) {
   const tienda    = await obtenerTiendaActivaOFallar(repo, tiendaId);
   const versiones = await obtenerVersionesAsignadasOFallar(repo, tiendaId, versionIds);
 
@@ -163,11 +176,13 @@ async function obtenerProductosImplementacion(repo, inventarioPort, tiendaId, ve
   const consulta = await consultarInventario(
     inventarioPort, tienda.codigo, [...new Set(filas.map((f) => f.sku))],
   );
+  const ganchos = await ganchosPorPosicion(skuRepo, versiones.map((v) => v.versionId));
 
   const data = filas.map((f) => {
     const inventario = consulta.inventario ? unidadesEnTienda(consulta.inventario, f.sku) : null;
     return {
       ...f,
+      ganchos: ganchos.get(f.posicionId) ?? [],
       inventario,
       conInventario: inventario === null ? null : inventario > 0,
     };

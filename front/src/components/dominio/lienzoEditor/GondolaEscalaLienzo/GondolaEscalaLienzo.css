@@ -38,6 +38,12 @@
   white-space: nowrap;
 }
 
+.gondola-escala__chip--por-ubicar {
+  border-color: var(--warning);
+  color: var(--warning);
+  font-weight: 700;
+}
+
 .gondola-escala__acciones {
   margin-left: auto;
   display: flex;
@@ -305,6 +311,20 @@
   font-family: var(--font-mono);
   font-size: 8px;
   line-height: 10px;
+}
+
+.gondola-escala__ia {
+  position: absolute;
+  z-index: 1;
+  left: -4px;
+  bottom: -6px;
+  padding: 0 4px;
+  border-radius: var(--radius-pill);
+  background: var(--warning);
+  color: var(--white);
+  font-size: 8px;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .gondola-escala__apilable {

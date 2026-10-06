@@ -15,6 +15,24 @@ const schemaListar = Joi.object({
   tipo: Joi.string().valid(...TIPOS).optional(),
 });
 
+const campos = {
+  codigo:          Joi.string().trim().min(1).max(50),
+  nombre:          Joi.string().trim().min(1).max(200),
+  tipo:            Joi.string().valid(...TIPOS),
+  longitud_cm:     Joi.number().positive().max(9999).allow(null),
+  ancho_cm:        Joi.number().positive().max(9999).allow(null),
+  notas_capacidad: Joi.string().trim().max(1000).allow(null, ''),
+};
+
+const schemaCrear = Joi.object({
+  ...campos,
+  codigo: campos.codigo.required(),
+  nombre: campos.nombre.required(),
+  tipo:   campos.tipo.required(),
+});
+
+const schemaEditar = Joi.object(campos).min(1);
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function parsearId(valor) {
@@ -58,4 +76,35 @@ async function obtener(req, res, next) {
   }
 }
 
-module.exports = { listar, obtener };
+async function crear(req, res, next) {
+  try {
+    const datos     = validarQuery(schemaCrear, req.body);
+    const accesorio = await usecases.crearAccesorio(repo, datos);
+    res.status(201).json(accesorio);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function editar(req, res, next) {
+  try {
+    const id        = parsearId(req.params.id);
+    const cambios   = validarQuery(schemaEditar, req.body);
+    const accesorio = await usecases.editarAccesorio(repo, id, cambios);
+    res.json(accesorio);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function eliminar(req, res, next) {
+  try {
+    const id = parsearId(req.params.id);
+    await usecases.eliminarAccesorio(repo, id);
+    res.status(204).end();
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { listar, obtener, crear, editar, eliminar };

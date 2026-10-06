@@ -5,11 +5,12 @@ import { extractorPdfPlanogramaService } from '../../../../services/extractorPdf
 import { archivoABase64 } from '../../../../utils/archivoABase64';
 import { useToast } from '../../../../context/ToastContext';
 import { mensajeDeError } from '../../../../utils/errors';
-import type { ResultadoExtraccionPdf } from '../../../../types/extractorPdfPlanograma';
+import type { ProductoPorUbicar, ResultadoExtraccionPdf } from '../../../../types/extractorPdfPlanograma';
 import type { GondolaListItem } from '../../../../types/gondola';
 import { RevisionCuerpoPdf } from './RevisionCuerpoPdf';
 import {
   construirCuerpoImportar,
+  indicePorGancho,
   seleccionInicial,
   type DecisionCuerpo,
   type SeleccionProductos,
@@ -22,6 +23,9 @@ const MAX_BYTES_PDF = 15 * 1024 * 1024;
 interface ExtractorPdfPlanogramaModalProps {
   versionId: number;
   gondolas: GondolaListItem[];
+  /** Productos de la góndola "Por ubicar" (Excel) con sus ganchos: llenan los espacios del PDF
+   * que tienen esos mismos números. */
+  productosPorUbicar: ProductoPorUbicar[];
   onClose: () => void;
   /** Se llama tras importar, para recargar el lienzo. */
   onImportado: () => void;
@@ -33,13 +37,18 @@ interface ExtractorPdfPlanogramaModalProps {
  * decide el destino de cada cuerpo (góndola nueva, reemplazar o no importar) y elige el producto
  * de cada espacio; la importación es una sola transacción en el back.
  */
-export function ExtractorPdfPlanogramaModal({ versionId, gondolas, onClose, onImportado }: ExtractorPdfPlanogramaModalProps) {
+export function ExtractorPdfPlanogramaModal({ versionId, gondolas, productosPorUbicar, onClose, onImportado }: ExtractorPdfPlanogramaModalProps) {
   const [archivo, setArchivo] = useState<File | null>(null);
   const [analizando, setAnalizando] = useState(false);
   const [importando, setImportando] = useState(false);
   const [resultado, setResultado] = useState<ResultadoExtraccionPdf | null>(null);
   const [decisiones, setDecisiones] = useState<Record<string, DecisionCuerpo>>({});
   const [seleccion, setSeleccion] = useState<SeleccionProductos>({});
+  // null = el usuario no lo tocó: se activa solo si hay productos en "Por ubicar" (las posiciones
+  // del chat se cargan en diferido, así que pueden llegar después de abrir el modal).
+  const [eleccionPorUbicar, setUsarPorUbicar] = useState<boolean | null>(null);
+  const usarPorUbicar = eleccionPorUbicar ?? productosPorUbicar.length > 0;
+  const porGancho = usarPorUbicar && productosPorUbicar.length ? indicePorGancho(productosPorUbicar) : null;
   const { mostrarToast } = useToast();
 
   function onSeleccionarArchivo(e: React.ChangeEvent<HTMLInputElement>) {
@@ -82,9 +91,14 @@ export function ExtractorPdfPlanogramaModal({ versionId, gondolas, onClose, onIm
       const respuesta = await extractorPdfPlanogramaService.importar(
         versionId,
         cuerposAImportar.map((c) => construirCuerpoImportar(c, decisiones[c.clave], seleccion, resultado.archivo)),
+        Boolean(porGancho),
       );
       const posiciones = respuesta.gondolas.reduce((t, g) => t + g.totalPosiciones, 0);
-      mostrarToast(`Se importaron ${respuesta.gondolas.length} góndola(s) con ${posiciones} posición(es)`, 'success');
+      mostrarToast(
+        `Se importaron ${respuesta.gondolas.length} góndola(s) con ${posiciones} posición(es)` +
+          (respuesta.desdePorUbicar ? `; ${respuesta.desdePorUbicar} con productos de "Por ubicar"` : ''),
+        'success',
+      );
       respuesta.advertencias.forEach((a) => mostrarToast(a, 'info'));
       onImportado();
     } catch (err) {
@@ -118,9 +132,18 @@ export function ExtractorPdfPlanogramaModal({ versionId, gondolas, onClose, onIm
         <div className="revision-pdf">
           <p className="revision-pdf__ayuda">
             Se leyeron {resultado.cuerpos.length} cuerpo(s). Revisá el layout y elegí qué producto va en cada espacio: los
-            identificados por su SKU impreso ya vienen asignados; los demás quedan como posiciones pendientes, que se
-            pueden asignar después desde el lienzo.
+            identificados por su SKU impreso ya vienen asignados <strong>sin confirmar</strong> (con clic derecho en el lienzo
+            se confirman o se reasignan); los demás quedan como espacios pendientes.
           </p>
+          {productosPorUbicar.length > 0 && (
+            <label className="revision-pdf__por-ubicar">
+              <input type="checkbox" checked={usarPorUbicar} onChange={(e) => setUsarPorUbicar(e.target.checked)} />
+              <span>
+                <strong>Llenar con los productos de "Por ubicar"</strong> ({productosPorUbicar.length}): los espacios cuyos ganchos
+                coinciden con un producto del Excel lo toman con todos sus datos, confirmado, y sale de "Por ubicar".
+              </span>
+            </label>
+          )}
           {reemplazoDuplicado && (
             <p className="revision-pdf__aviso">Dos cuerpos no pueden reemplazar la misma góndola.</p>
           )}
@@ -138,6 +161,7 @@ export function ExtractorPdfPlanogramaModal({ versionId, gondolas, onClose, onIm
               seleccion={seleccion}
               onCambiarDecision={(d) => setDecisiones((actual) => ({ ...actual, [cuerpo.clave]: d }))}
               onElegirProducto={(clave, sku) => setSeleccion((actual) => ({ ...actual, [clave]: sku }))}
+              porGancho={porGancho}
             />
           ))}
         </div>

@@ -44,9 +44,13 @@ cientos de posiciones), sin paginar.
    `INACTIVO`: la columna Decisión lo muestra. El conteo de "productos del planograma" de
    `Mi tienda` sigue siendo solo `ACTIVO`.
 3. Orden por defecto: `codigoVersion`, `Gondola.orden`, `Nivel.orden`, `Posicion.orden_horizontal`.
-4. `nombre`, `marca` y `sku_sustituto` salen de la tabla local `Producto`; `sustituto_nombre` es el
+4. Datos de montaje (migración 013): `ganchos` son los números guardados de la posición (Excel) o,
+   si no tiene, los calculados (mismo recorrido que `GET /versiones/{id}/skus`); `accesorios` son
+   sus accesorios de montaje con su `tamano_pulgadas`; `porUbicar` indica que la fila sigue en la góndola "Por ubicar"
+   (importada del Excel, sin lugar definitivo en el lienzo: el Implementador se guía por los ganchos).
+5. `nombre`, `marca` y `sku_sustituto` salen de la tabla local `Producto`; `sustituto_nombre` es el
    `nombre` del producto sustituto (null si no hay sustituto o no está en la tabla local).
-5. Inventario: misma consulta y misma regla, caché y campos `inventarioDisponible` / `inventarioDesactualizado` /
+6. Inventario: misma consulta y misma regla, caché y campos `inventarioDisponible` / `inventarioDesactualizado` /
    `inventarioActualizadoEn` / `advertencia` que `GET_implementacion_resumen.md` (reglas 3, 5 y 6).
    `inventario` es el número de unidades en la tienda (0 si no hay fila); `conInventario = inventario > 0`.
    En modo degradado ambos van en `null` y `inventarioDisponible: false`.
@@ -87,6 +91,11 @@ cientos de posiciones), sin paginar.
       "modo": "PLANOGRAMA",
       "decision": "ACTIVO",
       "observaciones": "Etiqueta de precio al frente",
+      "porUbicar": false,
+      "min_final": 6,
+      "max_final": 12,
+      "ganchos": [4, 9, 14],
+      "accesorios": [{ "codigo": "R45-12-212P2", "nombre": "Gancho 12 pulgadas", "tamano_pulgadas": 12 }],
       "sku_sustituto": null,
       "sustituto_nombre": null,
       "inventario": 24,

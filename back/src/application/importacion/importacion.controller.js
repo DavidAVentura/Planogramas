@@ -9,6 +9,7 @@ const usecases        = require('../../domain/importacion/importacion.usecases')
 const { DESTINOS }    = require('../../domain/importacion/importacion.entity');
 const { DIRECCIONES } = require('../../domain/seccion/seccion.entity');
 const { TIPOS_ACCESORIO } = require('../../domain/nivel/nivel.entity');
+const { MODOS, DECISIONES, PERFILES_REDONDEO } = require('../../domain/posicion/posicion.entity');
 const importacionRepo = require('../../infrastructure/repositories/importacion.repository');
 const gondolaRepo     = require('../../infrastructure/repositories/gondola.repository');
 const versionRepo     = require('../../infrastructure/repositories/version.repository');
@@ -25,6 +26,7 @@ const schemaPosicion = Joi.object({
   nombre_detectado:   Joi.string().trim().max(500).allow(null, '').default(null),
   confidence:         Joi.number().integer().min(0).max(100).default(100),
   datos_vision:       Joi.object().unknown(true).allow(null).default(null),
+  ganchos:            Joi.array().items(Joi.number().integer().positive()).max(100).unique().default([]),
 });
 
 const schemaNivel = Joi.object({
@@ -63,7 +65,34 @@ const schemaCuerpo = Joi.object({
 });
 
 const schemaImportar = Joi.object({
-  cuerpos: Joi.array().items(schemaCuerpo).min(1).max(20).required(),
+  cuerpos:         Joi.array().items(schemaCuerpo).min(1).max(20).required(),
+  // Llenar los espacios con los productos de "Por ubicar" (Excel) que tengan sus mismos ganchos.
+  usar_por_ubicar: Joi.boolean().default(false),
+});
+
+const entero = () => Joi.number().integer().min(0).allow(null).default(null);
+
+const schemaProductoExcel = Joi.object({
+  sku:                       Joi.string().trim().min(1).max(50).required(),
+  descripcion:               Joi.string().trim().max(500).allow(null, '').default(null),
+  ganchos:                   Joi.array().items(Joi.number().integer().positive()).max(100).unique().default([]),
+  facings_horizontal:        Joi.number().integer().min(1).max(100).required(),
+  unidades_por_facing:       Joi.number().integer().min(1).allow(null).default(1),
+  cantidad_apilable:         Joi.number().integer().min(1).allow(null).default(1),
+  min_estetico:              entero(),
+  capacidad_maxima:          Joi.number().integer().min(1).allow(null).default(null),
+  min_final:                 entero(),
+  max_final:                 entero(),
+  perfil_redondeo:           Joi.string().valid(...PERFILES_REDONDEO).allow(null).default(null),
+  modo:                      Joi.string().valid(...MODOS.filter((m) => m !== 'PENDIENTE')).allow(null).default(null),
+  decision:                  Joi.string().valid(...DECISIONES).allow(null).default(null),
+  accesorio_codigo:          Joi.string().trim().max(50).allow(null, '').default(null),
+  tamano_accesorio_pulgadas: Joi.number().positive().max(999).allow(null).default(null),
+  observaciones:             Joi.string().trim().max(500).allow(null, '').default(null),
+});
+
+const schemaImportarProductos = Joi.object({
+  productos: Joi.array().items(schemaProductoExcel).min(1).max(1000).required(),
 });
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -102,4 +131,19 @@ async function importarLayout(req, res, next) {
   }
 }
 
-module.exports = { importarLayout };
+async function importarProductos(req, res, next) {
+  try {
+    const versionId = parsearId(req.params.id);
+    const datos     = validarBody(schemaImportarProductos, req.body);
+    const resultado = await usecases.importarProductos(
+      { importacionRepo, versionRepo, accesorioRepo, productoRepo },
+      versionId,
+      datos,
+    );
+    res.status(201).json(resultado);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { importarLayout, importarProductos };

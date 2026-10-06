@@ -53,6 +53,7 @@ La publicación real la hace [POST_versiones_promover.md](POST_versiones_promove
   "tipo": "GRANDE",
   "esEspecial": false,
   "erroresBloqueantes": [],
+  "advertencias": [{ "codigo": "PRODUCTOS_POR_UBICAR", "mensaje": "Hay 3 producto(s) en la góndola \"Por ubicar\" sin su lugar definitivo en el lienzo" }],
   "versionAnterior": { "id": 8, "codigo": "DUCHAS-TG" },
   "tiendasPiloto": [
     { "id": 1, "codigo": "T0PC", "nombre": "Cemaco Pradera", "tipo": "GRANDE", "marca": "Cemaco" }
@@ -63,6 +64,9 @@ La publicación real la hace [POST_versiones_promover.md](POST_versiones_promove
   "totalTiendas": 2
 }
 ```
+
+`advertencias` no impiden publicar (hoy: `PRODUCTOS_POR_UBICAR` si quedan productos en la góndola
+"Por ubicar" del importador de productos; el Implementador los ve con sus números de gancho).
 
 Las tiendas vienen ordenadas por nombre. `erroresBloqueantes` tiene la misma forma que el `details` del `422` de promover: `{ posicionId, sku, gondola, nivel, error }`.
 

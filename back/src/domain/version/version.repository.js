@@ -178,6 +178,13 @@ module.exports = {
   simularPublicacion: async (_id) => { throw new Error('No implementado'); },
 
   /**
+   * Cantidad de posiciones que siguen en la góndola "Por ubicar" de la versión.
+   * @param {number} versionId
+   * @returns {Promise<number>}
+   */
+  contarPosicionesPorUbicar: async (_versionId) => { throw new Error('No implementado'); },
+
+  /**
    * Marca la versión como `en_desarrollo`. Si la versión es de línea base
    * (version_base_id IS NULL), archiva la versión en `en_desarrollo` anterior del
    * mismo planograma+tipo (si existe); las versiones especiales por tienda no

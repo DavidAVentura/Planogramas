@@ -839,7 +839,21 @@ async function obtenerResumen(id) {
 
 // ─── Exportación ─────────────────────────────────────────────────────────────
 
+// ─── contarPosicionesPorUbicar ────────────────────────────────────────────────
+
+/** Posiciones que siguen en la góndola "Por ubicar" de la versión (importador de productos). */
+async function contarPosicionesPorUbicar(versionId) {
+  const [{ total }] = await db(TABLA_POSICION)
+    .join(TABLA_NIVEL, `${TABLA_POSICION}.nivel_id`, `${TABLA_NIVEL}.id`)
+    .join(TABLA_GONDOLA, `${TABLA_NIVEL}.gondola_id`, `${TABLA_GONDOLA}.id`)
+    .where(`${TABLA_GONDOLA}.planograma_version_id`, versionId)
+    .where(`${TABLA_GONDOLA}.por_ubicar`, true)
+    .count(`${TABLA_POSICION}.id as total`);
+  return Number(total);
+}
+
 module.exports = {
+  contarPosicionesPorUbicar,
   listarPorPlanograma,
   crearConGondolas,
   crearConClon,

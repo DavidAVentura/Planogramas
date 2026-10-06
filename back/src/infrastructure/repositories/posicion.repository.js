@@ -33,7 +33,24 @@ const CAMPOS_EDITABLES = [
   'nombre_detectado',
   'confidence',
   'datos_vision',
+  'ganchos',
 ];
+
+/** `ganchos` se guarda como texto JSON (arreglo de enteros); null o [] = sin ganchos guardados. */
+function serializarGanchos(ganchos) {
+  if (ganchos === undefined) return undefined;
+  return Array.isArray(ganchos) && ganchos.length > 0 ? JSON.stringify(ganchos) : null;
+}
+
+function parsearGanchos(valor) {
+  if (!valor) return null;
+  try {
+    const ganchos = JSON.parse(valor);
+    return Array.isArray(ganchos) && ganchos.length > 0 ? ganchos : null;
+  } catch {
+    return null;
+  }
+}
 
 // ─── Helpers privados ────────────────────────────────────────────────────────
 
@@ -62,6 +79,7 @@ function mapPosicion(row) {
     nombre_detectado:    row.nombre_detectado ?? null,
     confidence:          row.confidence ?? 100,
     datos_vision:        row.datos_vision ? JSON.parse(row.datos_vision) : null,
+    ganchos:             parsearGanchos(row.ganchos),
   };
 }
 
@@ -95,6 +113,7 @@ function mapAccesorioEmbebido(row) {
     nombre:       row.nombre,
     tipo:         row.tipo,
     nota_libre:   row.nota_libre,
+    tamano_pulgadas: row.tamano_pulgadas != null ? Number(row.tamano_pulgadas) : null,
   };
 }
 
@@ -111,6 +130,7 @@ function mapAccesorioCompleto(row) {
       longitud_cm: row.longitud_cm != null ? Number(row.longitud_cm) : null,
     },
     nota_libre: row.nota_libre,
+    tamano_pulgadas: row.tamano_pulgadas != null ? Number(row.tamano_pulgadas) : null,
     orden:      row.orden,
   };
 }
@@ -125,6 +145,7 @@ function accesoriosDePosicionQuery(posicionId) {
       `${TABLA_POSICION_ACCESORIO}.posicion_id as posicion_id`,
       `${TABLA_POSICION_ACCESORIO}.orden as orden`,
       `${TABLA_POSICION_ACCESORIO}.nota_libre as nota_libre`,
+      `${TABLA_POSICION_ACCESORIO}.tamano_pulgadas as tamano_pulgadas`,
       `${TABLA_ACCESORIO}.id as accesorio_id`,
       `${TABLA_ACCESORIO}.codigo as codigo`,
       `${TABLA_ACCESORIO}.nombre as nombre`,
@@ -180,7 +201,8 @@ async function crear(datos) {
       .where('orden_horizontal', '>=', datos.orden_horizontal)
       .increment('orden_horizontal', 1);
 
-    const [{ id }] = await trx(TABLA_POSICION).insert(datos).returning('id');
+    const fila = datos.ganchos === undefined ? datos : { ...datos, ganchos: serializarGanchos(datos.ganchos) };
+    const [{ id }] = await trx(TABLA_POSICION).insert(fila).returning('id');
     return id;
   });
 }
@@ -192,6 +214,7 @@ async function actualizar(id, cambios) {
   for (const campo of CAMPOS_EDITABLES) {
     if (cambios[campo] !== undefined) campos[campo] = cambios[campo];
   }
+  if (campos.ganchos !== undefined) campos.ganchos = serializarGanchos(campos.ganchos);
 
   if (Object.keys(campos).length > 0) {
     await db(TABLA_POSICION).where('id', id).update(campos);
@@ -304,6 +327,7 @@ async function agregarAccesorio(posicionId, datos) {
         posicion_id:  posicionId,
         accesorio_id: datos.accesorio_id,
         nota_libre:   datos.nota_libre ?? null,
+        tamano_pulgadas: datos.tamano_pulgadas ?? null,
         orden,
       })
       .returning('id');
@@ -323,6 +347,7 @@ async function buscarAccesorioPorId(posicionAccesorioId) {
       `${TABLA_POSICION_ACCESORIO}.posicion_id as posicion_id`,
       `${TABLA_POSICION_ACCESORIO}.orden as orden`,
       `${TABLA_POSICION_ACCESORIO}.nota_libre as nota_libre`,
+      `${TABLA_POSICION_ACCESORIO}.tamano_pulgadas as tamano_pulgadas`,
       `${TABLA_ACCESORIO}.id as accesorio_id`,
       `${TABLA_ACCESORIO}.codigo as codigo`,
       `${TABLA_ACCESORIO}.nombre as nombre`,

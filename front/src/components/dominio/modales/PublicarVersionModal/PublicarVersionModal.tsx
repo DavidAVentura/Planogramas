@@ -157,6 +157,12 @@ export function PublicarVersionModal({ planogramaId, version, onClose, onPublica
             </div>
           </div>
 
+          {(simulacion.advertencias ?? []).map((a) => (
+            <div key={a.codigo} className="resumen-asignacion__aviso" role="note">
+              <strong>{a.mensaje}.</strong> Se publica igual; el Implementador los ve con sus números de gancho.
+            </div>
+          ))}
+
           {distintas.length > 0 && (
             <div className="resumen-asignacion__aviso" role="note">
               <strong>

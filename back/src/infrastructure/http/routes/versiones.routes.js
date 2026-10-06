@@ -71,4 +71,8 @@ router.patch('/:id/skus/:sku',      skusController.editar);
 //        posiciones) en una transacción; lo usa el Agente Importador de PDF (módulo importacion)
 router.post('/:id/importar-layout', importacionController.importarLayout);
 
+// POST  /versiones/:id/importar-productos — importa el listado de productos de un Excel a la
+//        góndola "Por ubicar" (ganchos, cantidades, mín./máx., accesorio...) (módulo importacion)
+router.post('/:id/importar-productos', importacionController.importarProductos);
+
 module.exports = router;
