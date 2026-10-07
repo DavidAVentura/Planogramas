@@ -127,7 +127,7 @@ function mapAccesorioCompleto(row) {
       codigo:      row.codigo,
       nombre:      row.nombre,
       tipo:        row.tipo,
-      longitud_cm: row.longitud_cm != null ? Number(row.longitud_cm) : null,
+      profundidad_cm: row.profundidad_cm != null ? Number(row.profundidad_cm) : null,
     },
     nota_libre: row.nota_libre,
     tamano_pulgadas: row.tamano_pulgadas != null ? Number(row.tamano_pulgadas) : null,
@@ -150,7 +150,7 @@ function accesoriosDePosicionQuery(posicionId) {
       `${TABLA_ACCESORIO}.codigo as codigo`,
       `${TABLA_ACCESORIO}.nombre as nombre`,
       `${TABLA_ACCESORIO}.tipo as tipo`,
-      `${TABLA_ACCESORIO}.longitud_cm as longitud_cm`,
+      `${TABLA_ACCESORIO}.profundidad_cm as profundidad_cm`,
     );
 }
 
@@ -352,7 +352,7 @@ async function buscarAccesorioPorId(posicionAccesorioId) {
       `${TABLA_ACCESORIO}.codigo as codigo`,
       `${TABLA_ACCESORIO}.nombre as nombre`,
       `${TABLA_ACCESORIO}.tipo as tipo`,
-      `${TABLA_ACCESORIO}.longitud_cm as longitud_cm`,
+      `${TABLA_ACCESORIO}.profundidad_cm as profundidad_cm`,
     )
     .first();
 

@@ -15,12 +15,16 @@ const schemaListar = Joi.object({
   tipo: Joi.string().valid(...TIPOS).optional(),
 });
 
+// Medidas en cm; la columna es DECIMAL(8,2), así que se redondea a 2 decimales.
+const medidaCm = Joi.number().positive().max(9999).precision(2).allow(null);
+
 const campos = {
   codigo:          Joi.string().trim().min(1).max(50),
   nombre:          Joi.string().trim().min(1).max(200),
   tipo:            Joi.string().valid(...TIPOS),
-  longitud_cm:     Joi.number().positive().max(9999).allow(null),
-  ancho_cm:        Joi.number().positive().max(9999).allow(null),
+  alto_cm:         medidaCm,
+  ancho_cm:        medidaCm,
+  profundidad_cm:  medidaCm,
   notas_capacidad: Joi.string().trim().max(1000).allow(null, ''),
 };
 

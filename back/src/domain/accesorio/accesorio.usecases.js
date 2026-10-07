@@ -58,7 +58,7 @@ async function obtenerAccesorio(repo, id) {
 /**
  * Da de alta un accesorio en el catálogo.
  * @param {object} repo
- * @param {{ codigo, nombre, tipo, longitud_cm?, ancho_cm?, notas_capacidad? }} datos
+ * @param {{ codigo, nombre, tipo, alto_cm?, ancho_cm?, profundidad_cm?, notas_capacidad? }} datos
  */
 async function crearAccesorio(repo, datos) {
   await validarCodigoLibre(repo, datos.codigo);

@@ -31,7 +31,7 @@ module.exports = {
 
   /**
    * Inserta un accesorio y devuelve su id.
-   * @param {{ codigo, nombre, tipo, longitud_cm?, ancho_cm?, notas_capacidad? }} datos
+   * @param {{ codigo, nombre, tipo, alto_cm?, ancho_cm?, profundidad_cm?, notas_capacidad? }} datos
    * @returns {Promise<number>}
    */
   crear: async (_datos) => { throw new Error('No implementado'); },

@@ -149,7 +149,7 @@ export interface PosicionAccesorio {
     codigo: string;
     nombre: string;
     tipo: string;
-    longitud_cm: number | null;
+    profundidad_cm: number | null;
   };
   nota_libre: string | null;
   tamano_pulgadas: number | null;

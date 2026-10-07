@@ -35,7 +35,7 @@ async function asegurarAccesorio(trx) {
   if (existente) return existente.id;
 
   const [{ id }] = await trx('Accesorio').insert({
-    codigo: CODIGO_ACCESORIO_FIXTURE, nombre: 'Gancho fixture 12 pulgadas', tipo: 'GANCHO', longitud_cm: 30,
+    codigo: CODIGO_ACCESORIO_FIXTURE, nombre: 'Gancho fixture 12 pulgadas', tipo: 'GANCHO', profundidad_cm: 30,
   }).returning('id');
   return id;
 }

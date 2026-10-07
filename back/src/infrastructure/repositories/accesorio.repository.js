@@ -11,7 +11,7 @@ const TABLA_ACCESORIO = 'Accesorio';
 
 async function listar({ tipo }) {
   const query = db(TABLA_ACCESORIO)
-    .select('id', 'codigo', 'nombre', 'tipo', 'longitud_cm', 'ancho_cm')
+    .select('id', 'codigo', 'nombre', 'tipo', 'alto_cm', 'ancho_cm', 'profundidad_cm')
     .orderBy([{ column: 'tipo', order: 'asc' }, { column: 'nombre', order: 'asc' }]);
 
   if (tipo) query.where('tipo', tipo);
@@ -24,7 +24,7 @@ async function listar({ tipo }) {
 async function buscarPorId(id) {
   const accesorio = await db(TABLA_ACCESORIO)
     .where('id', id)
-    .select('id', 'codigo', 'nombre', 'tipo', 'longitud_cm', 'ancho_cm', 'notas_capacidad')
+    .select('id', 'codigo', 'nombre', 'tipo', 'alto_cm', 'ancho_cm', 'profundidad_cm', 'notas_capacidad')
     .first();
 
   return accesorio ?? null;
@@ -37,7 +37,7 @@ async function buscarPorId(id) {
 async function buscarPorCodigo(codigoNormalizado) {
   const accesorio = await db(TABLA_ACCESORIO)
     .whereRaw('UPPER(LTRIM(RTRIM(codigo))) = ?', [codigoNormalizado])
-    .select('id', 'codigo', 'nombre', 'tipo', 'longitud_cm', 'ancho_cm', 'notas_capacidad')
+    .select('id', 'codigo', 'nombre', 'tipo', 'alto_cm', 'ancho_cm', 'profundidad_cm', 'notas_capacidad')
     .first();
 
   return accesorio ?? null;
@@ -50,8 +50,9 @@ async function crear(datos) {
     codigo:          datos.codigo,
     nombre:          datos.nombre,
     tipo:            datos.tipo,
-    longitud_cm:     datos.longitud_cm ?? null,
+    alto_cm:         datos.alto_cm ?? null,
     ancho_cm:        datos.ancho_cm ?? null,
+    profundidad_cm:  datos.profundidad_cm ?? null,
     notas_capacidad: datos.notas_capacidad ?? null,
   }).returning('id');
   return id;
@@ -59,7 +60,7 @@ async function crear(datos) {
 
 // ─── actualizar ──────────────────────────────────────────────────────────────
 
-const CAMPOS_EDITABLES = ['codigo', 'nombre', 'tipo', 'longitud_cm', 'ancho_cm', 'notas_capacidad'];
+const CAMPOS_EDITABLES = ['codigo', 'nombre', 'tipo', 'alto_cm', 'ancho_cm', 'profundidad_cm', 'notas_capacidad'];
 
 async function actualizar(id, cambios) {
   const campos = {};

@@ -55,8 +55,9 @@ export function AccesoriosListado() {
     { key: 'codigo', header: 'Código', render: (a) => <span className="mono">{a.codigo}</span> },
     { key: 'nombre', header: 'Nombre', render: (a) => a.nombre },
     { key: 'tipo', header: 'Tipo', render: (a) => a.tipo.charAt(0) + a.tipo.slice(1).toLowerCase() },
-    { key: 'largo', header: 'Largo', alinear: 'right', render: (a) => medida(a.longitud_cm) },
+    { key: 'alto', header: 'Alto', alinear: 'right', render: (a) => medida(a.alto_cm) },
     { key: 'ancho', header: 'Ancho', alinear: 'right', render: (a) => medida(a.ancho_cm) },
+    { key: 'profundidad', header: 'Profundidad', alinear: 'right', render: (a) => medida(a.profundidad_cm) },
     ...(puedeEscribir
       ? [{
           key: 'acciones',

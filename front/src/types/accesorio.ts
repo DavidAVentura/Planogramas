@@ -6,8 +6,9 @@ export interface Accesorio {
   codigo: string;
   nombre: string;
   tipo: string;
-  longitud_cm: number | null;
+  alto_cm: number | null;
   ancho_cm: number | null;
+  profundidad_cm: number | null;
   notas_capacidad?: string | null;
 }
 
@@ -15,7 +16,8 @@ export interface AccesorioInput {
   codigo: string;
   nombre: string;
   tipo: TipoAccesorioCatalogo;
-  longitud_cm?: number | null;
+  alto_cm?: number | null;
   ancho_cm?: number | null;
+  profundidad_cm?: number | null;
   notas_capacidad?: string | null;
 }

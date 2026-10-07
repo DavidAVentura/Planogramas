@@ -15299,7 +15299,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"codigo\": \"pm-crud-{{$timestamp}}\",\n  \"nombre\": \"Accesorio Postman\",\n  \"tipo\": \"GANCHO\",\n  \"longitud_cm\": 30.5\n}",
+                  "raw": "{\n  \"codigo\": \"pm-crud-{{$timestamp}}\",\n  \"nombre\": \"Accesorio Postman\",\n  \"tipo\": \"GANCHO\",\n  \"alto_cm\": 2.5,\n  \"ancho_cm\": 1.25,\n  \"profundidad_cm\": 30.5\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -15316,7 +15316,7 @@
                       "pm.test('Status 201', () => pm.response.to.have.status(201));",
                       "const b = pm.response.json();",
                       "pm.test('Código normalizado a mayúsculas', () => pm.expect(b.codigo).to.match(/^PM-CRUD-/));",
-                      "pm.test('Tipo y medida guardados', () => { pm.expect(b.tipo).to.eql('GANCHO'); pm.expect(Number(b.longitud_cm)).to.eql(30.5); });",
+                      "pm.test('Tipo y medidas guardados', () => { pm.expect(b.tipo).to.eql('GANCHO'); pm.expect(Number(b.alto_cm)).to.eql(2.5); pm.expect(Number(b.ancho_cm)).to.eql(1.25); pm.expect(Number(b.profundidad_cm)).to.eql(30.5); });",
                       "pm.collectionVariables.set('accesorioIdCrud', b.id);",
                       "pm.collectionVariables.set('accesorioCodigoCrud', b.codigo);"
                     ]
@@ -15348,7 +15348,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"codigo\": \"PM-CRUD2-{{$timestamp}}\",\n  \"nombre\": \"Accesorio Postman\",\n  \"tipo\": \"BANDEJA\",\n  \"longitud_cm\": 30.5\n}",
+                  "raw": "{\n  \"codigo\": \"PM-CRUD2-{{$timestamp}}\",\n  \"nombre\": \"Accesorio Postman\",\n  \"tipo\": \"BANDEJA\",\n  \"profundidad_cm\": 30.5\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -15439,7 +15439,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"codigo\": \"PM-TIPO-MALO\",\n  \"nombre\": \"Accesorio Postman\",\n  \"tipo\": \"REPISA\",\n  \"longitud_cm\": 30.5\n}",
+                  "raw": "{\n  \"codigo\": \"PM-TIPO-MALO\",\n  \"nombre\": \"Accesorio Postman\",\n  \"tipo\": \"REPISA\",\n  \"profundidad_cm\": 30.5\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -15535,7 +15535,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"nombre\": \"Gancho Postman editado\",\n  \"ancho_cm\": 2\n}",
+                  "raw": "{\n  \"nombre\": \"Gancho Postman editado\",\n  \"alto_cm\": 3.75,\n  \"ancho_cm\": 2\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -15550,7 +15550,8 @@
                     "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                      "pm.test('Nombre actualizado', () => pm.expect(pm.response.json().nombre).to.eql('Gancho Postman editado'));"
+                      "pm.test('Nombre actualizado', () => pm.expect(pm.response.json().nombre).to.eql('Gancho Postman editado'));",
+                      "pm.test('Medidas actualizadas', () => { const b = pm.response.json(); pm.expect(Number(b.alto_cm)).to.eql(3.75); pm.expect(Number(b.ancho_cm)).to.eql(2); pm.expect(Number(b.profundidad_cm)).to.eql(30.5); });"
                     ]
                   }
                 }
@@ -23888,7 +23889,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"codigo\": \"PM-IMP-{{$timestamp}}\",\n  \"nombre\": \"Accesorio Postman\",\n  \"tipo\": \"GANCHO\",\n  \"longitud_cm\": 30.5\n}",
+                  "raw": "{\n  \"codigo\": \"PM-IMP-{{$timestamp}}\",\n  \"nombre\": \"Accesorio Postman\",\n  \"tipo\": \"GANCHO\",\n  \"profundidad_cm\": 30.5\n}",
                   "options": {
                     "raw": {
                       "language": "json"
