@@ -24,28 +24,14 @@ function escribir(clave: string, valor: string | null): void {
   }
 }
 
-/** Expiración (ms epoch) del claim `exp`, o null si el token no la trae o no se puede leer. */
-function expiracionJwt(token: string): number | null {
-  try {
-    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    const { exp } = JSON.parse(atob(payload)) as { exp?: number };
-    return exp ? exp * 1000 : null;
-  } catch {
-    return null;
-  }
-}
-
 export const sesionService = {
-  /** Token guardado, siempre que no haya expirado según su claim `exp`. */
+  /**
+   * Token guardado. No se descarta por su claim `exp`: el keepalive renueva la sesión en CAO sin
+   * emitir un JWT nuevo, así que el `exp` original no indica que la sesión venció. Quien decide es
+   * CAO (vía backend); si ya no es válida, el 401 invalida la sesión en el interceptor.
+   */
   obtenerToken(): string | null {
-    const token = leer(CLAVE_TOKEN);
-    if (!token) return null;
-    const exp = expiracionJwt(token);
-    if (exp !== null && Date.now() >= exp) {
-      escribir(CLAVE_TOKEN, null);
-      return null;
-    }
-    return token;
+    return leer(CLAVE_TOKEN);
   },
 
   guardarToken(token: string): void {

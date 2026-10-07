@@ -134,16 +134,13 @@ async function validarToken(token) {
   if (enCache && ahora < enCache.expiraEn) return enCache.usuario;
   cache.delete(token);
 
-  const claims = decodificarPayloadJwt(token);
-  const expJwt = claims?.exp ? claims.exp * 1000 : null;
-  if (expJwt && ahora >= expJwt) {
-    throw errorNoAutenticado('La sesión expiró');
-  }
-
+  // El `exp` del JWT no se revisa localmente: el keepalive renueva la sesión en CAO sin emitir un
+  // token nuevo, así que el `exp` original no indica que la sesión venció. CAO decide.
+  const claims  = decodificarPayloadJwt(token);
   const cuerpo  = await consultarCao(token);
   const usuario = mapearUsuario(cuerpo, claims);
 
-  cache.set(token, { usuario, expiraEn: Math.min(ahora + TTL_VALIDACION_MS, expJwt ?? Infinity) });
+  cache.set(token, { usuario, expiraEn: ahora + TTL_VALIDACION_MS });
   limpiarExpirados(ahora);
 
   return usuario;
