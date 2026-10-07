@@ -76,7 +76,7 @@ Al hacer clic en una posición se abre un panel lateral o modal con los siguient
   - `facings_horizontal = FLOOR(ancho_asignado_cm / producto.ancho_cm)`
 - **Cantidad apilable**: unidades apiladas verticalmente en la misma posición.
 - **Unidades por facing**: editable manualmente; valor sugerido =
-  `FLOOR((accesorio.longitud_cm - 1) / producto.profundidad_cm)`.
+  `FLOOR((accesorio.profundidad_cm - 1) / producto.profundidad_cm)`.
 
 ### Capacidad (calculados, solo lectura con opción de override manual)
 - `capacidad_maxima = facings_horizontal × cantidad_apilable × unidades_por_facing`

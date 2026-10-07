@@ -142,9 +142,9 @@ sequenceDiagram
 
         Note over FE,DB: Carga catálogo de accesorios desde SQL para el selector
         FE->>API: GET /api/accesorios?tipo={tipo_opcional}
-        API->>DB: SELECT id, codigo, nombre, tipo, longitud_cm, ancho_cm<br/>FROM Accesorio<br/>WHERE (@tipo IS NULL OR tipo = @tipo)<br/>ORDER BY tipo, nombre
+        API->>DB: SELECT id, codigo, nombre, tipo, alto_cm, ancho_cm, profundidad_cm<br/>FROM Accesorio<br/>WHERE (@tipo IS NULL OR tipo = @tipo)<br/>ORDER BY tipo, nombre
         DB-->>API: accesorios[]
-        API-->>FE: 200 OK [ { id, codigo, nombre, tipo, longitud_cm }, ... ]
+        API-->>FE: 200 OK [ { id, codigo, nombre, tipo, alto_cm, ancho_cm, profundidad_cm }, ... ]
 
         FE-->>Analista: Muestra formulario: orden, altura_desde_piso_cm,<br/>tipo_accesorio, codigo_accesorio (selector), tamano_pulgadas, notas
 

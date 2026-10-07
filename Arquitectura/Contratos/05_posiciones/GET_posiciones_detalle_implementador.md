@@ -62,7 +62,7 @@ Retorna el detalle completo de una posición enriquecido con datos del producto 
         "codigo": "G-12",
         "nombre": "Gancho 12 pulgadas",
         "tipo": "GANCHO",
-        "longitud_cm": 30,
+        "profundidad_cm": 30,
         "nota_libre": "Colocar a la derecha del producto"
       }
     ]

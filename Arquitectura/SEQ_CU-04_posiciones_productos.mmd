@@ -26,7 +26,7 @@ sequenceDiagram
         API->>CATI: GET /api/Product/{sku}?profile=CEMACO  [Bearer]
         CATI-->>API: Product { id, name, erpInformation, assets[], internalAttributes }
         API-->>FE: 200 OK { sku, nombre, marca, ancho_cm, alto_cm,<br/>profundidad_cm, imagen_url, precio, subcategoria, sku_sustituto? }
-        FE-->>Analista: Muestra ficha del producto.<br/>Solicita — facings_horizontal o ancho_asignado_cm (sincronizados),<br/>cantidad_apilable,<br/>unidades_por_facing (sugerido = accesorio.longitud / producto.profundidad)
+        FE-->>Analista: Muestra ficha del producto.<br/>Solicita — facings_horizontal o ancho_asignado_cm (sincronizados),<br/>cantidad_apilable,<br/>unidades_por_facing (sugerido = accesorio.profundidad / producto.profundidad)
         Analista->>FE: Ingresa facings/ancho y confirma
         FE->>FE: Calcula sincronización ancho facings<br/>Calcula capacidad_maxima, min_estetico<br/>Verifica espacio disponible en nivel
 
@@ -216,7 +216,7 @@ sequenceDiagram
         Analista->>FE: Abre lista de accesorios de la posición<br/>y selecciona "Agregar accesorio"
 
         FE->>API: GET /api/accesorios?tipo={tipo_opcional}
-        API->>DB: SELECT id, codigo, nombre, tipo, longitud_cm<br/>FROM Accesorio ORDER BY tipo, nombre
+        API->>DB: SELECT id, codigo, nombre, tipo, alto_cm, ancho_cm, profundidad_cm<br/>FROM Accesorio ORDER BY tipo, nombre
         DB-->>API: accesorios[]
         API-->>FE: 200 OK [ { id, codigo, nombre, tipo }, ... ]
         FE-->>Analista: Muestra selector de accesorios + campo nota libre

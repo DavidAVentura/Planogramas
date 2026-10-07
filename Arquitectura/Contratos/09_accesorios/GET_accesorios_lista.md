@@ -40,16 +40,18 @@ Lista todos los accesorios de gondolería disponibles en el catálogo interno. F
     "codigo": "B-10",
     "nombre": "Bandeja 10 cm",
     "tipo": "BANDEJA",
-    "longitud_cm": 30,
-    "ancho_cm": 10
+    "alto_cm": 2,
+    "ancho_cm": 10,
+    "profundidad_cm": 30
   },
   {
     "id": 5,
     "codigo": "G-12",
     "nombre": "Gancho 12 pulgadas",
     "tipo": "GANCHO",
-    "longitud_cm": 30,
-    "ancho_cm": null
+    "alto_cm": 2.5,
+    "ancho_cm": null,
+    "profundidad_cm": 30
   }
 ]
 ```

@@ -68,7 +68,7 @@ sequenceDiagram
 
         FE->>API: GET /api/posiciones/{id}/detalle
 
-        API->>DB: SELECT p.*, pa.accesorio_id, pa.nota_libre, pa.orden AS acc_orden,<br/>a.codigo AS acc_codigo, a.nombre AS acc_nombre, a.tipo AS acc_tipo,<br/>a.longitud_cm AS acc_longitud<br/>FROM Posicion p<br/>LEFT JOIN PosicionAccesorio pa ON pa.posicion_id = p.id<br/>LEFT JOIN Accesorio a ON a.id = pa.accesorio_id<br/>WHERE p.id = @id<br/>ORDER BY pa.orden
+        API->>DB: SELECT p.*, pa.accesorio_id, pa.nota_libre, pa.orden AS acc_orden,<br/>a.codigo AS acc_codigo, a.nombre AS acc_nombre, a.tipo AS acc_tipo,<br/>a.profundidad_cm AS acc_profundidad<br/>FROM Posicion p<br/>LEFT JOIN PosicionAccesorio pa ON pa.posicion_id = p.id<br/>LEFT JOIN Accesorio a ON a.id = pa.accesorio_id<br/>WHERE p.id = @id<br/>ORDER BY pa.orden
         DB-->>API: posicion + accesorios[]
 
         Note over API,CATI: Enriquece con datos del producto desde CATI
@@ -77,7 +77,7 @@ sequenceDiagram
 
         API->>API: Selecciona imagen principal del asset<br/>(destinoImagen = 'PRINCIPAL' o primer asset disponible)
 
-        API-->>FE: 200 OK<br/>{ posicion: {<br/>    id, sku, nombre_producto, marca, precio,<br/>    facings_horizontal, cantidad_apilable, unidades_por_facing,<br/>    capacidad_maxima, min_final, max_final,<br/>    perfil_redondeo, modo, cross_externo,<br/>    montar_en_display, desborda_gondola, nota_desborde,<br/>    decision, observaciones,<br/>    imagen_url,<br/>    accesorios: [{ codigo, nombre, tipo, longitud_cm, nota_libre }]<br/>  }<br/>}
+        API-->>FE: 200 OK<br/>{ posicion: {<br/>    id, sku, nombre_producto, marca, precio,<br/>    facings_horizontal, cantidad_apilable, unidades_por_facing,<br/>    capacidad_maxima, min_final, max_final,<br/>    perfil_redondeo, modo, cross_externo,<br/>    montar_en_display, desborda_gondola, nota_desborde,<br/>    decision, observaciones,<br/>    imagen_url,<br/>    accesorios: [{ codigo, nombre, tipo, profundidad_cm, nota_libre }]<br/>  }<br/>}
 
         FE-->>Implementador: Muestra ficha completa de la posición:<br/>· Imagen del producto<br/>· SKU, nombre, marca, precio<br/>· Facings, capacidad máxima, mínimos<br/>· Instrucciones de montaje:<br/>    - Accesorios con nota libre ("a la derecha", "colocar frontal")<br/>    - Montar en display (si aplica)<br/>    - Nota de desborde (si aplica)<br/>· Observaciones del analista
     end

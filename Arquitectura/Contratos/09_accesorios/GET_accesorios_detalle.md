@@ -30,8 +30,9 @@ Retorna el detalle de un accesorio del catálogo: código, tipo, dimensiones y n
   "codigo": "G-12",
   "nombre": "Gancho 12 pulgadas",
   "tipo": "GANCHO",
-  "longitud_cm": 30,
+  "alto_cm": 2.5,
   "ancho_cm": null,
+  "profundidad_cm": 30,
   "notas_capacidad": "Para productos hasta 1.5 kg. No usar con botellas de más de 500ml sin tapa."
 }
 ```

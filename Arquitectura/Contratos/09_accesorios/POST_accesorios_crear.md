@@ -21,8 +21,9 @@ existe — ver `20_importacion/POST_versiones_importar_productos.md`).
   "codigo": "R45-12-212P2",
   "nombre": "Gancho sencillo 12 pulgadas",
   "tipo": "GANCHO",
-  "longitud_cm": 30.5,
+  "alto_cm": 2.5,
   "ancho_cm": null,
+  "profundidad_cm": 30.5,
   "notas_capacidad": null
 }
 ```
@@ -32,8 +33,9 @@ existe — ver `20_importacion/POST_versiones_importar_productos.md`).
 | `codigo` | `string` | Sí | 1–50 chars. Se guarda en mayúsculas y sin espacios extra. Único sin distinguir mayúsculas. |
 | `nombre` | `string` | Sí | 1–200 chars. |
 | `tipo` | `string` | Sí | `GANCHO`, `BANDEJA`, `BARRA`, `CANASTA`, `OTRO`. |
-| `longitud_cm` | `number \| null` | No | Mayor a 0. |
-| `ancho_cm` | `number \| null` | No | Mayor a 0. |
+| `alto_cm` | `number \| null` | No | Mayor a 0, máximo 9999. Centímetros; se guarda con 2 decimales (`DECIMAL(8,2)`, se redondea si trae más). |
+| `ancho_cm` | `number \| null` | No | Mayor a 0, máximo 9999. Centímetros; se guarda con 2 decimales (`DECIMAL(8,2)`, se redondea si trae más). |
+| `profundidad_cm` | `number \| null` | No | Mayor a 0, máximo 9999. Centímetros; se guarda con 2 decimales (`DECIMAL(8,2)`, se redondea si trae más). Cuánto sobresale el accesorio (ej. largo del gancho); es la medida que usa el sugerido de unidades por facing. |
 | `notas_capacidad` | `string \| null` | No | Máximo 1000 chars. |
 
 ---
