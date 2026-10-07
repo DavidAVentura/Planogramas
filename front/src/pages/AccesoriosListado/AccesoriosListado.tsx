@@ -10,7 +10,7 @@ import { useToast } from '../../context/ToastContext';
 import { accesoriosService } from '../../services/accesorios.service';
 import { ApiError } from '../../services/httpClient';
 import { mensajeDeError } from '../../utils/errors';
-import { TIPOS_ACCESORIO, type Accesorio } from '../../types/accesorio';
+import { ETIQUETAS_TIPO_ACCESORIO, TIPOS_ACCESORIO, type Accesorio } from '../../types/accesorio';
 import './AccesoriosListado.css';
 
 const medida = (cm: number | null) => (cm != null ? `${cm} cm` : '—');
@@ -98,7 +98,7 @@ export function AccesoriosListado() {
             <option value="">Todos los tipos</option>
             {TIPOS_ACCESORIO.map((t) => (
               <option key={t} value={t}>
-                {t.charAt(0) + t.slice(1).toLowerCase()}
+                {ETIQUETAS_TIPO_ACCESORIO[t]}
               </option>
             ))}
           </select>

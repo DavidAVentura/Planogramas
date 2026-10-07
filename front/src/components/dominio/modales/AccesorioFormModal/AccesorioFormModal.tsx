@@ -5,7 +5,7 @@ import { accesoriosService } from '../../../../services/accesorios.service';
 import { ApiError } from '../../../../services/httpClient';
 import { useToast } from '../../../../context/ToastContext';
 import { mensajeDeError } from '../../../../utils/errors';
-import { TIPOS_ACCESORIO, type Accesorio, type TipoAccesorioCatalogo } from '../../../../types/accesorio';
+import { ETIQUETAS_TIPO_ACCESORIO, TIPOS_ACCESORIO, type Accesorio, type TipoAccesorioCatalogo } from '../../../../types/accesorio';
 import './AccesorioFormModal.css';
 
 interface AccesorioFormModalProps {
@@ -105,7 +105,7 @@ export function AccesorioFormModal({ accesorio, inicial, onClose, onGuardado }: 
           <select value={tipo} onChange={(e) => setTipo(e.target.value as TipoAccesorioCatalogo)}>
             {TIPOS_ACCESORIO.map((t) => (
               <option key={t} value={t}>
-                {t.charAt(0) + t.slice(1).toLowerCase()}
+                {ETIQUETAS_TIPO_ACCESORIO[t]}
               </option>
             ))}
           </select>

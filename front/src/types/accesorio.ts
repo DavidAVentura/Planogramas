@@ -1,5 +1,15 @@
-export const TIPOS_ACCESORIO = ['GANCHO', 'BANDEJA', 'BARRA', 'CANASTA', 'OTRO'] as const;
+export const TIPOS_ACCESORIO = ['GANCHO', 'BANDEJA', 'BARRA', 'BOTADERO', 'CANASTA', 'PARRILLA_DIVISOR', 'OTRO'] as const;
 export type TipoAccesorioCatalogo = (typeof TIPOS_ACCESORIO)[number];
+
+export const ETIQUETAS_TIPO_ACCESORIO: Record<TipoAccesorioCatalogo, string> = {
+  GANCHO: 'Gancho',
+  BANDEJA: 'Bandeja',
+  BARRA: 'Barra',
+  BOTADERO: 'Botadero',
+  CANASTA: 'Canasta',
+  PARRILLA_DIVISOR: 'Parrilla/Divisor',
+  OTRO: 'Otro',
+};
 
 export interface Accesorio {
   id: number;

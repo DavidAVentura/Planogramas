@@ -151,7 +151,7 @@ fidelidad posible. El layout es lo principal; los productos son secundarios.
   - altura_desde_piso_cm: la BASE del nivel (fondo de la bandeja, o punto donde cuelga el gancho)
     medida con la regla. Debe ser coherente: los niveles de más arriba tienen mayor altura.
   - tipo_accesorio: GANCHO (fila de ganchos), BANDEJA (bandeja/canasta de alambre, repisa con
-    divisiones), BARRA, CANASTA u OTRO.
+    divisiones), BARRA, BOTADERO, CANASTA, PARRILLA_DIVISOR u OTRO.
   - codigo_accesorio: el código del panel de Montaje que corresponde al nivel, según sus
     especificaciones (ej. "Ganchos para colocar producto del 1 al 9" → los niveles con ganchos
     1-9 usan "R45-12-212P2"; "Bandeja de piso para el gancho 37" → la bandeja de piso usa "SBS 4*22").

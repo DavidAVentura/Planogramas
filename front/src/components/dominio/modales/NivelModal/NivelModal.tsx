@@ -5,15 +5,8 @@ import { useAgregarNivel, useEditarNivel } from '../../../../hooks/useNiveles';
 import { useAccesorios } from '../../../../hooks/useAccesorios';
 import { NIVEL_DEFAULTS } from '../../../../constants/valoresPorDefecto';
 import { TIPOS_ACCESORIO, type Nivel, type NivelCampos, type TipoAccesorio } from '../../../../types/nivel';
+import { ETIQUETAS_TIPO_ACCESORIO } from '../../../../types/accesorio';
 import './NivelModal.css';
-
-const ETIQUETAS_TIPO_ACCESORIO: Record<TipoAccesorio, string> = {
-  GANCHO: 'Gancho',
-  BANDEJA: 'Bandeja',
-  BARRA: 'Barra',
-  CANASTA: 'Canasta',
-  OTRO: 'Otro',
-};
 
 interface NivelModalProps {
   gondolaId: number;

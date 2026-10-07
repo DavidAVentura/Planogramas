@@ -3,7 +3,7 @@
 
 import type { DatosVision } from './posicion';
 
-export type TipoAccesorioNivel = 'GANCHO' | 'BANDEJA' | 'BARRA' | 'CANASTA' | 'OTRO';
+export type TipoAccesorioNivel = 'GANCHO' | 'BANDEJA' | 'BARRA' | 'BOTADERO' | 'CANASTA' | 'PARRILLA_DIVISOR' | 'OTRO';
 export type DireccionSeccion = 'COLUMNAS' | 'FILAS';
 
 export interface ProductoPdf {

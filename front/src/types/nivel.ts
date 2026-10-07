@@ -1,4 +1,4 @@
-export const TIPOS_ACCESORIO = ['GANCHO', 'BANDEJA', 'BARRA', 'CANASTA', 'OTRO'] as const;
+export const TIPOS_ACCESORIO = ['GANCHO', 'BANDEJA', 'BARRA', 'BOTADERO', 'CANASTA', 'PARRILLA_DIVISOR', 'OTRO'] as const;
 export type TipoAccesorio = (typeof TIPOS_ACCESORIO)[number];
 
 export interface NivelAccesorio {

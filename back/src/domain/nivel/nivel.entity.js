@@ -8,7 +8,7 @@
 const ESTADOS_VERSION_EDITABLE = Object.freeze(['borrador', 'en_desarrollo', 'piloto']);
 
 /** Valores permitidos de tipo_accesorio (ver migración 001_esquema_inicial). */
-const TIPOS_ACCESORIO = Object.freeze(['GANCHO', 'BANDEJA', 'BARRA', 'CANASTA', 'OTRO']);
+const TIPOS_ACCESORIO = Object.freeze(['GANCHO', 'BANDEJA', 'BARRA', 'BOTADERO', 'CANASTA', 'PARRILLA_DIVISOR', 'OTRO']);
 
 function errorBadRequest(mensaje) {
   const err = new Error(mensaje);
