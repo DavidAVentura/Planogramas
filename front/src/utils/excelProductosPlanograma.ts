@@ -87,6 +87,15 @@ const entero = (valor: Celda) => {
   return n === null ? null : Math.round(n);
 };
 
+/**
+ * Una celda de gancho puede traer varios números separados por `,` `|` `/` `-` o espacio
+ * (ej. `132 | 146`, `168,169`, `166-167`): cualquier carácter que no sea dígito separa.
+ */
+function numerosGancho(valor: Celda): number[] {
+  if (typeof valor === 'number') return Number.isFinite(valor) ? [Math.round(valor)] : [];
+  return (texto(valor)?.match(/\d+/g) ?? []).map(Number);
+}
+
 /** El SKU puede venir como número en Excel: se lee sin decimales ni espacios. */
 function sku(valor: Celda): string | null {
   if (typeof valor === 'number') return Number.isInteger(valor) ? String(valor) : null;
@@ -155,7 +164,7 @@ export function interpretarHojaProductos(filas: Celda[][]): LecturaExcelProducto
       return;
     }
 
-    const ganchos = [...new Set(columnasGancho.map((c) => entero(fila[c])).filter((n): n is number => n !== null && n > 0))];
+    const ganchos = [...new Set(columnasGancho.flatMap((c) => numerosGancho(fila[c])).filter((n) => n > 0))];
     const facings = entero(valor(fila, 'facings')) ?? (ganchos.length || null);
     if (!facings || facings < 1) {
       filasConError.push({ fila: numeroFila, motivo: `SKU ${codigo}: sin facings` });
