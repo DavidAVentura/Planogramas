@@ -203,15 +203,28 @@ El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
     `GondolaEscalaLienzo` (a escala, estilo del prototipo de diseño, con barras de uso horizontal y
     vertical); `GondolaFrameLienzo` ya no se dibuja, solo se conserva por su tipo de props compartido.
   - Postman: carpetas `18 - Secciones` y `19 - SKU en la versión`.
-- **Implementado, sin carpeta Postman todavía**: `adjuntos` (13, CRUD sobre Azure Blob; la
-  migración `009_adjuntos_version.js` puede estar pendiente de aplicar) y `agente-extractor`.
+- **Implementado, sin carpeta Postman todavía**: `adjuntos` (13, CRUD sobre Azure Blob) y
+  `agente-extractor`.
 - **Pendiente**: `sustituciones` (06) y `exportacion` (07) no están montados en
   `back/src/infrastructure/http/routes/index.js`. Su contrato ya existe en `Arquitectura/Contratos/`.
-- Migraciones: `001` a `012` en `back/src/infrastructure/db/migrations/`. Antes de implementar un
+- Migraciones: `001` a `013` en `back/src/infrastructure/db/migrations/`. Antes de implementar un
   módulo nuevo, revisa si el esquema ya cubre las tablas que necesita o si hace falta una migración
-  adicional (`013_...`, ver convención de nombres en `ESTRUCTURA_BACKEND.md`). Un valor nuevo de
+  adicional (`014_...`, ver convención de nombres en `ESTRUCTURA_BACKEND.md`). Un valor nuevo de
   una columna `varchar` sin CHECK (ej. `Posicion.modo = 'IMPULSO'`) no requiere migración: basta
   con la entidad de dominio (`MODOS` en `posicion.entity.js`) y el tipo del front.
+
+### Estado de las migraciones por ambiente
+
+| Ambiente | BD | Última migración aplicada | Pendientes | Verificado |
+|----------|----|---------------------------|------------|------------|
+| DEV | `OTB` | `013_montaje_y_por_ubicar.js` | Ninguna | 2026-10-06 (`npm run migrate:status`) |
+| PROD | `db-planogramas` | Sin verificar | Sin verificar | — |
+
+> **Mantener esta tabla al día.** Cada vez que se cree una migración nueva o se aplique
+> (`npm run migrate`) en un ambiente, actualizar la fila correspondiente con la última migración
+> aplicada, las pendientes y la fecha de verificación. Comprobarlo con `npm run migrate:status`
+> desde `back/` apuntando al ambiente (el `.env` local apunta a DEV). Si al implementar algo se
+> agrega una migración sin aplicarla, anotarla en "Pendientes" del ambiente que corresponda.
 
 ### Método de trabajo para implementar un módulo nuevo
 
