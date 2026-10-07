@@ -17,6 +17,15 @@ export interface ProductoDetalle extends ProductoCatalogo {
   sku_sustituto: string | null;
   fuente_dimensiones: 'CATI' | 'VTEX' | 'MANUAL' | null;
   dimensiones_validadas: boolean;
+  /** Todas las fotos de CATI (URL XL), la principal primero. Solo en GET /catalog/productos/{sku}. */
+  imagenes?: string[];
+  /** Atributos internos de CATI (pares nombre/valor). */
+  atributos?: AtributoProducto[];
+}
+
+export interface AtributoProducto {
+  nombre: string;
+  valor: string;
 }
 
 export interface DimensionesProducto {

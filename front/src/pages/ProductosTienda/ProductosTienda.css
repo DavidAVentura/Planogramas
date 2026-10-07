@@ -360,3 +360,18 @@
     min-width: 0;
   }
 }
+
+/* Vista extendida: la página ocupa exactamente la pantalla y la tabla se estira en ella. */
+.productos-tienda--extendida .productos-tienda__contenido {
+  box-sizing: border-box;
+  max-width: none;
+  height: 100vh;
+  padding: 12px 12px 14px;
+  gap: 10px;
+}
+
+.productos-tienda__extender[aria-pressed='true'] {
+  border-color: var(--cemaco-indigo);
+  background: var(--cemaco-indigo-50);
+  color: var(--cemaco-indigo);
+}

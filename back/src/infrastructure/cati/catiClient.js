@@ -236,6 +236,24 @@ function seleccionarImagenPrincipal(assets) {
   return (principal ?? assets[0]).azurePath_XL ?? null;
 }
 
+/** Todas las fotos del producto (URL XL), la principal primero y sin repetidas. */
+function listarImagenes(assets) {
+  if (!assets || assets.length === 0) return [];
+  const ordenados = [
+    ...assets.filter((a) => a.destinoImagen === 'PRINCIPAL'),
+    ...assets.filter((a) => a.destinoImagen !== 'PRINCIPAL'),
+  ];
+  return [...new Set(ordenados.map((a) => a.azurePath_XL).filter(Boolean))];
+}
+
+/** Pares nombre/valor de `internalAttributes`, sin los que vienen vacíos. */
+function listarAtributos(internalAttributes) {
+  if (!internalAttributes) return [];
+  return Object.values(internalAttributes)
+    .filter((a) => a?.name && a.value !== null && a.value !== undefined && String(a.value).trim() !== '')
+    .map((a) => ({ nombre: String(a.name).trim(), valor: String(a.value).trim() }));
+}
+
 /** Forma cruda de CATI GET /Product/{sku} — ver GET_productos_detalle.md. */
 function mapProductoCatalogo(raw) {
   return {
@@ -258,6 +276,8 @@ function mapProductoDetalle(raw) {
     ...mapProductoCatalogo(raw),
     categoria_nivel1: raw.erpInformation?.area ?? null,
     categoria_nivel2: raw.erpInformation?.departamento ?? null,
+    imagenes:         listarImagenes(raw.assets),
+    atributos:        listarAtributos(raw.internalAttributes),
   };
 }
 

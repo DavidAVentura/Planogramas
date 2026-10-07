@@ -37,6 +37,10 @@ Retorna el detalle completo de un producto desde CATI: dimensiones físicas, ima
    vez que se pide el detalle: sin esta regla, este mismo endpoint devolvía siempre la medida de
    CATI y el frontend mostraba `0` al reabrir el panel de edición después de guardar a mano.
 5. Si el SKU no existe en CATI, retorna `404`.
+6. `imagenes` lista todas las fotos de `assets` (URL `azurePath_XL`), la principal primero y sin
+   repetidas; `[]` si CATI no trae fotos. `imagen_url` sigue siendo solo la principal.
+7. `atributos` son los pares de `internalAttributes` como `{ nombre, valor }`, sin los de valor
+   vacío; `[]` si no hay. Los usa la ficha de producto (lienzo y Productos del Implementador).
 
 ---
 
@@ -57,7 +61,15 @@ Retorna el detalle completo de un producto desde CATI: dimensiones físicas, ima
   "precio": 85.00,
   "sku_sustituto": "10098765",
   "fuente_dimensiones": "CATI",
-  "dimensiones_validadas": false
+  "dimensiones_validadas": false,
+  "imagenes": [
+    "https://vtex.cemaco.com/productos/10012345_XL.jpg",
+    "https://vtex.cemaco.com/productos/10012345_2_XL.jpg"
+  ],
+  "atributos": [
+    { "nombre": "Estado", "valor": "Activo" },
+    { "nombre": "Ancho", "valor": "9" }
+  ]
 }
 ```
 

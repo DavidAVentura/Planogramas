@@ -8,6 +8,13 @@
   border-radius: var(--radius-md);
 }
 
+/* Vista extendida: la tabla crece hasta llenar el alto que deja el contenedor flex de la página. */
+.productos-impl__scroll--extendida {
+  flex: 1 1 auto;
+  max-height: none;
+  min-height: 0;
+}
+
 .productos-impl {
   table-layout: fixed;
   border-collapse: separate;
@@ -163,6 +170,15 @@ select.productos-impl__filtro {
 
 .productos-impl tbody tr:hover td {
   background: var(--ink-50);
+}
+
+.productos-impl__fila--abrible {
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: -2px;
+  }
 }
 
 .productos-impl__celda--numero {

@@ -18,6 +18,52 @@
   flex-shrink: 0;
 }
 
+.ficha-producto-modal__galeria {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 220px;
+  flex-shrink: 0;
+
+  .ficha-producto-modal__imagen {
+    width: 220px;
+    height: 220px;
+  }
+}
+
+.ficha-producto-modal__miniaturas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ficha-producto-modal__miniatura {
+  width: 48px;
+  height: 48px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--ink-50);
+  cursor: pointer;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  &:hover { border-color: var(--cemaco-indigo-200); }
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 1px;
+  }
+}
+
+.ficha-producto-modal__miniatura--activa {
+  border: 2px solid var(--cemaco-indigo);
+}
+
 .ficha-producto-modal__imagen--vacia {
   background: var(--ink-100);
 }
@@ -133,4 +179,14 @@
   padding: 4px 6px;
   font-family: var(--font-mono);
   border-bottom: 1px solid var(--border);
+}
+
+@media (width <= 600px) {
+  .ficha-producto-modal__contenido {
+    flex-direction: column;
+  }
+
+  .ficha-producto-modal__galeria {
+    width: 100%;
+  }
 }

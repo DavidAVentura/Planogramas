@@ -157,6 +157,10 @@ interface ProductosImplementacionTableProps {
   onFiltrar: (clave: ClaveColumna, valor: string) => void;
   /** Soltar la columna `desde` sobre `hacia` al arrastrar un encabezado. */
   onMoverColumna: (desde: ClaveColumna, hacia: ClaveColumna) => void;
+  /** Vista extendida: la tabla crece hasta llenar el alto de la página. */
+  extendida?: boolean;
+  /** Clic (o Enter) en una fila: abre la ficha del producto. */
+  onAbrirProducto?: (fila: ProductoImplementacion) => void;
   vacio: ReactNode;
 }
 
@@ -174,6 +178,8 @@ export function ProductosImplementacionTable({
   onOrdenar,
   onFiltrar,
   onMoverColumna,
+  extendida = false,
+  onAbrirProducto,
   vacio,
 }: ProductosImplementacionTableProps) {
   const [arrastrando, setArrastrando] = useState<ClaveColumna | null>(null);
@@ -208,7 +214,7 @@ export function ProductosImplementacionTable({
   }
 
   return (
-    <div className="productos-impl__scroll">
+    <div className={`productos-impl__scroll${extendida ? ' productos-impl__scroll--extendida' : ''}`}>
       <table
         className="productos-impl"
         aria-label="Productos de la tienda"
@@ -317,7 +323,25 @@ export function ProductosImplementacionTable({
         </thead>
         <tbody>
           {filas.map((f) => (
-            <tr key={f.posicionId} className={f.decision === 'INACTIVO' ? 'productos-impl__fila--inactiva' : undefined}>
+            <tr
+              key={f.posicionId}
+              className={[
+                f.decision === 'INACTIVO' && 'productos-impl__fila--inactiva',
+                onAbrirProducto && 'productos-impl__fila--abrible',
+              ]
+                .filter(Boolean)
+                .join(' ') || undefined}
+              tabIndex={onAbrirProducto ? 0 : undefined}
+              title={onAbrirProducto ? 'Ver ficha del producto' : undefined}
+              onClick={() => {
+                // Seleccionar texto de la fila (ej. copiar un SKU) no abre la ficha.
+                if (!onAbrirProducto || window.getSelection()?.toString()) return;
+                onAbrirProducto(f);
+              }}
+              onKeyDown={(e) => {
+                if (onAbrirProducto && e.key === 'Enter') onAbrirProducto(f);
+              }}
+            >
               {definiciones.map((col) => (
                 <td
                   key={col.clave}
