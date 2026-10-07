@@ -8,12 +8,12 @@ import { TIPOS_EVIDENCIA } from '../../../../utils/prepararImagenEvidencia';
 import { textoAvanceEvidencia } from '../../../../domain/implementacion/miTienda';
 import { formatearFechaHora, textoConteo } from '../../../../utils/formatters';
 import type { Evidencia } from '../../../../types/evidencia';
-import type { PlanogramaImplementacion, TiendaImplementador } from '../../../../types/implementacion';
+import type { ResumenVersion, TiendaImplementador } from '../../../../types/implementacion';
 import './EvidenciaModal.css';
 
 interface EvidenciaModalProps {
   tienda: TiendaImplementador;
-  planograma: PlanogramaImplementacion;
+  planograma: ResumenVersion;
   /** Al cerrar, quien lo abrió recarga sus conteos de evidencia. */
   onClose: () => void;
 }

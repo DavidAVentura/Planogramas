@@ -20014,6 +20014,504 @@
               "response": []
             }
           ]
+        },
+        {
+          "name": "Listar versiones de Por versión (GET /implementacion/versiones)",
+          "item": [
+            {
+              "name": "200 - Publicadas y piloto de todos los planogramas",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/versiones",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "versiones"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "pm.test('data es arreglo', () => pm.expect(body.data).to.be.an('array'));",
+                      "const v = body.data.find((x) => x.versionId === Number(pm.collectionVariables.get('versionIdImplementacion')));",
+                      "pm.test('incluye la versión piloto con su producto, sin adjuntos y montada en la tienda del setup', () => { pm.expect(v).to.be.an('object'); pm.expect(v.estado).to.eql('piloto'); pm.expect(v.planogramaId).to.eql(Number(pm.collectionVariables.get('planogramaIdImplementacion'))); pm.expect(v.totalProductos).to.eql(1); pm.expect(v.adjuntos).to.eql(0); pm.expect(v.tiendaIds).to.eql([Number(pm.collectionVariables.get('tiendaIdImplementacion'))]); });",
+                      "pm.test('no incluye la versión en borrador', () => pm.expect(body.data.some((x) => x.versionId === Number(pm.collectionVariables.get('versionIdImplementacionNoAsignada')))).to.eql(false));",
+                      "pm.test('solo publicadas y piloto', () => body.data.forEach((x) => pm.expect(['publicado', 'piloto']).to.include(x.estado)));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Con incluir: agrega una versión en borrador",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/versiones?incluir={{versionIdImplementacionNoAsignada}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "versiones"
+                  ],
+                  "query": [
+                    {
+                      "key": "incluir",
+                      "value": "{{versionIdImplementacionNoAsignada}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "const b = body.data.find((x) => x.versionId === Number(pm.collectionVariables.get('versionIdImplementacionNoAsignada')));",
+                      "pm.test('incluye la versión en borrador, sin tiendas', () => { pm.expect(b).to.be.an('object'); pm.expect(b.estado).to.eql('borrador'); pm.expect(b.tiendaIds).to.eql([]); });",
+                      "pm.test('sigue incluyendo la piloto', () => pm.expect(body.data.some((x) => x.versionId === Number(pm.collectionVariables.get('versionIdImplementacion')))).to.eql(true));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Un elemento de incluir no es entero",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/versiones?incluir=abc",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "versiones"
+                  ],
+                  "query": [
+                    {
+                      "key": "incluir",
+                      "value": "abc"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Listar productos por versión (GET /implementacion/productos)",
+          "item": [
+            {
+              "name": "200 - Sin tienda: filas sin inventario",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos?versionIds={{versionIdImplementacion}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos"
+                  ],
+                  "query": [
+                    {
+                      "key": "versionIds",
+                      "value": "{{versionIdImplementacion}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "pm.test('sin tienda y con inventario en null', () => { pm.expect(body.tienda).to.eql(null); pm.expect(body.inventarioDisponible).to.eql(true); pm.expect(body).to.not.have.property('advertencia'); });",
+                      "pm.test('total y data', () => { pm.expect(body.total).to.eql(body.data.length); pm.expect(body.total).to.eql(1); });",
+                      "const f = body.data[0];",
+                      "pm.test('fila de la posición del setup sin inventario', () => { pm.expect(f.posicionId).to.eql(Number(pm.collectionVariables.get('posicionIdImplementacion'))); pm.expect(f.versionId).to.eql(Number(pm.collectionVariables.get('versionIdImplementacion'))); pm.expect(f.sku).to.eql(pm.collectionVariables.get('skuExistente')); pm.expect(f.inventario).to.eql(null); pm.expect(f.conInventario).to.eql(null); pm.expect(f.ganchos).to.be.an('array'); pm.expect(f.accesorios).to.be.an('array'); });",
+                      "const v = body.versiones[0];",
+                      "pm.test('resumen de la versión sin tienda', () => { pm.expect(body.versiones.length).to.eql(1); pm.expect(v.versionId).to.eql(Number(pm.collectionVariables.get('versionIdImplementacion'))); pm.expect(v.totalProductos).to.eql(1); pm.expect(v.conInventario).to.eql(null); pm.expect(v.implementable).to.eql(null); pm.expect(v.evidencias).to.eql(0); pm.expect(v.montadaEnTienda).to.eql(null); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Con tienda que monta la versión",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos?versionIds={{versionIdImplementacion}}&tiendaId={{tiendaIdImplementacion}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos"
+                  ],
+                  "query": [
+                    {
+                      "key": "versionIds",
+                      "value": "{{versionIdImplementacion}}"
+                    },
+                    {
+                      "key": "tiendaId",
+                      "value": "{{tiendaIdImplementacion}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "pm.test('tienda de la consulta', () => { pm.expect(body.tienda.id).to.eql(Number(pm.collectionVariables.get('tiendaIdImplementacion'))); pm.expect(body.tienda).to.have.all.keys('id', 'codigo', 'nombre', 'tipo'); pm.expect(body.umbralImplementable).to.eql(85); });",
+                      "const v = body.versiones[0];",
+                      "pm.test('la versión está montada en la tienda, con sus góndolas', () => { pm.expect(v.montadaEnTienda).to.eql(true); pm.expect(v.gondolas.length).to.eql(2); });",
+                      "const f = body.data[0];",
+                      "if (body.inventarioDisponible) {",
+                      "  pm.test('SKU fixture sin inventario en la tienda de prueba', () => { pm.expect(f.inventario).to.eql(0); pm.expect(f.conInventario).to.eql(false); pm.expect(v.porcentajeInventario).to.eql(0); pm.expect(v.implementable).to.eql(false); });",
+                      "} else {",
+                      "  pm.test('Modo degradado: advertencia e inventario en null', () => { pm.expect(body.advertencia).to.be.a('string'); pm.expect(f.inventario).to.eql(null); pm.expect(v.conInventario).to.eql(null); });",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Con tienda que no monta la versión (solo agrega inventario)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos?versionIds={{versionIdImplementacion}}&tiendaId={{tiendaIdImplementacionSinVersiones}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos"
+                  ],
+                  "query": [
+                    {
+                      "key": "versionIds",
+                      "value": "{{versionIdImplementacion}}"
+                    },
+                    {
+                      "key": "tiendaId",
+                      "value": "{{tiendaIdImplementacionSinVersiones}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "pm.test('tienda de la consulta', () => pm.expect(body.tienda.id).to.eql(Number(pm.collectionVariables.get('tiendaIdImplementacionSinVersiones'))));",
+                      "pm.test('no valida la asignación: trae la fila y marca la versión como no montada', () => { pm.expect(body.total).to.eql(1); pm.expect(body.versiones[0].montadaEnTienda).to.eql(false); pm.expect(body.versiones[0].evidencias).to.eql(0); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Versión en borrador (cualquier estado)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos?versionIds={{versionIdImplementacionNoAsignada}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos"
+                  ],
+                  "query": [
+                    {
+                      "key": "versionIds",
+                      "value": "{{versionIdImplementacionNoAsignada}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "pm.test('resumen de la versión en borrador', () => { pm.expect(body.versiones.length).to.eql(1); pm.expect(body.versiones[0].versionId).to.eql(Number(pm.collectionVariables.get('versionIdImplementacionNoAsignada'))); pm.expect(body.versiones[0].estado).to.eql('borrador'); });",
+                      "pm.test('sin posiciones con SKU', () => { pm.expect(body.total).to.eql(0); pm.expect(body.data).to.eql([]); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Sin versionIds",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Un elemento de versionIds no es entero",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos?versionIds={{versionIdImplementacion}},abc",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos"
+                  ],
+                  "query": [
+                    {
+                      "key": "versionIds",
+                      "value": "{{versionIdImplementacion}},abc"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - tiendaId no es un entero positivo",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos?versionIds={{versionIdImplementacion}}&tiendaId=0",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos"
+                  ],
+                  "query": [
+                    {
+                      "key": "versionIds",
+                      "value": "{{versionIdImplementacion}}"
+                    },
+                    {
+                      "key": "tiendaId",
+                      "value": "0"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - versionId no existe",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos?versionIds={{versionIdImplementacion}},999999999",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos"
+                  ],
+                  "query": [
+                    {
+                      "key": "versionIds",
+                      "value": "{{versionIdImplementacion}},999999999"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Error NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));",
+                      "pm.test('details.versionIds trae solo el id inexistente', () => pm.expect(pm.response.json().error.details.versionIds).to.eql([999999999]));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - Tienda inactiva",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos?versionIds={{versionIdImplementacion}}&tiendaId={{tiendaIdImplementacionInactiva}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos"
+                  ],
+                  "query": [
+                    {
+                      "key": "versionIds",
+                      "value": "{{versionIdImplementacion}}"
+                    },
+                    {
+                      "key": "tiendaId",
+                      "value": "{{tiendaIdImplementacionInactiva}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Error NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
         }
       ]
     },

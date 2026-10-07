@@ -33,6 +33,14 @@ function errorVersionNoAsignada(versionIds) {
   return err;
 }
 
+function errorVersionNoEncontrada(versionIds) {
+  const err = new Error('Versión no encontrada');
+  err.status  = 404;
+  err.code    = 'NOT_FOUND';
+  err.details = { versionIds };
+  return err;
+}
+
 // ─── Reglas ──────────────────────────────────────────────────────────────────
 
 /**
@@ -107,6 +115,7 @@ module.exports = {
   ADVERTENCIA_INVENTARIO_DESACTUALIZADO,
   errorTiendaNoEncontrada,
   errorVersionNoAsignada,
+  errorVersionNoEncontrada,
   normalizarCodigoCentro,
   calcularPorcentajeInventario,
   esImplementable,

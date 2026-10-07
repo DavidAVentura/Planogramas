@@ -1,9 +1,9 @@
 import { evidenciaReportada } from '../../../../domain/implementacion/miTienda';
-import type { PlanogramaImplementacion } from '../../../../types/implementacion';
+import type { ResumenVersion } from '../../../../types/implementacion';
 import './AccionesVersion.css';
 
 interface BotonVersionProps {
-  planograma: PlanogramaImplementacion;
+  planograma: ResumenVersion;
   onClick: () => void;
 }
 

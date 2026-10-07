@@ -8,6 +8,7 @@ import { ProductosListado } from '../pages/ProductosListado/ProductosListado';
 import { EstructuraAsignacion } from '../pages/EstructuraAsignacion/EstructuraAsignacion';
 import { MiTienda } from '../pages/MiTienda/MiTienda';
 import { ProductosTienda } from '../pages/ProductosTienda/ProductosTienda';
+import { ProductosPorVersion } from '../pages/ProductosPorVersion/ProductosPorVersion';
 import { AccesoriosListado } from '../pages/AccesoriosListado/AccesoriosListado';
 
 export function AppRoutes() {
@@ -22,6 +23,7 @@ export function AppRoutes() {
       <Route path="/tiendas" element={<TiendasListado />} />
       <Route path="/estructura" element={<EstructuraAsignacion />} />
       <Route path="/productos" element={<ProductosListado />} />
+      <Route path="/por-version" element={<ProductosPorVersion />} />
       <Route path="/accesorios" element={<AccesoriosListado />} />
       <Route path="/mi-tienda" element={<MiTienda />} />
       <Route path="/mi-tienda/productos" element={<ProductosTienda />} />

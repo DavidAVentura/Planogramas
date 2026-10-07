@@ -30,14 +30,11 @@ async function buscarTienda(tiendaId) {
   return row ?? null;
 }
 
-// ─── listarVersionesAsignadas ────────────────────────────────────────────────
+// ─── listarVersionesAsignadas / listarVersiones ──────────────────────────────
 
-async function listarVersionesAsignadas(tiendaId) {
-  const rows = await db(TABLA_VERSION_TIENDA)
-    .join(TABLA_VERSION, `${TABLA_VERSION_TIENDA}.planograma_version_id`, `${TABLA_VERSION}.id`)
-    .join(TABLA_PLANOGRAMA, `${TABLA_VERSION}.planograma_id`, `${TABLA_PLANOGRAMA}.id`)
-    .where(`${TABLA_VERSION_TIENDA}.tienda_id`, tiendaId)
-    .whereIn(`${TABLA_VERSION}.estado`, ESTADOS_VERSION_IMPLEMENTACION)
+/** Columnas, orden y forma comunes de las versiones con su planograma. */
+async function seleccionarVersiones(query) {
+  const rows = await query
     .orderBy(`${TABLA_PLANOGRAMA}.departamento`, 'asc')
     .orderBy(`${TABLA_VERSION}.codigo`, 'asc')
     .select(
@@ -61,6 +58,46 @@ async function listarVersionesAsignadas(tiendaId) {
     nombre:       r.nombre,
     departamento: r.departamento,
   }));
+}
+
+async function listarVersionesAsignadas(tiendaId) {
+  return seleccionarVersiones(
+    db(TABLA_VERSION_TIENDA)
+      .join(TABLA_VERSION, `${TABLA_VERSION_TIENDA}.planograma_version_id`, `${TABLA_VERSION}.id`)
+      .join(TABLA_PLANOGRAMA, `${TABLA_VERSION}.planograma_id`, `${TABLA_PLANOGRAMA}.id`)
+      .where(`${TABLA_VERSION_TIENDA}.tienda_id`, tiendaId)
+      .whereIn(`${TABLA_VERSION}.estado`, ESTADOS_VERSION_IMPLEMENTACION),
+  );
+}
+
+async function listarVersiones({ estados, incluirIds }) {
+  if (estados.length === 0 && incluirIds.length === 0) return [];
+  return seleccionarVersiones(
+    db(TABLA_VERSION)
+      .join(TABLA_PLANOGRAMA, `${TABLA_VERSION}.planograma_id`, `${TABLA_PLANOGRAMA}.id`)
+      .where((q) => {
+        if (estados.length > 0) q.whereIn(`${TABLA_VERSION}.estado`, estados);
+        if (incluirIds.length > 0) q.orWhereIn(`${TABLA_VERSION}.id`, incluirIds);
+      }),
+  );
+}
+
+// ─── listarTiendasPorVersion ─────────────────────────────────────────────────
+
+async function listarTiendasPorVersion(versionIds) {
+  const mapa = new Map();
+  if (versionIds.length === 0) return mapa;
+
+  const rows = await db(TABLA_VERSION_TIENDA)
+    .whereIn('planograma_version_id', versionIds)
+    .orderBy('tienda_id', 'asc')
+    .select('planograma_version_id', 'tienda_id');
+
+  rows.forEach((r) => {
+    if (!mapa.has(r.planograma_version_id)) mapa.set(r.planograma_version_id, []);
+    mapa.get(r.planograma_version_id).push(r.tienda_id);
+  });
+  return mapa;
 }
 
 // ─── listarSkusActivosPorVersion ─────────────────────────────────────────────
@@ -245,6 +282,8 @@ async function accesoriosDePosiciones(posicionIds) {
 module.exports = {
   buscarTienda,
   listarVersionesAsignadas,
+  listarVersiones,
+  listarTiendasPorVersion,
   listarSkusActivosPorVersion,
   contarAdjuntosPorVersion,
   listarGondolasConEvidencias,

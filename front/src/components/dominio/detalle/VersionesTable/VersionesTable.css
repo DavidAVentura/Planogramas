@@ -101,6 +101,14 @@
   &:hover:not(:disabled) { background: var(--cemaco-indigo-50); }
 }
 
+.versiones-table__accion--enlace {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+
+  &:hover { background: var(--cemaco-indigo-50); }
+}
+
 .versiones-table__accion--peligro {
   color: var(--danger);
 

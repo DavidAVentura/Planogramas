@@ -9,7 +9,7 @@ import { useToast } from '../../../../context/ToastContext';
 import { formatearFecha } from '../../../../utils/formatters';
 import { mensajeDeError } from '../../../../utils/errors';
 import type { Adjunto } from '../../../../types/adjunto';
-import type { PlanogramaImplementacion } from '../../../../types/implementacion';
+import type { ResumenVersion } from '../../../../types/implementacion';
 import './ArchivosVersionModal.css';
 
 const TIPO_CORTO: Record<string, string> = {
@@ -28,7 +28,7 @@ function formatearTamano(bytes: number): string {
 }
 
 interface ArchivosVersionModalProps {
-  planograma: PlanogramaImplementacion;
+  planograma: ResumenVersion;
   onClose: () => void;
 }
 

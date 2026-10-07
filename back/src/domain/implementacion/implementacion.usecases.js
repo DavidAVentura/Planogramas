@@ -17,6 +17,8 @@ const {
   ADVERTENCIA_INVENTARIO_DESACTUALIZADO,
   errorTiendaNoEncontrada,
   errorVersionNoAsignada,
+  errorVersionNoEncontrada,
+  ESTADOS_VERSION_IMPLEMENTACION,
   resumirInventarioVersion,
   unidadesEnTienda,
 } = require('./implementacion.entity');
@@ -156,6 +158,28 @@ async function ganchosPorPosicion(skuRepo, versionIds) {
 }
 
 /**
+ * Filas de la tabla de productos (una por posición con sku) de las versiones, con sus ganchos y el
+ * inventario del SKU en la tienda (`null` si no hay tienda o el inventario no está disponible).
+ * `consultar(skus)` resuelve el inventario con los SKUs de las filas. Compartido por la vista del Implementador y la vista Por versión del Analista.
+ */
+async function armarFilasProductos(repo, skuRepo, versionIds, consultar) {
+  const filas    = versionIds.length > 0 ? await repo.listarPosicionesConProducto(versionIds) : [];
+  const consulta = await consultar([...new Set(filas.map((f) => f.sku))]);
+  const ganchos  = await ganchosPorPosicion(skuRepo, versionIds);
+
+  const data = filas.map((f) => {
+    const unidades = consulta.inventario ? unidadesEnTienda(consulta.inventario, f.sku) : null;
+    return {
+      ...f,
+      ganchos: ganchos.get(f.posicionId) ?? [],
+      inventario: unidades,
+      conInventario: unidades === null ? null : unidades > 0,
+    };
+  });
+  return { data, consulta };
+}
+
+/**
  * Productos del Implementador: una fila por posición (con sku) de las versiones pedidas, con el
  * inventario del SKU en la tienda.
  * @param {object} repo
@@ -169,28 +193,103 @@ async function obtenerProductosImplementacion(repo, inventarioPort, tiendaId, ve
   const tienda    = await obtenerTiendaActivaOFallar(repo, tiendaId);
   const versiones = await obtenerVersionesAsignadasOFallar(repo, tiendaId, versionIds);
 
-  const filas = versiones.length > 0
-    ? await repo.listarPosicionesConProducto(versiones.map((v) => v.versionId))
-    : [];
-
-  const consulta = await consultarInventario(
-    inventarioPort, tienda.codigo, [...new Set(filas.map((f) => f.sku))],
+  const { data, consulta } = await armarFilasProductos(
+    repo, skuRepo, versiones.map((v) => v.versionId),
+    (skus) => consultarInventario(inventarioPort, tienda.codigo, skus),
   );
-  const ganchos = await ganchosPorPosicion(skuRepo, versiones.map((v) => v.versionId));
-
-  const data = filas.map((f) => {
-    const inventario = consulta.inventario ? unidadesEnTienda(consulta.inventario, f.sku) : null;
-    return {
-      ...f,
-      ganchos: ganchos.get(f.posicionId) ?? [],
-      inventario,
-      conInventario: inventario === null ? null : inventario > 0,
-    };
-  });
 
   return {
     tienda: datosTienda(tienda),
     ...marcaDisponibilidad(consulta),
+    total: data.length,
+    data,
+  };
+}
+
+// ─── Vista Por versión (Analista) ────────────────────────────────────────────
+
+/**
+ * Versiones elegibles en Por versión: las publicadas y en piloto de todos los planogramas, más las
+ * de `incluirIds` (llegan por enlace, pueden estar en cualquier estado). Cada una con su conteo de
+ * productos ACTIVO, sus adjuntos y las tiendas que la montan. Sin inventario.
+ * @param {object} repo
+ * @param {number[]} [incluirIds]
+ * @returns {Promise<{ data: object[] }>}
+ */
+async function listarVersionesPorVersion(repo, incluirIds = []) {
+  const versiones = await repo.listarVersiones({ estados: ESTADOS_VERSION_IMPLEMENTACION, incluirIds });
+  const ids = versiones.map((v) => v.versionId);
+
+  const [skusFilas, adjuntosPorVersion, tiendasPorVersion] = await Promise.all([
+    repo.listarSkusActivosPorVersion(ids),
+    repo.contarAdjuntosPorVersion(ids),
+    repo.listarTiendasPorVersion(ids),
+  ]);
+  const skusPorVersion = agruparPorVersion(skusFilas);
+
+  return {
+    data: versiones.map((v) => ({
+      ...v,
+      totalProductos: (skusPorVersion.get(v.versionId) ?? []).length,
+      adjuntos:       adjuntosPorVersion.get(v.versionId) ?? 0,
+      tiendaIds:      tiendasPorVersion.get(v.versionId) ?? [],
+    })),
+  };
+}
+
+/**
+ * Productos de la vista Por versión (Analista): una fila por posición de las versiones pedidas,
+ * de cualquier estado y sin validar a qué tiendas están asignadas. La tienda es opcional y solo
+ * agrega inventario: con ella, cada versión trae además su resumen de inventario, su evidencia en
+ * la tienda y si la tienda la monta (`montadaEnTienda`).
+ * @param {object} repo
+ * @param {{ obtenerInventarioTienda: Function }} inventarioPort
+ * @param {{ versionIds: number[], tiendaId?: number }} filtro
+ * @param {{ cargarVersion: Function }} [skuRepo]
+ * @returns {Promise<object>}
+ */
+async function obtenerProductosPorVersion(repo, inventarioPort, { versionIds, tiendaId }, skuRepo) {
+  const tienda    = tiendaId ? await obtenerTiendaActivaOFallar(repo, tiendaId) : null;
+  const versiones = await repo.listarVersiones({ estados: [], incluirIds: versionIds });
+
+  const encontradas = new Set(versiones.map((v) => v.versionId));
+  const faltantes   = versionIds.filter((id) => !encontradas.has(id));
+  if (faltantes.length > 0) throw errorVersionNoEncontrada(faltantes);
+
+  const [skusFilas, adjuntosPorVersion, tiendasPorVersion, gondolas] = await Promise.all([
+    repo.listarSkusActivosPorVersion(versionIds),
+    repo.contarAdjuntosPorVersion(versionIds),
+    repo.listarTiendasPorVersion(versionIds),
+    tienda ? repo.listarGondolasConEvidencias(tienda.id, versionIds) : Promise.resolve([]),
+  ]);
+  const skusPorVersion     = agruparPorVersion(skusFilas);
+  const gondolasPorVersion = agruparPorVersion(gondolas);
+
+  // Sin tienda no se consulta CATI: las columnas de inventario van en null sin ser "modo degradado".
+  const sinInventario = { disponible: true, inventario: null, actualizadoEn: null, desactualizado: false };
+  const { data, consulta } = await armarFilasProductos(
+    repo, skuRepo, versionIds,
+    (skus) => (tienda ? consultarInventario(inventarioPort, tienda.codigo, skus) : Promise.resolve(sinInventario)),
+  );
+
+  const resumenVersiones = versiones.map((v) => {
+    const skus        = (skusPorVersion.get(v.versionId) ?? []).map((f) => f.sku);
+    const gondolasVer = gondolasPorVersion.get(v.versionId) ?? [];
+    return {
+      ...v,
+      ...resumirInventarioVersion(skus, consulta.inventario),
+      adjuntos:       adjuntosPorVersion.get(v.versionId) ?? 0,
+      evidencias:     gondolasVer.reduce((total, g) => total + g.evidencias, 0),
+      gondolas:       gondolasVer.map((g) => ({ id: g.id, nombre: g.nombre, orden: g.orden, evidencias: g.evidencias })),
+      montadaEnTienda: tienda ? (tiendasPorVersion.get(v.versionId) ?? []).includes(tienda.id) : null,
+    };
+  });
+
+  return {
+    tienda: tienda ? datosTienda(tienda) : null,
+    umbralImplementable: UMBRAL_IMPLEMENTABLE,
+    ...marcaDisponibilidad(consulta),
+    versiones: resumenVersiones,
     total: data.length,
     data,
   };
@@ -201,4 +300,6 @@ module.exports = {
   obtenerVersionesAsignadasOFallar,
   obtenerResumenImplementacion,
   obtenerProductosImplementacion,
+  listarVersionesPorVersion,
+  obtenerProductosPorVersion,
 };

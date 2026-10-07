@@ -71,64 +71,74 @@ export function VersionesTable({
     },
   ];
 
-  if (puedeEscribir) {
-    columnas.push({
-      key: 'acciones',
-      header: 'Acciones',
-      alinear: 'right',
-      render: (v) => {
-        const sinTiendasPiloto = v.estado === 'piloto' && v.tiendas.length === 0;
-        const archivable = v.estado !== 'publicado' && v.estado !== 'archivado';
-        return (
-          <span className="versiones-table__acciones">
-            {v.estado === 'borrador' && (
-              <button type="button" className="versiones-table__estado" onClick={() => onMarcarEnDesarrollo(v)}>
-                Marcar en desarrollo
+  // "Ver productos" es de lectura: se muestra aunque el usuario no pueda editar la versión.
+  columnas.push({
+    key: 'acciones',
+    header: 'Acciones',
+    alinear: 'right',
+    render: (v) => {
+      const sinTiendasPiloto = v.estado === 'piloto' && v.tiendas.length === 0;
+      const archivable = v.estado !== 'publicado' && v.estado !== 'archivado';
+      return (
+        <span className="versiones-table__acciones">
+          <Link
+            className="versiones-table__accion versiones-table__accion--enlace"
+            to={`/por-version?versiones=${v.id}`}
+            title="Ver los productos de la versión en Por versión"
+          >
+            Ver productos
+          </Link>
+          {puedeEscribir && (
+            <>
+              {v.estado === 'borrador' && (
+                <button type="button" className="versiones-table__estado" onClick={() => onMarcarEnDesarrollo(v)}>
+                  Marcar en desarrollo
+                </button>
+              )}
+              {v.estado === 'en_desarrollo' && (
+                <Link
+                  className="versiones-table__estado"
+                  to={rutaEstructura({ planogramaId, versionId: v.id, modo: 'promover' })}
+                  title="Elegir en Estructura las tiendas donde se probará"
+                >
+                  Promover a piloto
+                  <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </Link>
+              )}
+              {v.estado === 'piloto' && (
+                <button
+                  type="button"
+                  className="versiones-table__estado"
+                  disabled={sinTiendasPiloto}
+                  title={sinTiendasPiloto ? 'Asigna al menos una tienda piloto antes de publicar' : 'Revisar el impacto y publicar'}
+                  onClick={() => onPublicar(v)}
+                >
+                  Publicar
+                </button>
+              )}
+              <button type="button" className="versiones-table__accion" onClick={() => onDisenar(v)}>
+                Diseñar
               </button>
-            )}
-            {v.estado === 'en_desarrollo' && (
-              <Link
-                className="versiones-table__estado"
-                to={rutaEstructura({ planogramaId, versionId: v.id, modo: 'promover' })}
-                title="Elegir en Estructura las tiendas donde se probará"
-              >
-                Promover a piloto
-                <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-              </Link>
-            )}
-            {v.estado === 'piloto' && (
+              <button type="button" className="versiones-table__accion" onClick={() => onAdjuntos(v)}>
+                Adjuntos
+              </button>
               <button
                 type="button"
-                className="versiones-table__estado"
-                disabled={sinTiendasPiloto}
-                title={sinTiendasPiloto ? 'Asigna al menos una tienda piloto antes de publicar' : 'Revisar el impacto y publicar'}
-                onClick={() => onPublicar(v)}
+                className="versiones-table__accion versiones-table__accion--peligro"
+                disabled={!archivable}
+                title={v.estado === 'publicado' ? 'Una versión publicada no se puede archivar' : 'Archivar versión'}
+                onClick={() => onArchivar(v)}
               >
-                Publicar
+                Archivar
               </button>
-            )}
-            <button type="button" className="versiones-table__accion" onClick={() => onDisenar(v)}>
-              Diseñar
-            </button>
-            <button type="button" className="versiones-table__accion" onClick={() => onAdjuntos(v)}>
-              Adjuntos
-            </button>
-            <button
-              type="button"
-              className="versiones-table__accion versiones-table__accion--peligro"
-              disabled={!archivable}
-              title={v.estado === 'publicado' ? 'Una versión publicada no se puede archivar' : 'Archivar versión'}
-              onClick={() => onArchivar(v)}
-            >
-              Archivar
-            </button>
-          </span>
-        );
-      },
-    });
-  }
+            </>
+          )}
+        </span>
+      );
+    },
+  });
 
   return (
     <Table

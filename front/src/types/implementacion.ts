@@ -105,6 +105,56 @@ export interface ProductosImplementacion extends EstadoInventario {
   data: ProductoImplementacion[];
 }
 
+// ─── Vista Por versión (Analista) — ver GET_implementacion_versiones.md ─────────
+
+/**
+ * Datos de una versión que usan el selector y los chips de la tabla de productos. Las versiones del
+ * Implementador (`PlanogramaImplementacion`) los cumplen; las de Por versión pueden estar en
+ * cualquier estado (borrador o archivada si llegan por enlace).
+ */
+export interface VersionElegible {
+  versionId: number;
+  codigo: string;
+  estado: string;
+  nombre: string;
+  departamento: string;
+  totalProductos: number;
+}
+
+/** Versión elegible en Por versión: publicadas y piloto, más las pedidas por enlace. */
+export interface VersionPorVersion extends VersionElegible {
+  tipo: TipoTienda;
+  esEspecial: boolean;
+  planogramaId: number;
+  adjuntos: number;
+  /** Tiendas que montan la versión. */
+  tiendaIds: number[];
+}
+
+/**
+ * Resumen de una versión para la franja de la tabla de productos (archivos, inventario, evidencia).
+ * `PlanogramaImplementacion` lo cumple; el de Por versión agrega si la tienda la monta.
+ */
+export interface ResumenVersion extends Omit<PlanogramaImplementacion, 'estado'> {
+  estado: string;
+  /** Solo en Por versión: si la tienda elegida monta la versión; `null` sin tienda. */
+  montadaEnTienda?: boolean | null;
+}
+
+/** Resumen de una versión pedida en Por versión; con tienda trae inventario y evidencia en ella. */
+export interface ResumenVersionPorVersion extends ResumenVersion {
+  montadaEnTienda: boolean | null;
+}
+
+export interface ProductosPorVersion extends EstadoInventario {
+  /** `null` sin tienda elegida: las columnas de inventario van en null. */
+  tienda: TiendaImplementacion | null;
+  umbralImplementable: number;
+  versiones: ResumenVersionPorVersion[];
+  total: number;
+  data: ProductoImplementacion[];
+}
+
 /** Filtros de la vista Mi tienda (se aplican en el cliente). */
 export interface FiltrosMiTienda {
   busqueda: string;

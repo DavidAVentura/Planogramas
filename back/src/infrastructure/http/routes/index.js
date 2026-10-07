@@ -31,6 +31,7 @@ router.use('/posiciones',     require('./posiciones.routes'));
 router.use('/accesorios',     require('./accesorios.routes'));
 router.use('/tiendas',        require('./tiendas.routes'));
 router.use('/asignaciones',   require('./asignaciones.routes'));
+router.use('/implementacion', require('./implementacion.routes'));
 router.use('/jerarquia',      require('./jerarquia.routes'));
 router.use('/catalog',        require('./catalogo.routes'));
 router.use('/catalog',        require('./producto.routes'));

@@ -5,13 +5,24 @@ import { Button } from '../../../ui/Button/Button';
 import { EstadoVersionBadge } from '../EstadoVersionBadge/EstadoVersionBadge';
 import { contieneTexto } from '../../../../domain/implementacion/filtrosColumna';
 import { textoConteo } from '../../../../utils/formatters';
-import type { PlanogramaImplementacion } from '../../../../types/implementacion';
+import type { VersionElegible } from '../../../../types/implementacion';
 import './SeleccionVersionesModal.css';
 
+/** Textos que cambian entre la vista del Implementador y la vista Por versión. */
+export interface TextosSeleccionVersiones {
+  /** Qué versiones aparecen en la lista. */
+  ayuda: string;
+  /** Qué pasa si se aplica sin ninguna marcada. */
+  notaSinSeleccion: string;
+  /** Botón de aplicar sin ninguna marcada. */
+  aplicarSinSeleccion: string;
+  sinVersiones: string;
+  sinCoincidencias: string;
+}
+
 interface SeleccionVersionesModalProps {
-  tiendaNombre: string;
-  /** Solo las versiones asignadas a la tienda (resumen de Mi tienda). */
-  versiones: PlanogramaImplementacion[];
+  textos: TextosSeleccionVersiones;
+  versiones: VersionElegible[];
   seleccionadas: number[];
   onAplicar: (versionIds: number[]) => void;
   onClose: () => void;
@@ -22,7 +33,7 @@ interface SeleccionVersionesModalProps {
  * pulsar "Mostrar productos"; Cancelar deja la selección como estaba.
  */
 export function SeleccionVersionesModal({
-  tiendaNombre,
+  textos,
   versiones,
   seleccionadas,
   onAplicar,
@@ -50,7 +61,7 @@ export function SeleccionVersionesModal({
   }
 
   function aplicar() {
-    // Se conserva el orden de la lista de la tienda, no el orden en que se marcaron.
+    // Se conserva el orden de la lista, no el orden en que se marcaron.
     onAplicar(versiones.filter((v) => borrador.has(v.versionId)).map((v) => v.versionId));
   }
 
@@ -63,17 +74,15 @@ export function SeleccionVersionesModal({
       ancho="lg"
       footer={
         <>
-          <span className="seleccion-versiones__nota">Sin selección se muestran todos los productos de la tienda.</span>
+          <span className="seleccion-versiones__nota">{textos.notaSinSeleccion}</span>
           <Button variante="ghost" onClick={onClose}>
             Cancelar
           </Button>
-          <Button onClick={aplicar}>{n === 0 ? 'Mostrar todos' : 'Mostrar productos'}</Button>
+          <Button onClick={aplicar}>{n === 0 ? textos.aplicarSinSeleccion : 'Mostrar productos'}</Button>
         </>
       }
     >
-      <p className="seleccion-versiones__ayuda">
-        Solo las versiones asignadas a {tiendaNombre}: la publicada o la piloto que monta la tienda.
-      </p>
+      <p className="seleccion-versiones__ayuda">{textos.ayuda}</p>
 
       <div className="seleccion-versiones__controles">
         <label className="seleccion-versiones__campo">
@@ -101,9 +110,7 @@ export function SeleccionVersionesModal({
 
       {visibles.length === 0 ? (
         <p className="seleccion-versiones__vacio">
-          {versiones.length === 0
-            ? 'La tienda no tiene versiones asignadas.'
-            : 'Ninguna versión asignada coincide con la búsqueda.'}
+          {versiones.length === 0 ? textos.sinVersiones : textos.sinCoincidencias}
         </p>
       ) : (
         <div className="seleccion-versiones__lista">

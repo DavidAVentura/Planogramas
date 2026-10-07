@@ -26,6 +26,7 @@ const OPCIONES_NAVEGACION: OpcionNavegacion[] = [
   { etiqueta: 'Tiendas', ruta: '/tiendas', disponible: true },
   { etiqueta: 'Estructura', ruta: '/estructura', disponible: true },
   { etiqueta: 'Productos', ruta: '/productos', disponible: true },
+  { etiqueta: 'Por versión', ruta: '/por-version', disponible: true },
   { etiqueta: 'Accesorios', ruta: '/accesorios', disponible: true },
 ];
 

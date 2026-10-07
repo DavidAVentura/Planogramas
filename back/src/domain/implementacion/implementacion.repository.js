@@ -32,6 +32,22 @@ module.exports = {
   listarVersionesAsignadas: async (_tiendaId) => { throw new Error('No implementado'); },
 
   /**
+   * Versiones de cualquier tienda (vista Por versión del Analista): las que estén en alguno de
+   * `estados` más las de `incluirIds` sea cual sea su estado. Misma forma y orden que
+   * `listarVersionesAsignadas`.
+   * @param {{ estados: string[], incluirIds: number[] }} filtro
+   * @returns {Promise<object[]>}
+   */
+  listarVersiones: async (_filtro) => { throw new Error('No implementado'); },
+
+  /**
+   * Tiendas que montan cada versión (VersionTienda).
+   * @param {number[]} versionIds
+   * @returns {Promise<Map<number, number[]>>} versionId → tiendaIds
+   */
+  listarTiendasPorVersion: async (_versionIds) => { throw new Error('No implementado'); },
+
+  /**
    * SKUs distintos por versión, de posiciones con sku no nulo y decision = 'ACTIVO'.
    * @param {number[]} versionIds
    * @returns {Promise<Array<{ versionId: number, sku: string }>>}
