@@ -412,6 +412,15 @@
   color: var(--cemaco-indigo);
 }
 
+/* Sin barra superior en la vista extendida, la salida queda flotando sobre la tabla. */
+.productos-versiones__extender--flotante {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 20;
+  box-shadow: 0 6px 18px rgb(15 23 42 / 18%);
+}
+
 @media (width <= 600px) {
   .productos-versiones__lado {
     align-items: flex-start;
