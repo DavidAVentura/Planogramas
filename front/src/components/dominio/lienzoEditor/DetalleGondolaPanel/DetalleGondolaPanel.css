@@ -403,6 +403,10 @@ body.detalle-gondola-panel--arrastrando {
   font-size: 12px;
 }
 
+.posiciones-sku__fila {
+  cursor: pointer;
+}
+
 .posiciones-sku__ubicacion {
   border: 1px solid var(--lienzo-indigo-100);
   background: var(--lienzo-indigo-50);

@@ -1,4 +1,4 @@
-import { useState, type KeyboardEvent } from 'react';
+import { useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { calcularAnchoAsignado, calcularCapacidadMaxima, calcularMinEstetico } from '../../../../utils/posicionCalculos';
 import {
   DECISIONES_POSICION,
@@ -85,9 +85,15 @@ function FilaPosicion({ ubicacion, posicion, puedeEscribir, ganchosPorPosicion, 
 
   const editar = (cambios: PosicionCambiosCompletos) => onEditarPosicion(posicion, cambios);
 
+  // El clic en la fila (fuera de los campos) selecciona esta posición en el lienzo.
+  const seleccionar = (e: MouseEvent<HTMLTableRowElement>) => {
+    if ((e.target as HTMLElement).closest('input, button, select')) return;
+    onIrAPosicion(posicion.id);
+  };
+
   return (
     <>
-      <tr>
+      <tr className="posiciones-sku__fila" onClick={seleccionar}>
         <td>
           <button type="button" className="posiciones-sku__ubicacion" onClick={() => onIrAPosicion(posicion.id)} title="Ver en la góndola">
             {etiquetaUbicacion(ubicacion)}

@@ -361,10 +361,13 @@ function FilaSku(props: DetalleGondolaPanelProps & { sku: SkuVersion }) {
   const { sku, puedeEscribir, onEditarSku, onIrAPosicion } = props;
   const [abierta, setAbierta] = useState(false);
 
-  // El clic en inputs o botones de la fila no la despliega.
+  // El clic en la fila la despliega y selecciona el producto en el lienzo (su ubicación en esta
+  // góndola, o la primera si solo está en otras). El clic en inputs o botones no hace nada de eso.
   const alternar = (e: MouseEvent<HTMLTableRowElement>) => {
     if ((e.target as HTMLElement).closest('input, button, select')) return;
     setAbierta((v) => !v);
+    const ubicacion = sku.ubicaciones.find((u) => u.gondolaId === props.gondola.id) ?? sku.ubicaciones[0];
+    if (ubicacion) onIrAPosicion(ubicacion.posicionId);
   };
 
   return (
