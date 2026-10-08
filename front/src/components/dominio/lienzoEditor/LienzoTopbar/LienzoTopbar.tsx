@@ -12,6 +12,8 @@ interface LienzoTopbarProps {
   onZoomOut: () => void;
   onZoomCambiar: (porcentaje: number) => void;
   onAjustarZoom: () => void;
+  /** Oculta el encabezado de la app y esta barra para dejarle todo el espacio al lienzo. */
+  onVistaExtendida: () => void;
   cuadriculaActiva: boolean;
   onToggleCuadricula: () => void;
   tema: TemaLienzo;
@@ -34,6 +36,7 @@ export function LienzoTopbar({
   onZoomOut,
   onZoomCambiar,
   onAjustarZoom,
+  onVistaExtendida,
   cuadriculaActiva,
   onToggleCuadricula,
   tema,
@@ -82,8 +85,11 @@ export function LienzoTopbar({
           <span>{zoomPorcentaje}%</span>
         </div>
 
-        <button type="button" className="lienzo-topbar__icono" title="Ajustar a pantalla" onClick={onAjustarZoom}>
+        <button type="button" className="lienzo-topbar__icono" title="Vista extendida" onClick={onVistaExtendida}>
           ⤢
+        </button>
+        <button type="button" className="lienzo-topbar__icono" title="Ajustar a pantalla" onClick={onAjustarZoom}>
+          ⧈
         </button>
         <button
           type="button"

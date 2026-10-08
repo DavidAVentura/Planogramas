@@ -131,6 +131,10 @@ export function LienzoPlanograma() {
   const [buscarSku, setBuscarSku] = useState('');
   const [exportarAbierto, setExportarAbierto] = useState(false);
   const [posicionSeleccionadaId, setPosicionSeleccionadaId] = useState<string | null>(null);
+  // Vista extendida: sin encabezado de la app, sin barra del lienzo ni barra de acciones de la
+  // posición — todo el espacio queda para el lienzo y el panel de la derecha (las ediciones se
+  // hacen desde el modo tabla).
+  const [vistaExtendida, setVistaExtendida] = useState(false);
 
   const [modalGondola, setModalGondola] = useState<'crear' | GondolaListItem | null>(null);
   const [gondolaAEliminar, setGondolaAEliminar] = useState<GondolaListItem | null>(null);
@@ -476,13 +480,27 @@ export function LienzoPlanograma() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [layoutListo]);
 
-  // Al entrar o salir del detalle de una góndola, se vuelve a encuadrar lo que se ve.
+  // Al entrar o salir del detalle de una góndola o de la vista extendida, se vuelve a encuadrar lo que se ve.
   useEffect(() => {
     if (!layoutListo) return;
     const t = setTimeout(() => viewport.ajustarAContenido(calcularLimite(gondolasLienzo)), 50);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gondolaEnfocadaId]);
+  }, [gondolaEnfocadaId, vistaExtendida]);
+
+  // Esc sale de la vista extendida, salvo que haya un modal abierto (ese Esc es del modal).
+  const hayModalAbierto = Boolean(
+    modalGondola || gondolaAEliminar || modalNivel || nivelAEliminar || posicionPendiente || posicionDetalleId !== null ||
+      posicionAMover || posicionACopiar || posicionAEliminar || fichaSku || menuPosicion || exportarAbierto,
+  );
+  useEffect(() => {
+    if (!vistaExtendida || hayModalAbierto) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setVistaExtendida(false);
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [vistaExtendida, hayModalAbierto]);
 
   function onBuscarSkuSubmit(valor: string) {
     const q = valor.trim().toLowerCase();
@@ -525,44 +543,49 @@ export function LienzoPlanograma() {
 
   return (
     <div className="lienzo-planograma">
-      <AppTopbar
-        titulo="Planogramas"
-        breadcrumb={
-          <Breadcrumb
-            segmentos={[
-              { label: 'Planogramas', to: '/planogramas' },
-              { label: cargandoPlanograma ? '…' : (planograma?.nombre ?? ''), to: `/planogramas/${planogramaId}` },
-              ...(gondolaEnfocadaId === null
-                ? [{ label: cargandoVersiones ? '…' : `${version?.codigo ?? ''} · Lienzo` }]
-                : [
-                    { label: cargandoVersiones ? '…' : `${version?.codigo ?? ''} · Lienzo`, to: rutaLienzo },
-                    { label: gondolaEnfocada?.nombre ?? '…' },
-                  ]),
-            ]}
-          />
-        }
-      />
+      {!vistaExtendida && (
+        <AppTopbar
+          titulo="Planogramas"
+          breadcrumb={
+            <Breadcrumb
+              segmentos={[
+                { label: 'Planogramas', to: '/planogramas' },
+                { label: cargandoPlanograma ? '…' : (planograma?.nombre ?? ''), to: `/planogramas/${planogramaId}` },
+                ...(gondolaEnfocadaId === null
+                  ? [{ label: cargandoVersiones ? '…' : `${version?.codigo ?? ''} · Lienzo` }]
+                  : [
+                      { label: cargandoVersiones ? '…' : `${version?.codigo ?? ''} · Lienzo`, to: rutaLienzo },
+                      { label: gondolaEnfocada?.nombre ?? '…' },
+                    ]),
+              ]}
+            />
+          }
+        />
+      )}
 
       {/* Todo lo de acá para abajo vive en su propio tema claro/oscuro (ver LienzoPlanograma.css)
           — el AppTopbar compartido de arriba queda afuera a propósito, sin cambios. */}
       <div className="lienzo-planograma__tematizado" data-tema={tema}>
-        <LienzoTopbar
-          onIrAEditor={() => navigate(`/planogramas/${planogramaId}/versiones/${versionIdNumerico}/editor`)}
-          buscarSku={buscarSku}
-          onBuscarSkuChange={setBuscarSku}
-          onBuscarSkuSubmit={onBuscarSkuSubmit}
-          zoomPorcentaje={Math.round(viewport.view.scale * 100)}
-          onZoomIn={() => viewport.fijarEscala(viewport.view.scale * 1.15)}
-          onZoomOut={() => viewport.fijarEscala(viewport.view.scale / 1.15)}
-          onZoomCambiar={(pct) => viewport.fijarEscala(pct / 100)}
-          onAjustarZoom={onAjustarZoom}
-          cuadriculaActiva={cuadriculaActiva}
-          onToggleCuadricula={() => setCuadriculaActiva((v) => !v)}
-          tema={tema}
-          onAlternarTema={alternarTema}
-        />
+        {!vistaExtendida && (
+          <LienzoTopbar
+            onIrAEditor={() => navigate(`/planogramas/${planogramaId}/versiones/${versionIdNumerico}/editor`)}
+            buscarSku={buscarSku}
+            onBuscarSkuChange={setBuscarSku}
+            onBuscarSkuSubmit={onBuscarSkuSubmit}
+            zoomPorcentaje={Math.round(viewport.view.scale * 100)}
+            onZoomIn={() => viewport.fijarEscala(viewport.view.scale * 1.15)}
+            onZoomOut={() => viewport.fijarEscala(viewport.view.scale / 1.15)}
+            onZoomCambiar={(pct) => viewport.fijarEscala(pct / 100)}
+            onAjustarZoom={onAjustarZoom}
+            onVistaExtendida={() => setVistaExtendida(true)}
+            cuadriculaActiva={cuadriculaActiva}
+            onToggleCuadricula={() => setCuadriculaActiva((v) => !v)}
+            tema={tema}
+            onAlternarTema={alternarTema}
+          />
+        )}
 
-        {posicionSeleccionada && (
+        {posicionSeleccionada && !vistaExtendida && (
           <BarraAccionesPosicion
             posicion={posicionSeleccionada}
             nivelOrden={nivelDeSeleccionada?.orden ?? posicionSeleccionada.nivelId}
@@ -578,11 +601,32 @@ export function LienzoPlanograma() {
         )}
 
         <div className="lienzo-planograma__workspace">
+          {vistaExtendida && (
+            <button
+              type="button"
+              className="lienzo-planograma__salir-extendida"
+              title="Salir de la vista extendida (Esc)"
+              onClick={() => setVistaExtendida(false)}
+            >
+              ⤡ Salir de vista extendida
+            </button>
+          )}
+
           <LienzoToolbar
             catalogoVisible={catalogoVisible}
             onToggleCatalogo={() => setCatalogoVisible((v) => !v)}
             onAgregarGondola={onAgregarGondola}
             onExportar={() => setExportarAbierto(true)}
+            zoom={
+              vistaExtendida
+                ? {
+                    porcentaje: Math.round(viewport.view.scale * 100),
+                    onZoomIn: () => viewport.fijarEscala(viewport.view.scale * 1.15),
+                    onZoomOut: () => viewport.fijarEscala(viewport.view.scale / 1.15),
+                    onZoomCambiar: (pct) => viewport.fijarEscala(pct / 100),
+                  }
+                : undefined
+            }
           />
 
           <LienzoCatalogoPanel

@@ -111,3 +111,26 @@
   min-height: 0;
   position: relative;
 }
+
+/* Única salida visible de la vista extendida (además de Esc): flota arriba, centrada sobre el lienzo. */
+.lienzo-planograma__salir-extendida {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--lienzo-fg-2);
+  background: var(--lienzo-bg-elevated);
+  border: 1px solid var(--lienzo-border);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+.lienzo-planograma__salir-extendida:hover {
+  color: var(--lienzo-fg-1);
+  border-color: var(--lienzo-border-strong);
+}

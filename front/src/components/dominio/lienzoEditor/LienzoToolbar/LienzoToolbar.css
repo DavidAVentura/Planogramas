@@ -38,3 +38,52 @@
 .lienzo-toolbar__separador {
   flex: 1;
 }
+
+.lienzo-toolbar__zoom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  padding: 6px 0;
+  width: 34px;
+  background: var(--lienzo-bg-sunken);
+  border: 1px solid var(--lienzo-border);
+  border-radius: var(--radius-pill);
+}
+
+/* Slider vertical: el máximo queda arriba (subir = acercar). */
+.lienzo-toolbar__zoom input[type='range'] {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 22px;
+  height: 140px;
+  margin: 0;
+  accent-color: var(--cemaco-green);
+  cursor: pointer;
+}
+
+.lienzo-toolbar__zoom-paso {
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--lienzo-fg-2);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lienzo-toolbar__zoom-paso:hover {
+  background: var(--lienzo-border);
+}
+
+.lienzo-toolbar__zoom span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--lienzo-fg-3);
+}
