@@ -1,4 +1,5 @@
 .detalle-gondola-panel {
+  position: relative;
   width: 420px;
   flex: none;
   display: flex;
@@ -7,6 +8,44 @@
   background: var(--lienzo-bg-elevated);
   border-left: 1px solid var(--lienzo-border);
   color: var(--lienzo-fg-1);
+}
+
+.detalle-gondola-panel__manija {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -4px;
+  width: 8px;
+  z-index: 5;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.detalle-gondola-panel__manija::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 3px;
+  width: 2px;
+  background: transparent;
+  transition: background 0.15s;
+}
+
+.detalle-gondola-panel__manija:hover::after,
+.detalle-gondola-panel__manija:focus-visible::after,
+body.detalle-gondola-panel--arrastrando .detalle-gondola-panel__manija::after {
+  background: var(--cemaco-indigo);
+}
+
+.detalle-gondola-panel__manija:focus-visible {
+  outline: none;
+}
+
+/* Mientras se arrastra, que el lienzo no seleccione texto ni cambie el cursor. */
+body.detalle-gondola-panel--arrastrando {
+  cursor: col-resize;
+  user-select: none;
 }
 
 .detalle-gondola-panel__tabs {

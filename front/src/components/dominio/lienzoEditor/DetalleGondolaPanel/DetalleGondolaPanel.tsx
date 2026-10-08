@@ -1,4 +1,4 @@
-import { useMemo, useState, type KeyboardEvent } from 'react';
+import { useMemo, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import { Button } from '../../../ui/Button/Button';
 import { nodoQueControla, rectangulosDeNodos } from '../../../../domain/lienzo/secciones.service';
 import type { GondolaListItem } from '../../../../types/gondola';
@@ -29,6 +29,71 @@ interface DetalleGondolaPanelProps {
 
 const dos = (n: number) => String(n).padStart(2, '0');
 
+// Ancho del panel: se agranda arrastrando su borde izquierdo y se recuerda en este navegador.
+const CLAVE_ANCHO = 'planogramas.detalleGondola.ancho';
+const ANCHO_DEFECTO = 420;
+const ANCHO_MIN = 320;
+const anchoMaximo = () => Math.max(ANCHO_MIN, Math.round(window.innerWidth * 0.75));
+const acotarAncho = (ancho: number) => Math.min(anchoMaximo(), Math.max(ANCHO_MIN, Math.round(ancho)));
+
+function leerAnchoGuardado(): number {
+  try {
+    const guardado = Number(localStorage.getItem(CLAVE_ANCHO));
+    return Number.isFinite(guardado) && guardado > 0 ? acotarAncho(guardado) : ANCHO_DEFECTO;
+  } catch {
+    return ANCHO_DEFECTO;
+  }
+}
+
+function guardarAncho(ancho: number) {
+  try {
+    localStorage.setItem(CLAVE_ANCHO, String(ancho));
+  } catch {
+    // Sin localStorage el ancho solo dura esta sesión.
+  }
+}
+
+/** Ancho redimensionable con la manija del borde izquierdo (puntero o flechas del teclado). */
+function useAnchoPanel() {
+  const [ancho, setAncho] = useState(leerAnchoGuardado);
+
+  const fijar = (nuevo: number) => {
+    const acotado = acotarAncho(nuevo);
+    setAncho(acotado);
+    guardarAncho(acotado);
+  };
+
+  const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const manija = e.currentTarget;
+    manija.setPointerCapture(e.pointerId);
+    const inicioX = e.clientX;
+    const inicioAncho = ancho;
+    const mover = (ev: globalThis.PointerEvent) => setAncho(acotarAncho(inicioAncho + (inicioX - ev.clientX)));
+    const soltar = (ev: globalThis.PointerEvent) => {
+      manija.removeEventListener('pointermove', mover);
+      manija.removeEventListener('pointerup', soltar);
+      manija.removeEventListener('pointercancel', soltar);
+      document.body.classList.remove('detalle-gondola-panel--arrastrando');
+      fijar(inicioAncho + (inicioX - ev.clientX));
+    };
+    manija.addEventListener('pointermove', mover);
+    manija.addEventListener('pointerup', soltar);
+    manija.addEventListener('pointercancel', soltar);
+    document.body.classList.add('detalle-gondola-panel--arrastrando');
+  };
+
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    const paso = e.shiftKey ? 80 : 20;
+    if (e.key === 'ArrowLeft') fijar(ancho + paso);
+    else if (e.key === 'ArrowRight') fijar(ancho - paso);
+    else return;
+    e.preventDefault();
+  };
+
+  return { ancho, onPointerDown, onKeyDown, restablecer: () => fijar(ANCHO_DEFECTO) };
+}
+
 /**
  * Panel lateral del detalle de góndola: pestaña "Estructura" (dividir en secciones, medidas,
  * niveles por sección) y pestaña "SKU en la versión" (totales por SKU sumando todas sus
@@ -37,9 +102,23 @@ const dos = (n: number) => String(n).padStart(2, '0');
 export function DetalleGondolaPanel(props: DetalleGondolaPanelProps) {
   const [pestana, setPestana] = useState<'estructura' | 'skus'>('estructura');
   const alertas = (props.skus?.skus ?? []).filter((s) => s.alertas.length > 0).length;
+  const redimension = useAnchoPanel();
 
   return (
-    <aside className="detalle-gondola-panel" aria-label="Detalle de la góndola">
+    <aside className="detalle-gondola-panel" aria-label="Detalle de la góndola" style={{ width: redimension.ancho }}>
+      <div
+        className="detalle-gondola-panel__manija"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Cambiar ancho del panel"
+        aria-valuenow={redimension.ancho}
+        aria-valuemin={ANCHO_MIN}
+        tabIndex={0}
+        title="Arrastrar para cambiar el ancho (doble clic: ancho original)"
+        onPointerDown={redimension.onPointerDown}
+        onKeyDown={redimension.onKeyDown}
+        onDoubleClick={redimension.restablecer}
+      />
       <div className="detalle-gondola-panel__tabs" role="tablist">
         <button type="button" role="tab" aria-selected={pestana === 'estructura'} className="detalle-gondola-panel__tab" onClick={() => setPestana('estructura')}>
           Estructura
