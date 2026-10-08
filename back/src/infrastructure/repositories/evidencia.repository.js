@@ -29,9 +29,10 @@ function mapEvidencia(row) {
 
 // ─── listarGondolasDeVersion ─────────────────────────────────────────────────
 
+// La góndola "Por ubicar" es temporal (no existe en tienda): no se le pide evidencia.
 async function listarGondolasDeVersion(versionId) {
   return db(TABLA_GONDOLA)
-    .where('planograma_version_id', versionId)
+    .where({ planograma_version_id: versionId, por_ubicar: false })
     .orderBy('orden', 'asc')
     .orderBy('id', 'asc')
     .select('id', 'nombre', 'orden');
@@ -41,7 +42,7 @@ async function listarGondolasDeVersion(versionId) {
 
 async function gondolaPerteneceAVersion(gondolaId, versionId) {
   const row = await db(TABLA_GONDOLA)
-    .where({ id: gondolaId, planograma_version_id: versionId })
+    .where({ id: gondolaId, planograma_version_id: versionId, por_ubicar: false })
     .select('id')
     .first();
 

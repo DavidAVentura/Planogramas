@@ -151,6 +151,7 @@ async function listarGondolasConEvidencias(tiendaId, versionIds) {
   const rows = await db(TABLA_GONDOLA)
     .leftJoin(conteo, 'conteo.gondola_id', `${TABLA_GONDOLA}.id`)
     .whereIn(`${TABLA_GONDOLA}.planograma_version_id`, versionIds)
+    .where(`${TABLA_GONDOLA}.por_ubicar`, false) // temporal, no se le pide evidencia
     .orderBy(`${TABLA_GONDOLA}.orden`, 'asc')
     .orderBy(`${TABLA_GONDOLA}.id`, 'asc')
     .select(

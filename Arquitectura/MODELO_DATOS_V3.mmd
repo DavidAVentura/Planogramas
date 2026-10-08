@@ -1,0 +1,346 @@
+erDiagram
+
+    %% MODELO DE DATOS V3 — verificado en vivo contra la BD DEV (Azure SQL, servidor comerciales, base
+    %% OTB) el 2026-10-08. Se consultó INFORMATION_SCHEMA.COLUMNS, sys.foreign_keys, sys.indexes,
+    %% sys.check_constraints y knex_migrations: las 14 migraciones (001 a 014_accesorio_medidas,
+    %% aplicada 2026-10-07) están aplicadas y las tablas, columnas (en el orden físico de la BD),
+    %% tipos, nulabilidad, FKs e índices coinciden con lo que aquí se documenta.
+    %% Cambios V2 → V3 (migraciones 013 y 014):
+    %%   - Gondola.por_ubicar                bit NOT NULL default 0   (013)
+    %%   - Posicion.ganchos                  nvarchar(max) NULL       (013)
+    %%   - PosicionAccesorio.tamano_pulgadas decimal(6,2) NULL        (013)
+    %%   - Accesorio.longitud_cm renombrada a profundidad_cm; Accesorio.alto_cm decimal(8,2) NULL (014)
+    %%   - tipos de accesorio BOTADERO y PARRILLA_DIVISOR (solo dominio, sin migración: nvarchar(20) sin CHECK)
+    %% Estas 17 tablas son el dominio de planogramas; la misma BD "OTB" también
+    %% tiene tablas ajenas a este dominio (EFGDepartamento, Presupuesto, Recompra, Transito, Transitos,
+    %% Ventas, msg — de otro sistema, probablemente forecasting/OTB) y las tablas internas de Knex
+    %% (knex_migrations, knex_migrations_lock), que se omiten aquí a propósito.
+    %% Las tablas de captura fotográfica planeadas (SesionCaptura, FotoCaptura, DeteccionPropuesta,
+    %% ver FEATURE_captura_foto_planograma.md) NO existen en la BD — se excluyen porque este archivo
+    %% documenta solo lo que existe, no el diseño objetivo.
+
+    %% TIPOS REALES EN SQL SERVER (Knex con mssql crea los string como nvarchar):
+    %% - toda columna de texto es nvarchar salvo Posicion.nombre_detectado, que es varchar(500)
+    %%   (migración 008 usó SQL crudo); las marcadas "nvarchar(max)" en su comentario vienen de
+    %%   t.text() / NVARCHAR(MAX)
+    %% - toda fecha es datetime2 con default getdate()
+    %% - decimal es (8,2) salvo Producto.precio (12,2), Nivel.tamano_accesorio_pulgadas (6,2) y
+    %%   PosicionAccesorio.tamano_pulgadas (6,2)
+    %% - no hay ningún CHECK constraint: los valores permitidos ("A | B | C") los valida solo la
+    %%   capa de dominio del backend (*.entity.js)
+    %% - UK = índice único (Knex en SQL Server lo crea filtrado WHERE col IS NOT NULL)
+
+    %% ─── CORE PLANOGRAMA ───────────────────────────────────────────
+
+    Planograma {
+        int         id              PK
+        nvarchar    nombre
+        nvarchar    departamento
+        nvarchar    estado              "borrador | activo | archivado"
+        datetime2   created_at
+        nvarchar    created_by
+    }
+
+    PlanogramaSubcategoria {
+        int         id              PK
+        int         planograma_id   FK
+        nvarchar    subcategoria        "texto referencial — universo de SKUs a considerar"
+    }
+    %% referencial para el analista: indica qué subcategorías debe evaluar al diseñar el planograma
+    %% no implica que todos los SKUs de esas subcategorías estarán en el planograma
+
+    PlanogramaVersion {
+        int         id              PK
+        int         planograma_id   FK
+        nvarchar    tipo                "GRANDE | MEDIANA | EXPRESS"
+        nvarchar    codigo              "ej. AUTOS 01-TG, AUTOS 01-TG-T010 — nvarchar(250), ver migración 004"
+        int         version_base_id FK  "null si es base; FK self si es especial por tienda"
+        nvarchar    estado              "borrador | en_desarrollo | piloto | publicado | archivado"
+        nvarchar    notas               "nvarchar(max)"
+        datetime2   created_at          "agregado en migración 002"
+        datetime2   updated_at          "agregado en migración 002"
+    }
+    %% solo una versión DE LÍNEA BASE (version_base_id IS NULL) por planograma+tipo puede estar en
+    %% cada uno de los 4 estados no archivados a la vez (borrador/en_desarrollo/piloto/publicado) —
+    %% 4 índices únicos filtrados, uno por estado, ver migraciones 001+007 (publicado) y 006
+    %% (borrador/en_desarrollo/piloto). Las versiones especiales por tienda (version_base_id NOT
+    %% NULL) quedan fuera de esta unicidad: cada tienda puede tener su propia especial en cualquier
+    %% estado, sin chocar entre sí ni con la base.
+    %% CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='publicado' AND version_base_id IS NULL
+    %% CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='borrador' AND version_base_id IS NULL
+    %% CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='en_desarrollo' AND version_base_id IS NULL
+    %% CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='piloto' AND version_base_id IS NULL
+    %% avanzar una versión base de estado archiva automáticamente a la versión base que ocupaba el
+    %% estado destino — las especiales por tienda no archivan ninguna anterior
+
+    Gondola {
+        int         id                      PK
+        int         planograma_version_id   FK
+        nvarchar    nombre
+        decimal     ancho_cm
+        decimal     alto_cm
+        decimal     profundidad_cm
+        nvarchar    posicion_en_tienda
+        int         orden
+        bit         por_ubicar              "migración 013 — NOT NULL default 0 (DF_Gondola_por_ubicar). 1 = góndola 'Por ubicar' creada por el importador de productos (Excel): niveles de relleno de 10 posiciones hasta que el analista mueve cada producto; no participa de la numeración calculada de ganchos"
+    }
+
+    %% Migración 012_secciones_gondola.js (aplicada 2026-10-05). Partición de una góndola en columnas
+    %% o franjas anidables, cada una con sus propios niveles (Contratos/18_secciones/). Árbol por
+    %% góndola: una DIVISIÓN (es_division = 1) reparte su espacio entre sus hijas según `direccion`;
+    %% una HOJA (es_division = 0) es la sección donde viven los niveles. La última hija toma lo que
+    %% sobre del espacio del padre (su tam_cm es informativo). Góndola sin filas aquí = sin dividir:
+    %% se comporta igual que antes y sus niveles quedan con seccion_id NULL.
+    %% FKs: gondola_id ON DELETE CASCADE; padre_id (auto-referencia) y Nivel.seccion_id NO ACTION
+    %% (SQL Server rechaza una segunda ruta de cascada Gondola → Seccion → Nivel, error 1785).
+    %% Índice IX_Seccion_gondola (gondola_id).
+    Seccion {
+        int         id              PK
+        int         gondola_id      FK  "ON DELETE CASCADE"
+        int         padre_id        FK  "FK self, nullable (null = raíz) — NO ACTION"
+        bit         es_division         "default 0 — 1 = reparte entre sus hijas, 0 = hoja con niveles"
+        nvarchar    direccion           "COLUMNAS | FILAS — solo divisiones; nullable, sin CHECK"
+        int         orden               "default 1 — orden entre hermanas"
+        decimal     tam_cm              "medida en la dirección del padre (mín. 10 cm, validado en el dominio)"
+    }
+
+    Nivel {
+        int         id                          PK
+        int         gondola_id                  FK
+        int         orden                           "migración 001 dice 1 = nivel más bajo, pero el lienzo dibuja orden 1 ARRIBA y la numeración de ganchos (Contratos/19_skus/) sigue al lienzo — convención pendiente de unificar. Único por góndola, no por sección"
+        decimal     altura_desde_piso_cm            "ingreso manual obligatorio por el analista"
+        decimal     ancho_disponible_cm
+        nvarchar    tipo_accesorio                  "GANCHO | BANDEJA | BARRA | BOTADERO | CANASTA | PARRILLA_DIVISOR | OTRO — nvarchar(20), ver TIPOS_ACCESORIO en nivel.entity.js"
+        int         codigo_accesorio_id         FK  "accesorio principal del nivel"
+        decimal     tamano_accesorio_pulgadas
+        nvarchar    notas                           "nvarchar(max)"
+        int         seccion_id                  FK  "agregado en migración 012, nullable, NO ACTION — hoja de Seccion; NULL = góndola sin dividir"
+    }
+
+    Posicion {
+        int         id                  PK
+        int         nivel_id            FK
+        int         orden_horizontal
+        nvarchar    sku                 FK  "FK real a Producto.sku — nullable desde migración 008 (posiciones detectadas por IA sin SKU confirmado todavía)"
+        decimal     ancho_asignado_cm       "ingresado por el analista; el backend NO lo sincroniza con facings_horizontal"
+        int         facings_horizontal      "ingresado por el analista; ver nota de ancho_asignado_cm"
+        int         cantidad_apilable       "unidades apiladas verticalmente en la misma posición"
+        int         unidades_por_facing     "profundidad accesorio / profundidad producto"
+        int         capacidad_maxima        "ingresado por el analista — requerido al crear; el backend NO lo calcula (responsabilidad del front, ver POST_posiciones_agregar.md)"
+        int         min_estetico            "ingresado por el analista (opcional) — el backend NO aplica ninguna fórmula; la fórmula facings*3+1 / cap*facings es diseño no implementado"
+        int         min_final              "ajustable manualmente; min_final <= max_final validado por la API si ambos vienen juntos"
+        int         max_final               "ajustable manualmente"
+        nvarchar    perfil_redondeo         "MRP (no se rompe empaque) | ZSRE (se puede romper) — ver posicion.entity.js (default MRP). Ojo: hasta 2026-07-20 posicion.entity.js tenía valores equivocados (NORMAL/REDONDEAR_ARRIBA/REDONDEAR_ABAJO) que ni siquiera entraban en la columna nvarchar(10) — causaba un 500 al crear una posición; corregido"
+        nvarchar    modo                    "PLANOGRAMA | CROSS | IMPULSO | PENDIENTE — ver posicion.entity.js (default PLANOGRAMA, coincide con el default de la columna en BD). IMPULSO agregado 2026-09-25 sin migración: nvarchar(20) sin CHECK. PENDIENTE = posición sin SKU confirmado (migración 008)"
+        bit         cross_externo           "true = accesorio colgante fuera de la góndola"
+        bit         montar_en_display       "true = producto trae display propio (ej. Kinder)"
+        bit         desborda_gondola        "true = producto cruza límite al módulo siguiente; si true, nota_desborde es obligatoria (validado por la API)"
+        nvarchar    nota_desborde           "ej. 'continúa en góndola 2, nivel 3'"
+        nvarchar    decision                "ACTIVO | INACTIVO — ver posicion.entity.js (default ACTIVO, coincide con el default de la columna en BD)"
+        nvarchar    observaciones           "nvarchar(max)"
+        varchar     nombre_detectado        "varchar(500), NO nvarchar (única columna varchar del esquema) — agregado en migración 008 — nombre que el agente de visión detectó en la foto, antes de confirmar SKU"
+        int         confidence              "agregado en migración 008 — NOT NULL default 100 — 0-100; 100 = confirmado por el usuario o creado manualmente"
+        nvarchar    datos_vision            "nvarchar(max) — agregado en migración 008 — JSON completo de la respuesta del agente de visión (para mostrar alternativas)"
+        nvarchar    ganchos                 "nvarchar(max), nullable — agregado en migración 013 — arreglo JSON de números de gancho del Excel (ej. [4,9,14,19]); si existe manda sobre la numeración calculada en skuVersion.entity.js (recorrerVersion)"
+    }
+    %% migración 008 (posiciones_pendientes): habilita posiciones "PENDIENTE" sin SKU confirmado,
+    %% resultado de detección por agente de visión — antes de esta migración sku era NOT NULL
+
+    PosicionAccesorio {
+        int         id              PK
+        int         posicion_id     FK
+        int         orden
+        int         accesorio_id    FK
+        nvarchar    nota_libre          "ej. 'a la derecha', 'colocar frontal'"
+        decimal     tamano_pulgadas     "decimal(6,2), nullable — agregado en migración 013 — medida del accesorio de montaje de ese producto (ej. 12 o 22 pulgadas)"
+    }
+
+    HistorialSustitucion {
+        int         id                      PK
+        int         planograma_version_id   FK
+        nvarchar    sku_original
+        nvarchar    sku_sustituto
+        nvarchar    motivo                  "nvarchar(max)"
+        datetime2   fecha
+        nvarchar    usuario_id
+        nvarchar    posiciones_afectadas    "nvarchar(max) — JSON: lista de posicion_ids afectadas"
+    }
+
+    %% Migración 009_adjuntos_version.js (aplicada 2026-09-16). La BD solo guarda la referencia al blob; el binario vive en Azure Blob
+    %% Storage. Como TG/TM/TE ya son filas separadas de PlanogramaVersion (una por `tipo`),
+    %% enganchar Adjunto a planograma_version_id le da a cada tipo su propio set de adjuntos sin
+    %% ningún campo extra.
+    %% CRUD completo: añadir (insert), eliminar (delete de la fila + borrado del blob en Azure),
+    %% reemplazar (mismo id — sube el blob nuevo, actualiza la fila, y recién después borra el
+    %% blob viejo; no se versiona el archivo en sí, solo queda el último). onDelete('CASCADE')
+    %% igual que HistorialSustitucion/Gondola — borrar la versión borra también las filas de
+    %% Adjunto (el blob físico requiere una llamada aparte al SDK de Storage, la FK no lo cubre).
+    %% blob_url es la URL base SIN SAS (https://{cuenta}.blob.core.windows.net/{container}/{path})
+    %% — no sirve para descarga directa desde el navegador si el contenedor es privado (ver nota de
+    %% seguridad más abajo); es redundante con blob_container+blob_path pero cómoda para logs/debug
+    %% y para no reconstruirla en cada capa. La descarga real SIEMPRE pasa por el backend.
+    Adjunto {
+        int         id                      PK
+        int         planograma_version_id   FK
+        nvarchar    nombre_original             "nombre del archivo tal como lo subió el usuario"
+        nvarchar    tipo_mime                   "ej. image/jpeg, application/pdf"
+        int         tamano_bytes
+        nvarchar    blob_container              "contenedor en Azure Blob Storage"
+        nvarchar    blob_path                   "ruta/nombre del blob dentro del contenedor"
+        nvarchar    blob_url                    "URL completa sin SAS — ver nota arriba, no es descargable directamente"
+        nvarchar    subido_por
+        datetime2   created_at
+    }
+
+    %% Migración 011_evidencia_implementacion.js (aplicada 2026-09-28) — fotos que el Implementador
+    %% sube de cada góndola ya montada en su tienda (Contratos/17_evidencias/). Se asocia a
+    %% versión + tienda + góndola: la misma versión montada en varias tiendas tiene evidencia propia
+    %% por tienda. Mismo esquema de referencia a blob que Adjunto (mismo contenedor privado).
+    %% FKs: solo gondola_id es ON DELETE CASCADE (SQL Server rechaza dos rutas de cascada desde el
+    %% mismo padre, error 1785); planograma_version_id y tienda_id son NO ACTION — borrar la versión
+    %% limpia la evidencia vía PlanogramaVersion → Gondola → EvidenciaImplementacion. El blob físico
+    %% queda huérfano en esos casos; solo DELETE /evidencias/:id lo borra.
+    %% Índice IX_EvidenciaImplementacion_tienda_version (tienda_id, planograma_version_id).
+    EvidenciaImplementacion {
+        int         id                      PK
+        int         planograma_version_id   FK  "NO ACTION"
+        int         tienda_id               FK  "NO ACTION — las tiendas no se borran, se desactivan"
+        int         gondola_id              FK  "ON DELETE CASCADE"
+        nvarchar    nombre_original
+        nvarchar    tipo_mime
+        int         tamano_bytes
+        nvarchar    blob_container
+        nvarchar    blob_path
+        nvarchar    blob_url                    "URL sin SAS, igual que Adjunto.blob_url"
+        nvarchar    subido_por
+        datetime2   created_at
+    }
+
+    %% ─── AUDITORÍA DE ASIGNACIONES (vista Estructura) ──────────────
+
+    %% Migración 010_auditoria_asignaciones.js (aplicada 2026-09-28). Tablas append-only (mismo
+    %% criterio que HistorialSustitucion): nunca se actualizan ni se borran.
+    %% EdicionAsignacion = un grupo de cambios guardados juntos (un "Guardar asignaciones", una
+    %% publicación, una promoción a piloto…); todos sus registros comparten fecha, usuario y motivo.
+    %% Mientras no exista mapeo de usuario CAO, usuario_numero/usuario_nombre = 'sistema'
+    %% (USUARIO_SISTEMA en asignacion.entity.js).
+    EdicionAsignacion {
+        int         id              PK
+        datetime2   fecha
+        nvarchar    usuario_numero
+        nvarchar    usuario_nombre
+        nvarchar    motivo              "nullable"
+        nvarchar    origen              "MANUAL | VERSION | PILOTO | PUBLICACION — ver ORIGENES en asignacion.entity.js"
+    }
+
+    %% AsignacionAuditoria = el cambio de una celda planograma × tienda. Guarda id, código y estado
+    %% de la versión anterior y la nueva TAL COMO ERAN en ese momento (la TG de hoy puede ser otra
+    %% PlanogramaVersion que la de hace meses, y el código se puede editar).
+    %% planograma_id, tienda_id, version_anterior_id y version_nueva_id NO tienen FK a propósito:
+    %% el historial debe sobrevivir aunque se borre la tienda o la versión (la FK de VersionTienda
+    %% es CASCADE y perdería el rastro). Solo edicion_id tiene FK (NO ACTION).
+    %% Índice IX_AsignacionAuditoria_celda (planograma_id, tienda_id).
+    AsignacionAuditoria {
+        int         id                  PK
+        int         edicion_id          FK
+        int         planograma_id           "sin FK — ver nota arriba"
+        int         tienda_id               "sin FK — ver nota arriba"
+        nvarchar    accion                  "ASIGNACION | CAMBIO | RETIRO | CREACION_ESPECIAL | ENTRADA_PILOTO | SALIDA_PILOTO | PILOTO_PUBLICADO — ver ACCIONES en asignacion.entity.js"
+        int         version_anterior_id     "sin FK, nullable"
+        nvarchar    codigo_anterior         "nullable"
+        nvarchar    estado_anterior         "nullable"
+        int         version_nueva_id        "sin FK, nullable"
+        nvarchar    codigo_nuevo            "nullable"
+        nvarchar    estado_nuevo            "nullable"
+    }
+
+    %% ─── CATÁLOGOS ─────────────────────────────────────────────────
+
+    %% Fuente de verdad LOCAL que valida el backend al crear una Posicion (FK real a nivel de BD,
+    %% ver Posicion.sku arriba) — todavía NO existe un pipeline automático que la sincronice desde
+    %% Stibo/VTEX/CATI (planeado, ver REUNION_TECNICA.md); hoy se puebla manualmente. Es una tabla
+    %% DISTINTA del catálogo de solo-lectura que expone `GET /catalog/productos/*` (proxy en vivo a
+    %% CATI, ver catalogo.controller.js) — CATI puede conocer un SKU real que todavía no exista acá.
+    %% JERARQUÍA (decisión 2026-09-25): familia y categoría NO se guardan localmente, y el filtro por
+    %% jerarquía de GET /catalog/productos nunca usa categoria_nivel1/2 — se resuelve en vivo pidiendo
+    %% a CATI los SKUs del nivel elegido y cruzándolos con esta tabla (ver
+    %% Contratos/08_catalogo/GET_productos_listar.md). Evita copias que se desactualicen cuando la
+    %% jerarquía cambia en CATI.
+
+    Producto {
+        nvarchar    sku                     PK
+        nvarchar    nombre
+        nvarchar    marca
+        nvarchar    categoria_nivel1        "área al registrar el SKU, con código CATI (ej. FERRETERIA (01)) — solo para mostrar"
+        nvarchar    categoria_nivel2        "departamento al registrar el SKU, con código CATI — solo para mostrar"
+        nvarchar    categoria_nivel3        "columna existe en BD pero no se llena (asegurarExistencia solo copia área/departamento/subcategoría)"
+        nvarchar    subcategoria
+        decimal     ancho_cm
+        decimal     alto_cm
+        decimal     profundidad_cm
+        nvarchar    fuente_dimensiones          "CATI | VTEX | MANUAL — ver FUENTES_DIMENSIONES en producto.entity.js"
+        bit         dimensiones_validadas
+        nvarchar    gtin
+        decimal     precio
+        nvarchar    imagen_url
+        int         unidades_por_empaque
+        nvarchar    estado
+        nvarchar    sku_sustituto           FK  "FK self — sustituto recomendado en catálogo; expuesto como sku_sustituto en GET /catalog/productos/{sku}"
+    }
+
+    Accesorio {
+        int         id          PK
+        nvarchar    codigo          UK  "ej. VDA-12R-PTH"
+        nvarchar    nombre
+        nvarchar    tipo            "GANCHO | BANDEJA | BARRA | BOTADERO | CANASTA | PARRILLA_DIVISOR | OTRO — nvarchar(20) sin CHECK, ver TIPOS en accesorio.entity.js"
+        decimal     profundidad_cm      "antes longitud_cm — renombrada en migración 014 (cuánto sobresale el accesorio)"
+        decimal     ancho_cm
+        nvarchar    notas_capacidad     "nvarchar(max)"
+        decimal     alto_cm             "agregado en migración 014, nullable"
+    }
+
+    Tienda {
+        int         id      PK
+        nvarchar    codigo      UK  "T0PC, T007, T010..."
+        nvarchar    nombre
+        nvarchar    tipo        "GRANDE | MEDIANA | EXPRESS"
+        nvarchar    estado      "activo | inactivo — agregado en migración 003, default 'activo'"
+        nvarchar    region      "agregado en migración 003, nullable"
+        nvarchar    Marca       "agregado en migración 005, nullable — Cemaco | Jugueton | Bebé Jugueton. Ojo: columna con mayúscula inicial (Marca), inconsistente con el resto del esquema en snake_case; un mismo local físico puede tener códigos separados por marca (ej. T0QM/TJQM = Cemaco/Jugueton Chiquimula)"
+    }
+
+    VersionTienda {
+        int         planograma_version_id   PK, FK  "PK compuesta (planograma_version_id, tienda_id)"
+        int         tienda_id               PK, FK
+    }
+    %% ambas FK con ON DELETE CASCADE — borrar la versión o la tienda borra la asignación sin dejar
+    %% rastro aquí; el rastro histórico vive en AsignacionAuditoria (sin FK, ver arriba)
+
+    %% ─── RELACIONES ─────────────────────────────────────────────────
+
+    Planograma           ||--o{ PlanogramaVersion    : "tiene versiones"
+    Planograma           ||--o{ PlanogramaSubcategoria : "subcategorías de referencia"
+    PlanogramaVersion    ||--o{ Gondola               : "contiene góndolas"
+    PlanogramaVersion    ||--o{ HistorialSustitucion  : "registra sustituciones"
+    PlanogramaVersion    ||--o{ Adjunto               : "tiene adjuntos (CASCADE)"
+    PlanogramaVersion    ||--o{ VersionTienda          : "asignada a tiendas"
+    VersionTienda        }o--||  Tienda               : "tienda asignada"
+    PlanogramaVersion    ||--o| PlanogramaVersion     : "version_base_id (especial por tienda)"
+    PlanogramaVersion    ||--o{ EvidenciaImplementacion : "evidencia de implementación (NO ACTION)"
+    Tienda               ||--o{ EvidenciaImplementacion : "evidencia por tienda (NO ACTION)"
+    Gondola              ||--o{ EvidenciaImplementacion : "fotos de la góndola montada (CASCADE)"
+
+    EdicionAsignacion    ||--o{ AsignacionAuditoria   : "agrupa cambios de celda"
+
+    Gondola              ||--o{ Nivel                 : "tiene niveles"
+    Gondola              ||--o{ Seccion               : "dividida en secciones (CASCADE)"
+    Seccion              |o--o{ Seccion               : "padre_id (árbol)"
+    Seccion              |o--o{ Nivel                 : "niveles de la sección (NO ACTION)"
+    Nivel                ||--o{ Posicion              : "tiene posiciones"
+    Nivel                }o--o| Accesorio             : "accesorio principal del nivel"
+
+    Posicion             ||--o{ PosicionAccesorio     : "usa accesorios"
+    Posicion             }o--o| Producto              : "asigna SKU (FK real en BD; opcional desde migración 008 — posiciones PENDIENTE sin SKU)"
+    PosicionAccesorio    }o--|| Accesorio             : "referencia accesorio"
+
+    Producto             }o--o| Producto              : "sku_sustituto (self)"

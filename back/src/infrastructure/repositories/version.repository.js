@@ -63,8 +63,10 @@ async function listarPorPlanograma(planogramaId, { incluirArchivadas }) {
   const ids = versiones.map((v) => v.id);
   if (ids.length === 0) return [];
 
+  // La góndola "Por ubicar" es temporal: no cuenta como góndola del planograma.
   const gondolaCounts = await db(TABLA_GONDOLA)
     .whereIn('planograma_version_id', ids)
+    .where('por_ubicar', false)
     .groupBy('planograma_version_id')
     .select('planograma_version_id')
     .count('id as total');
@@ -756,14 +758,16 @@ const TABLA_SUBCATEGORIA = 'PlanogramaSubcategoria';
 const MODOS_POSICION     = ['PLANOGRAMA', 'CROSS', 'IMPULSO', 'PENDIENTE'];
 
 async function contarEstructura(id) {
+  // La góndola "Por ubicar" es temporal: no cuenta en góndolas, ancho ni niveles.
   const [gondolas] = await db(TABLA_GONDOLA)
-    .where('planograma_version_id', id)
+    .where({ planograma_version_id: id, por_ubicar: false })
     .count('id as total')
     .sum('ancho_cm as anchoTotal');
 
   const [niveles] = await db(TABLA_NIVEL)
     .join(TABLA_GONDOLA, `${TABLA_NIVEL}.gondola_id`, `${TABLA_GONDOLA}.id`)
     .where(`${TABLA_GONDOLA}.planograma_version_id`, id)
+    .where(`${TABLA_GONDOLA}.por_ubicar`, false)
     .count(`${TABLA_NIVEL}.id as total`);
 
   const posicionesDeVersion = () => db(TABLA_POSICION)
