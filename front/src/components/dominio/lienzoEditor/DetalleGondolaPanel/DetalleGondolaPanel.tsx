@@ -1,10 +1,13 @@
-import { useMemo, useState, type KeyboardEvent, type PointerEvent } from 'react';
+import { useMemo, useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react';
 import { Button } from '../../../ui/Button/Button';
 import { nodoQueControla, rectangulosDeNodos } from '../../../../domain/lienzo/secciones.service';
 import type { GondolaListItem } from '../../../../types/gondola';
 import type { Nivel } from '../../../../types/nivel';
 import type { DireccionSeccion, EstructuraSecciones } from '../../../../types/seccion';
 import type { SkuMinMaxCambios, SkusDeVersion, SkuVersion } from '../../../../types/skuVersion';
+import type { PosicionCambiosCompletos, PosicionConProducto } from '../../../../types/posicion';
+import type { DimensionesProducto } from '../../../../types/catalogo';
+import { PosicionesSku } from './PosicionesSku';
 import './DetalleGondolaPanel.css';
 
 interface DetalleGondolaPanelProps {
@@ -22,6 +25,10 @@ interface DetalleGondolaPanelProps {
   onAgregarNivel: (seccionId: number | null, anchoCm: number) => void;
   skus: SkusDeVersion | null;
   onEditarSku: (sku: string, cambios: SkuMinMaxCambios) => void;
+  /** Posiciones cargadas de la versión, por id (para editar cada ubicación de un SKU). */
+  posicionesPorId: Record<number, PosicionConProducto>;
+  onEditarPosicion: (posicion: PosicionConProducto, cambios: PosicionCambiosCompletos) => Promise<boolean>;
+  onEditarDimensiones: (sku: string, dimensiones: DimensionesProducto) => Promise<boolean>;
   onIrAPosicion: (posicionId: number) => void;
   mostrarGanchos: boolean;
   onAlternarGanchos: () => void;
@@ -324,7 +331,7 @@ function PestanaSkus(props: DetalleGondolaPanelProps) {
       </label>
       <p className="detalle-gondola-panel__texto">
         Facings y capacidad suman todas las ubicaciones del SKU en la versión. Mín./máx. se editan una vez y se aplican a todas
-        sus ubicaciones.
+        sus ubicaciones. Toca un SKU para ver y editar cada una de sus posiciones.
       </p>
       <div className="detalle-gondola-panel__tabla">
         <table>
@@ -350,11 +357,23 @@ function PestanaSkus(props: DetalleGondolaPanelProps) {
   );
 }
 
-function FilaSku({ sku, puedeEscribir, onEditarSku, onIrAPosicion }: DetalleGondolaPanelProps & { sku: SkuVersion }) {
+function FilaSku(props: DetalleGondolaPanelProps & { sku: SkuVersion }) {
+  const { sku, puedeEscribir, onEditarSku, onIrAPosicion } = props;
+  const [abierta, setAbierta] = useState(false);
+
+  // El clic en inputs o botones de la fila no la despliega.
+  const alternar = (e: MouseEvent<HTMLTableRowElement>) => {
+    if ((e.target as HTMLElement).closest('input, button, select')) return;
+    setAbierta((v) => !v);
+  };
+
   return (
     <>
-      <tr>
+      <tr className={`detalle-gondola-panel__fila-sku${abierta ? ' detalle-gondola-panel__fila-sku--abierta' : ''}`} onClick={alternar}>
         <td>
+          <button type="button" className="detalle-gondola-panel__desplegar" aria-expanded={abierta} aria-label={abierta ? 'Ocultar posiciones' : 'Ver posiciones'} onClick={() => setAbierta((v) => !v)}>
+            {abierta ? '▾' : '▸'}
+          </button>
           <span className="detalle-gondola-panel__sku">{sku.sku}</span>
           <span className="detalle-gondola-panel__ayuda detalle-gondola-panel__nombre">{sku.nombre ?? ''}</span>
           <span className="detalle-gondola-panel__ubicaciones">
@@ -379,6 +398,21 @@ function FilaSku({ sku, puedeEscribir, onEditarSku, onIrAPosicion }: DetalleGond
       {sku.alertas.length > 0 && (
         <tr className="detalle-gondola-panel__alerta">
           <td colSpan={6}>{sku.alertas.map((a) => a.mensaje).join(' · ')}</td>
+        </tr>
+      )}
+      {abierta && (
+        <tr className="detalle-gondola-panel__posiciones">
+          <td colSpan={6}>
+            <PosicionesSku
+              sku={sku}
+              posicionesPorId={props.posicionesPorId}
+              ganchosPorPosicion={props.skus?.ganchosPorPosicion ?? {}}
+              puedeEscribir={puedeEscribir}
+              onEditarPosicion={props.onEditarPosicion}
+              onEditarDimensiones={props.onEditarDimensiones}
+              onIrAPosicion={onIrAPosicion}
+            />
+          </td>
         </tr>
       )}
     </>

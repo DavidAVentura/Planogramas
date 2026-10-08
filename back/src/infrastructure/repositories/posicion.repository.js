@@ -99,6 +99,7 @@ function mapPosicionConProducto(row) {
           imagen_url: row.producto_imagen_url ?? null,
           ancho_cm:   row.producto_ancho_cm != null ? Number(row.producto_ancho_cm) : null,
           alto_cm:    row.producto_alto_cm != null ? Number(row.producto_alto_cm) : null,
+          profundidad_cm: row.producto_profundidad_cm != null ? Number(row.producto_profundidad_cm) : null,
         }
       : null,
   };
@@ -167,6 +168,7 @@ async function listarPorNivel(nivelId) {
       `${TABLA_PRODUCTO}.imagen_url as producto_imagen_url`,
       `${TABLA_PRODUCTO}.ancho_cm as producto_ancho_cm`,
       `${TABLA_PRODUCTO}.alto_cm as producto_alto_cm`,
+      `${TABLA_PRODUCTO}.profundidad_cm as producto_profundidad_cm`,
     );
   return rows.map(mapPosicionConProducto);
 }

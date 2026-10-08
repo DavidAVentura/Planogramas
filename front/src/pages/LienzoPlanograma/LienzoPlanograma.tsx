@@ -24,6 +24,7 @@ import { DetalleGondolaPanel } from '../../components/dominio/lienzoEditor/Detal
 import { GondolaEscalaLienzo } from '../../components/dominio/lienzoEditor/GondolaEscalaLienzo/GondolaEscalaLienzo';
 import { MenuPosicionLienzo } from '../../components/dominio/lienzoEditor/MenuPosicionLienzo/MenuPosicionLienzo';
 import { useEditarSecciones, useSeccionesDeVersion, useSkusDeVersion } from '../../hooks/useSecciones';
+import { useActualizarDimensionesProducto } from '../../hooks/useCatalogo';
 import type { DireccionSeccion } from '../../types/seccion';
 import { CHROME_GONDOLA_PX, PX_POR_CM, calcularAnchoFramePx } from '../../components/dominio/lienzoEditor/constantesLienzo';
 import { POSICION_PENDIENTE_ANCHO_CM } from '../../constants/valoresPorDefecto';
@@ -43,7 +44,8 @@ import { adaptarCapacidad, adaptarGondola, adaptarProductoDePosicion } from '../
 import type { ProductoCatalogo } from '../../domain/lienzo/lienzo.types';
 import type { GondolaListItem } from '../../types/gondola';
 import type { Nivel } from '../../types/nivel';
-import type { PosicionConProducto, PosicionInput } from '../../types/posicion';
+import type { PosicionCambiosCompletos, PosicionConProducto, PosicionInput } from '../../types/posicion';
+import type { DimensionesProducto } from '../../types/catalogo';
 import './LienzoPlanograma.css';
 
 /** Alto de referencia (px) que se asume por góndola al calcular "ajustar a pantalla". */
@@ -103,6 +105,7 @@ export function LienzoPlanograma() {
   const { copiar: copiarPosicion } = useCopiarPosicion();
   const { mover: moverPosicion } = useMoverPosicion();
   const { agregar: agregarPosicion } = useAgregarPosicion();
+  const { actualizar: actualizarDimensiones } = useActualizarDimensionesProducto();
   const { porGondola: seccionesPorGondola, recargar: recargarSecciones } = useSeccionesDeVersion(gondolas);
   const editarSecciones = useEditarSecciones();
   const [mostrarGanchos, setMostrarGanchos] = useState(false);
@@ -291,6 +294,37 @@ export function LienzoPlanograma() {
     const anchoNuevo = calcularAnchoAsignado(nuevoFacings, posicion.producto?.ancho_cm ?? null, posicion.ancho_asignado_cm);
     const resultado = await editarPosicion(posicion.id, { facings_horizontal: nuevoFacings, ancho_asignado_cm: anchoNuevo });
     if (resultado) recargarPosiciones();
+  }
+
+  const posicionesPorId = useMemo(
+    () => Object.fromEntries(Object.values(posicionesPorNivel).flatMap((d) => d.posiciones).map((p) => [p.id, p])) as Record<number, PosicionConProducto>,
+    [posicionesPorNivel],
+  );
+
+  async function onEditarPosicionTabla(posicion: PosicionConProducto, cambios: PosicionCambiosCompletos) {
+    const resultado = await editarPosicion(posicion.id, cambios);
+    if (resultado) recargarPosiciones();
+    return Boolean(resultado);
+  }
+
+  /** Guarda las medidas del producto y recalcula el ancho asignado (facings × ancho) de sus posiciones. */
+  async function onEditarDimensionesSku(sku: string, dimensiones: DimensionesProducto) {
+    const producto = await actualizarDimensiones(sku, dimensiones);
+    if (!producto) return false;
+    const aRecalcular = Object.values(posicionesPorId).filter(
+      (p) => p.sku === sku && p.ancho_asignado_cm !== calcularAnchoAsignado(p.facings_horizontal, dimensiones.ancho_cm, p.ancho_asignado_cm),
+    );
+    try {
+      await Promise.all(
+        aRecalcular.map((p) =>
+          posicionesService.editar(p.id, { ancho_asignado_cm: calcularAnchoAsignado(p.facings_horizontal, dimensiones.ancho_cm, p.ancho_asignado_cm) }),
+        ),
+      );
+    } catch {
+      mostrarToast('Las medidas se guardaron, pero no se pudo recalcular el ancho de todas sus posiciones', 'error');
+    }
+    recargarPosiciones();
+    return true;
   }
 
   async function onDuplicarPosicion(posicion: PosicionConProducto) {
@@ -615,6 +649,9 @@ export function LienzoPlanograma() {
               onAgregarNivel={onAgregarNivelEnSeccion}
               skus={skusVersion}
               onEditarSku={editarSku}
+              posicionesPorId={posicionesPorId}
+              onEditarPosicion={onEditarPosicionTabla}
+              onEditarDimensiones={onEditarDimensionesSku}
               onIrAPosicion={(posicionId) => onSeleccionarPosicion(String(posicionId))}
               mostrarGanchos={mostrarGanchos}
               onAlternarGanchos={() => setMostrarGanchos((v) => !v)}
