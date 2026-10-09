@@ -45,6 +45,13 @@
   }
 }
 
+.planograma-detalle__nombre {
+  flex-basis: 100%;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg-3);
+}
+
 .planograma-detalle__meta {
   font-size: 13px;
   color: var(--fg-2);
@@ -110,14 +117,6 @@
   line-height: 20px;
   text-align: center;
   color: var(--ink-700);
-}
-
-/* Archivar: botón con borde rojo, no relleno. */
-.planograma-detalle__archivar {
-  border-color: #f1c4b8;
-  color: var(--danger);
-
-  &:hover:not(:disabled) { background: var(--danger-bg); }
 }
 
 /* ─── Versiones ───────────────────────────────────────────────────────────── */

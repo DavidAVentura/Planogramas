@@ -43,6 +43,7 @@ Retorna el detalle completo de un planograma: metadatos, subcategorías de refer
 {
   "id": 42,
   "nombre": "AUTOS 01",
+  "descripcion": "Aceites, lubricantes y accesorios eléctricos",
   "area": "HOGAR",
   "departamento": "AUTOS",
   "estado": "borrador",

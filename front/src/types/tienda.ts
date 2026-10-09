@@ -41,6 +41,7 @@ export interface PlanogramaPublicadoTienda {
   esEspecial: boolean;
   planogramaId: number;
   nombre: string;
+  descripcion: string | null;
   departamento: string;
   /** Con el código CATI al inicio, ej. "(01-0025-993-920399-20573) ALFOMBRAS DE HULE AUTOS". */
   subcategorias: string[];

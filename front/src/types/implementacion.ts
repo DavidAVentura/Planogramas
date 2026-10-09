@@ -28,6 +28,7 @@ export interface PlanogramaImplementacion {
   esEspecial: boolean;
   planogramaId: number;
   nombre: string;
+  descripcion: string | null;
   departamento: string;
   totalProductos: number;
   /** `null` cuando el inventario no está disponible (modo degradado). */
@@ -117,6 +118,7 @@ export interface VersionElegible {
   codigo: string;
   estado: string;
   nombre: string;
+  descripcion: string | null;
   departamento: string;
   totalProductos: number;
 }

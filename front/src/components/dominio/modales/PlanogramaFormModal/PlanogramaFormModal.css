@@ -62,8 +62,8 @@
   color: var(--fg-2);
   font-weight: 600;
 
-  input {
-    height: 40px;
+  input,
+  textarea {
     padding: 0 12px;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
@@ -75,6 +75,15 @@
       outline: 0;
       border-color: var(--cemaco-indigo);
     }
+  }
+
+  input {
+    height: 40px;
+  }
+
+  textarea {
+    padding: 8px 12px;
+    resize: vertical;
   }
 }
 

@@ -10,16 +10,8 @@
   }
 }
 
-.planogramas-table__nombre {
-  font-weight: 700;
-}
-
 .planogramas-table__numero {
   font-variant-numeric: tabular-nums;
-}
-
-.table .planogramas-table__fila--archivada td {
-  color: var(--fg-3);
 }
 
 .planogramas-table__acciones {
@@ -49,11 +41,5 @@
       color: var(--fg-4);
       cursor: not-allowed;
     }
-  }
-
-  .planogramas-table__accion--peligro:not(:disabled) {
-    color: var(--danger);
-
-    &:hover { background: var(--danger-bg); }
   }
 }

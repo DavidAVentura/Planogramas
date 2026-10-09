@@ -5,6 +5,7 @@ import { Button } from '../../../ui/Button/Button';
 import { Badge } from '../../../ui/Badge/Badge';
 import { Table, type TableColumn } from '../../../ui/Table/Table';
 import { EmptyState } from '../../../ui/EmptyState/EmptyState';
+import { IdentidadPlanograma } from '../../IdentidadPlanograma/IdentidadPlanograma';
 import { usePlanogramasPublicadosTienda } from '../../../../hooks/useTiendas';
 import { SIGLA_TIPO_TIENDA, TIPO_TIENDA_META } from '../../../../constants/tiendas';
 import { subcategoriaSinCodigo } from '../../../../utils/formatters';
@@ -36,6 +37,7 @@ export function PlanogramasTiendaModal({ tienda, onClose }: PlanogramasTiendaMod
         (p) =>
           !q ||
           p.nombre.toLowerCase().includes(q) ||
+          (p.descripcion ?? '').toLowerCase().includes(q) ||
           p.codigo.toLowerCase().includes(q) ||
           p.subcategorias.some((s) => s.toLowerCase().includes(q)),
       )
@@ -54,7 +56,7 @@ export function PlanogramasTiendaModal({ tienda, onClose }: PlanogramasTiendaMod
       header: 'Planograma',
       render: (p) => (
         <span className="planogramas-tienda__planograma">
-          <span className="planogramas-tienda__nombre">{p.nombre}</span>
+          <IdentidadPlanograma nombre={p.nombre} descripcion={p.descripcion} variante="compacta" />
           <span className="planogramas-tienda__codigo">{p.codigo}</span>
         </span>
       ),

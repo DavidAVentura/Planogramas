@@ -19,7 +19,11 @@ async function listar({ departamento, estado, search, page, pageSize }) {
   const baseQuery = db(TABLA_PLANOGRAMA).where((builder) => {
     if (departamento) builder.where('departamento', departamento);
     if (estado)       builder.where('estado',       estado);
-    if (search)       builder.whereILike('nombre',  `%${search}%`);
+    if (search) {
+      builder.where((b) => b
+        .whereILike('nombre',      `%${search}%`)
+        .orWhereILike('descripcion', `%${search}%`));
+    }
   });
 
   const [{ total }] = await baseQuery.clone().count('id as total');
@@ -29,6 +33,7 @@ async function listar({ departamento, estado, search, page, pageSize }) {
     .select(
       'id',
       'nombre',
+      'descripcion',
       'departamento',
       'estado',
       'created_at',
@@ -79,7 +84,7 @@ async function crear(planograma, subcategorias) {
 async function buscarPorId(id) {
   const planograma = await db(TABLA_PLANOGRAMA)
     .where('id', id)
-    .select('id', 'nombre', 'departamento', 'estado', 'created_at', 'created_by')
+    .select('id', 'nombre', 'descripcion', 'departamento', 'estado', 'created_at', 'created_by')
     .first();
 
   if (!planograma) return null;

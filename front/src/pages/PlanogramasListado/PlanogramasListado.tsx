@@ -3,7 +3,6 @@ import { AppTopbar } from '../../components/dominio/layout/AppTopbar/AppTopbar';
 import { FiltrosBar } from '../../components/dominio/listado/FiltrosBar/FiltrosBar';
 import { PlanogramasTable } from '../../components/dominio/listado/PlanogramasTable/PlanogramasTable';
 import { PlanogramaFormModal } from '../../components/dominio/modales/PlanogramaFormModal/PlanogramaFormModal';
-import { ArchivarModal } from '../../components/dominio/modales/ArchivarModal/ArchivarModal';
 import { Button } from '../../components/ui/Button/Button';
 import { BotonFiltros } from '../../components/ui/BotonFiltros/BotonFiltros';
 import { Paginacion } from '../../components/ui/Paginacion/Paginacion';
@@ -22,7 +21,6 @@ export function PlanogramasListado() {
   const { filtros, setFiltros, resultado, cargando, recargar } = usePlanogramasListado();
   const [formularioAbierto, setFormularioAbierto] = useState(false);
   const [idAEditar, setIdAEditar] = useState<number | null>(null);
-  const [planogramaAArchivar, setPlanogramaAArchivar] = useState<PlanogramaListItem | null>(null);
   // La barra de filtros arranca oculta, como en Estructura; el botón junto a "Crear" la despliega.
   const [filtrosVisibles, setFiltrosVisibles] = useState(false);
 
@@ -70,7 +68,6 @@ export function PlanogramasListado() {
               rows={resultado.data}
               puedeEscribir={puedeEscribir}
               onEditar={editar}
-              onArchivar={setPlanogramaAArchivar}
             />
             <Paginacion
               page={resultado.page}
@@ -89,18 +86,6 @@ export function PlanogramasListado() {
           onClose={cerrarFormulario}
           onGuardado={() => {
             cerrarFormulario();
-            recargar();
-          }}
-        />
-      )}
-
-      {planogramaAArchivar && (
-        <ArchivarModal
-          planogramaId={planogramaAArchivar.id}
-          nombre={planogramaAArchivar.nombre}
-          onClose={() => setPlanogramaAArchivar(null)}
-          onArchivado={() => {
-            setPlanogramaAArchivar(null);
             recargar();
           }}
         />

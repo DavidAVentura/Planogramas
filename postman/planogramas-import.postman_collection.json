@@ -1129,7 +1129,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"nombre\": \"Autos - Rack Frontal A {{$timestamp}}\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\"Aceites\", \"Filtros\"]\n}",
+                  "raw": "{\n  \"nombre\": \"Autos - Rack Frontal A {{$timestamp}}\",\n  \"descripcion\": \"Aceites y filtros, rack frontal\",\n  \"departamento\": \"Autos\",\n  \"subcategorias\": [\"Aceites\", \"Filtros\"]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1150,6 +1150,7 @@
                       "  pm.expect(body).to.have.property('id');",
                       "  pm.expect(body.estado).to.eql('borrador');",
                       "  pm.expect(body.subcategorias).to.be.an('array').with.lengthOf(2);",
+                      "  pm.expect(body.descripcion).to.eql('Aceites y filtros, rack frontal');",
                       "});"
                     ]
                   }
@@ -1373,7 +1374,7 @@
           "name": "Editar planograma (PATCH /planogramas/:id)",
           "item": [
             {
-              "name": "200 - Editar nombre y subcategorias",
+              "name": "200 - Editar nombre, descripcion y subcategorias",
               "request": {
                 "method": "PATCH",
                 "header": [
@@ -1396,7 +1397,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"nombre\": \"Autos - Rack Frontal A (actualizado) {{$timestamp}}\",\n  \"subcategorias\": [\n    \"Aceites\",\n    \"Filtros\",\n    \"Bujias\"\n  ]\n}",
+                  "raw": "{\n  \"nombre\": \"Autos - Rack Frontal A (actualizado) {{$timestamp}}\",\n  \"descripcion\": \"Aceites, filtros y bujias\",\n  \"subcategorias\": [\n    \"Aceites\",\n    \"Filtros\",\n    \"Bujias\"\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1414,6 +1415,7 @@
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
                       "pm.test('Nombre actualizado', () => {",
                       "  pm.expect(pm.response.json().nombre).to.include('actualizado');",
+                      "  pm.expect(pm.response.json().descripcion).to.eql('Aceites, filtros y bujias');",
                       "});"
                     ]
                   }

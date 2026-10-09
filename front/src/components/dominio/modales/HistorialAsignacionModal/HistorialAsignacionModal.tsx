@@ -11,7 +11,7 @@ import {
   formatoEdicion,
   type VarianteChip,
 } from '../../../../domain/estructura/asignaciones';
-import { formatearFechaHora } from '../../../../utils/formatters';
+import { formatearFechaHora, tooltipPlanograma } from '../../../../utils/formatters';
 import type { PlanogramaMatriz, TiendaMatriz, VersionMatriz } from '../../../../types/asignacion';
 import './HistorialAsignacionModal.css';
 
@@ -38,6 +38,7 @@ export function HistorialAsignacionModal({ planograma, tienda, versiones, actual
   return (
     <Modal
       titulo={`Historial · ${planograma.nombre}`}
+      tituloTooltip={tooltipPlanograma(planograma.nombre, planograma.descripcion)}
       ancho="lg"
       claseModal="historial-asignacion"
       onClose={onClose}

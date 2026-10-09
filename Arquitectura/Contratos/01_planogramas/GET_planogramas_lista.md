@@ -9,7 +9,7 @@
 
 ## Descripción
 
-Retorna una lista paginada de planogramas. Permite filtrar por departamento, estado y búsqueda por nombre. Cada ítem del listado incluye conteo de versiones para dar contexto rápido sin cargar el detalle completo.
+Retorna una lista paginada de planogramas. Permite filtrar por departamento, estado y búsqueda por nombre o descripción. Cada ítem del listado incluye conteo de versiones para dar contexto rápido sin cargar el detalle completo.
 
 ---
 
@@ -21,7 +21,7 @@ Retorna una lista paginada de planogramas. Permite filtrar por departamento, est
 |-----------|------|-----------|-------------|
 | `departamento` | `string` | No | Filtra por código de departamento CATI. Si se omite, retorna todos los departamentos. |
 | `estado` | `string` | No | Filtra por estado del planograma. Valores: `borrador`, `publicado`, `archivado`. |
-| `search` | `string` | No | Búsqueda parcial por nombre (LIKE `%search%`). Mínimo 2 caracteres si se envía. |
+| `search` | `string` | No | Búsqueda parcial por nombre **o** descripción (LIKE `%search%`). Mínimo 2 caracteres si se envía. |
 | `page` | `integer` | No | Número de página. Default: `1`. Mínimo: `1`. |
 | `pageSize` | `integer` | No | Elementos por página. Default: `20`. Máximo: `100`. |
 
@@ -49,6 +49,7 @@ Retorna una lista paginada de planogramas. Permite filtrar por departamento, est
 - **Con `departamento`:** retorna solo los del departamento indicado.
 - **Con `estado=archivado`:** retorna solo los archivados.
 - **Con `search=AUTOS`:** retorna planogramas cuyo nombre contiene "AUTOS" (case-insensitive).
+- **Con `search=aceites`:** retorna también los planogramas cuya descripción contiene "aceites", aunque el nombre no lo contenga.
 
 ---
 
@@ -60,6 +61,7 @@ Retorna una lista paginada de planogramas. Permite filtrar por departamento, est
     {
       "id": 1,
       "nombre": "AUTOS 01",
+      "descripcion": "Aceites, lubricantes y aditivos",
       "departamento": "AUTOS",
       "estado": "borrador",
       "totalVersiones": 2,
@@ -68,6 +70,7 @@ Retorna una lista paginada de planogramas. Permite filtrar por departamento, est
     {
       "id": 2,
       "nombre": "AUTOS PREMIUM",
+      "descripcion": null,
       "departamento": "AUTOS",
       "estado": "publicado",
       "totalVersiones": 1,

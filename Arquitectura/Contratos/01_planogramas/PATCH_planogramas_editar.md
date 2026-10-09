@@ -9,7 +9,7 @@
 
 ## Descripción
 
-Modifica nombre, área, departamento o subcategorías de referencia de un planograma existente. Solo acepta los campos enviados (partial update). Un planograma archivado no puede editarse.
+Modifica nombre, descripción, área, departamento o subcategorías de referencia de un planograma existente. Solo acepta los campos enviados (partial update). Un planograma archivado no puede editarse.
 
 ---
 
@@ -33,6 +33,7 @@ Modifica nombre, área, departamento o subcategorías de referencia de un planog
 | Campo | Tipo | Validación |
 |-------|------|------------|
 | `nombre` | `string` | Máximo 100 chars. |
+| `descripcion` | `string \| null` | Máximo 500 chars. Vacía o `null` borra la descripción. |
 | `area` | `string` | Código de área CATI. |
 | `departamento` | `string` | Código de departamento CATI. |
 | `subcategorias` | `string[]` | Reemplaza la lista completa. Mínimo 1 elemento si se envía. |
@@ -46,6 +47,7 @@ Modifica nombre, área, departamento o subcategorías de referencia de un planog
 3. Si se envía `subcategorias`, **reemplaza toda la lista** — no es un merge.
 4. Los campos no enviados permanecen sin cambios.
 5. El `estado` no se puede modificar con este endpoint (usar `/archivar`).
+6. Cambiar solo la `descripcion` no dispara la validación de unicidad del nombre.
 
 ---
 
@@ -54,6 +56,7 @@ Modifica nombre, área, departamento o subcategorías de referencia de un planog
 ```json
 {
   "nombre": "AUTOS 01 REVISADO",
+  "descripcion": "Aceites, accesorios eléctricos y filtros",
   "subcategorias": [
     "Aceites y lubricantes",
     "Accesorios eléctricos",
@@ -70,6 +73,7 @@ Modifica nombre, área, departamento o subcategorías de referencia de un planog
 {
   "id": 42,
   "nombre": "AUTOS 01 REVISADO",
+  "descripcion": "Aceites, accesorios eléctricos y filtros",
   "area": "HOGAR",
   "departamento": "AUTOS",
   "estado": "borrador",

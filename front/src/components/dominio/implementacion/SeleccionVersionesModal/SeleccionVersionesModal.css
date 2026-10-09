@@ -131,6 +131,15 @@
   font-weight: 500;
 }
 
+.seleccion-versiones__descripcion {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg-1);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .seleccion-versiones__nombre {
   font-size: 13px;
   color: var(--fg-2);

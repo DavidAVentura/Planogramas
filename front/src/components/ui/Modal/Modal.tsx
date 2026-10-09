@@ -3,6 +3,8 @@ import './Modal.css';
 
 interface ModalProps {
   titulo: string;
+  /** Tooltip del título (ej. la descripción completa del planograma). */
+  tituloTooltip?: string;
   onClose: () => void;
   children: ReactNode;
   footer?: ReactNode;
@@ -10,7 +12,7 @@ interface ModalProps {
   claseModal?: string;
 }
 
-export function Modal({ titulo, onClose, children, footer, ancho = 'md', claseModal }: ModalProps) {
+export function Modal({ titulo, tituloTooltip, onClose, children, footer, ancho = 'md', claseModal }: ModalProps) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
@@ -21,7 +23,9 @@ export function Modal({ titulo, onClose, children, footer, ancho = 'md', claseMo
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal__header">
-          <span className="modal__titulo">{titulo}</span>
+          <span className="modal__titulo" title={tituloTooltip}>
+            {titulo}
+          </span>
           <button type="button" className="modal__cerrar" onClick={onClose} aria-label="Cerrar">
             &times;
           </button>

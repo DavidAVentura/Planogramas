@@ -6,7 +6,6 @@ import { EstadoBadge } from '../../components/dominio/EstadoBadge/EstadoBadge';
 import { SubcategoriasCard } from '../../components/dominio/detalle/SubcategoriasCard/SubcategoriasCard';
 import { VersionesTable } from '../../components/dominio/detalle/VersionesTable/VersionesTable';
 import { PlanogramaFormModal } from '../../components/dominio/modales/PlanogramaFormModal/PlanogramaFormModal';
-import { ArchivarModal } from '../../components/dominio/modales/ArchivarModal/ArchivarModal';
 import { ArchivarVersionModal } from '../../components/dominio/modales/ArchivarVersionModal/ArchivarVersionModal';
 import { CrearVersionModal } from '../../components/dominio/modales/CrearVersionModal/CrearVersionModal';
 import { VersionEspecialWizard } from '../../components/dominio/modales/VersionEspecialWizard/VersionEspecialWizard';
@@ -33,7 +32,6 @@ export function PlanogramaDetalle() {
   const { guardar: marcarEnDesarrollo } = useGuardarVersion();
 
   const [formularioAbierto, setFormularioAbierto] = useState(false);
-  const [archivarAbierto, setArchivarAbierto] = useState(false);
   const [crearVersionAbierto, setCrearVersionAbierto] = useState(false);
   const [especialWizardAbierto, setEspecialWizardAbierto] = useState(false);
   // Contraídas por defecto: el espacio queda para la tabla de versiones.
@@ -85,7 +83,8 @@ export function PlanogramaDetalle() {
             {/* Una sola fila; si no cabe, primero bajan las acciones y luego la meta. */}
             <div className="planograma-detalle__fila">
               <div className="planograma-detalle__titulo">
-                <h1 id="titulo-planograma">{planograma.nombre}</h1>
+                {planograma.descripcion && <span className="planograma-detalle__nombre">{planograma.nombre}</span>}
+                <h1 id="titulo-planograma">{planograma.descripcion || planograma.nombre}</h1>
                 <EstadoBadge estado={planograma.estado} />
                 <span className="planograma-detalle__meta">
                   {planograma.departamento} · creado el {formatearFecha(planograma.created_at)} por {planograma.created_by}
@@ -108,19 +107,9 @@ export function PlanogramaDetalle() {
                   </button>
                 )}
                 {puedeEscribir && (
-                  <>
-                    <Button variante="ghost" onClick={() => setFormularioAbierto(true)}>
-                      Editar
-                    </Button>
-                    <Button
-                      variante="ghost"
-                      className="planograma-detalle__archivar"
-                      disabled={archivado}
-                      onClick={() => setArchivarAbierto(true)}
-                    >
-                      Archivar
-                    </Button>
-                  </>
+                  <Button variante="ghost" onClick={() => setFormularioAbierto(true)}>
+                    Editar
+                  </Button>
                 )}
               </div>
             </div>
@@ -180,18 +169,6 @@ export function PlanogramaDetalle() {
           onClose={() => setFormularioAbierto(false)}
           onGuardado={() => {
             setFormularioAbierto(false);
-            recargar();
-          }}
-        />
-      )}
-
-      {archivarAbierto && planograma && (
-        <ArchivarModal
-          planogramaId={planograma.id}
-          nombre={planograma.nombre}
-          onClose={() => setArchivarAbierto(false)}
-          onArchivado={() => {
-            setArchivarAbierto(false);
             recargar();
           }}
         />

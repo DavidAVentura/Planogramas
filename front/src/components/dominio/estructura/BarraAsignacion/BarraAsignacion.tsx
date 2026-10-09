@@ -194,7 +194,7 @@ export function BarraAsignacion({
             <span className="barra-asignacion__oculto">Buscar planograma</span>
             <input
               type="search"
-              placeholder="Buscar planograma"
+              placeholder="Buscar por nombre o descripción"
               value={filtros.busqueda}
               onChange={(e) => onFiltros({ busqueda: e.target.value })}
             />

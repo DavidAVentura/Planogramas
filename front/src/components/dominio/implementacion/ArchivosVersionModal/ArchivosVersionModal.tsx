@@ -6,7 +6,7 @@ import { EstadoVersionBadge } from '../EstadoVersionBadge/EstadoVersionBadge';
 import { useAdjuntosDeVersion } from '../../../../hooks/useAdjuntos';
 import { abrirAdjunto } from '../../../../utils/adjuntoArchivo';
 import { useToast } from '../../../../context/ToastContext';
-import { formatearFecha } from '../../../../utils/formatters';
+import { formatearFecha, tooltipPlanograma } from '../../../../utils/formatters';
 import { mensajeDeError } from '../../../../utils/errors';
 import type { Adjunto } from '../../../../types/adjunto';
 import type { ResumenVersion } from '../../../../types/implementacion';
@@ -64,7 +64,7 @@ export function ArchivosVersionModal({ planograma, onClose }: ArchivosVersionMod
       }
     >
       <div className="archivos-version__version">
-        <strong>{planograma.nombre}</strong>
+        <strong title={tooltipPlanograma(planograma.nombre, planograma.descripcion)}>{planograma.nombre}</strong>
         <span className="archivos-version__codigo">{planograma.codigo}</span>
         <EstadoVersionBadge estado={planograma.estado} />
       </div>

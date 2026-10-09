@@ -45,6 +45,7 @@ async function seleccionarVersiones(query) {
       `${TABLA_VERSION}.version_base_id as versionBaseId`,
       `${TABLA_PLANOGRAMA}.id as planogramaId`,
       `${TABLA_PLANOGRAMA}.nombre as nombre`,
+      `${TABLA_PLANOGRAMA}.descripcion as descripcion`,
       `${TABLA_PLANOGRAMA}.departamento as departamento`,
     );
 
@@ -56,6 +57,7 @@ async function seleccionarVersiones(query) {
     esEspecial:   r.versionBaseId !== null,
     planogramaId: r.planogramaId,
     nombre:       r.nombre,
+    descripcion:  r.descripcion,
     departamento: r.departamento,
   }));
 }

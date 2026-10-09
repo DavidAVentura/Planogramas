@@ -214,7 +214,7 @@ export function EstructuraAsignacion() {
     return (matriz?.planogramas ?? []).filter(
       (p) =>
         (!filtros.departamento || p.departamento === filtros.departamento) &&
-        (!q || p.nombre.toLowerCase().includes(q)) &&
+        (!q || p.nombre.toLowerCase().includes(q) || (p.descripcion ?? '').toLowerCase().includes(q)) &&
         (elegidos.size === 0 || elegidos.has(p.id)),
     );
   }, [matriz, filtros.busqueda, filtros.departamento, filtros.planogramas]);
@@ -225,6 +225,7 @@ export function EstructuraAsignacion() {
       (matriz?.planogramas ?? []).map((p) => ({
         id: p.id,
         nombre: p.nombre,
+        descripcion: p.descripcion,
         departamento: p.departamento,
         totalVersiones: p.versiones.length,
         versiones: p.versiones,

@@ -9,6 +9,7 @@ import {
 } from '../../../../domain/estructura/asignaciones';
 import type { PlanogramaMatriz, TiendaMatriz, VersionMatriz } from '../../../../types/asignacion';
 import { VersionesPlanograma } from '../VersionesPlanograma/VersionesPlanograma';
+import { IdentidadPlanograma } from '../../IdentidadPlanograma/IdentidadPlanograma';
 import './MatrizAsignaciones.css';
 
 interface MatrizAsignacionesProps {
@@ -126,7 +127,7 @@ export function MatrizAsignaciones({
         return (
           <div key={p.id} role="row" className="matriz-asignaciones__fila">
             <div role="rowheader" className="matriz-asignaciones__planograma">
-              <span className="matriz-asignaciones__planograma-nombre">{p.nombre}</span>
+              <IdentidadPlanograma nombre={p.nombre} descripcion={p.descripcion} variante="compacta" />
               <span className="matriz-asignaciones__planograma-meta">
                 {p.departamento}
                 <VersionesPlanograma versiones={p.versiones} />

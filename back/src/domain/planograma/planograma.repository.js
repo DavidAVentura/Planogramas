@@ -17,7 +17,7 @@ module.exports = {
 
   /**
    * Crea un planograma y sus subcategorías en una transacción.
-   * @param {{ nombre, departamento, estado, created_by }} planograma
+   * @param {{ nombre, descripcion, departamento, estado, created_by }} planograma
    * @param {string[]} subcategorias
    * @returns {Promise<number>} id del planograma creado
    */
@@ -33,7 +33,7 @@ module.exports = {
   /**
    * Aplica un partial update de metadatos. Solo actualiza los campos presentes en `cambios`.
    * @param {number} id
-   * @param {{ nombre?, departamento? }} cambios  — subcategorías se manejan aparte
+   * @param {{ nombre?, descripcion?, departamento? }} cambios  — subcategorías se manejan aparte
    * @param {string[]|undefined} subcategorias    — si está presente, reemplaza las existentes
    * @returns {Promise<void>}
    */

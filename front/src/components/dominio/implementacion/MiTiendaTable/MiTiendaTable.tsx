@@ -3,6 +3,7 @@ import { AnilloInventario } from '../AnilloInventario/AnilloInventario';
 import { ImplementableBadge } from '../ImplementableBadge/ImplementableBadge';
 import { EstadoVersionBadge } from '../EstadoVersionBadge/EstadoVersionBadge';
 import { BotonArchivos, BotonEvidencia } from '../AccionesVersion/AccionesVersion';
+import { tooltipPlanograma } from '../../../../utils/formatters';
 import type { PlanogramaImplementacion } from '../../../../types/implementacion';
 import './MiTiendaTable.css';
 
@@ -35,9 +36,10 @@ export function MiTiendaTable({ planogramas, umbral, inventarioDisponible, onArc
             <td data-label="Departamento">{p.departamento}</td>
             <td data-label="Planograma versión">
               <span className="mi-tienda-table__version">
-                <span className="mi-tienda-table__codigo" title={p.nombre}>
+                <span className="mi-tienda-table__codigo" title={tooltipPlanograma(p.nombre, p.descripcion)}>
                   {p.codigo}
                 </span>
+                {p.descripcion && <span className="mi-tienda-table__descripcion">{p.descripcion}</span>}
                 <EstadoVersionBadge estado={p.estado} />
               </span>
             </td>

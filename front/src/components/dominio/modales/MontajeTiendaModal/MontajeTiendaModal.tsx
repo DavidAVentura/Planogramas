@@ -5,7 +5,7 @@ import { VisorImagenes, type ImagenVisor } from '../../../ui/VisorImagenes/Visor
 import { useEvidenciasDeVersion } from '../../../../hooks/useEvidencias';
 import { useImagenCacheada } from '../../../../hooks/useImagenCacheada';
 import { evidenciasService } from '../../../../services/evidencias.service';
-import { formatearFechaHora, textoConteo } from '../../../../utils/formatters';
+import { formatearFechaHora, textoConteo, tooltipPlanograma } from '../../../../utils/formatters';
 import type { PlanogramaMatriz, TiendaMatriz, VersionMatriz } from '../../../../types/asignacion';
 import type { Evidencia } from '../../../../types/evidencia';
 import './MontajeTiendaModal.css';
@@ -66,7 +66,7 @@ export function MontajeTiendaModal({ planograma, version, tienda, onClose }: Mon
     <>
       <Modal titulo="Montaje de tienda" onClose={onClose} ancho="xl">
         <div className="montaje-modal__contexto">
-          <strong>{planograma.nombre}</strong>
+          <strong title={tooltipPlanograma(planograma.nombre, planograma.descripcion)}>{planograma.nombre}</strong>
           <span className="mono">{version.codigo}</span>
           <span>
             · <span className="mono">{tienda.codigo}</span> {tienda.nombre}

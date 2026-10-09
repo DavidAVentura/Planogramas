@@ -207,7 +207,7 @@ El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
   `agente-extractor`.
 - **Pendiente**: `sustituciones` (06) y `exportacion` (07) no están montados en
   `back/src/infrastructure/http/routes/index.js`. Su contrato ya existe en `Arquitectura/Contratos/`.
-- Migraciones: `001` a `014` en `back/src/infrastructure/db/migrations/`. Antes de implementar un
+- Migraciones: `001` a `016` en `back/src/infrastructure/db/migrations/`. Antes de implementar un
   módulo nuevo, revisa si el esquema ya cubre las tablas que necesita o si hace falta una migración
   adicional (`015_...`, ver convención de nombres en `ESTRUCTURA_BACKEND.md`). Un valor nuevo de
   una columna `varchar` sin CHECK (ej. `Posicion.modo = 'IMPULSO'`) no requiere migración: basta
@@ -217,7 +217,7 @@ El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
 
 | Ambiente | BD | Última migración aplicada | Pendientes | Verificado |
 |----------|----|---------------------------|------------|------------|
-| DEV | `OTB` | `014_accesorio_medidas.js` | Ninguna | 2026-10-07 (`npm run migrate:status`) |
+| DEV | `OTB` | `016_reactivar_planogramas_archivados.js` | Ninguna | 2026-10-09 (`npm run migrate:status`) |
 | PROD | `db-planogramas` | Sin verificar | Sin verificar | — |
 
 > **Mantener esta tabla al día.** Cada vez que se cree una migración nueva o se aplique

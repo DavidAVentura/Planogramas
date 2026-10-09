@@ -8,7 +8,7 @@ import { abrirAdjunto } from '../../../../utils/adjuntoArchivo';
 import { useToast } from '../../../../context/ToastContext';
 import { mensajeDeError } from '../../../../utils/errors';
 import { SIGLA_TIPO_TIENDA, TIPO_TIENDA_META } from '../../../../constants/tiendas';
-import { formatearFecha, subcategoriaSinCodigo } from '../../../../utils/formatters';
+import { formatearFecha, subcategoriaSinCodigo, tooltipPlanograma } from '../../../../utils/formatters';
 import type { VarianteChip } from '../../../../domain/estructura/asignaciones';
 import type { TiendaMatriz } from '../../../../types/asignacion';
 import type { Adjunto } from '../../../../types/adjunto';
@@ -59,6 +59,7 @@ export function VersionResumenModal({ versionId, tienda, onClose }: VersionResum
   return (
     <Modal
       titulo={resumen ? resumen.planograma.nombre : 'Versión'}
+      tituloTooltip={resumen ? tooltipPlanograma(resumen.planograma.nombre, resumen.planograma.descripcion) : undefined}
       ancho="xl"
       claseModal="version-resumen"
       onClose={onClose}

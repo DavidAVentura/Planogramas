@@ -26,6 +26,12 @@
   font-weight: 500;
 }
 
+.mi-tienda-table__descripcion {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-1);
+}
+
 /* Ancho fijo para que Archivos, Evidencia y Detalle queden alineados en todas las filas. */
 .mi-tienda-table .mi-tienda-table__col-acciones {
   width: 392px;

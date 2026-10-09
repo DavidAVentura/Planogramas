@@ -9,7 +9,7 @@
 
 ## Descripción
 
-Crea un nuevo planograma con nombre, departamento, área y subcategorías de referencia. El planograma nace en estado `borrador`. Valida unicidad del nombre dentro del mismo departamento.
+Crea un nuevo planograma con nombre, descripción opcional, departamento, área y subcategorías de referencia. El planograma nace en estado `borrador`. Valida unicidad del nombre dentro del mismo departamento.
 
 ---
 
@@ -27,6 +27,7 @@ Crea un nuevo planograma con nombre, departamento, área y subcategorías de ref
 | Campo | Tipo | Requerido | Validación |
 |-------|------|-----------|------------|
 | `nombre` | `string` | Sí | Mínimo 3 chars, máximo 100 chars. No puede ser solo espacios. |
+| `descripcion` | `string \| null` | No | Máximo 500 chars. Texto libre que describe qué contiene el planograma. Vacía o `null` se guarda como `null`. |
 | `area` | `string` | Sí | Código de área de CATI. |
 | `departamento` | `string` | Sí | Código de departamento de CATI. |
 | `subcategorias` | `string[]` | Sí | Array de texto libre. Mínimo 1 elemento. Máximo 20. Cada elemento máx. 100 chars. |
@@ -40,6 +41,7 @@ Crea un nuevo planograma con nombre, departamento, área y subcategorías de ref
 3. El campo `createdBy` se toma del JWT — no se envía en el body.
 4. Las subcategorías son texto libre (no se validan contra catálogo CATI en este endpoint).
 5. El planograma recién creado no tiene versiones — el Analista debe crearlas por separado.
+6. El `nombre` funciona como correlativo (ej. `AUTOS 01`, `AUTOS 02`); la `descripcion` es la que identifica qué contiene el planograma y participa en la búsqueda del listado. No se valida unicidad sobre la descripción.
 
 ---
 
@@ -48,6 +50,7 @@ Crea un nuevo planograma con nombre, departamento, área y subcategorías de ref
 ```json
 {
   "nombre": "AUTOS 01",
+  "descripcion": "Aceites, lubricantes y accesorios eléctricos",
   "area": "HOGAR",
   "departamento": "AUTOS",
   "subcategorias": [
@@ -65,6 +68,7 @@ Crea un nuevo planograma con nombre, departamento, área y subcategorías de ref
 {
   "id": 42,
   "nombre": "AUTOS 01",
+  "descripcion": "Aceites, lubricantes y accesorios eléctricos",
   "area": "HOGAR",
   "departamento": "AUTOS",
   "estado": "borrador",

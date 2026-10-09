@@ -9,7 +9,6 @@ const OPCIONES_ESTADO: { value: PlanogramaEstado | ''; label: string }[] = [
   { value: '', label: 'Todos los estados' },
   { value: 'borrador', label: 'Borrador' },
   { value: 'activo', label: 'Activo' },
-  { value: 'archivado', label: 'Archivado' },
 ];
 
 interface FiltrosBarProps {
@@ -82,7 +81,7 @@ export function FiltrosBar({ id, filtros, onChange, visible }: FiltrosBarProps) 
         <input
           className="filtros-bar__busqueda"
           type="search"
-          placeholder="Buscar por nombre…"
+          placeholder="Buscar por nombre o descripción…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onBlur={() => onChange({ search: search.trim() || undefined })}

@@ -183,13 +183,6 @@
   background: var(--bg-elevated);
 }
 
-.matriz-asignaciones__planograma-nombre {
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--fg-1);
-}
-
 .matriz-asignaciones__planograma-meta {
   display: flex;
   flex-wrap: wrap;

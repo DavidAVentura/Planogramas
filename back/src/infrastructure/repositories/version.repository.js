@@ -802,7 +802,7 @@ async function obtenerResumen(id) {
 
   const planograma = await db(TABLA_PLANOGRAMA)
     .where('id', version.planograma_id)
-    .select('id', 'nombre', 'departamento', 'estado')
+    .select('id', 'nombre', 'descripcion', 'departamento', 'estado')
     .first();
   const subcategorias = await db(TABLA_SUBCATEGORIA)
     .where('planograma_id', planograma.id)

@@ -6,7 +6,7 @@ import { EstadoVersionBadge } from '../EstadoVersionBadge/EstadoVersionBadge';
 import { useEvidenciasDeVersion, useImagenEvidencia } from '../../../../hooks/useEvidencias';
 import { TIPOS_EVIDENCIA } from '../../../../utils/prepararImagenEvidencia';
 import { textoAvanceEvidencia } from '../../../../domain/implementacion/miTienda';
-import { formatearFechaHora, textoConteo } from '../../../../utils/formatters';
+import { formatearFechaHora, textoConteo, tooltipPlanograma } from '../../../../utils/formatters';
 import type { Evidencia } from '../../../../types/evidencia';
 import type { ResumenVersion, TiendaImplementador } from '../../../../types/implementacion';
 import './EvidenciaModal.css';
@@ -118,7 +118,7 @@ export function EvidenciaModal({ tienda, planograma, onClose }: EvidenciaModalPr
       }
     >
       <div className="evidencia-modal__version">
-        <strong>{planograma.nombre}</strong>
+        <strong title={tooltipPlanograma(planograma.nombre, planograma.descripcion)}>{planograma.nombre}</strong>
         <span className="evidencia-modal__codigo">{planograma.codigo}</span>
         <EstadoVersionBadge estado={planograma.estado} />
         <span>· {tienda.nombre}</span>

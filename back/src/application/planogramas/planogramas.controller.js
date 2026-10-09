@@ -21,12 +21,14 @@ const schemaListar = Joi.object({
 
 const schemaCrear = Joi.object({
   nombre:        Joi.string().trim().min(1).max(255).required(),
+  descripcion:   Joi.string().trim().max(500).allow('', null).optional(),
   departamento:  Joi.string().trim().min(1).max(100).required(),
   subcategorias: Joi.array().items(Joi.string().trim().min(1)).min(1).required(),
 });
 
 const schemaEditar = Joi.object({
   nombre:        Joi.string().trim().min(1).max(255).optional(),
+  descripcion:   Joi.string().trim().max(500).allow('', null).optional(),
   departamento:  Joi.string().trim().min(1).max(100).optional(),
   subcategorias: Joi.array().items(Joi.string().trim().min(1)).optional(),
 }).min(1);  // al menos un campo requerido

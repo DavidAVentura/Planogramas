@@ -98,10 +98,6 @@
   gap: 2px;
 }
 
-.planogramas-tienda__nombre {
-  font-weight: 700;
-}
-
 .planogramas-tienda__codigo {
   font-family: var(--font-mono);
   font-size: 12px;

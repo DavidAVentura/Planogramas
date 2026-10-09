@@ -142,24 +142,3 @@ export function useGuardarPlanograma() {
 
   return { guardar, enviando };
 }
-
-export function useArchivarPlanograma() {
-  const [enviando, setEnviando] = useState(false);
-  const { mostrarToast } = useToast();
-
-  async function archivar(id: number): Promise<PlanogramaDetalle | null> {
-    setEnviando(true);
-    try {
-      const archivado = await planogramasService.archivar(id);
-      mostrarToast('Planograma archivado', 'success');
-      return archivado;
-    } catch (err) {
-      mostrarToast(mensajeDeError(err, 'No se pudo archivar el planograma'), 'error');
-      return null;
-    } finally {
-      setEnviando(false);
-    }
-  }
-
-  return { archivar, enviando };
-}

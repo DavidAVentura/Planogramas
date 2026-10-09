@@ -43,7 +43,7 @@ export function SeleccionVersionesModal({
   const [borrador, setBorrador] = useState<ReadonlySet<number>>(() => new Set(seleccionadas));
 
   const visibles = useMemo(
-    () => versiones.filter((v) => contieneTexto(`${v.codigo} ${v.nombre} ${v.departamento}`, busqueda)),
+    () => versiones.filter((v) => contieneTexto(`${v.codigo} ${v.nombre} ${v.descripcion ?? ''} ${v.departamento}`, busqueda)),
     [versiones, busqueda],
   );
 
@@ -127,6 +127,11 @@ export function SeleccionVersionesModal({
                     <span className="seleccion-versiones__codigo">{v.codigo}</span>
                     <EstadoVersionBadge estado={v.estado} />
                   </span>
+                  {v.descripcion && (
+                    <span className="seleccion-versiones__descripcion" title={v.descripcion}>
+                      {v.descripcion}
+                    </span>
+                  )}
                   <span className="seleccion-versiones__nombre">
                     {v.nombre} · {v.departamento}
                   </span>

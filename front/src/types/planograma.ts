@@ -11,6 +11,7 @@ export interface VersionResumen {
 interface PlanogramaBase {
   id: number;
   nombre: string;
+  descripcion: string | null;
   departamento: string;
   estado: PlanogramaEstado;
   created_at: string;
@@ -43,6 +44,7 @@ export interface ListarPlanogramasResultado {
 
 export interface CrearPlanogramaInput {
   nombre: string;
+  descripcion?: string | null;
   departamento: string;
   subcategorias: string[];
 }

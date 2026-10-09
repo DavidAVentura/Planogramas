@@ -30,6 +30,8 @@ interface SeleccionMultipleModalProps<T> {
   cargando?: boolean;
   obtenerId: (elemento: T) => number;
   obtenerNombre: (elemento: T) => string;
+  /** Cómo se dibuja el nombre en la lista; por defecto, `obtenerNombre`. */
+  renderNombre?: (elemento: T) => ReactNode;
   /** Texto contra el que se compara la búsqueda (ej. nombre + departamento). */
   textoBusqueda: (elemento: T) => string;
   placeholderBusqueda: string;
@@ -56,6 +58,7 @@ export function SeleccionMultipleModal<T>({
   cargando = false,
   obtenerId,
   obtenerNombre,
+  renderNombre,
   textoBusqueda,
   placeholderBusqueda,
   ordenes,
@@ -188,7 +191,7 @@ export function SeleccionMultipleModal<T>({
               <label key={id} className="seleccion-multiple__fila">
                 <input type="checkbox" checked={elegidos.has(id)} onChange={() => alternar(e)} />
                 <span className="seleccion-multiple__nombre">
-                  {obtenerNombre(e)}
+                  {renderNombre ? renderNombre(e) : obtenerNombre(e)}
                   {renderDetalle && <span className="seleccion-multiple__detalle">{renderDetalle(e)}</span>}
                 </span>
                 {renderMeta?.(e).map((meta, i) => (

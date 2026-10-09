@@ -47,7 +47,7 @@ async function listarPlanogramas(repo, filtros) {
 /**
  * Crea un planograma nuevo.
  * @param {object} repo
- * @param {{ nombre: string, departamento: string, subcategorias: string[] }} datos
+ * @param {{ nombre: string, descripcion?: string|null, departamento: string, subcategorias: string[] }} datos
  * @param {string} userId
  * @returns {Promise<object>} Planograma creado (detalle completo)
  */
@@ -57,6 +57,7 @@ async function crearPlanograma(repo, datos, userId) {
 
   const planograma = {
     nombre:       datos.nombre,
+    descripcion:  datos.descripcion || null,
     departamento: datos.departamento,
     estado:       calcularEstadoInicial(),
     created_by:   userId ?? 'sistema',
@@ -79,10 +80,10 @@ async function obtenerPlanograma(repo, id) {
 }
 
 /**
- * Aplica un partial update de nombre, departamento y/o subcategorías.
+ * Aplica un partial update de nombre, descripción, departamento y/o subcategorías.
  * @param {object} repo
  * @param {number} id
- * @param {{ nombre?, departamento?, subcategorias?: string[] }} cambios
+ * @param {{ nombre?, descripcion?, departamento?, subcategorias?: string[] }} cambios
  * @returns {Promise<object>} Planograma actualizado
  */
 async function editarPlanograma(repo, id, cambios) {
@@ -104,6 +105,8 @@ async function editarPlanograma(repo, id, cambios) {
   const camposMetadatos = {};
   if (cambios.nombre       !== undefined) camposMetadatos.nombre       = cambios.nombre;
   if (cambios.departamento !== undefined) camposMetadatos.departamento = cambios.departamento;
+  // '' o null borran la descripción
+  if (cambios.descripcion  !== undefined) camposMetadatos.descripcion  = cambios.descripcion || null;
 
   await repo.actualizar(id, camposMetadatos, cambios.subcategorias);
 

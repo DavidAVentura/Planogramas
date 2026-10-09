@@ -24,7 +24,4 @@ export const planogramasService = {
 
   editar: (id: number, cambios: EditarPlanogramaInput) =>
     httpClient.patch<PlanogramaDetalle>(`/planogramas/${id}`, cambios),
-
-  archivar: (id: number) =>
-    httpClient.post<PlanogramaDetalle>(`/planogramas/${id}/archivar`),
 };

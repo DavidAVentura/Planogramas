@@ -88,7 +88,7 @@ async function obtenerMatriz({ incluirPlanogramaId } = {}) {
   const planogramas = await db(TABLA_PLANOGRAMA)
     .whereIn('id', planogramaIds)
     .orderBy('nombre', 'asc')
-    .select('id', 'nombre', 'departamento');
+    .select('id', 'nombre', 'descripcion', 'departamento');
 
   const asignaciones = await db(TABLA_VERSION_TIENDA)
     .join(TABLA_VERSION, `${TABLA_VERSION_TIENDA}.planograma_version_id`, `${TABLA_VERSION}.id`)

@@ -16,6 +16,7 @@ export interface VersionMatriz {
 export interface PlanogramaMatriz {
   id: number;
   nombre: string;
+  descripcion: string | null;
   departamento: string;
   versiones: VersionMatriz[];
 }
@@ -113,7 +114,7 @@ export interface ResumenVersion {
     createdAt: string;
     updatedAt: string;
   };
-  planograma: { id: number; nombre: string; departamento: string; estado: string; subcategorias: string[] };
+  planograma: { id: number; nombre: string; descripcion: string | null; departamento: string; estado: string; subcategorias: string[] };
   estructura: {
     gondolas: number;
     niveles: number;

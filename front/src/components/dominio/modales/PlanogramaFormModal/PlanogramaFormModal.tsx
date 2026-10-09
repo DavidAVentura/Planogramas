@@ -25,6 +25,7 @@ export function PlanogramaFormModal({ planogramaId, onClose, onGuardado }: Plano
   const { mostrarToast } = useToast();
 
   const [nombre, setNombre] = useState('');
+  const [descripcion, setDescripcion] = useState('');
   const [area, setArea] = useState('');
   // CascadingSelect trabaja con el id de CATI; Planograma.departamento se guarda por nombre
   // (así lo hace el backend real — ver ejemplos en GET /planogramas) — se traduce id -> name
@@ -37,6 +38,7 @@ export function PlanogramaFormModal({ planogramaId, onClose, onGuardado }: Plano
   useEffect(() => {
     if (planograma) {
       setNombre(planograma.nombre);
+      setDescripcion(planograma.descripcion ?? '');
       setSubcategorias(planograma.subcategorias);
     }
   }, [planograma]);
@@ -66,6 +68,7 @@ export function PlanogramaFormModal({ planogramaId, onClose, onGuardado }: Plano
 
     const guardado = await guardar(planogramaId ?? null, {
       nombre: nombre.trim(),
+      descripcion: descripcion.trim() || null,
       subcategorias,
       ...(departamentoNombre ? { departamento: departamentoNombre } : {}),
     });
@@ -99,6 +102,17 @@ export function PlanogramaFormModal({ planogramaId, onClose, onGuardado }: Plano
                 <label className="planograma-form__campo">
                   <span>Nombre</span>
                   <input value={nombre} onChange={(e) => setNombre(e.target.value)} required />
+                </label>
+
+                <label className="planograma-form__campo">
+                  <span>Descripción</span>
+                  <textarea
+                    value={descripcion}
+                    onChange={(e) => setDescripcion(e.target.value)}
+                    maxLength={500}
+                    rows={2}
+                    placeholder="Qué contiene: ej. aceites y aditivos, pasillo 4"
+                  />
                 </label>
 
                 {editando && (

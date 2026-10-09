@@ -27,3 +27,8 @@ export function subcategoriaSinCodigo(subcategoria: string): string {
 export function textoConteo(n: number, singular: string, plural: string): string {
   return `${n} ${n === 1 ? singular : plural}`;
 }
+
+/** Tooltip de un planograma donde solo se muestra el nombre: "AUTOS 01 · Aceites y filtros". */
+export function tooltipPlanograma(nombre: string, descripcion: string | null | undefined): string {
+  return descripcion ? `${nombre} · ${descripcion}` : nombre;
+}

@@ -1,6 +1,7 @@
 import { usePlanogramasVigentes } from '../../../../hooks/usePlanogramas';
 import type { VersionMatriz } from '../../../../types/asignacion';
 import { VersionesPlanograma } from '../../estructura/VersionesPlanograma/VersionesPlanograma';
+import { IdentidadPlanograma } from '../../IdentidadPlanograma/IdentidadPlanograma';
 import { textoConteo } from '../../../../utils/formatters';
 import {
   SeleccionMultipleModal,
@@ -14,6 +15,7 @@ import './SeleccionPlanogramasModal.css';
 export interface PlanogramaSeleccionable {
   id: number;
   nombre: string;
+  descripcion: string | null;
   departamento: string;
   totalVersiones: number;
   /** Si viene (matriz de Estructura), el detalle muestra los cuadritos TG/TM/TE, especiales y pilotos. */
@@ -66,8 +68,9 @@ function ListaPlanogramas({
       cargando={cargando}
       obtenerId={(p) => p.id}
       obtenerNombre={(p) => p.nombre}
-      textoBusqueda={(p) => `${p.nombre} ${p.departamento}`}
-      placeholderBusqueda="Buscar por nombre o departamento"
+      renderNombre={(p) => <IdentidadPlanograma nombre={p.nombre} descripcion={p.descripcion} variante="compacta" />}
+      textoBusqueda={(p) => `${p.nombre} ${p.descripcion ?? ''} ${p.departamento}`}
+      placeholderBusqueda="Buscar por nombre, descripción o departamento"
       ordenes={ORDENES}
       renderDetalle={(p) =>
         p.versiones ? (
