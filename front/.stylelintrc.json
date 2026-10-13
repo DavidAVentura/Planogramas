@@ -4,6 +4,173 @@
     "selector-class-pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*(__[a-z][a-z0-9]*(-[a-z0-9]+)*)?(--[a-z][a-z0-9]*(-[a-z0-9]+)*)?$",
     "custom-property-pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
     "custom-property-empty-line-before": null,
-    "declaration-no-important": true
-  }
+    "declaration-no-important": true,
+    "color-no-hex": true,
+    "color-named": "never",
+    "function-disallowed-list": [
+      "rgb",
+      "rgba",
+      "hsl",
+      "hsla"
+    ],
+    "declaration-property-value-allowed-list": {
+      "font-family": [
+        "/^var\\(--font-/",
+        "inherit"
+      ],
+      "box-shadow": [
+        "/^var\\(--shadow-/",
+        "none",
+        "inherit"
+      ],
+      "border-radius": [
+        "/var\\(--radius-/",
+        "0",
+        "50%",
+        "inherit"
+      ]
+    }
+  },
+  "overrides": [
+    {
+      "files": [
+        "src/styles/tokens.css"
+      ],
+      "rules": {
+        "color-no-hex": null,
+        "color-named": null,
+        "function-disallowed-list": null,
+        "declaration-property-value-allowed-list": null
+      }
+    },
+    {
+      "files": [
+        "src/components/dominio/UsarAdjuntos/UsarAdjuntos.css",
+        "src/components/dominio/UsoEspacio/UsoEspacioTooltip.css",
+        "src/components/dominio/detalle/SubcategoriasCard/SubcategoriasCard.css",
+        "src/components/dominio/detalle/VersionesTable/VersionesTable.css",
+        "src/components/dominio/editor/AgenteExtractorChat/AgenteExtractorChat.css",
+        "src/components/dominio/editor/BarraAccionesPosicion/BarraAccionesPosicion.css",
+        "src/components/dominio/editor/FacingTile/FacingTile.css",
+        "src/components/dominio/editor/NivelRow/NivelRow.css",
+        "src/components/dominio/editor/PosicionCard/PosicionCard.css",
+        "src/components/dominio/estructura/AvisoContextoEstructura/AvisoContextoEstructura.css",
+        "src/components/dominio/estructura/BarraAsignacion/BarraAsignacion.css",
+        "src/components/dominio/estructura/BarraCambiosAsignacion/BarraCambiosAsignacion.css",
+        "src/components/dominio/estructura/ChipVersion/ChipVersion.css",
+        "src/components/dominio/estructura/MatrizAsignaciones/MatrizAsignaciones.css",
+        "src/components/dominio/estructura/MenuCeldaAsignacion/MenuCeldaAsignacion.css",
+        "src/components/dominio/implementacion/AccionesVersion/AccionesVersion.css",
+        "src/components/dominio/implementacion/AnilloInventario/AnilloInventario.css",
+        "src/components/dominio/implementacion/ElegirTiendaModal/ElegirTiendaModal.css",
+        "src/components/dominio/implementacion/EvidenciaModal/EvidenciaModal.css",
+        "src/components/dominio/implementacion/ImplementableBadge/ImplementableBadge.css",
+        "src/components/dominio/implementacion/MiTiendaFiltros/MiTiendaFiltros.css",
+        "src/components/dominio/implementacion/PanelColumnas/PanelColumnas.css",
+        "src/components/dominio/implementacion/ProductosImplementacionTable/ProductosImplementacionTable.css",
+        "src/components/dominio/implementacion/ProductosVersiones/ProductosVersiones.css",
+        "src/components/dominio/implementacion/SeleccionVersionesModal/SeleccionVersionesModal.css",
+        "src/components/dominio/implementacion/TiendaImplementadorChip/TiendaImplementadorChip.css",
+        "src/components/dominio/layout/AppTopbar/AppTopbar.css",
+        "src/components/dominio/layout/RoleSwitch/RoleSwitch.css",
+        "src/components/dominio/lienzo/EditorPuntosLienzo/EditorPuntosLienzo.css",
+        "src/components/dominio/lienzoEditor/DetalleGondolaPanel/DetalleGondolaPanel.css",
+        "src/components/dominio/lienzoEditor/GondolaEscalaLienzo/GondolaEscalaLienzo.css",
+        "src/components/dominio/lienzoEditor/LienzoCatalogoPanel/LienzoCatalogoPanel.css",
+        "src/components/dominio/lienzoEditor/MenuPosicionLienzo/MenuPosicionLienzo.css",
+        "src/components/dominio/lienzoEditor/PosicionLienzo/PosicionLienzo.css",
+        "src/components/dominio/listado/FiltrosBar/FiltrosBar.css",
+        "src/components/dominio/modales/AccesorioFormModal/AccesorioFormModal.css",
+        "src/components/dominio/modales/AsignarSkuModal/AsignarSkuModal.css",
+        "src/components/dominio/modales/BuscarSkuModal/BuscarSkuModal.css",
+        "src/components/dominio/modales/CopiarPosicionModal/CopiarPosicionModal.css",
+        "src/components/dominio/modales/ElegirProductoModal/ElegirProductoModal.css",
+        "src/components/dominio/modales/ExtractorJCv2Modal/ExtractorJCv2Modal.css",
+        "src/components/dominio/modales/ExtractorPdfPlanogramaModal/ExtractorPdfPlanogramaModal.css",
+        "src/components/dominio/modales/HistorialAsignacionModal/HistorialAsignacionModal.css",
+        "src/components/dominio/modales/ImportarExcelProductosModal/ImportarExcelProductosModal.css",
+        "src/components/dominio/modales/MontajeTiendaModal/MontajeTiendaModal.css",
+        "src/components/dominio/modales/MoverPosicionModal/MoverPosicionModal.css",
+        "src/components/dominio/modales/NivelModal/NivelModal.css",
+        "src/components/dominio/modales/PlanogramaFormModal/ExploradorSubcategorias.css",
+        "src/components/dominio/modales/PlanogramasTiendaModal/PlanogramasTiendaModal.css",
+        "src/components/dominio/modales/PosicionDrawer/PosicionDrawer.css",
+        "src/components/dominio/modales/PosicionFormModal/PosicionFormModal.css",
+        "src/components/dominio/modales/PublicarVersionModal/PublicarVersionModal.css",
+        "src/components/dominio/modales/ResumenAsignacionModal/ResumenAsignacionModal.css",
+        "src/components/dominio/modales/SeleccionarMetodoExtraccionModal/SeleccionarMetodoExtraccionModal.css",
+        "src/components/dominio/modales/SeleccionarModoPosicionModal/SeleccionarModoPosicionModal.css",
+        "src/components/dominio/modales/TiendaFormModal/TiendaFormModal.css",
+        "src/components/dominio/modales/VersionResumenModal/VersionResumenModal.css",
+        "src/components/dominio/productos/ProductoApariciones/ProductoApariciones.css",
+        "src/components/dominio/productos/ProductosFiltros/ProductosFiltros.css",
+        "src/components/dominio/productos/ProductosTable/ProductosTable.css",
+        "src/components/dominio/tiendas/TiendasFiltros/TiendasFiltros.css",
+        "src/components/dominio/tiendas/TiendasTable/TiendasTable.css",
+        "src/components/ui/BotonSeleccionMultiple/BotonSeleccionMultiple.css",
+        "src/components/ui/Button/Button.css",
+        "src/components/ui/CascadingSelect/CascadingSelect.css",
+        "src/components/ui/ChipInput/ChipInput.css",
+        "src/components/ui/Drawer/Drawer.css",
+        "src/components/ui/Modal/Modal.css",
+        "src/components/ui/SeleccionMultipleModal/SeleccionMultipleModal.css",
+        "src/components/ui/Table/Table.css",
+        "src/components/ui/Toast/Toast.css",
+        "src/components/ui/VisorImagenes/VisorImagenes.css",
+        "src/pages/AccesoriosListado/AccesoriosListado.css",
+        "src/pages/LienzoPlanograma/LienzoPlanograma.css",
+        "src/pages/MiTienda/MiTienda.css",
+        "src/pages/PlanogramaDetalle/PlanogramaDetalle.css",
+        "src/pages/ProductosPorVersion/ProductosPorVersion.css",
+        "src/styles/tokens.css"
+      ],
+      "rules": {
+        "color-no-hex": [
+          true,
+          {
+            "severity": "warning"
+          }
+        ],
+        "color-named": [
+          "never",
+          {
+            "severity": "warning"
+          }
+        ],
+        "function-disallowed-list": [
+          [
+            "rgb",
+            "rgba",
+            "hsl",
+            "hsla"
+          ],
+          {
+            "severity": "warning"
+          }
+        ],
+        "declaration-property-value-allowed-list": [
+          {
+            "font-family": [
+              "/^var\\(--font-/",
+              "inherit"
+            ],
+            "box-shadow": [
+              "/^var\\(--shadow-/",
+              "none",
+              "inherit"
+            ],
+            "border-radius": [
+              "/var\\(--radius-/",
+              "0",
+              "50%",
+              "inherit"
+            ]
+          },
+          {
+            "severity": "warning"
+          }
+        ]
+      }
+    }
+  ]
 }

@@ -36,13 +36,14 @@ jobs:
           cache: npm
           cache-dependency-path: front/package-lock.json
 
-      - name: npm ci y build
+      - name: npm ci, pruebas y build
         working-directory: front
         env:
           VITE_API_URL: ${{ vars.VITE_API_URL }}
           VITE_N8N_VISION_WEBHOOK_URL: ${{ vars.VITE_N8N_VISION_WEBHOOK_URL }}
         run: |
           npm ci
+          npm test
           npm run build
 
       - name: Deploy a Static Web App
