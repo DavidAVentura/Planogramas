@@ -54,6 +54,8 @@ aquí en la etapa de cierre.
 | DT-38 | El lector del Excel convierte en silencio un `0` explícito en `Cantidad_x_facing`/`cantidad_apilable` (a 1) y `capacidad_maxima` (a `null`) | Baja | front | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
 | DT-39 | El extractor de imagen numerada descarta los ganchos de exhibición `54E` (schema `integer[]`) | Baja | back · IA | 2026-10-15 · plan `2026-10-15-ganchos-exhibicion-pdf` | Abierta |
 | DT-40 | `datos_vision` de `importar-layout` sin tope de tamaño y con `ganchos_pdf`/`moduleId` sin validar | Baja | back | 2026-10-15 · plan `2026-10-15-ganchos-exhibicion-pdf` | Abierta |
+| DT-41 | `TIPO_TIENDA_META.EXPRESS` usa el color literal `#7a5900` en vez de un token | Baja | front | 2026-10-15 · plan `2026-10-15-importar-excel-bloque-tamano` | Abierta |
+| DT-42 | En el Excel, un campo por bloque que venga sin sufijo (p. ej. `Facings` en vez de `Facings_TM`) se toma en silencio para TM/TE | Baja | front | 2026-10-15 · plan `2026-10-15-importar-excel-bloque-tamano` | Abierta |
 
 ## Detalle
 
@@ -153,7 +155,9 @@ Sin índice; se nota al leer accesorios de muchas posiciones.
 `importarProductos` no registra quién importó ni cuándo.
 
 ### DT-26 — Caso de uso de la importación
-La importación del Excel de productos no tiene caso de uso en `CASOS_DE_USO.md`.
+La importación del Excel de productos no tiene caso de uso en `CASOS_DE_USO.md`. Al escribirlo, notar que
+la elección del bloque TG/TM/TE vive solo en el front: el back no valida que los productos vengan del bloque
+de la versión (plan `2026-10-15-importar-excel-bloque-tamano`).
 
 ### DT-27 — Extractores sin ganchos de exhibición
 El PDF imprime `54E` y los extractores (PDF e imagen numerada) solo devuelven enteros; el espacio se lee como
@@ -218,3 +222,12 @@ a guardar `Posicion.ganchos`: reutilizar `ganchosDelEspacio` del extractor de PD
 `datos_vision` en `importar-layout` (`importacion.schemas.js`, `Joi.object().unknown(true)`) no tiene tope de tamaño,
 y `ganchos_pdf`/`moduleId` no se validan. Validar `ganchos_pdf` con `schemaGanchos` y limitar el tamaño del objeto
 cuando se toque ese esquema.
+
+### DT-41 — Color literal en `TIPO_TIENDA_META.EXPRESS`
+`front/src/constants/tiendas.ts` usa `#7a5900` para el texto de Express en vez de un token semántico. Ahora
+también se ve en el Badge del bloque del modal de importación. Moverlo a un token de `tokens.css`.
+
+### DT-42 — Columna común sin sufijo en archivos de tres bloques
+Para mantener los archivos antiguos, una columna sin sufijo vale para cualquier tipo. Si un archivo de tres
+bloques trae un campo sin sufijo (`Facings` en vez de `Facings_TM`), una versión TM/TE lo importa sin aviso.
+Si aparece, avisar cuando el archivo tiene bloques y el campo del bloque falta pero existe el común.
