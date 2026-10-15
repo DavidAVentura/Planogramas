@@ -40,7 +40,7 @@ aquí en la etapa de cierre.
 | DT-24 | Sin índice en `PosicionAccesorio.posicion_id` | Baja | BD | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
 | DT-25 | `importarProductos` no registra quién importó | Baja | back | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
 | DT-26 | Importación de Excel sin caso de uso en `CASOS_DE_USO.md` | Baja | docs | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
-| DT-27 | Extractores de PDF e imagen numerada solo devuelven ganchos enteros: el PDF sí imprime `54E`, hoy se lee como 54 o no cruza con "Por ubicar" | Media | back · IA | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
+| DT-27 | Extractores de PDF e imagen numerada solo devuelven ganchos enteros: el PDF sí imprime `54E`, hoy se lee como 54 o no cruza con "Por ubicar" | Media | back · IA | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Resuelta 2026-10-15 · plan `2026-10-15-ganchos-exhibicion-pdf` |
 | DT-28 | `Gancho = number \| string` (forma mixta) en vez de un tipo explícito | Baja | back · front | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
 | DT-29 | Reglas duplicadas entre back y front: ganchos y código de accesorio | Baja | back · front | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
 | DT-30 | La unicidad de ganchos solo se valida dentro de cada posición, no entre posiciones de la versión (preexistente) | Baja | back | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
@@ -52,6 +52,8 @@ aquí en la etapa de cierre.
 | DT-36 | El front no aplica dos topes del back en la importación: 100 ganchos por producto y 100 facings implícitos (el lote falla con 400 de Joi sin fila de Excel) | Baja | front | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
 | DT-37 | Enteros de importación sin máximo (`unidades_por_facing`, `cantidad_apilable`, `capacidad_maxima`) pueden desbordar `INT` y terminar en `500` con rollback | Baja | back · front | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
 | DT-38 | El lector del Excel convierte en silencio un `0` explícito en `Cantidad_x_facing`/`cantidad_apilable` (a 1) y `capacidad_maxima` (a `null`) | Baja | front | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
+| DT-39 | El extractor de imagen numerada descarta los ganchos de exhibición `54E` (schema `integer[]`) | Baja | back · IA | 2026-10-15 · plan `2026-10-15-ganchos-exhibicion-pdf` | Abierta |
+| DT-40 | `datos_vision` de `importar-layout` sin tope de tamaño y con `ganchos_pdf`/`moduleId` sin validar | Baja | back | 2026-10-15 · plan `2026-10-15-ganchos-exhibicion-pdf` | Abierta |
 
 ## Detalle
 
@@ -157,6 +159,10 @@ La importación del Excel de productos no tiene caso de uso en `CASOS_DE_USO.md`
 El PDF imprime `54E` y los extractores (PDF e imagen numerada) solo devuelven enteros; el espacio se lee como
 54 o el producto `54E` no cruza con "Por ubicar" y se arrastra a mano. Requiere un plan aparte.
 
+**Resuelta 2026-10-15** (plan `2026-10-15-ganchos-exhibicion-pdf`): el extractor de PDF pide los ganchos como
+texto y los normaliza con `normalizarGancho` (`ganchosDelEspacio`); `importar-layout` con `usar_por_ubicar` cruza
+`54E` con `54E`. El extractor de imagen numerada pasa a DT-39.
+
 ### DT-28 — `Gancho` como forma mixta
 `number | string` (`54` normal, `"54E"` exhibición). Si aparecen otras variantes, migrar a `{ numero, tipo }`
 con migración de datos.
@@ -167,6 +173,9 @@ Ganchos (`back/src/domain/compartido/gancho.js` ↔ `front/src/domain/ganchos/ga
 
 ### DT-30 — Unicidad de ganchos entre posiciones
 Dos posiciones de la misma versión pueden guardar el mismo `54`/`54E`; solo los chips del front lo impiden.
+Un cliente directo de `importar-layout` puede mandar el mismo gancho en dos espacios: el extractor de PDF solo lo
+advierte, y `cruzarConPorUbicar` **no** lo evita (`usados` solo limpia "Por ubicar"), así que llena ambos espacios
+con el mismo producto (prueba en `back/test/domain/importacion.test.js`, también con ganchos enteros).
 
 ### DT-31 — Carrera accesorio eliminado
 Si un accesorio se elimina entre la verificación del catálogo y el `insert`, la FK falla: rollback y `500`.
@@ -199,3 +208,13 @@ Un valor como `Cantidad_x_facing = 3000000000` pasa el front y Joi y el `insert`
 ### DT-38 — `0` explícito convertido en silencio
 `unidades || 1`, `apilable || 1`, `capacidad || null` en el lector del Excel contradicen "el front no convierte
 inválidos". Que `0` sea `ErrorLectura` ("debe ser al menos 1") y dejar `?? 1`/`?? null` solo para vacíos.
+
+### DT-39 — Imagen numerada sin ganchos de exhibición
+El extractor de imagen numerada (`extractorImagenNumerada.js`, schema `integer[]`) descarta los ganchos `54E`. Hoy
+solo afecta el texto que se manda al chat del Agente Extractor (no se persisten ganchos). Atender si ese flujo llega
+a guardar `Posicion.ganchos`: reutilizar `ganchosDelEspacio` del extractor de PDF.
+
+### DT-40 — `datos_vision` sin tope ni validación
+`datos_vision` en `importar-layout` (`importacion.schemas.js`, `Joi.object().unknown(true)`) no tiene tope de tamaño,
+y `ganchos_pdf`/`moduleId` no se validan. Validar `ganchos_pdf` con `schemaGanchos` y limitar el tamaño del objeto
+cuando se toque ese esquema.

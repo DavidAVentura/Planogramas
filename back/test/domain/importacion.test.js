@@ -170,4 +170,27 @@ describe('cruzarConPorUbicar con ganchos de exhibición', () => {
     const cruce = cruzarConPorUbicar(planDe([54]), porUbicar());
     assert.equal(cruce.llenados, 0);
   });
+
+  it('un espacio con 54E toma el producto que tiene 54E', () => {
+    const planes = planDe(['54E']);
+    const cruce = cruzarConPorUbicar(planes, porUbicar());
+    assert.equal(cruce.llenados, 1);
+    const posicion = planes[0].niveles[0].posiciones[0];
+    assert.equal(posicion.sku, '111');
+    assert.ok(posicion.facings_horizontal >= 1);
+  });
+
+  it('un espacio con 54E no toma un producto que solo tiene 54', () => {
+    const fuente = [{ ...porUbicar()[0], ganchos: [54] }];
+    const cruce = cruzarConPorUbicar(planDe(['54E']), fuente);
+    assert.equal(cruce.llenados, 0);
+  });
+
+  // Comportamiento actual (igual con ganchos enteros): un gancho repetido entre espacios del PDF llena ambos
+  // con el mismo producto. Registrado en DT-30; esta prueba documenta el comportamiento para detectar cambios.
+  it('dos espacios con 54E y un solo producto: hoy llena ambos (DT-30)', () => {
+    const planes = [{ niveles: [{ posiciones: [{ ganchos: ['54E'], sku: null }, { ganchos: ['54E'], sku: null }] }] }];
+    const cruce = cruzarConPorUbicar(planes, porUbicar());
+    assert.equal(cruce.llenados, 2);
+  });
 });

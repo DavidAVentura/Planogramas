@@ -51,6 +51,10 @@ No persiste nada. El body admite hasta ~21 MB (PDF de hasta 15 MB en base64).
         "sku_impreso": "1171592", "descripcion_visual": "cinta métrica", "confianza": 90,
         "producto": { "sku": "1171592", "nombre": "...", "marca": "...", "ancho_cm": null, "imagen_url": null },
         "candidatos": [], "estado_producto": "IDENTIFICADO"
+      }, {
+        "orden_horizontal": 2, "ganchos": ["54E"], "facings": 1, "ancho_cm": 12,
+        "sku_impreso": null, "descripcion_visual": "exhibidor", "confianza": 70,
+        "producto": null, "candidatos": [], "estado_producto": "NO_ENCONTRADO"
       }]
     }],
     "accesorios_montaje": [{ "codigo": "SUS 4*22", "tipo": "BANDEJA", "medida_pulgadas": 22, "cantidad": 4, "especificaciones": "...", "accesorio_id": null }],
@@ -60,7 +64,14 @@ No persiste nada. El body admite hasta ~21 MB (PDF de hasta 15 MB en base64).
 }
 ```
 
-- `ganchos`: números impresos en el PDF. Al importar se guardan en `Posicion.ganchos` y mandan
+- `ganchos`: números impresos en el PDF, en forma canónica (`normalizarGancho`): entero 1..999999 para
+  ganchos normales y texto `"NNE"` para ganchos de exhibición (`54E`, solo si la E está impresa; `"54 E"`
+  se une a `"54E"`, pero `"5 4"` no se convierte en 54). Van sin repetir, ordenados por número y con el
+  normal antes que el de exhibición (`[7, "54E"]`), con un tope de 100 por espacio (los demás se descartan
+  con la advertencia `<nivel>: un espacio traía N ganchos; se conservaron los primeros 100. Revisalo.`).
+  Un valor que no es gancho válido (p. ej. `54A`) se descarta con la advertencia general
+  `Ganchos ilegibles descartados: … Revisá esos espacios.`. `facings` cuenta solo los ganchos normales
+  (los de exhibición no son facing), con mínimo 1. Al importar se guardan en `Posicion.ganchos` y mandan
   sobre la numeración calculada, así que se conservan tal cual (la secuencia del PDF es
   correlativa entre todos los cuerpos). Un espacio sin números legibles recibe el siguiente número
   libre y se advierte en su cuerpo; un número repetido en el PDF se advierte en `advertencias`.

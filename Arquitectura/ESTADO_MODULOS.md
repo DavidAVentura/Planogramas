@@ -85,7 +85,8 @@ El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
     El código de accesorio del front se normaliza solo con `normalizarCodigoAccesorio`.
   - **Cruce con "Por ubicar"** (`cruzarConPorUbicar`): compara ganchos en forma canónica; un espacio del PDF
     con `54` no toma un producto con `54E`; el reparto de facings cuenta solo los ganchos normales. El
-    extractor de PDF sigue devolviendo enteros (DT-27): los `54E` quedan en "Por ubicar" con advertencia.
+    extractor de PDF lee y normaliza los `54E` (`ganchosDelEspacio`, plan `2026-10-15-ganchos-exhibicion-pdf`),
+    así que `54E` del PDF cruza con `54E` del Excel. El extractor de imagen numerada sigue con enteros (DT-39).
   - **Antes de publicar**: consulta SQL de solo lectura de ganchos no canónicos en DEV y PROD (0 filas;
     ver `04_implementacion.md` del plan `2026-10-15-importar-excel-tamano-accesorio`).
 - **Implementado, sin carpeta Postman todavía**: `adjuntos` (13, CRUD sobre Azure Blob) y
