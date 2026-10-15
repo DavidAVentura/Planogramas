@@ -52,7 +52,11 @@ propone como componente base.
 1. **Cargando** (sin saltos de layout).
 2. **Vacío** con `EmptyState` y la acción siguiente sugerida.
 3. **Error** con mensaje en español entendible para el usuario (el `message` del backend, nunca un stack).
-4. **Sin permiso**: ocultar la acción si el usuario no puede ejecutarla; el backend siempre valida igual.
+4. **Sin permiso**: ocultar (no deshabilitar) la acción si el usuario no puede ejecutarla; el backend siempre valida igual (ver `SEGURIDAD_PERMISOS.md`).
+   - Ruta no permitida por URL: redirección al inicio del modo + `Toast` info "No tienes acceso a esa pantalla."
+   - 403 de una acción: `Toast` error "No tienes permiso para esta acción." (texto estándar); no cierra la sesión ni el modal.
+   - Un solo modo disponible: no se muestra `RoleSwitch`. Sin ningún modo: página `SinAcceso`.
+   - Vista visible pero no editable (editor sin PLA005): `Badge` "Solo lectura" en la barra de acciones del editor.
 5. **Acción destructiva**: `ConfirmDialog` con el nombre del elemento afectado.
 
 ## 5. Convenciones

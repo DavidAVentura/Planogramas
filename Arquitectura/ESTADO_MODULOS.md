@@ -55,6 +55,19 @@ El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
   - Postman: carpetas `18 - Secciones` y `19 - SKU en la versión`.
 - **Implementado, sin carpeta Postman todavía**: `adjuntos` (13, CRUD sobre Azure Blob) y
   `agente-extractor`.
+- **Autorización (permisos CAO, 2026-10-12)**: aplicada en todos los módulos; detalle, perfiles y
+  matrices en `Arquitectura/SEGURIDAD_PERMISOS.md`.
+  - Vive en `domain/compartido/permisos.js` (códigos y reglas puras) y
+    `infrastructure/http/middlewares/autorizacion.js` (`requiereAnalista` = A, `requiereImplementador`
+    = I, `requierePermiso(...)`). La respuesta de CAO se normaliza y congela en `caoAuthClient.js`.
+  - **Proteger una ruta nueva**: `router.use(requiereAnalista)` como primera línea del
+    `*.routes.js` (o guard por ruta si mezcla reglas), más `requierePermiso(...)` si hay un permiso
+    propio, y una fila en `back/test/http/matrizPermisos.test.js`. `back/test/http/rutasProtegidas.test.js`
+    falla si una ruta queda sin guard. `routes/index.js` no lleva reglas.
+  - Front: `front/src/domain/permisos/permisos.ts` (reglas y modos), `RequierePermiso` /
+    `RedirigirInicio` en `router/`, página `SinAcceso`; las páginas calculan `puedeEscribir` con su
+    permiso. Los guards del front son cosméticos.
+  - Pendiente: filtro por tienda (DT-10) y permisos propios en CAO para las acciones con regla A (DT-11).
 - **Pendiente**: `sustituciones` (06) y `exportacion` (07) no están montados en
   `back/src/infrastructure/http/routes/index.js`. Su contrato ya existe en `Arquitectura/Contratos/`.
 - Migraciones: `001` a `016` en `back/src/infrastructure/db/migrations/`. Antes de implementar un

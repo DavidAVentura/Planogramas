@@ -118,11 +118,34 @@ reinicia la app y no requiere redeploy.
 | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_SCHEMA`, `DB_ENCRYPT`, `DB_TRUST_SERVER_CERTIFICATE` | SQL Server del ambiente. |
 | `CORS_ORIGIN` | URL del Static Web App del mismo ambiente. |
 | `JWT_TENANT_ID`, `JWT_AUDIENCE` | Entra ID. |
-| `CAO_BASE_URL`, `CAO_COD_MODULO` | Validación del token de usuario (CAO, `/auth/validar_token`) y renovación de su sesión (`/auth/keepalive`). |
+| `CAO_BASE_URL`, `CAO_COD_MODULO` | Validación del token de usuario (CAO, `/auth/validar_token`) y renovación de su sesión (`/auth/keepalive`). `CAO_COD_MODULO` debe ser `PLANOGRAMA` (de él salen los permisos PLA001–PLA010); ver el orden obligatorio abajo. |
 | `CATI_BASE_URL`, `CATI_API_KEY` | Catálogo y jerarquía. |
 | `OPENIA_TOKEN`, `OPENAI_MODEL` | Agentes de `back/src/agents/`. |
 | `AZURE_STORAGE_CONNECTION_STRING`, `AZURE_STORAGE_CONTAINER_ADJUNTOS` | Adjuntos en Azure Blob. La connection string debe incluir `AccountKey`: con ella el backend firma las URLs SAS de subida y descarga de adjuntos. |
 | `PRUEBAS_HABILITADAS` | `true` solo en DEV: monta `/pruebas/fixtures` y `/pruebas/limpieza` para la colección Postman. En prod no se define (y con `NODE_ENV=production` no se monta aunque esté). |
+
+### `CAO_COD_MODULO=PLANOGRAMA`: orden obligatorio (S-06)
+
+**Primero el código, después el setting; nunca al revés.** Con el código viejo y `PLANOGRAMA`, un
+usuario de tienda tendría escritura total; con el código nuevo y el valor anterior (`SCRAPING`)
+todos reciben 403 (falla cerrado, es seguro). Pasos por ambiente (DEV primero; PROD solo si el
+usuario lo pide):
+
+1. Publicar el código (sección 3 o 4) y esperar que los workflows del API y del Static Web App
+   terminen en verde.
+2. **Recién entonces**: App Service (`planogramas-api-dev` o `planogramas-api-prod`) → Variables de
+   entorno → `CAO_COD_MODULO=PLANOGRAMA` → guardar (reinicia la app).
+3. Checklist en el ambiente:
+   - [ ] Usuario PCOMER-EST o CATEGORIA-EST: `GET /auth/sesion` con PLA001–PLA010,
+     `capacidades.analista: true`, sin `cao`; ningún código `SCP*` en `permisos`.
+   - [ ] La app abre en Planogramas con el switch de modo; crear y editar funciona.
+   - [ ] Usuario sin perfil en PLANOGRAMA: anotar si CAO responde `200` con `perfiles: []`
+     (se ve `SinAcceso`) o `401` (se ve `SesionRequerida`, sin bucle) en `SEGURIDAD_PERMISOS.md`.
+   - [ ] Si hay usuario de tienda: navbar Mi tienda/Productos, sin switch; `/planogramas` por URL redirige con toast.
+   - [ ] Corrida Postman completa en verde.
+   - [ ] En el log stream, los `[autorizacion] 403` no muestran tokens.
+
+Matrices y reglas en `Arquitectura/SEGURIDAD_PERMISOS.md`.
 
 ### Azure Blob Storage: CORS para adjuntos
 
