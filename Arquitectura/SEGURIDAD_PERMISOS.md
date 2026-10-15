@@ -152,3 +152,18 @@ a CAO), DT-16 (parseo de body antes de autenticar), DT-17 a DT-19 (front y Postm
 
 Pendiente de verificar en DEV (T17): si CAO responde `200` con `perfiles: []` o `401` a un usuario
 sin perfil en PLANOGRAMA (se vería `SinAcceso` o `SesionRequerida`, respectivamente, sin bucle).
+
+## 10. Verificación en DEV (2026-10-15)
+
+Publicado `76dd827` en DEV y `CAO_COD_MODULO=PLANOGRAMA` aplicado en `planogramas-api-dev` después del
+despliegue (orden S-06).
+
+| Punto del checklist (T17) | Resultado |
+|---|---|
+| Usuario PCOMER-EST: `GET /auth/sesion` con PLA001–PLA010 y entrada normal a la app | ✅ Confirmado por el usuario |
+| API sin token / con token inválido | ✅ `401` en ambos casos |
+| Front con token inválido en `/auth` | ✅ "Acceso restringido" (`SesionRequerida`), sin bucle |
+| Usuario sin perfil en PLANOGRAMA (`200` con `perfiles: []` o `401`) | ⏳ Pendiente: no hay usuario de prueba |
+| Usuario de tienda (navbar Mi tienda/Productos, redirección con aviso) | ⏳ Pendiente: no hay usuario de tienda (DT-19) |
+| Logs de `[autorizacion] 403` sin tokens | ⏳ Pendiente: aún no hay 403 registrados |
+| Corrida completa de Postman con `TOKEN_CAO` de analista | ⏳ Pendiente |
