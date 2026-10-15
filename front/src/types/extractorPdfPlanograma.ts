@@ -21,8 +21,8 @@ export type EstadoProductoPdf = 'IDENTIFICADO' | 'CANDIDATOS' | 'NO_ENCONTRADO';
 
 export interface EspacioPdf {
   orden_horizontal: number;
-  /** Números impresos en el PDF. */
-  ganchos: number[];
+  /** Números impresos en el PDF: normales (54) o de exhibición ("54E"). */
+  ganchos: Gancho[];
   facings: number;
   ancho_cm: number;
   sku_impreso: string | null;
@@ -99,7 +99,7 @@ export interface PosicionImportar {
   confidence: number;
   datos_vision: (DatosVision & Record<string, unknown>) | null;
   /** Números impresos en el PDF: se guardan para que la numeración del lienzo sea la del PDF. */
-  ganchos: number[];
+  ganchos: Gancho[];
 }
 
 export interface NivelImportar {
@@ -144,6 +144,6 @@ export interface ResultadoImportacion {
 export interface ProductoPorUbicar {
   sku: string | null;
   nombre: string;
-  /** Puede traer ganchos de exhibición ("54E"): el extractor del PDF solo produce enteros. */
+  /** Puede traer ganchos de exhibición ("54E"), igual que los espacios del PDF. */
   ganchos: Gancho[];
 }

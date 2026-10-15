@@ -19,19 +19,22 @@
  *   - `altura_desde_piso_cm` = base del nivel (donde se apoya o cuelga el producto).
  *   - Cada posición importada guarda los números de gancho impresos (`Posicion.ganchos`, migración
  *     013), que mandan sobre la numeración calculada. La numeración del PDF es correlativa entre
- *     todos los cuerpos, así que se conserva tal cual. Solo los espacios sin números legibles
- *     reciben uno calculado (el siguiente libre en el recorrido de la versión). `facings` =
- *     cantidad de números impresos del espacio.
+ *     todos los cuerpos, así que se conserva tal cual. Los ganchos impresos pueden ser normales
+ *     (`54`) o de exhibición (`"54E"`); todos se normalizan con `normalizarGancho`. Solo los
+ *     espacios sin números legibles reciben uno calculado (el siguiente libre en el recorrido de
+ *     la versión). `facings` = cantidad de ganchos normales del espacio (mínimo 1).
  */
 
 const { calcularHojas } = require('../../domain/seccion/seccion.entity');
 const { TIPOS_ACCESORIO } = require('../../domain/nivel/nivel.entity');
 const { GONDOLA_DEFAULTS } = require('../../domain/gondola/gondola.entity');
+const { normalizarGancho, numeroGancho, esGanchoExhibicion, compararGanchos } = require('../../domain/compartido/gancho');
 
 const MIN_TAM_SECCION_CM = 10;
 const CONCURRENCIA_CATI = 6;
 const MAX_CANDIDATOS = 5;
 const TOLERANCIA_ANCHO = 1.05;
+const MAX_GANCHOS_ESPACIO = 100; // mismo tope que schemaGanchos
 
 const LIMITES = Object.freeze({ ancho: 500, alto: 300, profundidad: 200 });
 
@@ -41,7 +44,7 @@ const SCHEMA_ESPACIO = {
   type: 'object',
   properties: {
     orden_horizontal: { type: 'integer' },
-    ganchos: { type: 'array', items: { type: 'integer' } },
+    ganchos: { type: 'array', items: { type: 'string' } },
     ancho_cm: { type: 'number' },
     sku_impreso: { type: ['string', 'null'] },
     descripcion_visual: { type: ['string', 'null'] },
@@ -161,9 +164,13 @@ fidelidad posible. El layout es lo principal; los productos son secundarios.
 - ESPACIO: cada lugar de producto dentro de un nivel, de izquierda a derecha.
   - En bandejas, cada división/compartimento con su número es un espacio. En filas de ganchos,
     cada gancho numerado es un espacio.
-  - ganchos: los números impresos que identifican ese espacio (normalmente uno; varios solo si
-    el mismo producto ocupa varios números contiguos). Respeta exactamente los números del PDF,
-    aunque parezcan tener un error (ej. un número repetido); repórtalo en advertencias.
+  - ganchos: los números impresos que identifican ese espacio, como texto (normalmente uno; varios solo
+    si el mismo producto ocupa varios números contiguos). Copia cada número tal como está impreso.
+    Si el número lleva la letra E pegada (ej. "54E"), es un gancho de exhibición: conserva la E.
+    "54" y "54E" son ganchos distintos y pueden estar en el mismo nivel; no son un número repetido.
+    No agregues la E si no está impresa. Si ves otra letra, cópiala tal cual y repórtalo en
+    advertencias. Respeta exactamente los números del PDF, aunque parezcan tener un error (ej. un
+    número repetido); repórtalo en advertencias.
   - ancho_cm: el ancho real que ocupa el espacio, proporcional a lo que ves contra el ancho del
     cuerpo. Los anchos de un nivel deben sumar como máximo el ancho de su sección.
   - sku_impreso: el código de producto impreso en la etiqueta del espacio (ej. "700160",
@@ -323,29 +330,78 @@ function hojasDelCuerpo(raiz, medidas) {
   }));
 }
 
-function normalizarEspacios(espacios, anchoDisponible, etiquetaNivel, advertir) {
-  const ordenados = [...espacios].sort((a, b) =>
-    a.orden_horizontal - b.orden_horizontal || (Math.min(...a.ganchos, Infinity) - Math.min(...b.ganchos, Infinity)));
+/** Texto seguro para citar un gancho descartado en una advertencia (sin caracteres de control, ≤ 10). */
+function citarGancho(valor) {
+  return (typeof valor === 'string' || typeof valor === 'number')
+    ? String(valor).replace(/[\p{C}]/gu, '').trim().slice(0, 10) || '?'
+    : '?';
+}
 
-  let anchos = ordenados.map((e) => (numeroValido(e.ancho_cm) ? e.ancho_cm : anchoDisponible / Math.max(1, ordenados.length)));
+/**
+ * Normaliza los ganchos crudos de un espacio leídos por el modelo.
+ * @param {unknown} crudos
+ * @returns {{ ganchos: Array<number|string>, descartados: string[], excedentes: number }}
+ */
+function ganchosDelEspacio(crudos) {
+  const lista = Array.isArray(crudos) ? crudos : [];
+  const validos = [];
+  const descartados = [];
+  lista.forEach((v) => {
+    if (typeof v !== 'string' && typeof v !== 'number') {
+      descartados.push('?');
+      return;
+    }
+    let g;
+    if (typeof v === 'string') {
+      // Solo se une el espacio antes de una E final: "54 E" → "54E", pero "5 4" no es 54.
+      const texto = v.trim().replace(/\s+(?=E$)/i, '');
+      if (texto === '') return;
+      g = normalizarGancho(texto);
+    } else {
+      g = normalizarGancho(v);
+    }
+    if (g === null) descartados.push(citarGancho(v));
+    else validos.push(g);
+  });
+  const ordenados = [...new Set(validos)].sort(compararGanchos);
+  const excedentes = Math.max(0, ordenados.length - MAX_GANCHOS_ESPACIO);
+  return { ganchos: ordenados.slice(0, MAX_GANCHOS_ESPACIO), descartados, excedentes };
+}
+
+function normalizarEspacios(espacios, anchoDisponible, etiquetaNivel, advertir, descartados = []) {
+  const leidos = espacios.map((e) => ({ e, ...ganchosDelEspacio(e.ganchos) }));
+  leidos.forEach((l) => {
+    descartados.push(...l.descartados);
+    if (l.excedentes > 0) {
+      advertir(`${etiquetaNivel}: un espacio traía ${l.ganchos.length + l.excedentes} ganchos; se conservaron los primeros ${MAX_GANCHOS_ESPACIO}. Revisalo.`);
+    }
+  });
+
+  const menor = (l) => Math.min(...l.ganchos.map(numeroGancho), Infinity);
+  const ordenados = leidos.sort((a, b) => {
+    const porOrden = a.e.orden_horizontal - b.e.orden_horizontal;
+    if (porOrden) return porOrden;
+    const ma = menor(a);
+    const mb = menor(b);
+    return ma === mb ? 0 : ma - mb;
+  });
+
+  let anchos = ordenados.map((l) => (numeroValido(l.e.ancho_cm) ? l.e.ancho_cm : anchoDisponible / Math.max(1, ordenados.length)));
   const suma = anchos.reduce((t, a) => t + a, 0);
   if (suma > anchoDisponible * TOLERANCIA_ANCHO) {
     advertir(`${etiquetaNivel}: los espacios sumaban ${redondear(suma)} cm en ${anchoDisponible} cm disponibles; se reescalaron proporcionalmente.`);
     anchos = anchos.map((a) => (a * anchoDisponible) / suma);
   }
 
-  return ordenados.map((e, i) => {
-    const ganchos = [...new Set(e.ganchos.filter((g) => Number.isInteger(g) && g > 0))];
-    return {
+  return ordenados.map((l, i) => ({
     orden_horizontal: i + 1,
-    ganchos,
-    facings: Math.max(1, ganchos.length),
+    ganchos: l.ganchos,
+    facings: Math.max(1, l.ganchos.filter((g) => !esGanchoExhibicion(g)).length),
     ancho_cm: redondear(Math.max(1, anchos[i])),
-    sku_impreso: e.sku_impreso && normalizarCodigo(e.sku_impreso) ? String(e.sku_impreso).trim().replace(/\s+/g, '') : null,
-    descripcion_visual: e.descripcion_visual?.trim() || null,
-    confianza: acotar(Math.round(e.confianza ?? 0), 0, 100),
-    };
-  });
+    sku_impreso: l.e.sku_impreso && normalizarCodigo(l.e.sku_impreso) ? String(l.e.sku_impreso).trim().replace(/\s+/g, '') : null,
+    descripcion_visual: l.e.descripcion_visual?.trim() || null,
+    confianza: acotar(Math.round(l.e.confianza ?? 0), 0, 100),
+  }));
 }
 
 function buscarAccesorio(codigo, accesorios) {
@@ -363,7 +419,7 @@ function buscarAccesorio(codigo, accesorios) {
  * Asigna cada nivel a su hoja, acota las alturas a la franja de la hoja, numera `orden` de arriba
  * hacia abajo (hoja por hoja, en el orden de recorrido del sistema) y resuelve el accesorio.
  */
-function normalizarNiveles(niveles, hojas, accesorios, advertir) {
+function normalizarNiveles(niveles, hojas, accesorios, advertir, descartados) {
   const clavesHoja = new Set(hojas.map((h) => h.clave));
   const accesoriosSinCatalogo = new Set();
   const porHoja = new Map(hojas.map((h) => [h.clave, []]));
@@ -399,10 +455,17 @@ function normalizarNiveles(niveles, hojas, accesorios, advertir) {
         codigo_accesorio: nivel.codigo_accesorio ?? null,
         codigo_accesorio_id: accesorio?.id ?? null,
         tamano_accesorio_pulgadas: numeroValido(nivel.tamano_accesorio_pulgadas) ? nivel.tamano_accesorio_pulgadas : null,
-        espacios: normalizarEspacios(nivel.espacios ?? [], hoja.ancho, etiqueta, advertir),
+        espacios: normalizarEspacios(nivel.espacios ?? [], hoja.ancho, etiqueta, advertir, descartados),
       };
     });
   });
+}
+
+/** Avisa de los ganchos que no se pudieron normalizar (letra distinta de E, ilegibles). */
+function advertirGanchosDescartados(descartados, advertir) {
+  if (descartados.length) {
+    advertir(`Ganchos ilegibles descartados: ${descartados.slice(0, 20).join(', ')}${descartados.length > 20 ? '…' : ''}. Revisá esos espacios.`);
+  }
 }
 
 /**
@@ -419,14 +482,14 @@ function advertirEspaciosSinGancho(niveles, advertir) {
 /** Los números de gancho siguen una sola secuencia en todo el PDF: un número repetido entre
  * cuerpos (o dentro de uno) indica una mala lectura. */
 function advertirGanchosRepetidos(cuerpos, advertencias) {
-  const vistos = new Map(); // número → nombre del primer cuerpo que lo usa
+  const vistos = new Map(); // gancho → nombre del primer cuerpo que lo usa
   const repetidos = new Set();
   cuerpos.forEach((c) => c.niveles.forEach((n) => n.espacios.forEach((e) => e.ganchos.forEach((g) => {
     if (vistos.has(g)) repetidos.add(g);
     else vistos.set(g, c.nombre);
   }))));
   if (repetidos.size) {
-    const lista = [...repetidos].sort((a, b) => a - b);
+    const lista = [...repetidos].sort(compararGanchos);
     advertencias.push(`Números de gancho repetidos en el PDF: ${lista.slice(0, 20).join(', ')}${lista.length > 20 ? '…' : ''}. Revisá esos espacios antes de importar.`);
   }
 }
@@ -439,7 +502,9 @@ function normalizarCuerpo(cuerpo, indice, accesorios) {
   const raiz = construirArbolSecciones(cuerpo.secciones ?? [], advertir);
   if (raiz) ajustarTamanos(raiz, medidas.ancho_cm, medidas.alto_cm);
   const hojas = hojasDelCuerpo(raiz, medidas);
-  const niveles = normalizarNiveles(cuerpo.niveles ?? [], hojas, accesorios, advertir);
+  const descartados = [];
+  const niveles = normalizarNiveles(cuerpo.niveles ?? [], hojas, accesorios, advertir, descartados);
+  advertirGanchosDescartados(descartados, advertir);
   advertirEspaciosSinGancho(niveles, advertir);
 
   return {
@@ -551,4 +616,4 @@ async function procesarPdf({ pdfBase64, nombreArchivo }, { openaiClient, catiCli
   return { archivo: nombreArchivo, modelo, cuerpos, advertencias };
 }
 
-module.exports = { procesarPdf, SCHEMA_RESPUESTA };
+module.exports = { procesarPdf, SCHEMA_RESPUESTA, ganchosDelEspacio, normalizarEspacios };
