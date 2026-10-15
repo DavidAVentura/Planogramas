@@ -1,6 +1,7 @@
 /** Lógica pura del importador de PDF: geometría de la vista previa del layout y armado del
  * request de POST /versiones/:id/importar-layout a partir de lo que el usuario revisó. */
 
+import type { Gancho } from '../../../../types/gancho';
 import type {
   CuerpoImportar,
   CuerpoPdf,
@@ -173,15 +174,15 @@ export function rangoGanchos(nivel: NivelPdf): string {
  * Producto de "Por ubicar" que llenará el espacio: el que tiene todos sus ganchos (mismo criterio
  * que `cruzarConPorUbicar` en el back). null si no hay o si los ganchos son de varios productos.
  */
-export function fuentePorUbicar(espacio: EspacioPdf, porGancho: Map<number, ProductoPorUbicar>): ProductoPorUbicar | null {
+export function fuentePorUbicar(espacio: EspacioPdf, porGancho: Map<Gancho, ProductoPorUbicar>): ProductoPorUbicar | null {
   if (!espacio.ganchos.length) return null;
   const fuentes = new Set(espacio.ganchos.map((g) => porGancho.get(g)));
   if (fuentes.size !== 1 || fuentes.has(undefined)) return null;
   return [...fuentes][0]!;
 }
 
-export function indicePorGancho(productos: ProductoPorUbicar[]): Map<number, ProductoPorUbicar> {
-  const mapa = new Map<number, ProductoPorUbicar>();
+export function indicePorGancho(productos: ProductoPorUbicar[]): Map<Gancho, ProductoPorUbicar> {
+  const mapa = new Map<Gancho, ProductoPorUbicar>();
   productos.forEach((p) => p.ganchos.forEach((g) => mapa.set(g, p)));
   return mapa;
 }

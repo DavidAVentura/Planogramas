@@ -11,19 +11,19 @@ const {
   degradarSkusInexistentes,
   cruzarConPorUbicar,
   filtrarProductos,
+  accesoriosDeFila,
   posicionDesdeFila,
+  errorUnprocessable,
+  errorBadRequest,
 } = require('./importacion.entity');
 const { normalizarCodigo } = require('../accesorio/accesorio.entity');
 
 /** Consultas a CATI en paralelo al validar SKUs del Excel (cada SKU nuevo puede ir a CATI). */
 const CONCURRENCIA_SKUS = 6;
-
-function errorUnprocessable(mensaje) {
-  const err = new Error(mensaje);
-  err.status = 422;
-  err.code   = 'UNPROCESSABLE';
-  return err;
-}
+/** Tope de códigos de accesorio distintos por importación (una consulta a la BD por código). */
+const MAX_CODIGOS_ACCESORIO = 200;
+/** Códigos que se listan en el mensaje del 422; `details.codigos` lleva todos. */
+const MAX_CODIGOS_EN_MENSAJE = 20;
 
 function errorNotFound(mensaje) {
   const err = new Error(mensaje);
@@ -113,13 +113,41 @@ async function validarProducto(productoRepo, sku) {
 }
 
 /**
+ * Resuelve en el catálogo los códigos de accesorio de TODOS los productos del request (no solo de
+ * los que se importan, para que el front y el back bloqueen lo mismo). Devuelve el mapa
+ * código normalizado → accesorio; si falta alguno, 422 con `details.codigos`.
+ */
+async function resolverAccesorios(accesorioRepo, listas) {
+  const claves = new Set(listas.flat().map((a) => normalizarCodigo(a.codigo)));
+  if (claves.size > MAX_CODIGOS_ACCESORIO) {
+    throw errorBadRequest(`El archivo trae ${claves.size} códigos de accesorio distintos; el máximo por importación es ${MAX_CODIGOS_ACCESORIO}.`);
+  }
+  const accesorios = new Map();
+  const inexistentes = [];
+  for (const clave of claves) {
+    const accesorio = await accesorioRepo.buscarPorCodigo(clave);
+    if (accesorio) accesorios.set(clave, accesorio);
+    else inexistentes.push(clave);
+  }
+  if (inexistentes.length) {
+    const lista = inexistentes.slice(0, MAX_CODIGOS_EN_MENSAJE).join(', ') + (inexistentes.length > MAX_CODIGOS_EN_MENSAJE ? '…' : '');
+    throw errorUnprocessable(
+      `Hay ${inexistentes.length} accesorio(s) que no existen en el catálogo: ${lista}. Dalos de alta o corrige el archivo y vuelve a cargarlo.`,
+      { codigos: inexistentes },
+    );
+  }
+  return accesorios;
+}
+
+/**
  * Importa el listado de productos de un Excel de planograma a la góndola "Por ubicar" de la
  * versión (la crea si no existe): una posición por SKU con todos sus datos de montaje (ganchos,
  * cantidades, mín./máx., accesorio y su tamaño, sustitución, observaciones), 10 por nivel de
  * relleno. El analista después mueve cada producto a su lugar real en el lienzo.
  *
- * No bloquea por datos faltantes: SKUs que no existen quedan como PENDIENTE y accesorios que no
- * están en el catálogo se omiten; ambos se informan en `advertencias`.
+ * Los SKU que no existen quedan como PENDIENTE (se informan en `advertencias`); los accesorios que
+ * no existen en el catálogo bloquean todo el lote con 422 antes de escribir nada. Cada producto
+ * puede llevar varios accesorios (`orden` 1..k en el orden recibido).
  * @returns {Promise<{ gondola: { id, creada, totalNiveles }, totalImportados, omitidos, advertencias }>}
  */
 async function importarProductos({ importacionRepo, versionRepo, accesorioRepo, productoRepo }, versionId, datos) {
@@ -127,26 +155,22 @@ async function importarProductos({ importacionRepo, versionRepo, accesorioRepo, 
   if (!version) throw errorNotFound(`Versión ${versionId} no encontrada`);
   validarVersionEditable(version.estado);
 
+  // Todo o nada: el tope y los accesorios inexistentes se validan antes de leer SKUs o escribir.
+  const accesorios = await resolverAccesorios(accesorioRepo, datos.productos.map(accesoriosDeFila));
+
   const { aImportar, omitidos } = filtrarProductos(datos.productos, await importacionRepo.skusDeVersion(versionId));
   const advertencias = [];
 
   const productos = await enParalelo(aImportar.map((f) => () => validarProducto(productoRepo, f.sku)), CONCURRENCIA_SKUS);
 
-  const accesorios = new Map();
-  for (const codigo of new Set(aImportar.map((f) => f.accesorio_codigo).filter(Boolean))) {
-    const accesorio = await accesorioRepo.buscarPorCodigo(normalizarCodigo(codigo));
-    accesorios.set(codigo, accesorio);
-    if (!accesorio) advertencias.push(`El accesorio "${codigo}" no existe en el catálogo; esos productos se importaron sin accesorio.`);
-  }
-
   const posiciones = aImportar.map((fila, i) => {
     if (!productos[i].existe) advertencias.push(`El SKU ${fila.sku} no existe en el catálogo; quedó como espacio pendiente.`);
-    const accesorio = accesorios.get(fila.accesorio_codigo);
-    return posicionDesdeFila(
-      fila,
-      productos[i],
-      accesorio ? { id: accesorio.id, tamano_pulgadas: fila.tamano_accesorio_pulgadas ?? null } : null,
-    );
+    const deFila = accesoriosDeFila(fila).map((a, k) => ({
+      accesorio_id:    accesorios.get(normalizarCodigo(a.codigo)).id,
+      tamano_pulgadas: a.tamano_pulgadas ?? null,
+      orden:           k + 1,
+    }));
+    return posicionDesdeFila(fila, productos[i], deFila);
   });
 
   const gondola = posiciones.length

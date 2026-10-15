@@ -9,19 +9,20 @@ import {
 } from '../../../../types/posicion';
 import type { DimensionesProducto } from '../../../../types/catalogo';
 import type { SkuVersion, UbicacionSku } from '../../../../types/skuVersion';
+import type { Gancho } from '../../../../types/gancho';
+import { compararGanchos, leerGancho, textoGancho } from '../../../../domain/ganchos/gancho';
 
 export interface PosicionesSkuProps {
   sku: SkuVersion;
   posicionesPorId: Record<number, PosicionConProducto>;
   /** Números de gancho calculados por posición, para avisar si uno ya lo usa otra posición. */
-  ganchosPorPosicion: Record<string, number[]>;
+  ganchosPorPosicion: Record<string, Gancho[]>;
   puedeEscribir: boolean;
   onEditarPosicion: (posicion: PosicionConProducto, cambios: PosicionCambiosCompletos) => Promise<boolean>;
   onEditarDimensiones: (sku: string, dimensiones: DimensionesProducto) => Promise<boolean>;
   onIrAPosicion: (posicionId: number) => void;
 }
 
-const dos = (n: number) => String(n).padStart(2, '0');
 const etiquetaUbicacion = (u: UbicacionSku) => `${u.gondola}${u.seccion ? ` · S${u.seccion}` : ''} · N${u.nivel}`;
 
 /**
@@ -238,7 +239,7 @@ function DimensionesMontaje({ sku, posicion, editable, onEditarDimensiones }: { 
  * posición no tiene ganchos guardados, se muestran los calculados (solo lectura). Quitar el
  * último gancho vuelve la posición a numeración automática.
  */
-function ChipsGanchos({ posicion, calculados, ganchosPorPosicion, editable, onAplicar }: { posicion: PosicionConProducto; calculados: number[]; ganchosPorPosicion: Record<string, number[]>; editable: boolean; onAplicar: (ganchos: number[] | null) => void }) {
+function ChipsGanchos({ posicion, calculados, ganchosPorPosicion, editable, onAplicar }: { posicion: PosicionConProducto; calculados: Gancho[]; ganchosPorPosicion: Record<string, Gancho[]>; editable: boolean; onAplicar: (ganchos: Gancho[] | null) => void }) {
   const [texto, setTexto] = useState('');
   const [error, setError] = useState<string | null>(null);
   const manuales = posicion.ganchos;
@@ -246,23 +247,23 @@ function ChipsGanchos({ posicion, calculados, ganchosPorPosicion, editable, onAp
   if (!manuales?.length) {
     return (
       <span className="posiciones-sku__ganchos posiciones-sku__ganchos--auto" title="Calculados automáticamente">
-        {calculados.length ? calculados.map(dos).join(' · ') : '—'}
+        {calculados.length ? calculados.map(textoGancho).join(' · ') : '—'}
       </span>
     );
   }
 
   function agregar() {
-    const n = Number(texto.trim());
-    if (!Number.isInteger(n) || n < 1) return setError('Número entero mayor que 0');
+    const n = leerGancho(texto);
+    if (n === null) return setError('Número entero mayor que 0, o de exhibición como 54E');
     if (manuales!.includes(n)) return setError('Ya está en la lista');
     const otra = Object.entries(ganchosPorPosicion).find(([id, gs]) => Number(id) !== posicion.id && gs.includes(n));
-    if (otra) return setError(`El gancho ${n} ya lo usa otra posición`);
+    if (otra) return setError(`El gancho ${textoGancho(n)} ya lo usa otra posición`);
     setError(null);
     setTexto('');
-    onAplicar([...manuales!, n].sort((a, b) => a - b));
+    onAplicar([...manuales!, n].sort(compararGanchos));
   }
 
-  function quitar(n: number) {
+  function quitar(n: Gancho) {
     const resto = manuales!.filter((g) => g !== n);
     onAplicar(resto.length ? resto : null);
   }
@@ -270,17 +271,17 @@ function ChipsGanchos({ posicion, calculados, ganchosPorPosicion, editable, onAp
   return (
     <div className="posiciones-sku__ganchos">
       {manuales.map((g) => (
-        <span key={g} className="posiciones-sku__chip">
-          {dos(g)}
+        <span key={String(g)} className="posiciones-sku__chip">
+          {textoGancho(g)}
           {editable && (
-            <button type="button" aria-label={`Quitar gancho ${g}`} onClick={() => quitar(g)}>×</button>
+            <button type="button" aria-label={`Quitar gancho ${textoGancho(g)}`} onClick={() => quitar(g)}>×</button>
           )}
         </span>
       ))}
       {editable && (
         <input
           type="text"
-          inputMode="numeric"
+          inputMode="text"
           aria-label="Agregar gancho"
           placeholder="+"
           value={texto}

@@ -12,7 +12,8 @@
  *
  * Excepciones (migración 013): una posición con `ganchos` guardados (importados del Excel) usa
  * esos números tal cual — pueden no ser correlativos, ej. una columna de 4 filas = [4,9,14,19] —
- * y la numeración calculada se los salta para no repetirlos. Las posiciones de la góndola
+ * y la numeración calculada se los salta para no repetirlos. Los ganchos de exhibición ("54E", texto)
+ * se usan tal cual y NO reservan número: el 54 calculado sigue disponible para otra posición. Las posiciones de la góndola
  * "Por ubicar" sin ganchos guardados no reciben número (sus niveles son de relleno).
  */
 
@@ -29,10 +30,10 @@ function errorUnprocessable(mensaje, details) {
 /**
  * Recorre la versión en orden físico y devuelve cada posición con su ubicación y sus ganchos.
  * @param {{ gondolas, secciones, niveles, posiciones }} datos  filas planas de la versión
- * @returns {Array<{ posicion, gondola, seccionIndice, nivelIndice, ganchos: number[] }>}
+ * @returns {Array<{ posicion, gondola, seccionIndice, nivelIndice, ganchos: Array<number|string> }>}
  */
 function recorrerVersion({ gondolas, secciones, niveles, posiciones }) {
-  const usados = new Set(posiciones.flatMap((p) => p.ganchos ?? []));
+  const usados = new Set(posiciones.flatMap((p) => p.ganchos ?? []).filter((g) => typeof g === 'number'));
   let numero = 0;
   const siguiente = () => {
     do { numero += 1; } while (usados.has(numero));

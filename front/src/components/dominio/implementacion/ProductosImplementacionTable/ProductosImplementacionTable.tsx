@@ -16,6 +16,7 @@ import {
 } from '../../../../domain/implementacion/columnasProductos';
 import type { ProductoImplementacion } from '../../../../types/implementacion';
 import type { ModoAparicion } from '../../../../types/producto';
+import { textoGancho } from '../../../../domain/ganchos/gancho';
 import './ProductosImplementacionTable.css';
 
 // ─── Celdas ──────────────────────────────────────────────────────────────────
@@ -48,7 +49,7 @@ const CELDA: Record<ClaveColumna, (f: ProductoImplementacion) => ReactNode> = {
   version: (f) => conSecundario(f.codigoVersion, f.planogramaNombre, 'productos-impl__mono'),
   gondola: (f) =>
     f.porUbicar ? conSecundario(f.gondola, 'Sin ubicar en el lienzo · guiarse por los ganchos', 'productos-impl__texto') : <span className="productos-impl__texto">{f.gondola}</span>,
-  ganchos: (f) => (f.ganchos.length ? <span className="productos-impl__mono">{f.ganchos.join(', ')}</span> : SIN_DATO),
+  ganchos: (f) => (f.ganchos.length ? <span className="productos-impl__mono">{f.ganchos.map(textoGancho).join(', ')}</span> : SIN_DATO),
   accesorio: (f) =>
     f.accesorios.length
       ? conSecundario(textoAccesorios(f), f.accesorios.map((a) => a.nombre).join(', '), 'productos-impl__mono')

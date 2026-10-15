@@ -1,5 +1,6 @@
 import { Table, type TableColumn } from '../../../ui/Table/Table';
 import type { CuerpoPdf, EspacioPdf, NivelPdf, ProductoPorUbicar } from '../../../../types/extractorPdfPlanograma';
+import type { Gancho } from '../../../../types/gancho';
 import type { GondolaListItem } from '../../../../types/gondola';
 import { VistaPreviaLayoutPdf } from './VistaPreviaLayoutPdf';
 import {
@@ -19,7 +20,7 @@ interface RevisionCuerpoPdfProps {
   onCambiarDecision: (decision: DecisionCuerpo) => void;
   onElegirProducto: (clave: string, sku: string | null) => void;
   /** Productos de "Por ubicar" por número de gancho; null si no se usan para llenar el layout. */
-  porGancho: Map<number, ProductoPorUbicar> | null;
+  porGancho: Map<Gancho, ProductoPorUbicar> | null;
 }
 
 interface FilaEspacio {

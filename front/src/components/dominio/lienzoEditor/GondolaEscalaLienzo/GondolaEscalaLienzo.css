@@ -313,6 +313,12 @@
   line-height: 10px;
 }
 
+/* Ganchos de exhibición (54E): abajo del último facing para no tapar al gancho normal. */
+.gondola-escala__gancho--exhibicion {
+  top: auto;
+  bottom: 1px;
+}
+
 .gondola-escala__ia {
   position: absolute;
   z-index: 1;

@@ -4,6 +4,7 @@
  */
 
 const db = require('../db/connection');
+const { parsearGanchosJson } = require('../../domain/compartido/gancho');
 const {
   POSICIONES_POR_NIVEL,
   NOMBRE_POR_UBICAR,
@@ -169,7 +170,7 @@ async function posicionesPorUbicar(versionId) {
     sku:                 f.sku ?? null,
     nombre_detectado:    f.nombre_detectado ?? null,
     confidence:          f.confidence ?? 100,
-    ganchos:             (() => { try { return JSON.parse(f.ganchos).map(Number); } catch { return []; } })(),
+    ganchos:             parsearGanchosJson(f.ganchos) ?? [],
     facings_horizontal:  f.facings_horizontal,
     cantidad_apilable:   f.cantidad_apilable,
     unidades_por_facing: f.unidades_por_facing,
@@ -233,17 +234,17 @@ async function nivelesConOcupacion(trx, gondolaId) {
   }));
 }
 
-async function insertarPosicionPorUbicar(trx, nivelId, ordenHorizontal, { accesorio, ganchos, ...posicion }) {
+async function insertarPosicionPorUbicar(trx, nivelId, ordenHorizontal, { accesorios = [], ganchos, ...posicion }) {
   const [{ id }] = await trx(TABLA_POSICION).insert({
     ...posicion,
     ganchos:          ganchos ? JSON.stringify(ganchos) : null,
     nivel_id:         nivelId,
     orden_horizontal: ordenHorizontal,
   }).returning('id');
-  if (accesorio) {
-    await trx(TABLA_POSICION_ACCESORIO).insert({
-      posicion_id: id, accesorio_id: accesorio.id, tamano_pulgadas: accesorio.tamano_pulgadas, orden: 1,
-    });
+  if (accesorios.length) {
+    await trx(TABLA_POSICION_ACCESORIO).insert(accesorios.map((a) => ({
+      posicion_id: id, accesorio_id: a.accesorio_id, tamano_pulgadas: a.tamano_pulgadas, orden: a.orden,
+    })));
   }
 }
 

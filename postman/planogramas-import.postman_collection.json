@@ -573,6 +573,11 @@
       "key": "versionIdImportacionProductos",
       "value": "",
       "description": "Se llena durante la corrida (CRUD de accesorios / importación de productos)."
+    },
+    {
+      "key": "posicionIdImportacionProductos",
+      "value": "",
+      "description": "Se llena durante la corrida (importación de productos: posición con 2 accesorios y ganchos de exhibición)."
     }
   ],
   "item": [
@@ -12163,6 +12168,282 @@
                     "exec": [
                       "pm.test('Status 400', () => pm.response.to.have.status(400));",
                       "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Ganchos de exhibición se guardan en forma canónica",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"ganchos\": [\n    4,\n    \"54e\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('54e pasa a 54E y el 4 sigue siendo número', () => pm.expect(pm.response.json().ganchos).to.eql([4, '54E']));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - gancho 5E1 no se convierte en 50",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"ganchos\": [\n    \"5E1\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - gancho 54E2 no se convierte en 5400",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"ganchos\": [\n    \"54E2\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - 54 y \"54\" son el mismo gancho repetido",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"ganchos\": [\n    54,\n    \"54\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - 54E y 54e son el mismo gancho repetido",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"ganchos\": [\n    \"54E\",\n    \"54e\"\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Restaurar los ganchos numéricos de la posición",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionId}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"ganchos\": [\n    4,\n    9,\n    14,\n    19\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Ganchos restaurados', () => pm.expect(pm.response.json().ganchos).to.eql([4, 9, 14, 19]));"
                     ]
                   }
                 }
@@ -24774,7 +25055,7 @@
           "name": "Importar productos (POST /versiones/:id/importar-productos)",
           "item": [
             {
-              "name": "201 - Importar a la góndola Por ubicar (crea la góndola)",
+              "name": "201 - Importar a la góndola Por ubicar (crea la góndola; accesorio en formato legado)",
               "request": {
                 "method": "POST",
                 "header": [
@@ -24798,7 +25079,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"productos\": [\n    { \"sku\": \"{{skuExistente}}\", \"descripcion\": \"Producto Postman\", \"ganchos\": [4,9,14,19], \"facings_horizontal\": 4, \"unidades_por_facing\": 20, \"cantidad_apilable\": 1, \"min_estetico\": 13, \"capacidad_maxima\": 80, \"min_final\": 65, \"max_final\": 80, \"perfil_redondeo\": \"MRP\", \"modo\": \"PLANOGRAMA\", \"decision\": \"ACTIVO\", \"accesorio_codigo\": \"{{accesorioCodigoImportacion}}\", \"tamano_accesorio_pulgadas\": 12 },\n    { \"sku\": \"{{skuInexistente}}\", \"descripcion\": \"Producto Postman\", \"ganchos\": [55], \"facings_horizontal\": 1, \"unidades_por_facing\": 20, \"cantidad_apilable\": 1, \"min_estetico\": 13, \"capacidad_maxima\": 80, \"min_final\": 65, \"max_final\": 80, \"perfil_redondeo\": \"MRP\", \"modo\": \"PLANOGRAMA\", \"decision\": \"ACTIVO\", \"accesorio_codigo\": \"NO-EXISTE-PM\" },\n    { \"sku\": \"{{skuExistente}}\", \"descripcion\": \"Producto Postman\", \"ganchos\": [60], \"facings_horizontal\": 1, \"unidades_por_facing\": 20, \"cantidad_apilable\": 1, \"min_estetico\": 13, \"capacidad_maxima\": 80, \"min_final\": 65, \"max_final\": 80, \"perfil_redondeo\": \"MRP\", \"modo\": \"PLANOGRAMA\", \"decision\": \"ACTIVO\" }\n  ]\n}",
+                  "raw": "{\n  \"productos\": [\n    { \"sku\": \"{{skuExistente}}\", \"descripcion\": \"Producto Postman\", \"ganchos\": [4,9,14,19], \"facings_horizontal\": 4, \"unidades_por_facing\": 20, \"cantidad_apilable\": 1, \"min_estetico\": 13, \"capacidad_maxima\": 80, \"min_final\": 65, \"max_final\": 80, \"perfil_redondeo\": \"MRP\", \"modo\": \"PLANOGRAMA\", \"decision\": \"ACTIVO\", \"accesorio_codigo\": \"{{accesorioCodigoImportacion}}\", \"tamano_accesorio_pulgadas\": 12 },\n    { \"sku\": \"{{skuInexistente}}\", \"descripcion\": \"Producto Postman\", \"ganchos\": [55], \"facings_horizontal\": 1, \"unidades_por_facing\": 20, \"cantidad_apilable\": 1, \"min_estetico\": 13, \"capacidad_maxima\": 80, \"min_final\": 65, \"max_final\": 80, \"perfil_redondeo\": \"MRP\", \"modo\": \"PLANOGRAMA\", \"decision\": \"ACTIVO\" },\n    { \"sku\": \"{{skuExistente}}\", \"descripcion\": \"Producto Postman\", \"ganchos\": [60], \"facings_horizontal\": 1, \"unidades_por_facing\": 20, \"cantidad_apilable\": 1, \"min_estetico\": 13, \"capacidad_maxima\": 80, \"min_final\": 65, \"max_final\": 80, \"perfil_redondeo\": \"MRP\", \"modo\": \"PLANOGRAMA\", \"decision\": \"ACTIVO\" }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -24816,8 +25097,188 @@
                       "const b = pm.response.json();",
                       "pm.test('Crea la góndola Por ubicar', () => { pm.expect(b.gondola.creada).to.eql(true); pm.expect(b.gondola.totalNiveles).to.eql(1); });",
                       "pm.test('Importa 2 y omite el SKU repetido en el archivo', () => { pm.expect(b.totalImportados).to.eql(2); pm.expect(b.omitidos.length).to.eql(1); pm.expect(b.omitidos[0].motivo).to.eql('Repetido en el archivo'); });",
-                      "pm.test('Advierte SKU inexistente y accesorio fuera del catálogo', () => { const t = b.advertencias.join(' '); pm.expect(t).to.include('NO-EXISTE-PM'); pm.expect(t).to.include(pm.collectionVariables.get('skuInexistente')); });",
+                      "pm.test('Advierte solo el SKU inexistente (el formato legado de accesorio sigue válido)', () => { const t = b.advertencias.join(' '); pm.expect(t).to.include(pm.collectionVariables.get('skuInexistente')); pm.expect(t).to.not.include('accesorio'); });",
                       "pm.collectionVariables.set('gondolaIdPorUbicar', b.gondola.id);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - accesorio inexistente: no se importa nada",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacionProductos}}/importar-productos",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacionProductos}}",
+                    "importar-productos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"productos\": [\n    {\n      \"sku\": \"{{skuSinDimensiones}}\",\n      \"descripcion\": \"Producto Postman\",\n      \"facings_horizontal\": 2,\n      \"unidades_por_facing\": 20,\n      \"cantidad_apilable\": 1,\n      \"ganchos\": [\n        901\n      ],\n      \"accesorios\": [\n        {\n          \"codigo\": \"ZZZ-NO-EXISTE-PM\",\n          \"tamano_pulgadas\": 22\n        }\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.test('error.code = UNPROCESSABLE', () => pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE'));",
+                      "const d = pm.response.json().error.details;",
+                      "pm.test('details.codigos trae el código normalizado', () => pm.expect(d.codigos).to.eql(['ZZZ-NO-EXISTE-PM']));",
+                      "pm.test('El mensaje lista el accesorio', () => pm.expect(pm.response.json().error.message).to.include('ZZZ-NO-EXISTE-PM'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Tras el 422 no se creó ninguna posición del SKU",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacionProductos}}/skus",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacionProductos}}",
+                    "skus"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const sku = pm.response.json().skus.find((s) => s.sku === pm.collectionVariables.get('skuSinDimensiones'));",
+                      "pm.test('El SKU del lote rechazado no quedó en la versión', () => pm.expect(sku).to.eql(undefined));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - dos códigos que normalizan igual cuentan una sola vez",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacionProductos}}/importar-productos",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacionProductos}}",
+                    "importar-productos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"productos\": [\n    {\n      \"sku\": \"{{skuSinDimensiones}}\",\n      \"descripcion\": \"Producto Postman\",\n      \"facings_horizontal\": 2,\n      \"unidades_por_facing\": 20,\n      \"cantidad_apilable\": 1,\n      \"ganchos\": [\n        901\n      ],\n      \"accesorios\": [\n        {\n          \"codigo\": \"zzz-no-existe \",\n          \"tamano_pulgadas\": 22\n        }\n      ]\n    },\n    {\n      \"sku\": \"{{skuExistente}}\",\n      \"descripcion\": \"Producto Postman\",\n      \"facings_horizontal\": 2,\n      \"unidades_por_facing\": 20,\n      \"cantidad_apilable\": 1,\n      \"ganchos\": [\n        902\n      ],\n      \"accesorios\": [\n        {\n          \"codigo\": \"ZZZ-NO-EXISTE\",\n          \"tamano_pulgadas\": 22\n        }\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.test('error.code = UNPROCESSABLE', () => pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE'));",
+                      "pm.test('details.codigos tiene un solo código', () => pm.expect(pm.response.json().error.details.codigos).to.eql(['ZZZ-NO-EXISTE']));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "422 - versión no editable con accesorio inexistente responde el 422 de versión",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdNivelesPublicada}}/importar-productos",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdNivelesPublicada}}",
+                    "importar-productos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"productos\": [\n    {\n      \"sku\": \"{{skuSinDimensiones}}\",\n      \"descripcion\": \"Producto Postman\",\n      \"facings_horizontal\": 2,\n      \"unidades_por_facing\": 20,\n      \"cantidad_apilable\": 1,\n      \"ganchos\": [\n        1\n      ],\n      \"accesorios\": [\n        {\n          \"codigo\": \"ZZZ-NO-EXISTE-PM\",\n          \"tamano_pulgadas\": 22\n        }\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 422', () => pm.response.to.have.status(422));",
+                      "pm.test('error.code = UNPROCESSABLE', () => pm.expect(pm.response.json().error.code).to.eql('UNPROCESSABLE'));",
+                      "pm.test('No trae details.codigos (es el 422 de versión no editable)', () => pm.expect((pm.response.json().error.details || {}).codigos).to.eql(undefined));"
                     ]
                   }
                 }
@@ -24933,6 +25394,317 @@
                       "const sku = pm.response.json().skus.find((s) => s.sku === pm.collectionVariables.get('skuExistente') || s.sku === pm.environment.get('skuExistente'));",
                       "pm.test('Ganchos guardados, no correlativos', () => pm.expect(sku.ganchos).to.eql([4, 9, 14, 19]));",
                       "pm.test('La ubicación indica que está por ubicar', () => pm.expect(sku.ubicaciones[0].porUbicar).to.eql(true));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "201 - Importa un producto con 2 accesorios y ganchos de exhibición",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacionProductos}}/importar-productos",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacionProductos}}",
+                    "importar-productos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"productos\": [\n    {\n      \"sku\": \"{{skuSinDimensiones}}\",\n      \"descripcion\": \"Producto Postman\",\n      \"facings_horizontal\": 2,\n      \"unidades_por_facing\": 20,\n      \"cantidad_apilable\": 1,\n      \"ganchos\": [\n        901,\n        \"902E\"\n      ],\n      \"accesorios\": [\n        {\n          \"codigo\": \"{{accesorioCodigoImportacion}}\",\n          \"tamano_pulgadas\": 22\n        },\n        {\n          \"codigo\": \"{{accesorioCodigoImportacion}}\",\n          \"tamano_pulgadas\": 22\n        }\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                      "const b = pm.response.json();",
+                      "pm.test('Importa 1 producto', () => pm.expect(b.totalImportados).to.eql(1));",
+                      "pm.test('Sin advertencias de accesorio', () => pm.expect(b.advertencias.join(' ')).to.not.include('accesorio'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Los ganchos 902E y los dos accesorios quedan guardados",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacionProductos}}/skus",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacionProductos}}",
+                    "skus"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const b = pm.response.json();",
+                      "const sku = b.skus.find((s) => s.sku === pm.collectionVariables.get('skuSinDimensiones'));",
+                      "pm.test('Ganchos normal y de exhibición, distintos', () => pm.expect(sku.ganchos).to.eql([901, '902E']));",
+                      "const pos = sku.ubicaciones[0].posicionId;",
+                      "pm.test('ganchosPorPosicion devuelve la forma mixta', () => pm.expect(b.ganchosPorPosicion[pos]).to.eql([901, '902E']));",
+                      "pm.collectionVariables.set('posicionIdImportacionProductos', pos);"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Los accesorios de la posición quedan con su orden",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/posiciones/{{posicionIdImportacionProductos}}/accesorios",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "posiciones",
+                    "{{posicionIdImportacionProductos}}",
+                    "accesorios"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const lista = pm.response.json();",
+                      "pm.test('2 accesorios con orden 1 y 2', () => { pm.expect(lista.length).to.eql(2); pm.expect(lista.map((a) => a.orden)).to.eql([1, 2]); });",
+                      "pm.test('Ambos son el accesorio del catálogo', () => lista.forEach((a) => pm.expect(a.accesorio.codigo).to.eql(pm.collectionVariables.get('accesorioCodigoImportacion'))));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - tamaño de accesorio fuera de rango",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacionProductos}}/importar-productos",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacionProductos}}",
+                    "importar-productos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"productos\": [\n    {\n      \"sku\": \"{{skuSinDimensiones}}\",\n      \"descripcion\": \"Producto Postman\",\n      \"facings_horizontal\": 2,\n      \"unidades_por_facing\": 20,\n      \"cantidad_apilable\": 1,\n      \"ganchos\": [\n        903\n      ],\n      \"accesorios\": [\n        {\n          \"codigo\": \"{{accesorioCodigoImportacion}}\",\n          \"tamano_pulgadas\": 1000\n        }\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - más de 10 accesorios en un producto",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacionProductos}}/importar-productos",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacionProductos}}",
+                    "importar-productos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"productos\": [\n    {\n      \"sku\": \"{{skuSinDimensiones}}\",\n      \"descripcion\": \"Producto Postman\",\n      \"facings_horizontal\": 2,\n      \"unidades_por_facing\": 20,\n      \"cantidad_apilable\": 1,\n      \"ganchos\": [\n        903\n      ],\n      \"accesorios\": [\n        {\n          \"codigo\": \"{{accesorioCodigoImportacion}}\",\n          \"tamano_pulgadas\": 22\n        },\n        {\n          \"codigo\": \"{{accesorioCodigoImportacion}}\",\n          \"tamano_pulgadas\": 22\n        },\n        {\n          \"codigo\": \"{{accesorioCodigoImportacion}}\",\n          \"tamano_pulgadas\": 22\n        },\n        {\n          \"codigo\": \"{{accesorioCodigoImportacion}}\",\n          \"tamano_pulgadas\": 22\n        },\n        {\n          \"codigo\": \"{{accesorioCodigoImportacion}}\",\n          \"tamano_pulgadas\": 22\n        },\n        {\n          \"codigo\": \"{{accesorioCodigoImportacion}}\",\n          \"tamano_pulgadas\": 22\n        },\n        {\n          \"codigo\": \"{{accesorioCodigoImportacion}}\",\n          \"tamano_pulgadas\": 22\n        },\n        {\n          \"codigo\": \"{{accesorioCodigoImportacion}}\",\n          \"tamano_pulgadas\": 22\n        },\n        {\n          \"codigo\": \"{{accesorioCodigoImportacion}}\",\n          \"tamano_pulgadas\": 22\n        },\n        {\n          \"codigo\": \"{{accesorioCodigoImportacion}}\",\n          \"tamano_pulgadas\": 22\n        },\n        {\n          \"codigo\": \"{{accesorioCodigoImportacion}}\",\n          \"tamano_pulgadas\": 22\n        }\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - gancho con letra distinta de E",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacionProductos}}/importar-productos",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacionProductos}}",
+                    "importar-productos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"productos\": [\n    {\n      \"sku\": \"{{skuSinDimensiones}}\",\n      \"descripcion\": \"Producto Postman\",\n      \"facings_horizontal\": 2,\n      \"unidades_por_facing\": 20,\n      \"cantidad_apilable\": 1,\n      \"ganchos\": [\n        \"54A\"\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - accesorios y accesorio_codigo juntos",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacionProductos}}/importar-productos",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacionProductos}}",
+                    "importar-productos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"productos\": [\n    {\n      \"sku\": \"{{skuSinDimensiones}}\",\n      \"descripcion\": \"Producto Postman\",\n      \"facings_horizontal\": 2,\n      \"unidades_por_facing\": 20,\n      \"cantidad_apilable\": 1,\n      \"ganchos\": [\n        903\n      ],\n      \"accesorio_codigo\": \"{{accesorioCodigoImportacion}}\",\n      \"accesorios\": [\n        {\n          \"codigo\": \"{{accesorioCodigoImportacion}}\",\n          \"tamano_pulgadas\": 22\n        }\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+                      "pm.test('El mensaje explica la mezcla', () => pm.expect(JSON.stringify(pm.response.json().error.details)).to.include('no se pueden enviar juntos'));"
                     ]
                   }
                 }

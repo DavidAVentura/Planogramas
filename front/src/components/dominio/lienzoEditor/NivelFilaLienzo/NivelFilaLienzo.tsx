@@ -6,6 +6,7 @@ import type {
   PosicionLienzo as PosicionLienzoModelo,
   ProductoCatalogo,
 } from '../../../../domain/lienzo/lienzo.types';
+import type { Gancho } from '../../../../types/gancho';
 import { ConTooltipUso } from '../../UsoEspacio/UsoEspacioTooltip';
 import { calcularUsoHorizontal, calcularUsoVertical } from '../../../../utils/usoEspacio';
 import './NivelFilaLienzo.css';
@@ -34,7 +35,7 @@ interface NivelFilaLienzoProps {
   onAsignarSkuPorDrop: (posicionId: string, sku: string) => void;
   onAgregarPosicionPendiente: (nivelId: string, ordenDestino: number) => void;
   /** Números de gancho calculados por posición (opcional: solo se pasa cuando se quieren ver). */
-  resolverGanchos?: (posicionId: string) => number[] | undefined;
+  resolverGanchos?: (posicionId: string) => Gancho[] | undefined;
 }
 
 /**

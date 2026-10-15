@@ -2,6 +2,7 @@ import { useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { NivelFilaLienzo } from '../NivelFilaLienzo/NivelFilaLienzo';
 import type { CapacidadNivel, GondolaLienzo, NivelLienzo, PosicionLienzo, ProductoCatalogo } from '../../../../domain/lienzo/lienzo.types';
 import type { HojaSeccion, NodoSeccion } from '../../../../types/seccion';
+import type { Gancho } from '../../../../types/gancho';
 import { calcularGapCm } from '../../../../domain/lienzo/geometria.service';
 import { calcularCapacidadNivel } from '../../../../domain/lienzo/capacidad.service';
 import { ALTURA_MIN_NIVEL_PX, PX_POR_CM, calcularAnchoFramePx } from '../constantesLienzo';
@@ -35,7 +36,7 @@ export interface GondolaFrameLienzoProps {
    */
   resolverDesborda?: (posicion: PosicionLienzo, gapCm: number) => boolean;
   /** Números de gancho calculados por posición — solo se dibujan si el llamador los pasa. */
-  resolverGanchos?: (posicionId: string) => number[] | undefined;
+  resolverGanchos?: (posicionId: string) => Gancho[] | undefined;
   onMoverGondola: (gondolaId: string, x: number, y: number) => void;
   onEditarGondola?: (gondolaId: string) => void;
   onEliminarGondola?: (gondolaId: string) => void;

@@ -87,7 +87,6 @@
         "src/components/dominio/modales/ExtractorJCv2Modal/ExtractorJCv2Modal.css",
         "src/components/dominio/modales/ExtractorPdfPlanogramaModal/ExtractorPdfPlanogramaModal.css",
         "src/components/dominio/modales/HistorialAsignacionModal/HistorialAsignacionModal.css",
-        "src/components/dominio/modales/ImportarExcelProductosModal/ImportarExcelProductosModal.css",
         "src/components/dominio/modales/MontajeTiendaModal/MontajeTiendaModal.css",
         "src/components/dominio/modales/MoverPosicionModal/MoverPosicionModal.css",
         "src/components/dominio/modales/NivelModal/NivelModal.css",

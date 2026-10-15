@@ -39,7 +39,7 @@ module.exports = {
   /**
    * En una transacción: busca (o crea) la góndola "Por ubicar" de la versión, completa sus niveles
    * de relleno hasta 10 posiciones cada uno, crea los niveles que falten, inserta las posiciones
-   * (y su accesorio de montaje) y recalcula medidas de la góndola y alturas de sus niveles.
+   * (y sus accesorios de montaje, `accesorios[]` con `orden`) y recalcula medidas de la góndola y alturas de sus niveles.
    * @param {number} versionId
    * @param {object[]} posiciones - salida de `posicionDesdeFila` (importacion.entity.js)
    * @returns {Promise<{ id: number, creada: boolean, totalNiveles: number }>}

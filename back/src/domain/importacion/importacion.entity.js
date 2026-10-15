@@ -12,6 +12,7 @@
  */
 
 const { MIN_TAM_CM, DIRECCIONES, construirArbol, aplanar, calcularHojas } = require('../seccion/seccion.entity');
+const { numeroGancho } = require('../compartido/gancho');
 
 const DESTINOS = Object.freeze(['NUEVA', 'REEMPLAZAR']);
 
@@ -181,11 +182,12 @@ function planificarCuerpo(cuerpo, indice) {
 
 /**
  * Cruza el layout con los productos de la góndola "Por ubicar" (importados del Excel) por número
- * de gancho: un espacio del PDF cuyos ganchos pertenecen todos a un mismo producto de "Por ubicar"
+ * de gancho en forma canónica (el 54 y el de exhibición "54E" son distintos): un espacio del PDF cuyos ganchos pertenecen todos a un mismo producto de "Por ubicar"
  * toma ese producto con sus datos del Excel (cantidades, mín./máx., accesorio...) y queda
  * confirmado. Un producto del Excel puede repartirse en varios espacios (ej. ganchos 4, 9, 14 y 19
  * en cuatro filas): sus facings se reparten en proporción a los ganchos de cada espacio.
  *
+ * Los ganchos se comparan en forma canónica: un espacio con el 54 no toma un producto con "54E".
  * Muta los planes. Devuelve qué hacer con cada producto de "Por ubicar": eliminarlo si se usaron
  * todos sus ganchos, o dejarle los que sobraron.
  * @param {object[]} planes - salida de `planificarCuerpo`
@@ -193,6 +195,9 @@ function planificarCuerpo(cuerpo, indice) {
  * @returns {{ eliminar: number[], actualizar: object[], llenados: number, advertencias: string[] }}
  */
 function cruzarConPorUbicar(planes, porUbicar) {
+  // Los ganchos de exhibición ("54E") no son facings: el reparto proporcional cuenta solo los normales.
+  const normales = (ganchos) => ganchos.filter((g) => typeof g === 'number').length;
+  const base = (ganchos) => normales(ganchos) || ganchos.length;
   const porGancho = new Map();
   porUbicar.forEach((p) => (p.ganchos ?? []).forEach((g) => porGancho.set(g, p)));
   const usados = new Map(); // id de "Por ubicar" → Set de ganchos usados
@@ -211,7 +216,7 @@ function cruzarConPorUbicar(planes, porUbicar) {
     if (pos.sku && fuente.sku && pos.sku !== fuente.sku) {
       advertencias.push(`Gancho ${pos.ganchos.join(', ')}: el PDF indica el SKU ${pos.sku} y el Excel ${fuente.sku}; se usó el del Excel.`);
     }
-    const facings = Math.max(1, Math.round((fuente.facings_horizontal * pos.ganchos.length) / fuente.ganchos.length));
+    const facings = Math.max(1, Math.round((fuente.facings_horizontal * normales(pos.ganchos)) / base(fuente.ganchos)));
     Object.assign(pos, {
       sku:                 fuente.sku,
       nombre_detectado:    fuente.sku ? null : fuente.nombre_detectado,
@@ -245,7 +250,7 @@ function cruzarConPorUbicar(planes, porUbicar) {
       eliminar.push(p.id);
       return;
     }
-    const facings = Math.max(1, Math.round((p.facings_horizontal * resto.length) / p.ganchos.length));
+    const facings = Math.max(1, Math.round((p.facings_horizontal * normales(resto)) / base(p.ganchos)));
     actualizar.push({ id: p.id, ganchos: resto, facings_horizontal: facings, capacidad_maxima: facings * p.unidades_por_facing * p.cantidad_apilable });
     advertencias.push(`${p.sku ?? p.nombre_detectado}: los ganchos ${resto.join(', ')} no están en el PDF; siguen en "Por ubicar".`);
   });
@@ -314,18 +319,31 @@ function filtrarProductos(filas, skusEnVersion) {
     }
     aImportar.push({ fila, indice });
   });
-  const primerGancho = (f) => (f.ganchos?.length ? Math.min(...f.ganchos) : Infinity);
+  const primerGancho = (f) => (f.ganchos?.length ? Math.min(...f.ganchos.map(numeroGancho)) : Infinity);
   aImportar.sort((a, b) => primerGancho(a.fila) - primerGancho(b.fila) || a.indice - b.indice);
   return { aImportar: aImportar.map((x) => x.fila), omitidos };
+}
+
+/**
+ * Accesorios de una fila del Excel. Formato nuevo (`accesorios`) o, si no viene, el legado
+ * (`accesorio_codigo` + `tamano_accesorio_pulgadas`); nunca se combinan.
+ * @returns {{ codigo: string, tamano_pulgadas: number|null }[]}
+ */
+function accesoriosDeFila(fila) {
+  if (fila.accesorios?.length) return fila.accesorios;
+  if (fila.accesorio_codigo) {
+    return [{ codigo: fila.accesorio_codigo, tamano_pulgadas: fila.tamano_accesorio_pulgadas ?? null }];
+  }
+  return [];
 }
 
 /**
  * Convierte una fila del Excel en la posición a insertar (sin nivel ni orden todavía).
  * @param {object} fila
  * @param {{ existe: boolean, anchoCm: number|null }} producto - resultado de validar el SKU
- * @param {{ id: number, tamano_pulgadas: number|null }|null} accesorio
+ * @param {{ accesorio_id: number, tamano_pulgadas: number|null, orden: number }[]} accesorios
  */
-function posicionDesdeFila(fila, producto, accesorio) {
+function posicionDesdeFila(fila, producto, accesorios = []) {
   const facings = fila.facings_horizontal;
   const unidades = fila.unidades_por_facing ?? 1;
   const apilable = fila.cantidad_apilable ?? 1;
@@ -346,7 +364,7 @@ function posicionDesdeFila(fila, producto, accesorio) {
     decision:            fila.decision ?? 'ACTIVO',
     observaciones:       fila.observaciones || null,
     ganchos:             fila.ganchos?.length ? fila.ganchos : null,
-    accesorio,
+    accesorios,
   };
 }
 
@@ -369,11 +387,13 @@ module.exports = {
   POSICIONES_POR_NIVEL,
   NOMBRE_POR_UBICAR,
   filtrarProductos,
+  accesoriosDeFila,
   posicionDesdeFila,
   geometriaPorUbicar,
   cruzarConPorUbicar,
   DESTINOS,
   errorUnprocessable,
+  errorBadRequest,
   planificarCuerpo,
   validarDestinosUnicos,
   degradarSkusInexistentes,

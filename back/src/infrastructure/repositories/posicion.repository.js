@@ -4,6 +4,7 @@
  */
 
 const db = require('../db/connection');
+const { parsearGanchosJson } = require('../../domain/compartido/gancho');
 
 const TABLA_POSICION           = 'Posicion';
 const TABLA_POSICION_ACCESORIO = 'PosicionAccesorio';
@@ -36,20 +37,10 @@ const CAMPOS_EDITABLES = [
   'ganchos',
 ];
 
-/** `ganchos` se guarda como texto JSON (arreglo de enteros); null o [] = sin ganchos guardados. */
+/** `ganchos` se guarda como texto JSON (arreglo de ganchos canónicos: número o "<n>E"); null o [] = sin ganchos guardados. */
 function serializarGanchos(ganchos) {
   if (ganchos === undefined) return undefined;
   return Array.isArray(ganchos) && ganchos.length > 0 ? JSON.stringify(ganchos) : null;
-}
-
-function parsearGanchos(valor) {
-  if (!valor) return null;
-  try {
-    const ganchos = JSON.parse(valor);
-    return Array.isArray(ganchos) && ganchos.length > 0 ? ganchos : null;
-  } catch {
-    return null;
-  }
 }
 
 // ─── Helpers privados ────────────────────────────────────────────────────────
@@ -79,7 +70,7 @@ function mapPosicion(row) {
     nombre_detectado:    row.nombre_detectado ?? null,
     confidence:          row.confidence ?? 100,
     datos_vision:        row.datos_vision ? JSON.parse(row.datos_vision) : null,
-    ganchos:             parsearGanchos(row.ganchos),
+    ganchos:             parsearGanchosJson(row.ganchos),
   };
 }
 

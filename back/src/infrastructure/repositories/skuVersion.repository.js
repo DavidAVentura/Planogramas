@@ -4,22 +4,13 @@
  */
 
 const db = require('../db/connection');
+const { parsearGanchosJson } = require('../../domain/compartido/gancho');
 
 const TABLA_GONDOLA  = 'Gondola';
 const TABLA_SECCION  = 'Seccion';
 const TABLA_NIVEL    = 'Nivel';
 const TABLA_POSICION = 'Posicion';
 const TABLA_PRODUCTO = 'Producto';
-
-function parsearGanchos(valor) {
-  if (!valor) return null;
-  try {
-    const ganchos = JSON.parse(valor);
-    return Array.isArray(ganchos) && ganchos.length ? ganchos.map(Number) : null;
-  } catch {
-    return null;
-  }
-}
 
 // ─── cargarVersion ───────────────────────────────────────────────────────────
 
@@ -68,7 +59,7 @@ async function cargarVersion(versionId) {
       capacidadMaxima: p.capacidad_maxima,
       minFinal:        p.min_final,
       maxFinal:        p.max_final,
-      ganchos:         parsearGanchos(p.ganchos),
+      ganchos:         parsearGanchosJson(p.ganchos),
     })),
   };
 }

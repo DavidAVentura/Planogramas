@@ -1,4 +1,5 @@
 import type { DecisionPosicion, ModoPosicion, PerfilRedondeo } from './posicion';
+import type { Gancho } from './gancho';
 import type { TipoTienda } from './tienda';
 
 /** Estados de versión que puede ver el Implementador: la que su tienda monta. */
@@ -90,7 +91,7 @@ export interface ProductoImplementacion {
   decision: DecisionPosicion;
   observaciones: string | null;
   /** Números de gancho donde se monta (guardados del Excel o calculados por el sistema). */
-  ganchos: number[];
+  ganchos: Gancho[];
   /** Accesorios de montaje con su medida (ej. R45-12-212P2 · 12"). */
   accesorios: { codigo: string; nombre: string; tamano_pulgadas: number | null }[];
   sku_sustituto: string | null;

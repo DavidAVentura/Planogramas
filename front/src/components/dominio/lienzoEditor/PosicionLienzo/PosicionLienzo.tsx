@@ -1,5 +1,7 @@
 import type { DragEvent } from 'react';
 import type { PosicionLienzo as PosicionLienzoModelo, ProductoCatalogo } from '../../../../domain/lienzo/lienzo.types';
+import type { Gancho } from '../../../../types/gancho';
+import { textoGanchos } from '../../../../domain/ganchos/gancho';
 import { ANCHO_MIN_POSICION_PX, PX_POR_CM } from '../constantesLienzo';
 import './PosicionLienzo.css';
 
@@ -21,15 +23,7 @@ interface PosicionLienzoProps {
   onDragStart: (e: DragEvent<HTMLDivElement>) => void;
   onSoltarProducto: (sku: string) => void;
   /** Números de gancho calculados (uno por facing). Solo se dibujan si vienen — por defecto no. */
-  ganchos?: number[];
-}
-
-/** "04" o "04–07" (rango continuo) o "04, 09" — el número de gancho tal como lo lee la tienda. */
-function textoGanchos(ganchos: number[]): string {
-  const dos = (n: number) => String(n).padStart(2, '0');
-  if (ganchos.length === 1) return dos(ganchos[0]);
-  const continuo = ganchos.every((n, i) => i === 0 || n === ganchos[i - 1] + 1);
-  return continuo ? `${dos(ganchos[0])}–${dos(ganchos[ganchos.length - 1])}` : ganchos.map(dos).join(', ');
+  ganchos?: Gancho[];
 }
 
 /**

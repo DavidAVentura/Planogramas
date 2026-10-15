@@ -10,11 +10,57 @@
   color: var(--fg-3);
 }
 
+.importar-excel__bloqueo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-left: 3px solid var(--danger);
+  border-radius: var(--radius-md);
+  background: var(--danger-bg);
+  font-size: 13px;
+  color: var(--fg-2);
+
+  strong {
+    font-size: 14px;
+  }
+}
+
+.importar-excel__motivo {
+  font-size: 13px;
+  color: var(--fg-2);
+}
+
+.importar-excel__esperado {
+  font-size: 13px;
+  color: var(--fg-3);
+}
+
+.importar-excel__omitidas {
+  font-size: 12px;
+  color: var(--fg-3);
+
+  ul {
+    margin: 4px 0 0;
+    padding-left: 16px;
+  }
+}
+
+.importar-excel__accesorios {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+  list-style: none;
+}
+
 .importar-excel__faltantes {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 10px 12px;
+  gap: 8px;
+  padding: 12px;
   border-left: 3px solid var(--warning);
   border-radius: var(--radius-md);
   background: var(--ink-50);
@@ -34,18 +80,11 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 4px 4px 4px 10px;
+    padding: 4px 4px 4px 12px;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
-    background: #fff;
+    background: var(--bg-elevated);
   }
-}
-
-.importar-excel__advertencias {
-  margin: 0;
-  padding-left: 18px;
-  font-size: 12px;
-  color: var(--warning);
 }
 
 .importar-excel__tabla {

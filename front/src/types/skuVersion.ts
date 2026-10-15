@@ -1,4 +1,7 @@
 /** "SKU en la versión": totales por SKU sumando todas sus ubicaciones (GET /versiones/:id/skus). */
+
+import type { Gancho } from './gancho';
+
 export interface UbicacionSku {
   posicionId: number;
   gondolaId: number;
@@ -9,7 +12,7 @@ export interface UbicacionSku {
   /** Nivel dentro de su sección, contando de arriba hacia abajo. */
   nivel: number;
   facings: number;
-  ganchos: number[];
+  ganchos: Gancho[];
 }
 
 export interface AlertaSku {
@@ -29,7 +32,7 @@ export interface SkuVersion {
   maxFinal: number | null;
   minVaria: boolean;
   maxVaria: boolean;
-  ganchos: number[];
+  ganchos: Gancho[];
   alertas: AlertaSku[];
 }
 
@@ -37,7 +40,7 @@ export interface SkusDeVersion {
   versionId: number;
   totalGanchos: number;
   /** Números de gancho calculados por posición (incluye los espacios pendientes). */
-  ganchosPorPosicion: Record<string, number[]>;
+  ganchosPorPosicion: Record<string, Gancho[]>;
   skus: SkuVersion[];
 }
 

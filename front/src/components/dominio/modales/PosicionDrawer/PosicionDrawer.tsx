@@ -15,6 +15,7 @@ import {
 } from '../../../../hooks/useCatalogo';
 import { useAccesorios } from '../../../../hooks/useAccesorios';
 import { calcularAnchoAsignado, calcularCapacidadMaxima, calcularMinEstetico } from '../../../../utils/posicionCalculos';
+import { leerListaGanchos } from '../../../../domain/ganchos/gancho';
 import {
   DECISIONES_POSICION,
   MODOS_POSICION,
@@ -147,9 +148,9 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
   }
 
   const notaDesbordeInvalida = desbordaGondola && !notaDesborde.trim();
-  // "4, 9, 14, 19" → [4, 9, 14, 19]; vacío = sin ganchos guardados (el sistema los calcula).
-  const ganchosLeidos = ganchosTexto.split(/[\s,;]+/).filter(Boolean).map(Number);
-  const ganchosInvalidos = ganchosLeidos.some((n) => !Number.isInteger(n) || n < 1) || new Set(ganchosLeidos).size !== ganchosLeidos.length;
+  // "4, 9, 14, 19" → [4, 9, 14, 19]; "4, 54E" → [4, "54E"]; vacío = sin ganchos guardados (el sistema los calcula).
+  const { ganchos: ganchosLeidos, invalidos } = leerListaGanchos(ganchosTexto);
+  const ganchosInvalidos = invalidos.length > 0;
   const minMaxInvalido = minFinal !== '' && maxFinal !== '' && Number(minFinal) > Number(maxFinal);
   const dimensionesCompletas = Number(dimAnchoCm) > 0 && Number(dimAltoCm) > 0 && Number(dimProfundidadCm) > 0;
 
@@ -428,7 +429,7 @@ export function PosicionDrawer({ posicionId, onClose, onCambio }: PosicionDrawer
             aria-invalid={ganchosInvalidos}
           />
         </label>
-        {ganchosInvalidos && <p className="posicion-drawer__error">Los ganchos deben ser números enteros positivos, sin repetir.</p>}
+        {ganchosInvalidos && <p className="posicion-drawer__error">Los ganchos deben ser números enteros positivos (los de exhibición llevan E, como 54E), sin repetir.</p>}
         <ul className="posicion-drawer__accesorios">
           {accesorios.map((a) => (
             <li key={a.id}>

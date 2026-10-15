@@ -9,6 +9,7 @@ import {
 import { MODO_APARICION_META, MODOS_APARICION } from '../../constants/productos';
 import { DECISIONES_POSICION, PERFILES_REDONDEO } from '../../types/posicion';
 import type { ProductoImplementacion } from '../../types/implementacion';
+import { numeroGancho, textoGancho } from '../ganchos/gancho';
 import {
   alternarOrden,
   ordenarAnidado,
@@ -116,8 +117,8 @@ export const COLUMNAS_PRODUCTO: ColumnaProducto[] = [
     etiqueta: 'Ganchos',
     ancho: 130,
     filtro: 'texto',
-    texto: (f) => f.ganchos.join(', '),
-    orden: (f) => (f.ganchos.length ? Math.min(...f.ganchos) : null),
+    texto: (f) => f.ganchos.map(textoGancho).join(', '),
+    orden: (f) => (f.ganchos.length ? Math.min(...f.ganchos.map(numeroGancho)) : null),
   },
   {
     clave: 'accesorio',

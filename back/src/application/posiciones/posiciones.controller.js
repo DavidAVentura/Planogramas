@@ -12,6 +12,7 @@ const nivelRepo    = require('../../infrastructure/repositories/nivel.repository
 const gondolaRepo  = require('../../infrastructure/repositories/gondola.repository');
 const versionRepo  = require('../../infrastructure/repositories/version.repository');
 const productoRepo = require('../../infrastructure/repositories/producto.repository');
+const { schemaGanchos } = require('../compartido/ganchos.schema');
 
 // ─── Esquemas de validación ───────────────────────────────────────────────────
 
@@ -32,7 +33,7 @@ const schemaCrear = Joi.object({
   nombre_detectado:    Joi.string().trim().max(500).optional().allow(null, ''),
   confidence:          Joi.number().integer().min(0).max(100).optional(),
   datos_vision:        Joi.object().unknown(true).optional().allow(null),
-  ganchos:             Joi.array().items(Joi.number().integer().positive()).max(100).unique().allow(null).optional(),
+  ganchos:             schemaGanchos.allow(null).optional(),
 });
 
 const schemaAsignarSku = Joi.object({
@@ -58,7 +59,7 @@ const schemaEditar = Joi.object({
   decision:            Joi.string().valid(...DECISIONES).optional(),
   observaciones:       Joi.string().trim().max(500).allow(null, '').optional(),
   confidence:          Joi.number().integer().min(0).max(100).optional(),
-  ganchos:             Joi.array().items(Joi.number().integer().positive()).max(100).unique().allow(null).optional(),
+  ganchos:             schemaGanchos.allow(null).optional(),
 }).min(1);
 
 const schemaMover = Joi.object({

@@ -2,6 +2,8 @@ import { useState, type DragEvent, type MouseEvent, type PointerEvent as ReactPo
 import type { GondolaFrameLienzoProps } from '../GondolaFrameLienzo/GondolaFrameLienzo';
 import type { CapacidadNivel, NivelLienzo, PosicionLienzo } from '../../../../domain/lienzo/lienzo.types';
 import type { HojaSeccion } from '../../../../types/seccion';
+import type { Gancho } from '../../../../types/gancho';
+import { esGanchoExhibicion, textoGancho, textoGanchos } from '../../../../domain/ganchos/gancho';
 import { distribuirNiveles } from '../../../../domain/lienzo/secciones.service';
 import { calcularCapacidadNivel } from '../../../../domain/lienzo/capacidad.service';
 import { PX_POR_CM } from '../constantesLienzo';
@@ -28,8 +30,6 @@ interface HojaDibujo {
   altoCm: number;
   niveles: NivelLienzo[];
 }
-
-const dos = (n: number) => String(n).padStart(2, '0');
 
 /**
  * Detalle de góndola dibujado a escala real (estilo del prototipo de diseño): postes, regla en pies,
@@ -447,7 +447,7 @@ function PosicionEscala({
   seleccionada: boolean;
   mismoSku: boolean;
   props: GondolaFrameLienzoProps;
-  ganchos: number[] | undefined;
+  ganchos: Gancho[] | undefined;
   siguienteGap: ReactNode;
 }) {
   const { puedeEscribir } = props;
@@ -461,6 +461,10 @@ function PosicionEscala({
     14,
     Math.min(altoNivelPx - 10, altoReal !== null ? altoReal * Math.max(1, posicion.apilable) * PX_POR_CM : altoNivelPx * FRACCION_ALTO_SIN_DATO),
   );
+  // Los de exhibición (E) no son facings: se reparten solo los normales y los E se muestran aparte.
+  const normales = ganchos?.filter((g) => !esGanchoExhibicion(g));
+  const exhibicion = ganchos?.filter(esGanchoExhibicion) ?? [];
+  const sufijoGanchos = ganchos?.length ? ` · ganchos ${textoGanchos(ganchos)}` : '';
   const clases = ['gondola-escala__posicion', seleccionada && 'gondola-escala__posicion--seleccionada', mismoSku && 'gondola-escala__posicion--mismo-sku']
     .filter(Boolean)
     .join(' ');
@@ -495,10 +499,10 @@ function PosicionEscala({
                 }
               : undefined
           }
-          title={posicion.nombreDetectado ? `Detectado: ${posicion.nombreDetectado} · clic para asignar SKU` : 'Espacio pendiente · clic para asignar SKU'}
+          title={(posicion.nombreDetectado ? `Detectado: ${posicion.nombreDetectado} · clic para asignar SKU` : 'Espacio pendiente · clic para asignar SKU') + sufijoGanchos}
         >
           <span className="gondola-escala__pendiente-icono">?</span>
-          {ganchos && <span className="gondola-escala__gancho">{dos(ganchos[0])}</span>}
+          {ganchos?.length ? <span className="gondola-escala__gancho">{textoGanchos(ganchos)}</span> : null}
         </div>
         {siguienteGap}
       </>
@@ -523,7 +527,7 @@ function PosicionEscala({
           if (props.onMenuPosicion) props.onMenuPosicion(posicion.id, e.clientX, e.clientY);
           else if (posicion.sku) props.onAbrirFichaPosicion(posicion.sku);
         }}
-        title={`${producto?.nombre ?? posicion.sku} · ${posicion.sku} · ${posicion.facings} facing${posicion.facings === 1 ? '' : 's'}${sinConfirmar ? ` · sin confirmar (${posicion.confidence} %) · clic derecho para reasignar` : ''}`}
+        title={`${producto?.nombre ?? posicion.sku} · ${posicion.sku} · ${posicion.facings} facing${posicion.facings === 1 ? '' : 's'}${sinConfirmar ? ` · sin confirmar (${posicion.confidence} %) · clic derecho para reasignar` : ''}${sufijoGanchos}`}
       >
         {sinConfirmar && <span className="gondola-escala__ia">IA {posicion.confidence}%</span>}
         {Array.from({ length: Math.max(1, posicion.facings) }).map((_, i) => (
@@ -533,7 +537,12 @@ function PosicionEscala({
             ) : (
               <span className="gondola-escala__facing-sku">{posicion.sku}</span>
             )}
-            {ganchos?.[i] !== undefined && <span className="gondola-escala__gancho">{dos(ganchos[i])}</span>}
+            {normales?.[i] !== undefined && <span className="gondola-escala__gancho">{textoGancho(normales[i])}</span>}
+            {i === Math.max(1, posicion.facings) - 1 && exhibicion.length > 0 && (
+              <span className="gondola-escala__gancho gondola-escala__gancho--exhibicion">
+                {exhibicion.map(textoGancho).join(', ')}
+              </span>
+            )}
           </span>
         ))}
         {posicion.apilable > 1 && <span className="gondola-escala__apilable">×{posicion.apilable}</span>}

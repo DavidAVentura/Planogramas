@@ -1,6 +1,7 @@
 /** Tipos del Agente Importador de PDF de planograma (POST /agente-extractor/pdf-planograma) y de
  * la importación transaccional del layout (POST /versiones/:id/importar-layout). */
 
+import type { Gancho } from './gancho';
 import type { DatosVision } from './posicion';
 
 export type TipoAccesorioNivel = 'GANCHO' | 'BANDEJA' | 'BARRA' | 'BOTADERO' | 'CANASTA' | 'PARRILLA_DIVISOR' | 'OTRO';
@@ -143,5 +144,6 @@ export interface ResultadoImportacion {
 export interface ProductoPorUbicar {
   sku: string | null;
   nombre: string;
-  ganchos: number[];
+  /** Puede traer ganchos de exhibición ("54E"): el extractor del PDF solo produce enteros. */
+  ganchos: Gancho[];
 }

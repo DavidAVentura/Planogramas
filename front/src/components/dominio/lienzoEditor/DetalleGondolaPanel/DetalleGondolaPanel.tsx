@@ -7,6 +7,7 @@ import type { DireccionSeccion, EstructuraSecciones } from '../../../../types/se
 import type { SkuMinMaxCambios, SkusDeVersion, SkuVersion } from '../../../../types/skuVersion';
 import type { PosicionCambiosCompletos, PosicionConProducto } from '../../../../types/posicion';
 import type { DimensionesProducto } from '../../../../types/catalogo';
+import { textoGancho } from '../../../../domain/ganchos/gancho';
 import { PosicionesSku } from './PosicionesSku';
 import './DetalleGondolaPanel.css';
 
@@ -34,7 +35,6 @@ interface DetalleGondolaPanelProps {
   onAlternarGanchos: () => void;
 }
 
-const dos = (n: number) => String(n).padStart(2, '0');
 
 // Ancho del panel: se agranda arrastrando su borde izquierdo y se recuerda en este navegador.
 const CLAVE_ANCHO = 'planogramas.detalleGondola.ancho';
@@ -396,7 +396,7 @@ function FilaSku(props: DetalleGondolaPanelProps & { sku: SkuVersion }) {
         <td>
           <CampoMinMax valor={sku.maxFinal} varia={sku.maxVaria} editable={puedeEscribir} etiqueta={`Máximo final de ${sku.sku}`} onAplicar={(v) => onEditarSku(sku.sku, { max_final: v })} />
         </td>
-        <td className="detalle-gondola-panel__mono">{sku.ganchos.map(dos).join(' · ')}</td>
+        <td className="detalle-gondola-panel__mono">{sku.ganchos.map(textoGancho).join(' · ')}</td>
       </tr>
       {sku.alertas.length > 0 && (
         <tr className="detalle-gondola-panel__alerta">

@@ -1,3 +1,5 @@
+import type { Gancho } from './gancho';
+
 export const PERFILES_REDONDEO = ['MRP', 'ZSRE'] as const;
 export type PerfilRedondeo = (typeof PERFILES_REDONDEO)[number];
 
@@ -48,7 +50,7 @@ export interface Posicion {
   decision: DecisionPosicion;
   observaciones: string | null;
   /** Números de gancho guardados (importados del Excel); null = se calculan. */
-  ganchos: number[] | null;
+  ganchos: Gancho[] | null;
 }
 
 export interface PosicionAccesorioEmbebido {
@@ -122,7 +124,7 @@ export interface PosicionCambiosCompletos extends PosicionCambios {
   observaciones?: string | null;
   /** 100 = confirmado por el usuario (ej. "Confirmar producto" sobre uno colocado por un agente). */
   confidence?: number;
-  ganchos?: number[] | null;
+  ganchos?: Gancho[] | null;
 }
 
 export interface Capacidad {
