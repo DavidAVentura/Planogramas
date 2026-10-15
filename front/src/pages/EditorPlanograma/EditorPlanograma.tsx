@@ -420,6 +420,7 @@ export function EditorPlanograma() {
         <AgenteExtractorBubble
           puedeEscribir={puedeEscribir && esAnalista}
           versionId={versionIdNumerico}
+          tipoVersion={version?.tipo}
           gondolas={gondolas}
           gondolaActiva={gondolaActiva}
           categoria={planograma?.departamento ?? ''}

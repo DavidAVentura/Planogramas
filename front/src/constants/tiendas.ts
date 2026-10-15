@@ -10,7 +10,7 @@ interface MetaBadge {
 export const TIPOS_TIENDA: TipoTienda[] = ['EXPRESS', 'MEDIANA', 'GRANDE'];
 
 /** Sufijo del código de versión según el tipo (ej. "ALFOMBRAS DE AUTO-TG"). */
-export const SIGLA_TIPO_TIENDA: Record<TipoTienda, string> = {
+export const SIGLA_TIPO_TIENDA: Record<TipoTienda, 'TG' | 'TM' | 'TE'> = {
   GRANDE: 'TG',
   MEDIANA: 'TM',
   EXPRESS: 'TE',
