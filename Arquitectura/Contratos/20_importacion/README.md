@@ -27,4 +27,5 @@ El PDF se importa en dos pasos:
 Convenciones del lienzo que respeta la importación: nivel `orden` 1 = el de arriba; las alturas
 desde el piso bajan a medida que sube el orden; los números de gancho se calculan recorriendo
 hojas → niveles → posiciones → un número por facing (`skuVersion.entity.js`), salvo que la posición
-tenga `ganchos` guardados (Excel), que mandan y no son necesariamente correlativos.
+tenga `ganchos` guardados (Excel), que mandan y no son necesariamente correlativos. Los ganchos guardados
+son un arreglo mixto: número = normal, `"54E"` = exhibición (distinto de `54`; no reserva número).

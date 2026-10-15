@@ -46,13 +46,48 @@ El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
     (así los leen sin cambios publicación, drawer, Implementador y % de inventario); el PATCH por
     SKU los aplica a todas sus posiciones. Los **números de gancho no se guardan**: se calculan en
     `skuVersion.entity.js` (`recorrerVersion`: góndola por `orden` → sección → nivel por `orden` →
-    posición por `orden_horizontal` → un número por facing, pendientes incluidos).
+    posición por `orden_horizontal` → un número por facing, pendientes incluidos). Los ganchos de
+    exhibición (`"54E"`, guardados desde el Excel) se muestran tal cual y **no** reservan número:
+    `recorrerVersion` solo aparta los ganchos guardados numéricos. En el lienzo a escala se reparte por
+    facing solo lo normal y los `E` se muestran juntos (modificador `--exhibicion`); los ganchos se
+    muestran en el orden guardado, sin reordenar.
   - Front: el detalle de góndola es la MISMA página del lienzo enfocada en una góndola
     (`/planogramas/:id/versiones/:versionId/lienzo/gondola/:gondolaId`, botón de expandir del
     marco) + `DetalleGondolaPanel`. Lienzo general y detalle dibujan cada góndola con
     `GondolaEscalaLienzo` (a escala, estilo del prototipo de diseño, con barras de uso horizontal y
-    vertical); `GondolaFrameLienzo` ya no se dibuja, solo se conserva por su tipo de props compartido.
+    vertical); `GondolaFrameLienzo`, `NivelFilaLienzo` y `PosicionLienzo` ya no se dibujan (DT-32).
   - Postman: carpetas `18 - Secciones` y `19 - SKU en la versión`.
+- **Importación de productos del Excel (`importar-productos` / `importar-layout`, módulo 20)**.
+  Postman: carpeta "Importar productos" (y casos de ganchos en `PATCH /posiciones/:id`). Reglas no obvias:
+  - **Esquemas Joi** en `application/importacion/importacion.schemas.js` (el controller solo tiene
+    handlers). Los ganchos de importación, `POST`/`PATCH` de posiciones e `importar-layout` comparten
+    `application/compartido/ganchos.schema.js` (`Joi.any().custom(normalizarGancho)`): no usar
+    `Joi.number()` ni `pattern`, convierten `"5E1"` en 50.
+  - **Contrato de accesorios**: `accesorios: [{ codigo, tamano_pulgadas }]` (hasta 10 por producto, 200
+    códigos distintos por request). Los campos legado `accesorio_codigo`/`tamano_accesorio_pulgadas` se
+    aceptan solo si `accesorios` viene vacío (mezclar → `400`; DT-22). `accesorio_id` y `orden` los
+    calcula el servidor (`accesoriosDeFila`, `posicionDesdeFila` en `importacion.entity.js`).
+  - **Todo o nada**: `importarProductos` valida versión editable → tope de 200 → resuelve **todos** los
+    códigos (`normalizarCodigo`) → `422` con `details.codigos` si falta alguno → recién entonces lee
+    SKUs y escribe. Un accesorio inexistente ya no se omite con advertencia. Los accesorios de cada
+    posición se insertan en un solo `insert` con `trx` (`insertarPosicionPorUbicar`).
+  - **Front**: `excelProductosPlanograma.ts` valida cada celda, acumula errores con fila/columna/letra y
+    con errores devuelve `productos: []`. En `//` separa varios accesorios; enteros estrictos; los
+    facings implícitos cuentan solo ganchos normales. El modal bloquea con una vista de errores (origen
+    archivo) o, si un accesorio no está en el catálogo al pulsar Importar, con otra de origen catálogo
+    (sin petición). El 422 de catálogo se reconoce por `Array.isArray(err.details?.codigos)`, no por el
+    status (el 422 de versión no editable comparte `code`).
+  - **Ganchos de exhibición**: `Posicion.ganchos` es un arreglo mixto (`54` normal, `"54E"` exhibición,
+    distintos). Única regla de ganchos: `back/src/domain/compartido/gancho.js` (`normalizarGancho`,
+    `compararGanchos`, `parsearGanchosJson` — el único `JSON.parse` de ganchos) y su espejo
+    `front/src/domain/ganchos/gancho.ts` (`leerGancho`, `textoGancho(s)`). Prohibido `.map(Number)`,
+    `Math.min(...ganchos)` o `sort((a, b) => a - b)` sobre ganchos (usar `numeroGancho`/`compararGanchos`).
+    El código de accesorio del front se normaliza solo con `normalizarCodigoAccesorio`.
+  - **Cruce con "Por ubicar"** (`cruzarConPorUbicar`): compara ganchos en forma canónica; un espacio del PDF
+    con `54` no toma un producto con `54E`; el reparto de facings cuenta solo los ganchos normales. El
+    extractor de PDF sigue devolviendo enteros (DT-27): los `54E` quedan en "Por ubicar" con advertencia.
+  - **Antes de publicar**: consulta SQL de solo lectura de ganchos no canónicos en DEV y PROD (0 filas;
+    ver `04_implementacion.md` del plan `2026-10-15-importar-excel-tamano-accesorio`).
 - **Implementado, sin carpeta Postman todavía**: `adjuntos` (13, CRUD sobre Azure Blob) y
   `agente-extractor`.
 - **Autorización (permisos CAO, 2026-10-12)**: aplicada en todos los módulos; detalle, perfiles y

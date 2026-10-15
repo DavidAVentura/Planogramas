@@ -141,7 +141,7 @@ erDiagram
         varchar     nombre_detectado        "varchar(500), NO nvarchar (única columna varchar del esquema) — agregado en migración 008 — nombre que el agente de visión detectó en la foto, antes de confirmar SKU"
         int         confidence              "agregado en migración 008 — NOT NULL default 100 — 0-100; 100 = confirmado por el usuario o creado manualmente"
         nvarchar    datos_vision            "nvarchar(max) — agregado en migración 008 — JSON completo de la respuesta del agente de visión (para mostrar alternativas)"
-        nvarchar    ganchos                 "nvarchar(max), nullable — agregado en migración 013 — arreglo JSON de números de gancho del Excel (ej. [4,9,14,19]); si existe manda sobre la numeración calculada en skuVersion.entity.js (recorrerVersion)"
+        nvarchar    ganchos                 "nvarchar(max), nullable — agregado en migración 013 — arreglo JSON mixto de ganchos del Excel: número = gancho normal, texto '<n>E' = gancho de exhibición, distinto del normal (ej. [4,9,'14E',19]); si existe manda sobre la numeración calculada en skuVersion.entity.js (recorrerVersion), que solo reserva los numéricos. Sin migración: se lee con parsearGanchosJson (domain/compartido/gancho.js)"
     }
     %% migración 008 (posiciones_pendientes): habilita posiciones "PENDIENTE" sin SKU confirmado,
     %% resultado de detección por agente de visión — antes de esta migración sku era NOT NULL

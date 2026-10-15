@@ -47,7 +47,7 @@ Importador de PDF después de la revisión del usuario.
 | `niveles[].seccion_clave` | `null` si la góndola no está dividida; si lo está, la clave de una hoja. |
 | `niveles[].orden` | 1 = arriba. Se renumera 1..N para la góndola: hoja por hoja, en el orden recibido. |
 | `usar_por_ubicar` | Opcional (default `false`). Llena los espacios con los productos de la góndola "Por ubicar" (Excel) que tengan sus mismos ganchos — ver regla 6. |
-| `posiciones[].ganchos` | Números impresos en el PDF (enteros positivos, sin repetir). Se guardan en `Posicion.ganchos`: la numeración del lienzo es la del PDF. |
+| `posiciones[].ganchos` | Números impresos en el PDF (ganchos canónicos sin repetir: entero 1..999999 o de exhibición `"54E"`; el extractor de PDF hoy solo produce enteros, DT-27). Se guardan en `Posicion.ganchos`: la numeración del lienzo es la del PDF. |
 | `posiciones[].sku` | `null` = posición pendiente (`modo` PENDIENTE). `datos_vision` usa el mismo formato que las pendientes de IA visual, para que "Asignar SKU" muestre las alternativas. |
 
 ---

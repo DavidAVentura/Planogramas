@@ -12,6 +12,10 @@
 Devuelve cada SKU de la versión con sus ubicaciones y totales, más la numeración de ganchos
 calculada para cada posición (incluidos los espacios pendientes).
 
+Los `ganchos` (de cada SKU, de cada ubicación y de `ganchosPorPosicion`) tienen forma `(number|string)[]`:
+número = gancho normal; texto `"54E"` = gancho de exhibición guardado desde el Excel, distinto de `54`. Los
+de exhibición no reservan número en la numeración calculada.
+
 ---
 
 ## Parámetros de entrada

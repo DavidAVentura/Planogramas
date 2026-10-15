@@ -42,7 +42,7 @@ Modifica atributos de una posición existente: facings, capacidad, mínimos, má
 | `decision` | `string` | `ACTIVO`, `INACTIVO`. |
 | `observaciones` | `string \| null` | Notas libres del Analista. Máximo 500 chars. |
 | `confidence` | `integer` | 0–100. `100` = confirmado ("Confirmar producto" en el lienzo, sobre uno colocado por un agente). |
-| `ganchos` | `integer[] \| null` | Números de gancho guardados (ej. `[4,9,14,19]`), sin repetir. `null` o `[]` = los calcula el sistema. Migración 013. |
+| `ganchos` | `(integer \| string)[] \| null` | Ganchos guardados, sin repetir (máx. 100). Número = gancho normal (`54`); texto `"<n>E"` = gancho de exhibición (`"54E"`), distinto de `54` y sin reservar el número 54 de la numeración calculada. Ej. `[4, 9, "14E"]`. Cada ítem se normaliza: `"54"` → `54`, `"54e"`/`"054E"` → `"54E"`; `"5E1"`, `"54E2"`, `"54A"`, `"+54"`, `"54.0"`, `0` → `400`. `null` o `[]` = los calcula el sistema. Migración 013. |
 
 ---
 
@@ -94,7 +94,7 @@ Modifica atributos de una posición existente: facings, capacidad, mínimos, má
 
 | Código | Condición |
 |--------|-----------|
-| `400 Bad Request` | `desborda_gondola=true` sin `nota_desborde`, o `min_final > max_final`, o `ganchos` con números repetidos o no positivos. |
+| `400 Bad Request` | `desborda_gondola=true` sin `nota_desborde`, o `min_final > max_final`, o `ganchos` repetidos o con un ítem que no es un número entero 1–999999 ni de exhibición (`54E`). |
 | `401 Unauthorized` | JWT ausente. |
 | `404 Not Found` | Posición no existe. |
 | `422 Unprocessable Entity` | Versión no editable. |

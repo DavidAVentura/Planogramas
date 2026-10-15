@@ -44,7 +44,7 @@ cientos de posiciones), sin paginar.
    `INACTIVO`: la columna Decisión lo muestra. El conteo de "productos del planograma" de
    `Mi tienda` sigue siendo solo `ACTIVO`.
 3. Orden por defecto: `codigoVersion`, `Gondola.orden`, `Nivel.orden`, `Posicion.orden_horizontal`.
-4. Datos de montaje (migración 013): `ganchos` son los números guardados de la posición (Excel) o,
+4. Datos de montaje (migración 013): `ganchos` (`(number|string)[]`: `54` normal, `"54E"` exhibición, distintos) son los guardados de la posición (Excel) o,
    si no tiene, los calculados (mismo recorrido que `GET /versiones/{id}/skus`); `accesorios` son
    sus accesorios de montaje con su `tamano_pulgadas`; `porUbicar` indica que la fila sigue en la góndola "Por ubicar"
    (importada del Excel, sin lugar definitivo en el lienzo: el Implementador se guía por los ganchos).
