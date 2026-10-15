@@ -7,7 +7,10 @@
 const { Router } = require('express');
 const controller = require('../../../application/implementacion/implementacion.controller');
 
+const { requiereAnalista } = require('../middlewares/autorizacion');
+
 const router = Router();
+router.use(requiereAnalista); // A transitoria: sin permiso propio en CAO (DT-11)
 
 // GET /implementacion/versiones?incluir=         — versiones publicadas y piloto (+ las de `incluir`)
 router.get('/versiones', controller.listarVersiones);

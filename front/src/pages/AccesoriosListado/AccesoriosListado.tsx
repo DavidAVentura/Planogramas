@@ -17,7 +17,8 @@ const medida = (cm: number | null) => (cm != null ? `${cm} cm` : '—');
 
 /** Catálogo de accesorios de montaje (ganchos, bandejas, barras...): alta, edición y baja. */
 export function AccesoriosListado() {
-  const { puedeEscribir } = useAuth();
+  // Accesorios no tiene permiso propio en CAO: regla de analista (DT-11).
+  const { esAnalista: puedeEscribir } = useAuth();
   const { accesorios, cargando, recargar } = useAccesorios();
   const { mostrarToast } = useToast();
   const [busqueda, setBusqueda] = useState('');

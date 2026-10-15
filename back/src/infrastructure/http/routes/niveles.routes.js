@@ -10,7 +10,13 @@ const { Router }            = require('express');
 const controller            = require('../../../application/niveles/niveles.controller');
 const posicionesController  = require('../../../application/posiciones/posiciones.controller');
 
+const { requiereAnalista, requierePermiso, PERMISOS } = require('../middlewares/autorizacion');
+
+// C: contenido de la versión (editor PLA005 o lienzo PLA006); siempre junto con la regla A
+const editarContenido = requierePermiso(PERMISOS.EDITAR_VERSION, PERMISOS.EDITAR_LIENZO);
+
 const router = Router();
+router.use(requiereAnalista); // A transitoria: sin permiso propio en CAO (DT-11)
 
 // GET    /niveles/:id           — detalle completo
 router.get('/:id',          controller.obtener);
@@ -22,12 +28,12 @@ router.get('/:id/resumen',  controller.obtenerResumen);
 router.get('/:id/posiciones',  posicionesController.listar);
 
 // POST   /niveles/:id/posiciones — agrega una posición al nivel (módulo posiciones)
-router.post('/:id/posiciones', posicionesController.agregar);
+router.post('/:id/posiciones', editarContenido, posicionesController.agregar);
 
 // PATCH  /niveles/:id           — partial update de altura, accesorio, ancho o notas
-router.patch('/:id',        controller.editar);
+router.patch('/:id', editarContenido, controller.editar);
 
 // DELETE /niveles/:id           — elimina el nivel (y en cascada posiciones si forzar=true)
-router.delete('/:id',       controller.eliminar);
+router.delete('/:id', editarContenido, controller.eliminar);
 
 module.exports = router;

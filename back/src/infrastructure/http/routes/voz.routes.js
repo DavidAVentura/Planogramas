@@ -8,7 +8,10 @@ const { Router } = require('express');
 const controller = require('../../../application/voz/voz.controller');
 const { vozLimiter } = require('../middlewares/rateLimit');
 
+const { requiereAnalista } = require('../middlewares/autorizacion');
+
 const router = Router();
+router.use(requiereAnalista); // A transitoria: sin permiso propio en CAO (DT-11)
 
 router.use(vozLimiter);
 

@@ -6,7 +6,10 @@
 const { Router } = require('express');
 const controller = require('../../../application/jerarquia/jerarquia.controller');
 
+const { requiereAnalista } = require('../middlewares/autorizacion');
+
 const router = Router();
+router.use(requiereAnalista); // A transitoria: sin permiso propio en CAO (DT-11)
 
 // GET /jerarquia/areas        — lista áreas de la jerarquía comercial (proxy CATI, cache 30 min)
 router.get('/areas', controller.listarAreas);

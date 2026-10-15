@@ -11,7 +11,10 @@
 const { Router } = require('express');
 const controller = require('../../../application/producto/producto.controller');
 
+const { requiereAnalista } = require('../middlewares/autorizacion');
+
 const router = Router();
+router.use(requiereAnalista); // A transitoria: sin permiso propio en CAO (DT-11)
 
 // GET /catalog/productos                             — productos locales con conteo de planogramas
 //                                                      (?area= | departamento= | familia= | categoria= | subcategoria=)

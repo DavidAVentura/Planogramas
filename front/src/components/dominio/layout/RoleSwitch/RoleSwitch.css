@@ -17,7 +17,7 @@
 }
 
 .role-switch__opcion--activa {
-  background: #fff;
+  background: var(--bg-elevated);
   color: var(--cemaco-indigo);
   box-shadow: var(--shadow-xs);
 }

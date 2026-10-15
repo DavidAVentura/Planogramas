@@ -6,7 +6,10 @@
 const { Router } = require('express');
 const controller = require('../../../application/accesorios/accesorios.controller');
 
+const { requiereAnalista } = require('../middlewares/autorizacion');
+
 const router = Router();
+router.use(requiereAnalista); // A transitoria: sin permiso propio en CAO (DT-11)
 
 // GET /accesorios      — lista el catálogo, con filtro opcional por tipo
 router.get('/',    controller.listar);

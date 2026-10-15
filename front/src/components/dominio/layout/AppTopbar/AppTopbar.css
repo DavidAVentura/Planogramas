@@ -63,10 +63,3 @@
   background: var(--cemaco-indigo-50);
   color: var(--cemaco-indigo);
 }
-
-.app-topbar__nav-opcion--deshabilitada,
-.app-topbar__nav-opcion--deshabilitada:hover {
-  background: transparent;
-  color: var(--fg-4);
-  cursor: not-allowed;
-}

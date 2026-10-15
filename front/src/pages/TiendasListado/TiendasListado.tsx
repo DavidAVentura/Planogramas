@@ -10,6 +10,7 @@ import { Button } from '../../components/ui/Button/Button';
 import { BotonFiltros } from '../../components/ui/BotonFiltros/BotonFiltros';
 import { useCambiarEstadoTienda, useTiendas } from '../../hooks/useTiendas';
 import { useAuth } from '../../context/AuthContext';
+import { PERMISOS } from '../../domain/permisos/permisos';
 import {
   ORDEN_INICIAL,
   alternarOrden,
@@ -42,7 +43,7 @@ function contarFiltrosActivos(filtros: FiltrosListadoTiendas): number {
 }
 
 export function TiendasListado() {
-  const { puedeEscribir } = useAuth();
+  const { puede } = useAuth();
   const { tiendas, cargando, recargar } = useTiendas(FILTROS_API);
   const { cambiarEstado } = useCambiarEstadoTienda();
 
@@ -100,7 +101,7 @@ export function TiendasListado() {
               activos={filtrosActivos}
               onClick={() => setFiltrosVisibles((v) => !v)}
             />
-            {puedeEscribir && <Button onClick={() => setTiendaEnFormulario(null)}>+ Crear tienda</Button>}
+            {puede(PERMISOS.CREAR_TIENDA) && <Button onClick={() => setTiendaEnFormulario(null)}>+ Crear tienda</Button>}
           </div>
 
           {filtrosVisibles && (
@@ -118,7 +119,7 @@ export function TiendasListado() {
           <TiendasTable
             rows={visibles}
             orden={orden}
-            puedeEscribir={puedeEscribir}
+            puedeEscribir={puede(PERMISOS.EDITAR_TIENDA)}
             onOrdenar={(campo) => setOrden((actual) => alternarOrden(actual, campo))}
             onEditar={setTiendaEnFormulario}
             onDesactivar={setTiendaADesactivar}

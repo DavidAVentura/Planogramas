@@ -51,22 +51,26 @@ function primerValor(...valores) {
 /**
  * Normaliza la respuesta de CAO a un usuario de la app. Forma confirmada de validar_token:
  *   { token, user: "100702", username: "NOMBRE COMPLETO",
- *     perfiles: [{ cod_perfil, perfil, permisos: ["SCP002", ...] }], tiendas: [] }
+ *     perfiles: [{ cod_perfil, perfil, permisos: ["PLA001", ...] }, ...],
+ *     tiendas: [{ cod_tienda, nombre, cod_tipo }] }
+ * Un usuario puede tener varios perfiles; sus permisos efectivos son la unión de todos.
  * `user` es el número de empleado y `username` el nombre completo (no un login). Los claims del
- * JWT solo completan lo que falte. `cao` guarda la respuesta cruda, sin el token que CAO devuelve.
+ * JWT solo completan lo que falte. No se conserva la respuesta cruda ni el token. El resultado se
+ * congela porque es la misma referencia que vive en el caché.
  */
 function mapearUsuario(cuerpo, claims) {
   const { token: _token, ...datos } = cuerpo ?? {};
   const c = claims ?? {};
 
   const numeroEmpleado = primerValor(datos.user, c.user, c.sub);
-  const perfiles = (Array.isArray(datos.perfiles) ? datos.perfiles : []).map((p) => ({
-    codigo:   p.cod_perfil,
-    nombre:   p.perfil,
-    permisos: Array.isArray(p.permisos) ? p.permisos : [],
-  }));
+  const perfiles = Object.freeze((Array.isArray(datos.perfiles) ? datos.perfiles : []).map((p) =>
+    Object.freeze({
+      codigo:   p.cod_perfil,
+      nombre:   p.perfil,
+      permisos: Object.freeze(Array.isArray(p.permisos) ? [...p.permisos] : []),
+    })));
 
-  return {
+  return Object.freeze({
     id:             numeroEmpleado,
     numeroEmpleado: numeroEmpleado != null ? String(numeroEmpleado) : undefined,
     usuario:        numeroEmpleado != null ? String(numeroEmpleado) : undefined,
@@ -74,12 +78,11 @@ function mapearUsuario(cuerpo, claims) {
     correo:         primerValor(datos.correo, datos.email, c.correo, c.email),
     perfiles,
     // Permisos efectivos = unión de los permisos de todos los perfiles del usuario en el módulo.
-    permisos:       [...new Set(perfiles.flatMap((p) => p.permisos))],
-    // Tiendas del usuario en CAO; hoy viene vacío. Cuando se llene, puede reemplazar el selector de
-    // tienda del Implementador.
-    tiendas:        Array.isArray(datos.tiendas) ? datos.tiendas : [],
-    cao:            datos,
-  };
+    permisos:       Object.freeze([...new Set(perfiles.flatMap((p) => p.permisos))]),
+    // Tiendas del usuario en CAO; el dato aún no está actualizado y no se usa para filtrar (DT-10).
+    tiendas:        Object.freeze((Array.isArray(datos.tiendas) ? datos.tiendas : []).map((t) =>
+      Object.freeze({ cod_tienda: t?.cod_tienda, nombre: t?.nombre, cod_tipo: t?.cod_tipo }))),
+  });
 }
 
 function respuestaIndicaInvalido(cuerpo) {
@@ -189,4 +192,5 @@ async function mantenerSesionActiva(token) {
   }
 }
 
-module.exports = { validarToken, mantenerSesionActiva };
+// mapearUsuario se exporta solo para pruebas.
+module.exports = { validarToken, mantenerSesionActiva, mapearUsuario };

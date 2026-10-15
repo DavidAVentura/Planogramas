@@ -30,6 +30,14 @@ module.exports = async function autenticacion(req, res, next) {
     return next(err);
   }
 
+  // Sin número de empleado no hay identidad para auditoría/evidencias: no hay sesión (S-07).
+  if (!req.usuario?.numeroEmpleado) {
+    const err = new Error('Sesión sin número de empleado');
+    err.status = 401;
+    err.code   = 'UNAUTHORIZED';
+    return next(err);
+  }
+
   caoAuthClient.mantenerSesionActiva(token);
 
   ejecutarConContexto({ tokenCAO: token, usuario: req.usuario }, () => next());

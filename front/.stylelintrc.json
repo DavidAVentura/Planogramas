@@ -72,7 +72,6 @@
         "src/components/dominio/implementacion/SeleccionVersionesModal/SeleccionVersionesModal.css",
         "src/components/dominio/implementacion/TiendaImplementadorChip/TiendaImplementadorChip.css",
         "src/components/dominio/layout/AppTopbar/AppTopbar.css",
-        "src/components/dominio/layout/RoleSwitch/RoleSwitch.css",
         "src/components/dominio/lienzo/EditorPuntosLienzo/EditorPuntosLienzo.css",
         "src/components/dominio/lienzoEditor/DetalleGondolaPanel/DetalleGondolaPanel.css",
         "src/components/dominio/lienzoEditor/GondolaEscalaLienzo/GondolaEscalaLienzo.css",

@@ -17,6 +17,7 @@ import { CopiarPosicionModal } from '../../components/dominio/modales/CopiarPosi
 import { EliminarPosicionModal } from '../../components/dominio/modales/EliminarPosicionModal/EliminarPosicionModal';
 import { AgenteExtractorBubble } from '../../components/dominio/editor/AgenteExtractorBubble/AgenteExtractorBubble';
 import { EmptyState } from '../../components/ui/EmptyState/EmptyState';
+import { Badge } from '../../components/ui/Badge/Badge';
 import { Button } from '../../components/ui/Button/Button';
 import { usePlanogramaDetalle } from '../../hooks/usePlanogramas';
 import { useVersionesDePlanograma } from '../../hooks/useVersiones';
@@ -29,6 +30,7 @@ import {
   usePosicionesDeNiveles,
 } from '../../hooks/usePosiciones';
 import { useAuth } from '../../context/AuthContext';
+import { PERMISOS } from '../../domain/permisos/permisos';
 import { calcularAnchoAsignado } from '../../utils/posicionCalculos';
 import type { DatosArrastrePosicion } from '../../utils/dragPosicion';
 import type { GondolaListItem } from '../../types/gondola';
@@ -40,7 +42,9 @@ export function EditorPlanograma() {
   const { id, versionId } = useParams<{ id: string; versionId: string }>();
   const planogramaId = Number(id);
   const versionIdNumerico = Number(versionId);
-  const { puedeEscribir } = useAuth();
+  const { puede, esAnalista } = useAuth();
+  // PLA005 = editar la versión; sin él la pantalla queda de solo lectura.
+  const puedeEscribir = puede(PERMISOS.EDITAR_VERSION);
 
   const { planograma, cargando: cargandoPlanograma } = usePlanogramaDetalle(planogramaId);
   const { versiones, cargando: cargandoVersiones } = useVersionesDePlanograma(planogramaId);
@@ -210,6 +214,11 @@ export function EditorPlanograma() {
       {!cargandoInicial && (
         <div className="editor-planograma__contenido">
           <div className="editor-planograma__acciones">
+            {!puedeEscribir && (
+              <Badge bg="var(--ink-100)" color="var(--fg-2)">
+                Solo lectura
+              </Badge>
+            )}
             <Button variante="outline" onClick={() => setMostrarBuscarSku(true)}>
               ¿Dónde está este SKU?
             </Button>
@@ -409,7 +418,7 @@ export function EditorPlanograma() {
 
       {!cargandoInicial && (
         <AgenteExtractorBubble
-          puedeEscribir={puedeEscribir}
+          puedeEscribir={puedeEscribir && esAnalista}
           versionId={versionIdNumerico}
           gondolas={gondolas}
           gondolaActiva={gondolaActiva}

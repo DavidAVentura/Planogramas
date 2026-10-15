@@ -18,6 +18,7 @@ import { usePlanogramaDetalle } from '../../hooks/usePlanogramas';
 import { useGuardarVersion, useVersionesDePlanograma } from '../../hooks/useVersiones';
 import { useAuth } from '../../context/AuthContext';
 import { rutaEstructura } from '../../domain/estructura/contexto';
+import { PERMISOS } from '../../domain/permisos/permisos';
 import { formatearFecha } from '../../utils/formatters';
 import type { VersionListItem } from '../../types/version';
 import './PlanogramaDetalle.css';
@@ -26,7 +27,7 @@ export function PlanogramaDetalle() {
   const { id } = useParams<{ id: string }>();
   const idNumerico = Number(id);
   const navigate = useNavigate();
-  const { puedeEscribir } = useAuth();
+  const { puede, esAnalista } = useAuth();
   const { planograma, cargando, noEncontrado, recargar } = usePlanogramaDetalle(idNumerico);
   const { versiones, cargando: cargandoVersiones, recargar: recargarVersiones } = useVersionesDePlanograma(idNumerico);
   const { guardar: marcarEnDesarrollo } = useGuardarVersion();
@@ -40,6 +41,12 @@ export function PlanogramaDetalle() {
   const [versionAAdjuntos, setVersionAAdjuntos] = useState<VersionListItem | null>(null);
   const [versionAPublicar, setVersionAPublicar] = useState<VersionListItem | null>(null);
   const [versionAArchivar, setVersionAArchivar] = useState<VersionListItem | null>(null);
+
+  // Sin permiso de lienzo no hay nada que elegir: "Diseñar" va directo al editor.
+  function onDisenar(v: VersionListItem) {
+    if (puede(PERMISOS.EDITAR_LIENZO)) setVersionADisenar(v);
+    else navigate(`/planogramas/${idNumerico}/versiones/${v.id}/editor`);
+  }
 
   async function onMarcarEnDesarrollo(v: VersionListItem) {
     const actualizada = await marcarEnDesarrollo(v.id);
@@ -106,7 +113,7 @@ export function PlanogramaDetalle() {
                     </svg>
                   </button>
                 )}
-                {puedeEscribir && (
+                {puede(PERMISOS.EDITAR_PLANOGRAMA) && (
                   <Button variante="ghost" onClick={() => setFormularioAbierto(true)}>
                     Editar
                   </Button>
@@ -125,19 +132,21 @@ export function PlanogramaDetalle() {
                 )}
               </h2>
               <div className="planograma-detalle__acciones">
-                <Link
-                  className="button button--ghost"
-                  to={rutaEstructura({ planogramaId: idNumerico })}
-                  title="Asignar versiones de este planograma a las tiendas en Estructura"
-                >
-                  <svg className="planograma-detalle__icono" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M4 10l1.5-5h13L20 10" />
-                    <path d="M4 10h16v2a2.5 2.5 0 01-5 0 2.5 2.5 0 01-5 0 2.5 2.5 0 01-5 0z" />
-                    <path d="M5.5 13.5V20h13v-6.5" />
-                  </svg>
-                  Tiendas
-                </Link>
-                {puedeEscribir && !archivado && (
+                {puede(PERMISOS.EDITAR_ESTRUCTURA) && (
+                  <Link
+                    className="button button--ghost"
+                    to={rutaEstructura({ planogramaId: idNumerico })}
+                    title="Asignar versiones de este planograma a las tiendas en Estructura"
+                  >
+                    <svg className="planograma-detalle__icono" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M4 10l1.5-5h13L20 10" />
+                      <path d="M4 10h16v2a2.5 2.5 0 01-5 0 2.5 2.5 0 01-5 0 2.5 2.5 0 01-5 0z" />
+                      <path d="M5.5 13.5V20h13v-6.5" />
+                    </svg>
+                    Tiendas
+                  </Link>
+                )}
+                {puede(PERMISOS.CREAR_VERSION) && !archivado && (
                   <>
                     <Button variante="ghost" onClick={() => setEspecialWizardAbierto(true)}>
                       Versión especial por tienda
@@ -151,9 +160,9 @@ export function PlanogramaDetalle() {
               <VersionesTable
                 planogramaId={idNumerico}
                 versiones={versiones}
-                puedeEscribir={puedeEscribir}
+                puedeEscribir={esAnalista}
                 onMarcarEnDesarrollo={onMarcarEnDesarrollo}
-                onDisenar={setVersionADisenar}
+                onDisenar={onDisenar}
                 onAdjuntos={setVersionAAdjuntos}
                 onPublicar={setVersionAPublicar}
                 onArchivar={setVersionAArchivar}
@@ -201,6 +210,7 @@ export function PlanogramaDetalle() {
         <SeleccionarVistaDisenoModal
           planogramaId={idNumerico}
           version={versionADisenar}
+          puedeAbrirLienzo={puede(PERMISOS.EDITAR_LIENZO)}
           onClose={() => setVersionADisenar(null)}
         />
       )}

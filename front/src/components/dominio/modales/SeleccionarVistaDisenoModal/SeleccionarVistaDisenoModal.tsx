@@ -6,6 +6,8 @@ import './SeleccionarVistaDisenoModal.css';
 interface SeleccionarVistaDisenoModalProps {
   planogramaId: number;
   version: VersionListItem;
+  /** Sin permiso de lienzo (PLA006) la opción Lienzo no se muestra. */
+  puedeAbrirLienzo: boolean;
   onClose: () => void;
 }
 
@@ -15,7 +17,12 @@ interface SeleccionarVistaDisenoModalProps {
  * góndolas arrastrables, ver `LienzoPlanograma`). Ambas rutas ya existen (`routes.tsx`) — este
  * modal es el único punto nuevo de entrada que decide a cuál navegar.
  */
-export function SeleccionarVistaDisenoModal({ planogramaId, version, onClose }: SeleccionarVistaDisenoModalProps) {
+export function SeleccionarVistaDisenoModal({
+  planogramaId,
+  version,
+  puedeAbrirLienzo,
+  onClose,
+}: SeleccionarVistaDisenoModalProps) {
   const navigate = useNavigate();
   const base = `/planogramas/${planogramaId}/versiones/${version.id}`;
 
@@ -28,12 +35,14 @@ export function SeleccionarVistaDisenoModal({ planogramaId, version, onClose }: 
             Lista de niveles y posiciones, con las herramientas completas de edición.
           </span>
         </button>
-        <button type="button" className="seleccionar-vista-diseno__opcion" onClick={() => navigate(`${base}/lienzo`)}>
-          <span className="seleccionar-vista-diseno__titulo">Lienzo</span>
-          <span className="seleccionar-vista-diseno__descripcion">
-            Vista de canvas: arma la góndola arrastrando niveles y productos, con zoom y modo oscuro.
-          </span>
-        </button>
+        {puedeAbrirLienzo && (
+          <button type="button" className="seleccionar-vista-diseno__opcion" onClick={() => navigate(`${base}/lienzo`)}>
+            <span className="seleccionar-vista-diseno__titulo">Lienzo</span>
+            <span className="seleccionar-vista-diseno__descripcion">
+              Vista de canvas: arma la góndola arrastrando niveles y productos, con zoom y modo oscuro.
+            </span>
+          </button>
+        )}
       </div>
     </Modal>
   );

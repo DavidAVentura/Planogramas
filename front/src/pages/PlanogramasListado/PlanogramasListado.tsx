@@ -8,6 +8,7 @@ import { BotonFiltros } from '../../components/ui/BotonFiltros/BotonFiltros';
 import { Paginacion } from '../../components/ui/Paginacion/Paginacion';
 import { usePlanogramasListado } from '../../hooks/usePlanogramas';
 import { useAuth } from '../../context/AuthContext';
+import { PERMISOS } from '../../domain/permisos/permisos';
 import type { ListarPlanogramasFiltros, PlanogramaListItem } from '../../types/planograma';
 import './PlanogramasListado.css';
 
@@ -17,7 +18,7 @@ function contarFiltrosActivos(filtros: ListarPlanogramasFiltros): number {
 }
 
 export function PlanogramasListado() {
-  const { puedeEscribir } = useAuth();
+  const { puede } = useAuth();
   const { filtros, setFiltros, resultado, cargando, recargar } = usePlanogramasListado();
   const [formularioAbierto, setFormularioAbierto] = useState(false);
   const [idAEditar, setIdAEditar] = useState<number | null>(null);
@@ -55,7 +56,7 @@ export function PlanogramasListado() {
               activos={contarFiltrosActivos(filtros)}
               onClick={() => setFiltrosVisibles((v) => !v)}
             />
-            {puedeEscribir && <Button onClick={() => setFormularioAbierto(true)}>+ Crear planograma</Button>}
+            {puede(PERMISOS.CREAR_PLANOGRAMA) && <Button onClick={() => setFormularioAbierto(true)}>+ Crear planograma</Button>}
           </div>
 
           <FiltrosBar id="planogramas-listado-filtros" filtros={filtros} onChange={setFiltros} visible={filtrosVisibles} />
@@ -66,7 +67,7 @@ export function PlanogramasListado() {
           <>
             <PlanogramasTable
               rows={resultado.data}
-              puedeEscribir={puedeEscribir}
+              puedeEscribir={puede(PERMISOS.EDITAR_PLANOGRAMA)}
               onEditar={editar}
             />
             <Paginacion

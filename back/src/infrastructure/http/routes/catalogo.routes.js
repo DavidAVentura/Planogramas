@@ -8,7 +8,10 @@
 const { Router } = require('express');
 const controller = require('../../../application/catalogo/catalogo.controller');
 
+const { requiereAnalista } = require('../middlewares/autorizacion');
+
 const router = Router();
+router.use(requiereAnalista); // A transitoria: sin permiso propio en CAO (DT-11)
 
 // GET /catalog/productos/buscar — busca productos en CATI (?q=, subcategoria=, page=, pageSize=)
 router.get('/productos/buscar', controller.buscarProductos);

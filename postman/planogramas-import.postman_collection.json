@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "b6f2e6a0-1e3d-4c9a-9f2b-0a8f6d3c7e11",
     "name": "planogramas",
-    "description": "Casos de éxito y de error para los 5 endpoints del módulo Planogramas (back/src/infrastructure/http/routes/planogramas.routes.js).\n\nUsa la variable de entorno {{HOST}} como base (ej. http://localhost:3000 o el host de staging) — configúrala en el entorno de Postman antes de ejecutar, no está definida en esta colección.\n\nCórrela completa con el Runner: '00 - Setup global (datos de prueba)' siembra los fixtures (POST /pruebas/fixtures, requiere PRUEBAS_HABILITADAS=true en el backend; solo local y DEV) y '99 - Limpieza (datos de prueba)' borra todo lo que la corrida creó. Ningún escenario usa tiendas, planogramas ni productos reales.",
+    "description": "Casos de éxito y de error para los 5 endpoints del módulo Planogramas (back/src/infrastructure/http/routes/planogramas.routes.js).\n\nUsa la variable de entorno {{HOST}} como base (ej. http://localhost:3000 o el host de staging) — configúrala en el entorno de Postman antes de ejecutar, no está definida en esta colección.\n\nCórrela completa con el Runner: '00 - Setup global (datos de prueba)' siembra los fixtures (POST /pruebas/fixtures, requiere PRUEBAS_HABILITADAS=true en el backend; solo local y DEV) y '99 - Limpieza (datos de prueba)' borra todo lo que la corrida creó. Ningún escenario usa tiendas, planogramas ni productos reales.\n\nTOKEN_CAO debe ser de un usuario con PCOMER-EST o CATEGORIA-EST en el módulo PLANOGRAMA (permisos PLA001-PLA010); con un perfil con menos permisos los requests de escritura responden 403.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -658,7 +658,8 @@
                     "type": "text/javascript",
                     "exec": [
                       "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                      "pm.test('Trae permisos y respuesta cruda de CAO', () => { const b = pm.response.json(); pm.expect(b).to.have.property('permisos'); pm.expect(b).to.have.property('cao'); });"
+                      "pm.test('Trae permisos PLA001-PLA010 y capacidades de analista', () => { const b = pm.response.json(); for (let i = 1; i <= 10; i++) pm.expect(b.permisos).to.include('PLA' + String(i).padStart(3, '0')); pm.expect(b.capacidades.analista).to.eql(true); });",
+                      "pm.test('No expone la respuesta cruda de CAO ni el token', () => { const b = pm.response.json(); pm.expect(b).to.not.have.property('cao'); pm.expect(b).to.not.have.property('token'); });"
                     ]
                   }
                 }

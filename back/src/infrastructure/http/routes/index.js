@@ -20,6 +20,10 @@ router.use(autenticacion);
 router.use('/auth',           require('./auth.routes'));
 
 // ─── Módulos de negocio (se irán montando aquí) ───────────────────────────────
+// Cada *.routes.js declara su propia autorización (middlewares/autorizacion.js); la prueba
+// test/http/rutasProtegidas.test.js falla si una ruta queda sin regla. Prohibido un
+// router.use(requiereAnalista) sin prefijo aquí: bloquearía las rutas I de /tiendas, /evidencias
+// y /adjuntos. /catalog (catalogo y producto) es A completo, así que el orden de montaje no importa.
 router.use('/planogramas',    require('./planogramas.routes'));
 router.use('/versiones',      require('./versiones.routes'));
 router.use('/gondolas',       require('./gondolas.routes'));

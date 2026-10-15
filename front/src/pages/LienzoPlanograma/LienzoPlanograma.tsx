@@ -36,6 +36,7 @@ import { useAgregarPosicion, useCopiarPosicion, useEditarPosicion, useMoverPosic
 import { useCanvasViewport, type LimiteRectangulo } from '../../hooks/useCanvasViewport';
 import { useTemaLienzo } from '../../hooks/useTemaLienzo';
 import { useAuth } from '../../context/AuthContext';
+import { PERMISOS } from '../../domain/permisos/permisos';
 import { useToast } from '../../context/ToastContext';
 import { catalogoService } from '../../services/catalogo.service';
 import { posicionesService } from '../../services/posiciones.service';
@@ -90,7 +91,9 @@ export function LienzoPlanograma() {
   const gondolaEnfocadaId = gondolaIdParam ? Number(gondolaIdParam) : null;
   const rutaLienzo = `/planogramas/${planogramaId}/versiones/${versionIdNumerico}/lienzo`;
   const navigate = useNavigate();
-  const { puedeEscribir } = useAuth();
+  const { puede, esAnalista } = useAuth();
+  // PLA006 = editar en el lienzo.
+  const puedeEscribir = puede(PERMISOS.EDITAR_LIENZO);
   const { mostrarToast } = useToast();
 
   const { planograma, cargando: cargandoPlanograma } = usePlanogramaDetalle(planogramaId);
@@ -842,7 +845,7 @@ export function LienzoPlanograma() {
 
       {!cargandoInicial && (
         <AgenteExtractorBubble
-          puedeEscribir={puedeEscribir}
+          puedeEscribir={puedeEscribir && esAnalista}
           versionId={versionIdNumerico}
           gondolas={gondolas}
           gondolaActiva={gondolaActivaParaAgente}

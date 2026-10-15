@@ -17,6 +17,7 @@ import { EmptyState } from '../../components/ui/EmptyState/EmptyState';
 import { useGuardarEdicion, useMatrizAsignaciones } from '../../hooks/useAsignaciones';
 import { usePromoverAPiloto } from '../../hooks/useVersiones';
 import { useAuth } from '../../context/AuthContext';
+import { PERMISOS } from '../../domain/permisos/permisos';
 import { useToast } from '../../context/ToastContext';
 import {
   aCambioApi,
@@ -96,7 +97,8 @@ function modoEfectivo(pedido: ModoEstructura, version: VersionMatriz | null): Mo
 }
 
 export function EstructuraAsignacion() {
-  const { puedeEscribir } = useAuth();
+  const { puede } = useAuth();
+  const puedeEscribir = puede(PERMISOS.EDITAR_ESTRUCTURA);
   const { mostrarToast } = useToast();
   const [params, setParams] = useSearchParams();
   const contexto = useMemo(() => leerContexto(params), [params]);
@@ -556,6 +558,7 @@ export function EstructuraAsignacion() {
         <VersionResumenModal
           versionId={versionAbierta.versionId}
           tienda={versionAbierta.tienda}
+          puedeAbrirLienzo={puede(PERMISOS.EDITAR_LIENZO)}
           onClose={() => setVersionAbierta(null)}
         />
       )}

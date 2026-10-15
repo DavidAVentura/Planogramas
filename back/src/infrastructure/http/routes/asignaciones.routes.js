@@ -7,7 +7,10 @@
 const { Router } = require('express');
 const controller = require('../../../application/asignaciones/asignaciones.controller');
 
+const { requiereAnalista, requierePermiso, PERMISOS } = require('../middlewares/autorizacion');
+
 const router = Router();
+router.use(requiereAnalista, requierePermiso(PERMISOS.EDITAR_ESTRUCTURA)); // A transitoria: sin permiso propio en CAO (DT-11)
 
 // GET  /asignaciones            — matriz planograma × tienda (tiendas activas, versiones, asignaciones)
 router.get('/',                   controller.obtenerMatriz);

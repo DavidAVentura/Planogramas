@@ -9,7 +9,10 @@ const controllerImagen = require('../../../application/agenteExtractor/extractor
 const controllerFacings = require('../../../application/agenteExtractor/extractorFacings.controller');
 const controllerPdf = require('../../../application/agenteExtractor/extractorPdfPlanograma.controller');
 
+const { requiereAnalista } = require('../middlewares/autorizacion');
+
 const router = Router();
+router.use(requiereAnalista); // A transitoria: sin permiso propio en CAO (DT-11)
 
 // POST /agente-extractor/mensaje — envía un mensaje del chat y recibe la respuesta + borrador
 router.post('/mensaje', controller.procesarMensaje);

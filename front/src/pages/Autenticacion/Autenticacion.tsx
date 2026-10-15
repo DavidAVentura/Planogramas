@@ -6,7 +6,8 @@ import { ApiError } from '../../services/httpClient';
 import { PantallaAcceso } from '../Acceso/PantallaAcceso';
 import { SesionRequerida } from '../SesionRequerida/SesionRequerida';
 
-const RUTA_INICIO = '/planogramas';
+// '/' lo resuelve RedirigirInicio según el modo y los permisos del usuario.
+const RUTA_INICIO = '/';
 
 /**
  * /auth?token=<jwt> — punto de entrada desde CAO. El login ocurre allá; aquí se toma el JWT,

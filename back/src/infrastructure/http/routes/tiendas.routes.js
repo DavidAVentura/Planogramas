@@ -12,30 +12,33 @@ const controller               = require('../../../application/tiendas/tiendas.c
 const implementacionController = require('../../../application/implementacion/implementacion.controller');
 const evidenciasController     = require('../../../application/evidencias/evidencias.controller');
 
+// A transitoria (requiereAnalista) en las acciones sin permiso propio en CAO (DT-11); ver matriz en Arquitectura/SEGURIDAD_PERMISOS.md
+const { requiereAnalista, requiereImplementador, requierePermiso, PERMISOS } = require('../middlewares/autorizacion');
+
 const router = Router();
 
 // GET /tiendas                      — lista tiendas activas, con filtros opcionales
-router.get('/',                      controller.listar);
+router.get('/', requiereImplementador, controller.listar);
 
 // POST /tiendas                     — crea una tienda (queda activa)
-router.post('/',                     controller.crear);
+router.post('/', requiereAnalista, requierePermiso(PERMISOS.CREAR_TIENDA), controller.crear);
 
 // PATCH /tiendas/:id                — partial update de datos y/o estado (activar/desactivar)
-router.patch('/:id',                 controller.editar);
+router.patch('/:id', requiereAnalista, requierePermiso(PERMISOS.EDITAR_TIENDA), controller.editar);
 
 // GET /tiendas/:tiendaId/planogramas — planogramas publicados asignados a la tienda
-router.get('/:tiendaId/planogramas', controller.obtenerPlanogramas);
+router.get('/:tiendaId/planogramas', requiereImplementador, controller.obtenerPlanogramas);
 
 // GET /tiendas/:tiendaId/implementacion           — resumen Mi tienda (módulo implementacion)
-router.get('/:tiendaId/implementacion',           implementacionController.obtenerResumen);
+router.get('/:tiendaId/implementacion', requiereImplementador, implementacionController.obtenerResumen);
 
 // GET /tiendas/:tiendaId/implementacion/productos — una fila por posición (módulo implementacion)
-router.get('/:tiendaId/implementacion/productos', implementacionController.obtenerProductos);
+router.get('/:tiendaId/implementacion/productos', requierePermiso(PERMISOS.PRODUCTOS_TIENDA), implementacionController.obtenerProductos);
 
 // GET  /tiendas/:tiendaId/versiones/:versionId/evidencias — fotos por góndola (módulo evidencias)
-router.get('/:tiendaId/versiones/:versionId/evidencias',  evidenciasController.listar);
+router.get('/:tiendaId/versiones/:versionId/evidencias', requiereImplementador, evidenciasController.listar);
 
 // POST /tiendas/:tiendaId/versiones/:versionId/evidencias — sube una foto (módulo evidencias)
-router.post('/:tiendaId/versiones/:versionId/evidencias', evidenciasController.agregar);
+router.post('/:tiendaId/versiones/:versionId/evidencias', requiereImplementador, evidenciasController.agregar);
 
 module.exports = router;

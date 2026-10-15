@@ -4,6 +4,8 @@ import { RoleSwitch } from '../RoleSwitch/RoleSwitch';
 import { SesionUsuario } from '../SesionUsuario/SesionUsuario';
 import { TiendaImplementadorChip } from '../../implementacion/TiendaImplementadorChip/TiendaImplementadorChip';
 import { useAuth } from '../../../../context/AuthContext';
+import { OPCIONES_POR_MODO } from '../../../../constants/navegacion';
+import { cumpleRegla } from '../../../../domain/permisos/permisos';
 import isotipoCemaco from '../../../../assets/cemaco-isotipo.png';
 import './AppTopbar.css';
 
@@ -12,34 +14,10 @@ interface AppTopbarProps {
   breadcrumb?: ReactNode;
 }
 
-interface OpcionNavegacion {
-  etiqueta: string;
-  ruta: string;
-  disponible: boolean;
-  /** Solo activa en la ruta exacta (no en sus subrutas). */
-  exacta?: boolean;
-}
-
-// Módulos de la app. Los que todavía no tienen página se muestran deshabilitados.
-const OPCIONES_NAVEGACION: OpcionNavegacion[] = [
-  { etiqueta: 'Planogramas', ruta: '/planogramas', disponible: true },
-  { etiqueta: 'Tiendas', ruta: '/tiendas', disponible: true },
-  { etiqueta: 'Estructura', ruta: '/estructura', disponible: true },
-  { etiqueta: 'Productos', ruta: '/productos', disponible: true },
-  { etiqueta: 'Por versión', ruta: '/por-version', disponible: true },
-  { etiqueta: 'Accesorios', ruta: '/accesorios', disponible: true },
-];
-
-// El Implementador solo ve su tienda y los productos de sus planogramas.
-const OPCIONES_IMPLEMENTADOR: OpcionNavegacion[] = [
-  { etiqueta: 'Mi tienda', ruta: '/mi-tienda', disponible: true, exacta: true },
-  { etiqueta: 'Productos', ruta: '/mi-tienda/productos', disponible: true },
-];
-
 export function AppTopbar({ titulo, breadcrumb }: AppTopbarProps) {
-  const { rol } = useAuth();
+  const { rol, modos, usuario } = useAuth();
   const esImplementador = rol === 'implementador';
-  const opciones = esImplementador ? OPCIONES_IMPLEMENTADOR : OPCIONES_NAVEGACION;
+  const opciones = OPCIONES_POR_MODO[rol ?? 'implementador'].filter((o) => cumpleRegla(usuario, o.regla));
 
   return (
     <header className="app-topbar">
@@ -51,32 +29,21 @@ export function AppTopbar({ titulo, breadcrumb }: AppTopbarProps) {
         </div>
       </div>
       <nav className="app-topbar__nav" aria-label="Navegación principal">
-        {opciones.map((opcion) =>
-          opcion.disponible ? (
-            <NavLink
-              key={opcion.ruta}
-              to={opcion.ruta}
-              end={opcion.exacta}
-              className={({ isActive }) =>
-                `app-topbar__nav-opcion${isActive ? ' app-topbar__nav-opcion--activa' : ''}`
-              }
-            >
-              {opcion.etiqueta}
-            </NavLink>
-          ) : (
-            <span
-              key={opcion.ruta}
-              className="app-topbar__nav-opcion app-topbar__nav-opcion--deshabilitada"
-              aria-disabled="true"
-              title="Próximamente"
-            >
-              {opcion.etiqueta}
-            </span>
-          ),
-        )}
+        {opciones.map((opcion) => (
+          <NavLink
+            key={opcion.ruta}
+            to={opcion.ruta}
+            end={opcion.exacta}
+            className={({ isActive }) =>
+              `app-topbar__nav-opcion${isActive ? ' app-topbar__nav-opcion--activa' : ''}`
+            }
+          >
+            {opcion.etiqueta}
+          </NavLink>
+        ))}
       </nav>
       {esImplementador && <TiendaImplementadorChip />}
-      <RoleSwitch />
+      {modos.length > 1 && <RoleSwitch />}
       <SesionUsuario />
     </header>
   );

@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth, type Rol } from '../../../../context/AuthContext';
+import { OPCIONES_POR_MODO } from '../../../../constants/navegacion';
+import { rutaInicio } from '../../../../domain/permisos/permisos';
 import './RoleSwitch.css';
 
 const OPCIONES: { rol: Rol; label: string }[] = [
@@ -7,25 +9,20 @@ const OPCIONES: { rol: Rol; label: string }[] = [
   { rol: 'implementador', label: 'Implementador' },
 ];
 
-// Pantalla de inicio de cada rol al cambiar de rol.
-const INICIO_POR_ROL: Record<Rol, string> = {
-  analista: '/planogramas',
-  implementador: '/mi-tienda',
-};
-
 export function RoleSwitch() {
-  const { rol, setRol } = useAuth();
+  const { rol, modos, usuario, setRol } = useAuth();
   const navigate = useNavigate();
 
   function elegir(nuevo: Rol) {
     if (nuevo === rol) return;
     setRol(nuevo);
-    navigate(INICIO_POR_ROL[nuevo]);
+    // Al cambiar de modo se va a la primera pantalla que el usuario puede ver en él.
+    navigate(rutaInicio(OPCIONES_POR_MODO[nuevo], usuario) ?? '/');
   }
 
   return (
     <div className="role-switch" role="radiogroup" aria-label="Rol">
-      {OPCIONES.map((opcion) => (
+      {OPCIONES.filter((opcion) => modos.includes(opcion.rol)).map((opcion) => (
         <button
           key={opcion.rol}
           type="button"

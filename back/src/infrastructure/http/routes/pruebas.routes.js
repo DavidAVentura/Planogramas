@@ -7,7 +7,10 @@
 const { Router } = require('express');
 const controller = require('../../../application/pruebas/pruebas.controller');
 
+const { requiereAnalista } = require('../middlewares/autorizacion');
+
 const router = Router();
+router.use(requiereAnalista); // A transitoria: sin permiso propio en CAO (DT-11)
 
 // POST /pruebas/fixtures — siembra los datos que la API no puede crear (primer request de la colección)
 router.post('/fixtures', controller.sembrarFixtures);

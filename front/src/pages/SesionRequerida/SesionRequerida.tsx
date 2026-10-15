@@ -10,11 +10,11 @@ export function SesionRequerida({ motivo }: SesionRequeridaProps) {
   return (
     <PantallaAcceso
       titulo="Acceso restringido"
-      mensaje={`${motivo ? `${motivo} ` : ''}Ingresa a Planogramas desde CemacoAllInOne.`}
+      mensaje={`${motivo ? `${motivo} ` : ''}Ingresa a Planogramas desde NOVA.`}
       accion={
         CAO_PORTAL_URL && (
           <a className="button button--primary" href={CAO_PORTAL_URL}>
-            Ir a CemacoAllInOne
+            Ir a NOVA
           </a>
         )
       }

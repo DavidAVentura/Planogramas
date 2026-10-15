@@ -4,10 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import { sesionService } from '../services/sesion.service';
 import { PantallaAcceso } from '../pages/Acceso/PantallaAcceso';
 import { SesionRequerida } from '../pages/SesionRequerida/SesionRequerida';
+import { SinAcceso } from '../pages/SinAcceso/SinAcceso';
 
 /** Guard global: sin sesión CAO válida no se renderiza ninguna pantalla de la app. */
 export function RequiereSesion({ children }: { children: ReactNode }) {
-  const { estado } = useAuth();
+  const { estado, modos } = useAuth();
   const { pathname, search } = useLocation();
 
   // Se recuerda a dónde quería entrar el usuario para retomarlo después de /auth.
@@ -19,6 +20,8 @@ export function RequiereSesion({ children }: { children: ReactNode }) {
     return <PantallaAcceso cargando titulo="Validando acceso…" />;
   }
   if (estado === 'no_autenticado') return <SesionRequerida />;
+  // Autenticado en CAO pero sin permisos del módulo: no hay navbar ni rutas que mostrar.
+  if (modos.length === 0) return <SinAcceso />;
 
   return children;
 }

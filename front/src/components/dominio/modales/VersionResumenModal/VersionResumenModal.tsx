@@ -25,6 +25,8 @@ interface VersionResumenModalProps {
   versionId: number;
   /** Tienda desde cuya celda se abrió. */
   tienda: TiendaMatriz;
+  /** Sin permiso de lienzo (PLA006) el enlace "Ver lienzo" no se muestra. */
+  puedeAbrirLienzo: boolean;
   onClose: () => void;
 }
 
@@ -36,7 +38,7 @@ function extension(tipoMime: string) {
   return tipoMime === 'application/pdf' ? 'PDF' : tipoMime.replace('image/', '').toUpperCase();
 }
 
-export function VersionResumenModal({ versionId, tienda, onClose }: VersionResumenModalProps) {
+export function VersionResumenModal({ versionId, tienda, puedeAbrirLienzo, onClose }: VersionResumenModalProps) {
   const { resumen, cargando } = useResumenVersion(versionId);
   const { adjuntos, cargando: cargandoAdjuntos } = useAdjuntosDeVersion(versionId);
   const { mostrarToast } = useToast();
@@ -66,12 +68,16 @@ export function VersionResumenModal({ versionId, tienda, onClose }: VersionResum
       footer={
         <>
           <span className="version-resumen__pie">
-            {piloto ? 'Solo lectura. La versión piloto se edita en el lienzo hasta que se publique.' : 'Solo lectura. Para editar la versión, ábrela en el lienzo.'}
+            {!puedeAbrirLienzo
+              ? 'Solo lectura.'
+              : piloto
+                ? 'Solo lectura. La versión piloto se edita en el lienzo hasta que se publique.'
+                : 'Solo lectura. Para editar la versión, ábrela en el lienzo.'}
           </span>
           <Button variante="outline" onClick={onClose}>
             Cerrar
           </Button>
-          {version && (
+          {version && puedeAbrirLienzo && (
             <Link
               className="button button--primary version-resumen__lienzo"
               to={`/planogramas/${version.planogramaId}/versiones/${version.id}/lienzo`}

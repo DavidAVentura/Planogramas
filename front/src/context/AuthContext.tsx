@@ -1,13 +1,41 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { authService } from '../services/auth.service';
 import { sesionService } from '../services/sesion.service';
 import type { UsuarioSesion } from '../types/usuario';
+import {
+  modoInicial,
+  modosDisponibles,
+  resolverModo,
+  tienePermiso,
+  type CodigoPermiso,
+  type Modo,
+} from '../domain/permisos/permisos';
+
+// Modo elegido en esta pestaña (preferencia, no estado crítico: el back autoriza por permisos).
+const CLAVE_MODO = 'planogramas.modo';
+
+function leerModoGuardado(): string | null {
+  try {
+    return sessionStorage.getItem(CLAVE_MODO);
+  } catch {
+    return null;
+  }
+}
+
+function escribirModoGuardado(modo: Modo | null): void {
+  try {
+    if (modo) sessionStorage.setItem(CLAVE_MODO, modo);
+    else sessionStorage.removeItem(CLAVE_MODO);
+  } catch {
+    // Sin sessionStorage la preferencia solo dura mientras no se recargue.
+  }
+}
 
 // Cada cuánto se envía el latido de sesión mientras la app está abierta. Debe ser menor que la
 // ventana de inactividad de CAO y mayor que el límite de un keepalive por minuto del backend.
 const INTERVALO_LATIDO_MS = 4 * 60 * 1000;
 
-export type Rol = 'analista' | 'implementador';
+export type Rol = Modo;
 
 export type EstadoSesion = 'verificando' | 'autenticado' | 'no_autenticado';
 
@@ -17,18 +45,23 @@ interface AuthContextValue {
   /** Guarda el token recibido en /auth?token= y lo valida contra el backend. */
   iniciarSesion: (token: string) => Promise<void>;
   cerrarSesion: () => void;
-  // Rol elegido a mano (RoleSwitch) hasta que se mapeen los permisos de CAO.
-  rol: Rol;
+  /** Modo activo; `null` mientras no hay usuario o si el usuario no tiene ningún modo. */
+  rol: Rol | null;
+  /** Modos a los que el usuario tiene acceso según sus permisos. */
+  modos: Rol[];
   setRol: (rol: Rol) => void;
-  puedeEscribir: boolean;
+  /** El usuario tiene el permiso CAO indicado (ej. PERMISOS.CREAR_TIENDA). */
+  puede: (codigo: CodigoPermiso) => boolean;
+  /** Capacidad de analista que calcula el back (regla A). */
+  esAnalista: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Mientras el rol se elija a mano, recargar una pantalla del Implementador lo conserva.
-  const [rol, setRol] = useState<Rol>(() =>
-    window.location.pathname.startsWith('/mi-tienda') ? 'implementador' : 'analista',
+  // Al cargar manda la ruta actual (recargar /mi-tienda conserva el modo); si no, el modo guardado.
+  const [rolElegido, setRolElegido] = useState<Rol | null>(() =>
+    modoInicial(window.location.pathname, leerModoGuardado()),
   );
   const [usuario, setUsuario] = useState<UsuarioSesion | null>(null);
   const [estado, setEstado] = useState<EstadoSesion>(() =>
@@ -39,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(
     () =>
       sesionService.alInvalidar(() => {
+        escribirModoGuardado(null);
         setUsuario(null);
         setEstado('no_autenticado');
       }),
@@ -103,17 +137,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const cerrarSesion = useCallback(() => sesionService.invalidar(), []);
 
+  const modos = useMemo(() => modosDisponibles(usuario), [usuario]);
+  const rol = resolverModo(modos, rolElegido);
+
+  const setRol = useCallback(
+    (modo: Rol) => {
+      if (!modos.includes(modo)) return;
+      setRolElegido(modo);
+      escribirModoGuardado(modo);
+    },
+    [modos],
+  );
+
+  const puede = useCallback((codigo: CodigoPermiso) => tienePermiso(usuario, codigo), [usuario]);
+  const esAnalista = usuario?.capacidades?.analista === true;
+
   return (
     <AuthContext.Provider
-      value={{
-        estado,
-        usuario,
-        iniciarSesion,
-        cerrarSesion,
-        rol,
-        setRol,
-        puedeEscribir: rol === 'analista',
-      }}
+      value={{ estado, usuario, iniciarSesion, cerrarSesion, rol, modos, setRol, puede, esAnalista }}
     >
       {children}
     </AuthContext.Provider>

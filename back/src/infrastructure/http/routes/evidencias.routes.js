@@ -8,7 +8,10 @@
 const { Router } = require('express');
 const controller = require('../../../application/evidencias/evidencias.controller');
 
+const { requiereImplementador } = require('../middlewares/autorizacion');
+
 const router = Router();
+router.use(requiereImplementador);
 
 // GET    /evidencias/:id/descargar — descarga la foto (streaming desde Azure Blob Storage)
 router.get('/:id/descargar', controller.descargar);
