@@ -152,24 +152,27 @@ export function SeleccionMultipleModal<T>({
           onChange={(e) => setBusqueda(e.target.value)}
           autoFocus
         />
-        <div className="seleccion-multiple__orden" role="group" aria-label="Ordenar por">
-          <span>Ordenar por</span>
-          {ordenes.map(({ id, etiqueta }) => {
-            const activo = orden.id === id;
-            return (
-              <button
-                key={id}
-                type="button"
-                className={`seleccion-multiple__orden-btn${activo ? ' seleccion-multiple__orden-btn--activo' : ''}`}
-                aria-pressed={activo}
-                onClick={() => ordenarPor(id)}
-              >
-                {etiqueta}
-                {activo && <span aria-hidden="true">{orden.dir === 'asc' ? ' ↑' : ' ↓'}</span>}
-              </button>
-            );
-          })}
-        </div>
+        {/* Con una sola orden no hay nada que elegir: se oculta el bloque. */}
+        {ordenes.length >= 2 && (
+          <div className="seleccion-multiple__orden" role="group" aria-label="Ordenar por">
+            <span>Ordenar por</span>
+            {ordenes.map(({ id, etiqueta }) => {
+              const activo = orden.id === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  className={`seleccion-multiple__orden-btn${activo ? ' seleccion-multiple__orden-btn--activo' : ''}`}
+                  aria-pressed={activo}
+                  onClick={() => ordenarPor(id)}
+                >
+                  {etiqueta}
+                  {activo && <span aria-hidden="true">{orden.dir === 'asc' ? ' ↑' : ' ↓'}</span>}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {cargando ? (

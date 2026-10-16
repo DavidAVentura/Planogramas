@@ -1,18 +1,24 @@
 import { useEffect, useRef, useState, type DragEvent, type KeyboardEvent } from 'react';
 import {
-  columnaProducto,
   columnasVisibles,
-  type ClaveColumna,
-  type PreferenciasColumnas,
-} from '../../../../domain/implementacion/columnasProductos';
+  type PreferenciasOrdenVisibilidad,
+} from '../../../../domain/columnas/preferenciasColumnas';
 import './PanelColumnas.css';
 
-interface PanelColumnasProps {
+const AYUDA_POR_DEFECTO =
+  'Marca las que quieres ver y arrástralas para cambiar su orden (también puedes arrastrar los encabezados de la tabla). Se guarda en este navegador.';
+
+interface PanelColumnasProps<K extends string> {
   id: string;
-  prefs: PreferenciasColumnas;
-  onAlternar: (clave: ClaveColumna) => void;
-  onMover: (clave: ClaveColumna, delta: number) => void;
-  onSoltar: (desde: ClaveColumna, hacia: ClaveColumna) => void;
+  prefs: PreferenciasOrdenVisibilidad<K>;
+  etiqueta: (clave: K) => string;
+  /** Texto de ayuda de la cabecera; por defecto el de la tabla Productos. */
+  ayuda?: string;
+  /** Aviso adicional bajo la lista (ej. que la descarga a Excel usa estas columnas). */
+  nota?: string;
+  onAlternar: (clave: K) => void;
+  onMover: (clave: K, delta: number) => void;
+  onSoltar: (desde: K, hacia: K) => void;
   onMostrarTodas: () => void;
   onRestablecer: () => void;
   onCerrar: () => void;
@@ -23,22 +29,25 @@ interface PanelColumnasProps {
  * el asa enfocada, con las flechas arriba/abajo del teclado. Se cierra con "Listo", Escape o un
  * clic fuera.
  */
-export function PanelColumnas({
+export function PanelColumnas<K extends string>({
   id,
   prefs,
+  etiqueta,
+  ayuda = AYUDA_POR_DEFECTO,
+  nota,
   onAlternar,
   onMover,
   onSoltar,
   onMostrarTodas,
   onRestablecer,
   onCerrar,
-}: PanelColumnasProps) {
+}: PanelColumnasProps<K>) {
   const panelRef = useRef<HTMLDivElement>(null);
-  const asas = useRef(new Map<ClaveColumna, HTMLButtonElement>());
-  const [arrastrando, setArrastrando] = useState<ClaveColumna | null>(null);
-  const [sobre, setSobre] = useState<ClaveColumna | null>(null);
+  const asas = useRef(new Map<K, HTMLButtonElement>());
+  const [arrastrando, setArrastrando] = useState<K | null>(null);
+  const [sobre, setSobre] = useState<K | null>(null);
   // Al mover con el teclado, React reubica el nodo en el DOM y el foco puede perderse: se repone.
-  const [enfocar, setEnfocar] = useState<ClaveColumna | null>(null);
+  const [enfocar, setEnfocar] = useState<K | null>(null);
 
   const visibles = columnasVisibles(prefs).length;
 
@@ -66,7 +75,7 @@ export function PanelColumnas({
     };
   }, [id, onCerrar]);
 
-  function alTeclear(e: KeyboardEvent, clave: ClaveColumna) {
+  function alTeclear(e: KeyboardEvent, clave: K) {
     const delta = e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0;
     if (!delta) return;
     e.preventDefault();
@@ -74,7 +83,7 @@ export function PanelColumnas({
     setEnfocar(clave);
   }
 
-  function alIniciar(e: DragEvent, clave: ClaveColumna) {
+  function alIniciar(e: DragEvent, clave: K) {
     e.dataTransfer.setData('text/plain', clave);
     e.dataTransfer.effectAllowed = 'move';
     setArrastrando(clave);
@@ -91,15 +100,12 @@ export function PanelColumnas({
     <div ref={panelRef} id={id} className="panel-columnas" role="dialog" aria-label="Columnas de la tabla">
       <div className="panel-columnas__cabecera">
         <span className="panel-columnas__titulo">Columnas</span>
-        <span className="panel-columnas__ayuda">
-          Marca las que quieres ver y arrástralas para cambiar su orden (también puedes arrastrar los encabezados
-          de la tabla). Se guarda en este navegador.
-        </span>
+        <span className="panel-columnas__ayuda">{ayuda}</span>
       </div>
 
       <ul className="panel-columnas__lista">
         {prefs.orden.map((clave, i) => {
-          const col = columnaProducto(clave);
+          const nombre = etiqueta(clave);
           const visible = !prefs.ocultas.includes(clave);
           const bloqueada = visible && visibles === 1;
           const esDestino = indiceDesde >= 0 && indiceDesde !== i && sobre === clave;
@@ -130,7 +136,7 @@ export function PanelColumnas({
                   else asas.current.delete(clave);
                 }}
                 className="panel-columnas__asa"
-                aria-label={`Mover ${col.etiqueta}: arrastra, o usa las flechas arriba y abajo del teclado`}
+                aria-label={`Mover ${nombre}: arrastra, o usa las flechas arriba y abajo del teclado`}
                 title="Arrastra para cambiar el orden"
                 onKeyDown={(e) => alTeclear(e, clave)}
               >
@@ -151,12 +157,14 @@ export function PanelColumnas({
                   title={bloqueada ? 'Debe quedar al menos una columna visible' : undefined}
                   onChange={() => onAlternar(clave)}
                 />
-                {col.etiqueta}
+                {nombre}
               </label>
             </li>
           );
         })}
       </ul>
+
+      {nota && <p className="panel-columnas__nota">{nota}</p>}
 
       <div className="panel-columnas__pie">
         <button type="button" className="panel-columnas__enlace" onClick={onMostrarTodas}>

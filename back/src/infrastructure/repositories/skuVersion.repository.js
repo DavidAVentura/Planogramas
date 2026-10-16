@@ -4,7 +4,7 @@
  */
 
 const db = require('../db/connection');
-const { parsearGanchosJson } = require('../../domain/compartido/gancho');
+const { mapearGondola, mapearSeccion, mapearNivel, mapearPosicionBase } = require('./mapeadoresVersion');
 
 const TABLA_GONDOLA  = 'Gondola';
 const TABLA_SECCION  = 'Seccion';
@@ -43,24 +43,10 @@ async function cargarVersion(versionId) {
   ]);
 
   return {
-    gondolas: gondolas.map((g) => ({ id: g.id, nombre: g.nombre, orden: g.orden, anchoCm: Number(g.ancho_cm), altoCm: Number(g.alto_cm), porUbicar: Boolean(g.por_ubicar) })),
-    secciones: secciones.map((s) => ({
-      id: s.id, gondolaId: s.gondola_id, padreId: s.padre_id, esDivision: Boolean(s.es_division),
-      direccion: s.direccion, orden: s.orden, tamCm: Number(s.tam_cm),
-    })),
-    niveles: niveles.map((n) => ({ id: n.id, gondolaId: n.gondola_id, seccionId: n.seccion_id, orden: n.orden })),
-    posiciones: posiciones.map((p) => ({
-      id:              p.id,
-      nivelId:         p.nivel_id,
-      ordenHorizontal: p.orden_horizontal,
-      sku:             p.sku,
-      nombre:          p.nombre ?? null,
-      facings:         p.facings_horizontal,
-      capacidadMaxima: p.capacidad_maxima,
-      minFinal:        p.min_final,
-      maxFinal:        p.max_final,
-      ganchos:         parsearGanchosJson(p.ganchos),
-    })),
+    gondolas:   gondolas.map(mapearGondola),
+    secciones:  secciones.map(mapearSeccion),
+    niveles:    niveles.map(mapearNivel),
+    posiciones: posiciones.map(mapearPosicionBase),
   };
 }
 

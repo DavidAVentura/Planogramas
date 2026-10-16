@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { AppTopbar } from '../../layout/AppTopbar/AppTopbar';
 import { ProductosImplementacionTable } from '../ProductosImplementacionTable/ProductosImplementacionTable';
 import { PanelColumnas } from '../PanelColumnas/PanelColumnas';
-import { SeleccionVersionesModal, type TextosSeleccionVersiones } from '../SeleccionVersionesModal/SeleccionVersionesModal';
+import { SeleccionVersionesModal, type TextosSeleccionVersiones } from '../../modales/SeleccionVersionesModal/SeleccionVersionesModal';
 import { ArchivosVersionModal } from '../ArchivosVersionModal/ArchivosVersionModal';
 import { EvidenciaModal } from '../EvidenciaModal/EvidenciaModal';
 import { FichaProductoModal } from '../../modales/FichaProductoModal/FichaProductoModal';
@@ -400,6 +400,7 @@ export function ProductosVersiones({
   
           {panelAbierto && (
             <PanelColumnas
+              etiqueta={(clave) => columnaProducto(clave).etiqueta}
               id={ID_PANEL_COLUMNAS}
               prefs={prefs}
               onAlternar={alternarColumna}

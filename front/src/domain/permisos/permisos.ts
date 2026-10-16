@@ -39,6 +39,8 @@ export interface OpcionNavegacion {
   regla: ReglaAcceso;
   /** Solo activa en la ruta exacta (no en sus subrutas). */
   exacta?: boolean;
+  /** Si existe, la opción es un grupo con menú desplegable; `ruta` es solo su prefijo. */
+  hijos?: readonly OpcionNavegacion[];
 }
 
 const MODOS: readonly Modo[] = ['analista', 'implementador'];
@@ -85,10 +87,27 @@ export function modoInicial(pathname: string, guardado: string | null): Modo | n
   return MODOS.find((m) => m === guardado) ?? null;
 }
 
-/** Ruta de la primera opción de navegación que el usuario puede ver. */
+/**
+ * Opciones que el usuario puede ver: filtra por regla, filtra también los hijos de cada grupo y
+ * quita los grupos que se quedan sin hijos visibles.
+ */
+export function opcionesVisibles(
+  opciones: readonly OpcionNavegacion[],
+  usuario: UsuarioSesion | null,
+): OpcionNavegacion[] {
+  return opciones.flatMap((opcion) => {
+    if (!cumpleRegla(usuario, opcion.regla)) return [];
+    if (!opcion.hijos) return [opcion];
+    const hijos = opcionesVisibles(opcion.hijos, usuario);
+    return hijos.length > 0 ? [{ ...opcion, hijos }] : [];
+  });
+}
+
+/** Ruta de la primera opción de navegación que el usuario puede ver (en un grupo, la de su primer hijo). */
 export function rutaInicio(
   opciones: readonly OpcionNavegacion[],
   usuario: UsuarioSesion | null,
 ): string | null {
-  return opciones.find((o) => cumpleRegla(usuario, o.regla))?.ruta ?? null;
+  const primera = opcionesVisibles(opciones, usuario)[0];
+  return primera ? (primera.hijos?.[0]?.ruta ?? primera.ruta) : null;
 }

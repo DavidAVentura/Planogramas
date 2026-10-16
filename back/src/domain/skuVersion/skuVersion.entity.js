@@ -134,5 +134,6 @@ function validarMinMax(minFinal, maxFinal) {
 module.exports = {
   recorrerVersion,
   agregarPorSku,
+  valorComun,
   validarMinMax,
 };

@@ -67,10 +67,15 @@ async function request<T>(method: string, path: string, options: RequestOptions 
   return payload as T;
 }
 
-/** POST con body JSON y respuesta binaria (ej. audio del TTS). Los errores siguen llegando como
+/** Petición con respuesta binaria (ej. audio del TTS, .xlsx de una descarga). Los errores siguen llegando como
  * JSON `{ error }` y se convierten en ApiError igual que en `request`. */
-async function requestBinario(method: string, path: string, body?: unknown): Promise<Blob> {
-  const response = await enviar(method, path, { body });
+async function requestBinario(
+  method: string,
+  path: string,
+  body?: unknown,
+  query?: RequestOptions['query'],
+): Promise<Blob> {
+  const response = await enviar(method, path, { body, query });
 
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
@@ -83,7 +88,7 @@ async function requestBinario(method: string, path: string, body?: unknown): Pro
 export const httpClient = {
   get:    <T>(path: string, query?: RequestOptions['query']) => request<T>('GET', path, { query }),
   post:   <T>(path: string, body?: unknown) => request<T>('POST', path, { body }),
-  getBinario: (path: string) => requestBinario('GET', path),
+  getBinario: (path: string, query?: RequestOptions['query']) => requestBinario('GET', path, undefined, query),
   postBinario: (path: string, body?: unknown) => requestBinario('POST', path, body),
   patch:  <T>(path: string, body?: unknown) => request<T>('PATCH', path, { body }),
   put:    <T>(path: string, body?: unknown) => request<T>('PUT', path, { body }),

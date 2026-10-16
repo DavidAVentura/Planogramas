@@ -22,3 +22,21 @@
 .paginacion__pagina {
   white-space: nowrap;
 }
+
+.paginacion__tamano {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+
+  select {
+    height: 34px;
+    padding: 0 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--fg-1);
+    background: var(--white);
+  }
+}

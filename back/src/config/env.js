@@ -5,6 +5,12 @@
 
 require('dotenv').config();
 
+// Entero > 0 acotado a un máximo duro; cualquier otro valor cae al defecto.
+function leerEnteroAcotado(valor, defecto, maximo) {
+  const n = Number(valor);
+  return Number.isInteger(n) && n > 0 ? Math.min(n, maximo) : defecto;
+}
+
 module.exports = {
   // Servidor
   PORT:     process.env.PORT     || 3000,
@@ -60,6 +66,11 @@ module.exports = {
   // PRUEBAS_HABILITADAS=true y nunca con NODE_ENV=production (ver routes/index.js).
   pruebas: {
     habilitadas: process.env.PRUEBAS_HABILITADAS === 'true',
+  },
+
+  // Consolidado Tiendas (módulo 21): tope de filas de la descarga .xlsx (la generación es síncrona).
+  consolidado: {
+    exportacionMaxFilas: leerEnteroAcotado(process.env.CONSOLIDADO_EXPORTACION_MAX_FILAS, 100000, 200000),
   },
 
   // Azure Blob Storage — adjuntos de PlanogramaVersion. Contenedor privado (la cuenta tiene

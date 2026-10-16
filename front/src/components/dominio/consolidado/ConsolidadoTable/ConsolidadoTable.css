@@ -1,0 +1,246 @@
+/* Scroll en ambos ejes dentro del contenedor: el encabezado queda fijo arriba (sticky). */
+.consolidado-tabla__scroll {
+  --celda-relleno: 10px;
+
+  flex: 1 1 auto;
+  min-height: 240px;
+  max-height: calc(100vh - 300px);
+  overflow: auto;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+/* Modo extendido: la tabla llena el alto que deja la página y las celdas pierden relleno vertical. */
+.consolidado-tabla__scroll--compacta {
+  --celda-relleno: 6px;
+
+  max-height: none;
+  min-height: 0;
+}
+
+
+
+.consolidado-tabla {
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.consolidado-tabla__encabezado {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 8px 8px 8px 12px;
+  vertical-align: bottom;
+  text-align: left;
+  background: var(--ink-50);
+  border-bottom: 1px solid var(--border);
+}
+
+.consolidado-tabla__encabezado--inicio { padding: 0; }
+
+.consolidado-tabla__oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.consolidado-tabla__titulo,
+.consolidado-tabla__orden {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+  color: var(--fg-3);
+}
+
+.consolidado-tabla__orden {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  padding: 6px;
+  margin: -6px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  svg {
+    flex: none;
+    margin-top: 1px;
+  }
+
+  &:hover { background: var(--ink-100); }
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 1px;
+  }
+}
+
+.consolidado-tabla__orden--activo {
+  color: var(--cemaco-indigo);
+  font-weight: 800;
+}
+
+.consolidado-tabla__icono-inactivo { color: var(--ink-300); }
+
+/* Celdas */
+.consolidado-tabla td {
+  padding: var(--celda-relleno) 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 14px;
+  vertical-align: middle;
+  overflow: hidden;
+}
+
+.consolidado-tabla__celda--numero { text-align: right; }
+
+/* Sub-filas cross / impulso: capa indigo muy suave sobre el fondo del grupo. */
+.consolidado-tabla__fila--sub td {
+  background: color-mix(in srgb, var(--cemaco-indigo) 4%, transparent);
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* SKU en más de un planograma de la tienda: fondo de peligro (gana a las sub-filas). */
+.consolidado-tabla__grupo--duplicado td { background: var(--danger-bg); }
+
+.consolidado-tabla tbody tr:hover td { background: var(--ink-50); }
+
+.consolidado-tabla tbody.consolidado-tabla__grupo--duplicado tr:hover td { background: var(--danger-bg); }
+
+/* Primera columna: chevron + aviso de duplicado, o el tipo de aparición. */
+.consolidado-tabla__inicio {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-left: 4px;
+  border-left: 4px solid transparent;
+}
+
+.consolidado-tabla__inicio--sub { padding-left: 32px; }
+
+.consolidado-tabla__chevron {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--fg-2);
+  cursor: pointer;
+
+  &:hover { background: var(--ink-100); }
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 1px;
+  }
+}
+
+/* SKU en más de un planograma de la tienda: barra izquierda de peligro, también en las sub-filas. */
+.consolidado-tabla__grupo--duplicado .consolidado-tabla__inicio { border-left-color: var(--danger); }
+
+.consolidado-tabla__dup {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--danger);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.consolidado-tabla__sin-subfilas {
+  padding-left: 48px;
+  font-size: 13px;
+  color: var(--fg-2);
+}
+
+/* Contenido de las celdas */
+.consolidado-tabla__texto,
+.consolidado-tabla__doble > span {
+  display: block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.consolidado-tabla__doble {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.consolidado-tabla__secundario {
+  font-size: 12px;
+  color: var(--fg-3);
+}
+
+.consolidado-tabla__fuerte { font-weight: 600; }
+
+.consolidado-tabla__mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.consolidado-tabla__observaciones {
+  display: block;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--fg-2);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.consolidado-tabla__vacio { color: var(--ink-400); }
+
+.consolidado-tabla__banderas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  white-space: normal;
+}
+
+.consolidado-tabla__sin-planograma {
+  display: inline-flex;
+  padding: 3px 8px;
+  border: 1px dashed var(--ink-400);
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg-2);
+  white-space: nowrap;
+}
+
+/* Esqueleto de carga */
+.consolidado-tabla__esqueleto {
+  display: block;
+  height: 14px;
+  border-radius: var(--radius-sm);
+  background: var(--ink-100);
+  animation: consolidado-pulso 1.2s ease-in-out infinite;
+}
+
+@keyframes consolidado-pulso {
+  50% { opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .consolidado-tabla__esqueleto { animation: none; }
+}

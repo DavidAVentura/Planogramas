@@ -11,6 +11,7 @@ interface BotonSeleccionMultipleProps {
   /** Nombre accesible cuando no hay una etiqueta visible asociada. */
   ariaLabel?: string;
   ariaLabelledby?: string;
+  disabled?: boolean;
 }
 
 /** Botón con aspecto de select que abre un `SeleccionMultipleModal` y resume lo elegido. */
@@ -21,6 +22,7 @@ export function BotonSeleccionMultiple({
   onClick,
   ariaLabel,
   ariaLabelledby,
+  disabled = false,
 }: BotonSeleccionMultipleProps) {
   const activo = seleccionados.length > 0;
   return (
@@ -31,6 +33,7 @@ export function BotonSeleccionMultiple({
       aria-labelledby={ariaLabelledby}
       aria-haspopup="dialog"
       title={activo ? seleccionados.map((s) => s.nombre).join(', ') : undefined}
+      disabled={disabled}
       onClick={onClick}
     >
       {seleccionados.length === 0

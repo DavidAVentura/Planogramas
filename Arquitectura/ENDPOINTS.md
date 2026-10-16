@@ -257,6 +257,18 @@ Vista por SKU de una versión: totales sumando todas sus ubicaciones y numeraci�
 
 ---
 
+## 21. Consolidado Tiendas
+
+Vista de solo lectura del analista (Productos → Por tienda): todas las combinaciones SKU–tienda–versión de lo que montan las tiendas (versiones `publicado` y `piloto` asignadas a tiendas activas), con cross/impulso como sub-filas y `planogramasEnTienda` (calculado antes de los filtros) para marcar en rojo el SKU que está en más de un planograma en la tienda. Sin tabla nueva: cálculo en memoria sobre una base cargada en bloque (migración 017 solo agrega índices). Query validada con Joi estricto (parámetro desconocido o repetido → `400`). Orden de capas: `requiereAnalista` → `validarQuery` → limitador por usuario → controller. Contratos en `Contratos/21_consolidado/`.
+
+| Método | Ruta | Actor | Permiso | CU | Descripción |
+|--------|------|-------|---------|----|-------------|
+| `GET` | `/consolidado/tiendas` | Analista | A | CU-10-03 | Listado paginado por grupo SKU–tienda (vista `PLANOGRAMA`) o por fila (`CROSS`/`IMPULSO`), con filtros de tienda, versión, estado, jerarquía CATI, búsqueda y `soloDuplicados`, orden por SKU/producto/tienda/versión y `resumen` de todo lo filtrado (conteos por tipo y `maximoExportacion`). Limitador 60/min por usuario. `503` si hay jerarquía y CATI no responde. |
+| `GET` | `/consolidado/tiendas/filtros` | Analista | A | CU-10-03 | Tiendas activas con alguna versión montable (con `totalSkus`) y versiones `publicado`/`piloto` con alguna tienda activa (con `totalProductos`). Sin query. |
+| `GET` | `/consolidado/tiendas/exportar` | Analista | A | CU-10-04 | Descarga `.xlsx` generada en el servidor: `DETALLADO` (una fila por planograma, cross e impulso), `AGREGADO` (una por SKU–tienda, mín./máx. sumados) u `HOJAS` (una hoja por tipo). Solo las `columnas` pedidas, en su orden. `422` si supera el tope de filas; `503 EXPORTACION_EN_CURSO` si hay otra en curso; limitador 5/min por usuario. |
+
+---
+
 ## Notas generales de diseño
 
 - **Autenticación**: todos los endpoints (salvo `/health`) requieren el JWT de usuario emitido por CAO. El header es `Authorization: Bearer {token}`. El backend lo valida con `GET {CAO_BASE_URL}/auth/validar_token` y, sin esperar, renueva la sesión en CAO con `POST {CAO_BASE_URL}/auth/keepalive` (máximo uno por token cada 60 s; nunca bloquea el request).

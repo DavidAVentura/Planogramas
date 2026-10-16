@@ -169,16 +169,16 @@ mínima y repetibilidad de estas pruebas: ver
 
 Implementados end-to-end: 01 planogramas, 02 versiones, 03 góndolas, 04 niveles, 05 posiciones,
 08 catálogo, 09 accesorios, 10 tiendas, 11 jerarquía, 15 asignaciones, 18 secciones, 19 SKU en la
-versión; sin Postman todavía: 13 adjuntos y agente-extractor; pendientes: 06 sustituciones y 07
-exportación. **Antes de tocar un módulo, leer su apartado en `Arquitectura/ESTADO_MODULOS.md`**
+versión, 21 consolidado de tiendas; sin Postman todavía: 13 adjuntos y agente-extractor; pendientes:
+06 sustituciones y 07 exportación. **Antes de tocar un módulo, leer su apartado en `Arquitectura/ESTADO_MODULOS.md`**
 (reglas no obvias: lógica compartida que no se debe duplicar, clonado de secciones, etc.).
 
 ### Estado de las migraciones por ambiente
 
 | Ambiente | BD | Última migración aplicada | Pendientes | Verificado |
 |----------|----|---------------------------|------------|------------|
-| DEV | `OTB` | `016_reactivar_planogramas_archivados.js` | Ninguna | 2026-10-09 (`npm run migrate:status`) |
-| PROD | `db-planogramas` | Sin verificar | Sin verificar | — |
+| DEV | `OTB` | `017_indices_consolidado.js` | Ninguna | 2026-10-16 (`npm run migrate:status`) |
+| PROD | `db-planogramas` | Sin verificar | Sin verificar; al menos `017_indices_consolidado.js` (no aplicar hasta resolver DT-08) | — |
 
 > **Mantener esta tabla al día.** Cada vez que se cree una migración nueva o se aplique
 > (`npm run migrate`) en un ambiente, actualizar la fila correspondiente con la última migración
