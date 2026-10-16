@@ -42,7 +42,8 @@ front/
 │   ├── App.css                        # Reemplazar por styles/global.css al implementar el layout raíz
 │   │
 │   ├── config/
-│   │   └── env.ts                     # ÚNICO punto que lee import.meta.env (URL base de API, etc.)
+│   │   ├── env.ts                     # ÚNICO punto que lee import.meta.env (URL base de API, etc.)
+│   │   └── preferencias*.ts           # localStorage validado (p. ej. planogramas.consolidado.columnas)
 │   │
 │   ├── router/
 │   │   └── routes.tsx                 # 3 rutas (ver más abajo), react-router-dom
@@ -59,7 +60,8 @@ front/
 │   │   ├── catalogo.service.ts        # Proxy a CATI vía backend + listado local de productos (/productos)
 │   │   ├── accesorios.service.ts
 │   │   ├── tiendas.service.ts
-│   │   └── jerarquia.service.ts       # Proxy a CATI vía backend
+│   │   ├── jerarquia.service.ts       # Proxy a CATI vía backend
+│   │   └── consolidado.service.ts     # Consolidado Tiendas: listar, obtenerFiltros, descargar (getBinario con query)
 │   │
 │   ├── hooks/                         # Lógica de negocio y estado por dominio, sin JSX
 │   │   ├── usePlanogramas.ts          # Listar/filtrar/crear/editar/archivar (PANT-01-*)
@@ -67,7 +69,8 @@ front/
 │   │   ├── useEditorPlanograma.ts     # Estado del editor: tabs de góndola, selección, drag&drop, undo/redo
 │   │   ├── usePosicionEditor.ts       # PosicionDrawer: cálculos derivados (facings↔ancho, capacidad) + guardado
 │   │   ├── useSustitucionSku.ts       # Modo sustitución + SustitucionWizard
-│   │   └── useProductos.ts            # Listado de productos por jerarquía + posiciones de un SKU (PANT-10-01, ACC-10-02)
+│   │   ├── useProductos.ts            # Listado de productos por jerarquía + posiciones de un SKU (PANT-10-01, ACC-10-02)
+│   │   └── useConsolidado.ts / useFiltrosConsolidado.ts  # Consolidado Tiendas (descarta respuestas obsoletas)
 │   │
 │   ├── context/                       # Estado transversal, no específico de un dominio
 │   │   ├── AuthContext.tsx            # Usuario/rol (Analista/Implementador) — hoy es el RoleSwitch manual del prototipo, no auth real (ver gap en INVENTARIO §5)
@@ -75,7 +78,8 @@ front/
 │   │
 │   ├── types/                         # Modelo de datos compartido (ver ESPECIFICACION-PANTALLAS-COMPONENTES.md §4)
 │   │   ├── planograma.ts              # Planograma, Version, Gondola, Nivel, Posicion, ProductoCatalogo, MedidasMontaje, Sustitucion
-│   │   └── producto.ts                # ProductoListado, AparicionProducto, FiltroJerarquia (vista /productos)
+│   │   ├── producto.ts                # ProductoListado, AparicionProducto, FiltroJerarquia (vista /productos)
+│   │   └── consolidado.ts             # GrupoConsolidado, FilaConsolidado, ResumenConsolidado, FormatoDescarga
 │   │
 │   ├── pages/                         # Una carpeta por pantalla ruteable — SOLO 3, ver nota abajo
 │   │   ├── PlanogramasListado/
@@ -88,7 +92,8 @@ front/
 │   │   │   ├── PlanogramaEditor.tsx
 │   │   │   └── PlanogramaEditor.css
 │   │   ├── ProductosListado/          # /productos (PANT-10-01) — filtros de jerarquía en backend, resto en cliente
-│   │   └── EstructuraAsignacion/      # /estructura — matriz planograma × tienda; lee contexto de la URL (ver Ruteo)
+│   │   ├── EstructuraAsignacion/      # /estructura — matriz planograma × tienda; lee contexto de la URL (ver Ruteo)
+│   │   └── ConsolidadoTiendas/        # /mantenimiento/consolidado-tiendas (menú Productos → Por tienda), módulo 21
 │   │
 │   ├── components/
 │   │   ├── ui/                        # Primitivos genéricos — sin conocimiento del dominio
@@ -142,7 +147,8 @@ front/
 │   │       │   ├── NivelModal/
 │   │       │   ├── DeleteConfirmModal/
 │   │       │   ├── SustitucionWizard/
-│   │       │   └── HistorialSustitucionesModal/
+│   │       │   ├── HistorialSustitucionesModal/
+│   │       │   └── SeleccionVersionesModal/   # compartido por Por planograma y Consolidado (antes en implementacion/)
 │   │       ├── estructura/
 │   │       │   ├── MatrizAsignaciones/        # recibe `resolver` (función que resuelve el pincel por celda)
 │   │       │   ├── BarraAsignacion/           # pinceles; acepta `pincelesPermitidos` y `modoFijo`
@@ -151,7 +157,12 @@ front/
 │   │       ├── productos/
 │   │       │   ├── ProductosFiltros/      # búsqueda, modo, estado + cascada de jerarquía CATI de 5 niveles
 │   │       │   ├── ProductosTable/        # tabla con orden anidado y filas expandibles
-│   │       │   └── ProductoApariciones/   # detalle de posiciones de un SKU (ACC-10-02)
+│   │       │   ├── ProductoApariciones/   # detalle de posiciones de un SKU (ACC-10-02)
+│   │       │   └── CadenaJerarquia/       # 5 selects de jerarquía CATI; la usan ProductosFiltros y ConsolidadoFiltros
+│   │       ├── consolidado/
+│   │       │   ├── ConsolidadoFiltros/    # barra de filtros (+ ResumenFiltrosCompacto del modo extendido)
+│   │       │   ├── ConsolidadoTable/      # grupos SKU–tienda con sub-filas cross/impulso
+│   │       │   └── DescargarConsolidadoModal/
 │   │       └── EstadoBadge/            # (badge de estado con colores por estado, ver INVENTARIO §4.3)
 │   │
 │   ├── styles/
@@ -161,8 +172,13 @@ front/
 │   │   └── global.css                 # Reset, tipografía base, body — importado una sola vez en main.tsx
 │   │
 │   ├── domain/
-│   │   └── estructura/
-│   │       └── contexto.ts            # leerContexto / rutaEstructura: contexto de /estructura en la URL
+│   │   ├── estructura/
+│   │   │   └── contexto.ts            # leerContexto / rutaEstructura: contexto de /estructura en la URL
+│   │   ├── columnas/
+│   │   │   └── preferenciasColumnas.ts  # orden/visibilidad genéricos <K extends string> (PanelColumnas, Por planograma, Consolidado)
+│   │   └── consolidado/
+│   │       ├── columnasConsolidado.ts # lista de 24 columnas (espejo del back, DT-39) y texto de celdas
+│   │       └── filtrosConsolidado.ts  # query del listado/exportación, chips, filas estimadas, nombre de archivo
 │   │
 │   └── utils/                         # Funciones puras, sin estado ni JSX
 │       ├── capacidad.ts               # capacidad_maxima, min_estetico (espejo de posicion.entity.js del backend)
@@ -325,6 +341,12 @@ versiones se hace en Estructura, no en modales del detalle.
   en piloto.
 
 Si la versión ya no está en el estado esperado, Estructura queda solo filtrada y avisa.
+
+**Grupos del menú del analista** (`constants/navegacion.ts`, `OpcionNavegacion.hijos`): "Productos" (Por
+planograma → `/por-version`, Por tienda → `/mantenimiento/consolidado-tiendas`) y "Mantenimiento" (Accesorios →
+`/accesorios`, Tiendas → `/tiendas`). Solo agrupan en el menú: cada hijo conserva su ruta. `opcionesVisibles`
+filtra hijos por regla y quita grupos sin hijos visibles; `AppTopbar` marca el grupo activo por las rutas de sus
+hijos. `/productos` sigue viva pero fuera del menú (DT-47).
 
 ## Testing
 

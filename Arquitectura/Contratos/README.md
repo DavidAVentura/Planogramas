@@ -31,6 +31,8 @@ Los contratos están organizados por recurso e incluyen anotaciones de arquitect
 | `17_evidencias/` | Evidencias de implementación (fotos por góndola) | GET lista, POST agregar, GET descargar, DELETE eliminar |
 | `18_secciones/` | Secciones de góndola (columnas / franjas con sus propios niveles) | GET estructura, POST dividir, PATCH cambiar medida, DELETE quitar |
 | `19_skus/` | SKU en la versión (totales por SKU y ganchos calculados) | GET listar, PATCH mín./máx. por SKU |
+| `20_importacion/` | Importación del PDF Planograma y del Excel de productos | POST agente-extractor PDF, POST importar-layout, POST importar-productos |
+| `21_consolidado/` | Consolidado Tiendas (SKU–tienda–versión de lo que montan las tiendas; solo lectura) | GET listado, GET opciones de filtro, GET exportar .xlsx |
 
 ---
 

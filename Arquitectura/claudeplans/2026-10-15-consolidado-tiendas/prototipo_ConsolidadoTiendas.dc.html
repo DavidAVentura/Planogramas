@@ -1,0 +1,1577 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Consolidado Tiendas</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&amp;family=DM+Mono:wght@400;500&amp;display=swap">
+<style>
+body{margin:0;font-family:'Hanken Grotesk','Helvetica Neue',sans-serif;color:#111811;background:#f8f9f6}
+a{color:#101e8e}a:hover{color:#0a1258}
+input:focus,select:focus{outline:0;border-color:#101e8e !important;box-shadow:0 0 0 3px #e2e5fb}
+button:focus-visible,a:focus-visible{outline:2px solid #101e8e;outline-offset:2px}
+.seg input:focus-visible + span{outline:2px solid #101e8e;outline-offset:2px}
+.seg:hover input:not(:checked) + span{background:#e2e5e1}
+.fila:hover{background-image:linear-gradient(rgb(17 24 17 / 3%),rgb(17 24 17 / 3%))}
+.nav-op:hover{background:#f1f3ef}
+.btn-link:hover{background:#f0f2fd}
+.enc-orden:hover{background:#f1f3ef}
+.btn-exp:hover{background:#f1f3ef}
+.btn-filtros:hover{background:#f1f3ef !important}
+.btn-sec:hover{background:#f1f3ef}
+.item-menu:hover{background:#f0f2fd}
+.fila-col:hover{background:#f8f9f6}
+.mini:hover{background:#f1f3ef}
+.listo:hover{background:#0a1258}
+.chip-x:hover{background:rgb(16 30 142 / 14%)}
+.opc:focus-within{outline:2px solid #101e8e;outline-offset:2px}
+.opc input:focus,.hoja input:focus{box-shadow:none}
+.cerrar-x:hover{background:#f1f3ef}
+.bsel{position:relative;height:38px;max-width:230px;padding:0 32px 0 12px;border:1px solid #e2e5e1;border-radius:8px;background:#fff;font-family:inherit;font-size:14px;font-weight:400;color:#111811;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.bsel::after{content:'';position:absolute;right:14px;top:50%;width:7px;height:7px;border-right:1.5px solid #4a524d;border-bottom:1.5px solid #4a524d;transform:translateY(-70%) rotate(45deg)}
+.bsel:hover:not(:disabled){background:#f8f9f6}
+.bsel:focus-visible{outline:0;border-color:#101e8e;box-shadow:0 0 0 3px #e2e5fb}
+.bsel-act{border-color:#101e8e;background:#f0f2fd}
+.bsel-act:hover:not(:disabled){background:#f0f2fd}
+.bsel:disabled{background:#f8f9f6;color:#9aa19d;cursor:not-allowed}
+.bsel:disabled::after{border-color:#c5cac6}
+.sel-fila:hover{background:#f8f9f6}
+.sel-ord:hover{background:#f8f9f6}
+.sel-ord-act:hover{background:#f0f2fd !important}
+.btn-ghost:hover{background:#f1f3ef}
+.sel-busq:focus{outline:0;border-color:#101e8e !important;box-shadow:none !important}
+/* Disparador de planograma versión: réplica de .productos-versiones__selector (ProductosVersiones.css), a 38 px como el resto de la barra */
+.vsel{display:flex;align-items:center;gap:8px;width:240px;max-width:100%;height:38px;padding:0 12px;box-sizing:border-box;border:1px solid #e2e5e1;border-radius:8px;background:#fff;font-family:inherit;font-size:14px;font-weight:400;color:#111811;text-align:left;cursor:pointer}
+.vsel svg{flex:none;color:#4a524d}
+.vsel:hover{background:#f8f9f6}
+.vsel:focus-visible{outline:0;border-color:#101e8e;box-shadow:0 0 0 3px #e2e5fb}
+.vsel-act,.vsel-act:hover{border-color:#101e8e;background:#f0f2fd;font-weight:600}
+/* Jerarquía CATI: select nativo, réplica de .productos-filtros__campo select */
+.jsel{height:38px;max-width:200px;padding:0 10px;border:1px solid #e2e5e1;border-radius:8px;background:#fff;font-family:inherit;font-size:14px;color:#111811}
+.jsel:disabled{background:#f8f9f6;color:#6b7370;cursor:not-allowed}
+.jsel-act{border-color:#101e8e;background:#f0f2fd}
+/* Modal de planograma versión: réplica de SeleccionVersionesModal.css */
+.sv-op:hover{background:#f8f9f6}
+.sv-op-on,.sv-op-on:hover{background:#f7f8fe}
+.sv-op input:focus{box-shadow:none}
+.sv-enlace:hover{background:#f0f2fd}
+.sv-enlace:focus-visible{outline:2px solid #101e8e;outline-offset:1px}
+.sv-chip-x:hover{background:#e2e5fb}
+.sv-chip-x:focus-visible{outline:2px solid #101e8e;outline-offset:1px}
+@keyframes giro{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<div style="width: 1280px; height: 860px; position: relative; display: flex; flex-direction: column; background: #f8f9f6; font-family: 'Hanken Grotesk', 'Helvetica Neue', sans-serif; color: #111811; overflow: hidden">
+
+<sc-if value="{{noExt}}" hint-placeholder-val="{{true}}">
+<header style="position: relative; z-index: 6; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 24px; background: #ffffff; border-bottom: 1px solid #e2e5e1">
+<div style="display: flex; align-items: center; gap: 10px">
+<div style="width: 34px; height: 34px; border-radius: 8px; background: #94d500; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: #101e8e">C</div>
+<div>
+<div style="font-size: 15px; font-weight: 700; line-height: 1.1">Consolidado Tiendas</div>
+<div style="font-size: 10px; color: #6b7370; letter-spacing: 0.03em">CEMACO</div>
+</div>
+</div>
+<nav aria-label="Navegación principal" style="display: flex; align-items: center; gap: 4px; flex-grow: 1; justify-content: center">
+<a class="nav-op" href="#" style="padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: #4a524d; text-decoration: none">Planogramas</a>
+<a class="nav-op" href="Main.dc.html" style="padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: #4a524d; text-decoration: none">Tiendas</a>
+<span aria-disabled="true" title="Próximamente" style="padding: 7px 14px; font-size: 13px; font-weight: 600; color: #9aa19d; cursor: not-allowed">Estructura</span>
+<a class="nav-op" href="Productos.dc.html" style="padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: #4a524d; text-decoration: none">Productos</a>
+<div style="position: relative" onKeyDown="{{teclaMenu}}">
+<button type="button" aria-haspopup="true" aria-expanded="{{menuExpandido}}" aria-controls="menu-mant" onClick="{{alternarMenu}}" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px 7px 14px; border: 0; border-radius: 999px; font-family: inherit; font-size: 13px; font-weight: 600; color: #101e8e; background: #f0f2fd; cursor: pointer">
+Mantenimiento
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+</button>
+<sc-if value="{{menuAbierto}}" hint-placeholder-val="{{false}}">
+<div id="menu-mant" style="position: absolute; top: calc(100% + 8px); left: 0; z-index: 10; min-width: 220px; padding: 6px; background: #ffffff; border: 1px solid #e2e5e1; border-radius: 10px; box-shadow: 0 12px 28px rgb(17 24 17 / 10%), 0 4px 8px rgb(17 24 17 / 5%)">
+<a class="item-menu" href="#" aria-current="page" style="display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; color: #101e8e; background: #f0f2fd; text-decoration: none">Consolidado Tiendas</a>
+</div>
+</sc-if>
+</div>
+</nav>
+<div style="display: inline-flex; padding: 3px; border-radius: 999px; background: #f1f3ef">
+<button type="button" style="border: 0; background: #ffffff; padding: 7px 16px; border-radius: 999px; font-family: inherit; font-size: 13px; font-weight: 600; color: #101e8e; box-shadow: 0 1px 2px rgb(17 24 17 / 4%)">Analista</button>
+<button type="button" style="border: 0; background: transparent; padding: 7px 16px; border-radius: 999px; font-family: inherit; font-size: 13px; font-weight: 600; color: #4a524d">Implementador</button>
+</div>
+</header>
+</sc-if>
+
+<main style="flex: 1; min-height: 0; width: 100%; max-width: {{mainMax}}; margin: 0 auto; padding: {{mainPad}}; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px">
+
+<div onKeyDown="{{teclaCard}}" style="position: relative; flex: none; display: flex; flex-direction: column; gap: 10px; padding: {{cardPad}}; background: #ffffff; border: 1px solid #e2e5e1; border-radius: 10px">
+<div style="display: flex; align-items: center; gap: 12px; min-height: {{filaMin}}">
+
+<sc-if value="{{noExt}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; min-width: 0">
+<h1 style="margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.01em">Consolidado Tiendas</h1>
+<span style="font-size: 14px; color: #4a524d; font-weight: 600">{{conteo}}</span>
+<span style="font-size: 13px; color: #6b7370">{{resumen}}</span>
+</div>
+<span style="margin-left: auto; font-size: 12px; color: #6b7370; white-space: nowrap">Solo lectura</span>
+</sc-if>
+
+<sc-if value="{{ext}}" hint-placeholder-val="{{false}}">
+<div style="flex: 1; min-width: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px">
+<span style="font-size: 13px; font-weight: 700; color: #111811; white-space: nowrap; margin-right: 4px">{{conteo}}</span>
+<sc-if value="{{chipsVisibles}}" hint-placeholder-val="{{true}}">
+<ul aria-label="Filtros aplicados" style="list-style: none; margin: 0; padding: 0; display: contents">
+<sc-for list="{{chipsFiltros}}" as="ch" hint-placeholder-count="2">
+<li title="{{ch.titulo}}" style="display: inline-flex; align-items: center; gap: 2px; padding: 0 2px 0 10px; height: 26px; border-radius: 999px; background: {{ch.fondo}}; color: {{ch.color}}; font-size: 12px; font-weight: 600; white-space: nowrap">
+{{ch.etiqueta}}
+<sc-if value="{{ch.quitable}}" hint-placeholder-val="{{true}}">
+<button type="button" class="chip-x" onClick="{{ch.quitar}}" aria-label="{{ch.ayuda}}" title="{{ch.ayuda}}" style="width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 999px; background: transparent; color: inherit; cursor: pointer">
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+</button>
+</sc-if>
+<sc-if value="{{ch.fijo}}" hint-placeholder-val="{{false}}"><span style="width: 8px"></span></sc-if>
+</li>
+</sc-for>
+</ul>
+<sc-if value="{{sinChips}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; color: #6b7370">Sin filtros aplicados</span></sc-if>
+</sc-if>
+</div>
+</sc-if>
+
+<button type="button" class="btn-sec" aria-expanded="{{panelExpandido}}" aria-controls="panel-columnas" onClick="{{alternarPanel}}" style="flex: none; height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; border: 1px solid {{bColumnas.borde}}; border-radius: 8px; background: {{bColumnas.fondo}}; color: {{bColumnas.color}}; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M9 4v16M15 4v16"></path></svg>
+Columnas
+</button>
+<button type="button" class="btn-sec" aria-haspopup="dialog" onClick="{{abrirModal}}" style="flex: none; height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; border: 1px solid #e2e5e1; border-radius: 8px; background: #ffffff; color: #4a524d; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M4 20h16"></path></svg>
+Descargar
+</button>
+<button type="button" class="btn-filtros" aria-expanded="{{bFiltros.expandido}}" aria-controls="barra-filtros" aria-label="{{bFiltros.ayuda}}" title="{{bFiltros.ayuda}}" onClick="{{alternarFiltros}}" style="position: relative; flex: none; min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: {{bFiltros.pad}}; box-sizing: border-box; border: 1px solid {{bFiltros.borde}}; border-radius: 8px; background: {{bFiltros.fondo}}; color: {{bFiltros.color}}; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16l-6 7.5V19l-4-2v-4.5L4 5z"></path></svg>
+<sc-if value="{{ext}}" hint-placeholder-val="{{false}}"><span>{{bFiltros.texto}}</span></sc-if>
+<sc-if value="{{bFiltros.hayConteo}}" hint-placeholder-val="{{false}}"><span aria-hidden="true" style="position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 999px; background: #101e8e; color: #ffffff; font-size: 11px; font-weight: 800; line-height: 18px; text-align: center">{{bFiltros.conteo}}</span></sc-if>
+</button>
+<button type="button" class="btn-sec" aria-pressed="{{bExt.presionado}}" aria-label="{{bExt.ayuda}}" title="{{bExt.ayuda}}" onClick="{{alternarExtendido}}" style="flex: none; min-width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: {{bExt.pad}}; box-sizing: border-box; border: 1px solid {{bExt.borde}}; border-radius: 8px; background: {{bExt.fondo}}; color: {{bExt.color}}; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer">
+<sc-if value="{{noExt}}" hint-placeholder-val="{{true}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"></path></svg></sc-if>
+<sc-if value="{{ext}}" hint-placeholder-val="{{false}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h5V3M21 8h-5V3M3 16h5v5M21 16h-5v5"></path></svg></sc-if>
+<sc-if value="{{ext}}" hint-placeholder-val="{{false}}"><span>Salir del modo extendido</span></sc-if>
+</button>
+</div>
+
+<sc-if value="{{filtrosVisibles}}" hint-placeholder-val="{{true}}">
+<div id="barra-filtros" style="display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid #e2e5e1">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+<label style="position: relative; display: flex; align-items: center; flex: 1 1 200px">
+<span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Buscar SKU</span>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7370" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="position: absolute; left: 12px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input type="search" placeholder="SKU, nombre o marca" value="{{busqueda}}" onChange="{{onBusqueda}}" style="height: 38px; width: 100%; padding: 0 12px 0 36px; border: 1px solid #e2e5e1; border-radius: 8px; font-family: inherit; font-size: 14px; color: #111811; box-sizing: border-box">
+</label>
+<div style="display: flex">
+<button type="button" class="{{bTienda.clase}}" aria-label="{{bTienda.aria}}" aria-haspopup="dialog" title="{{bTienda.titulo}}" onClick="{{bTienda.abrir}}">{{bTienda.texto}}</button>
+</div>
+<div style="display: flex">
+<button type="button" class="{{bVersion.clase}}" aria-label="Planograma versión" aria-describedby="valor-version" aria-haspopup="dialog" title="{{bVersion.titulo}}" onClick="{{bVersion.abrir}}">
+<span id="valor-version" style="flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{bVersion.texto}}</span>
+<sc-if value="{{bVersion.hayConteo}}" hint-placeholder-val="{{false}}"><span style="flex: none; padding: 1px 7px; border-radius: 999px; background: #101e8e; color: #ffffff; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums">{{bVersion.conteo}}</span></sc-if>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"></path></svg>
+</button>
+</div>
+<div style="display: flex">
+<button type="button" class="{{bEstado.clase}}" aria-label="{{bEstado.aria}}" aria-haspopup="dialog" title="{{bEstado.titulo}}" onClick="{{bEstado.abrir}}">{{bEstado.texto}}</button>
+</div>
+<label title="{{fDup.ayuda}}" style="display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 10px; box-sizing: border-box; border: 1px solid {{fDup.borde}}; border-radius: 8px; background: {{fDup.fondo}}; opacity: {{fDup.opacidad}}; font-size: 14px; cursor: {{fDup.cursor}}; white-space: nowrap">
+<input type="checkbox" checked="{{soloDup}}" disabled="{{dupBloqueado}}" onChange="{{onSoloDup}}" style="width: 16px; height: 16px; margin: 0; accent-color: #101e8e">
+Solo con más de un planograma
+</label>
+<sc-if value="{{hayFiltros}}" hint-placeholder-val="{{false}}">
+<button type="button" class="btn-link" onClick="{{limpiarFiltros}}" style="font-family: inherit; font-weight: 600; font-size: 13px; cursor: pointer; padding: 0 10px; height: 38px; border-radius: 8px; background: transparent; color: #101e8e; border: 0; white-space: nowrap">Limpiar filtros</button>
+</sc-if>
+</div>
+
+<sc-if value="{{hayChipsTiendas}}" hint-placeholder-val="{{false}}">
+<ul aria-label="Tiendas seleccionadas" style="list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px">
+<sc-for list="{{chipsTiendas}}" as="ch" hint-placeholder-count="3">
+<li style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 4px 3px 10px; border-radius: 999px; background: #e2e5fb; color: #101e8e; font-size: 12px; font-weight: 600">
+{{ch.etiqueta}}
+<button type="button" class="chip-x" onClick="{{ch.quitar}}" aria-label="{{ch.ayuda}}" style="width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 999px; background: transparent; color: inherit; font-size: 16px; line-height: 1; cursor: pointer">&times;</button>
+</li>
+</sc-for>
+</ul>
+</sc-if>
+
+<sc-if value="{{hayChipsVersiones}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 10px 16px; background: #ffffff; border: 1px solid #c4caf8; border-radius: 8px">
+<span style="font-size: 13px; font-weight: 600; color: #4a524d">Mostrando productos de:</span>
+<sc-for list="{{chipsVersiones}}" as="v" hint-placeholder-count="3">
+<span style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 4px 2px 10px; border-radius: 999px; background: #f0f2fd; font-size: 13px; font-weight: 600; color: #101e8e">
+<span style="font-family: 'DM Mono', monospace; font-size: 12px">{{v.cod}}</span>
+<span style="font-size: 11px; font-weight: 700; color: {{v.color}}">{{v.estado}}</span>
+<button type="button" class="sv-chip-x" onClick="{{v.quitar}}" aria-label="{{v.ayuda}}" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 999px; background: transparent; color: #101e8e; cursor: pointer">
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+</button>
+</span>
+</sc-for>
+</div>
+</sc-if>
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+<div role="group" aria-label="Jerarquía CATI" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px">
+<span aria-hidden="true" style="font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: #6b7370; margin-right: 4px">JERARQUÍA</span>
+<sc-for list="{{nivelesJer}}" as="n" hint-placeholder-count="5">
+<span style="display: inline-flex; align-items: center; gap: 6px">
+<sc-if value="{{n.sep}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9aa19d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M9 6l6 6-6 6"></path></svg></sc-if>
+<label style="display: flex">
+<span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">{{n.etiqueta}}</span>
+<select class="{{n.clase}}" value="{{n.valor}}" disabled="{{n.off}}" onChange="{{n.cambiar}}">
+<option value="">{{n.textoVacio}}</option>
+<sc-for list="{{n.opciones}}" as="o" hint-placeholder-count="2"><option value="{{o}}">{{o}}</option></sc-for>
+</select>
+</label>
+</span>
+</sc-for>
+</div>
+<div style="margin-left: auto; display: flex; align-items: center; gap: 8px">
+<span id="lbl-tipo" style="font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: #6b7370">TIPO DE APARICIÓN</span>
+<div role="radiogroup" aria-labelledby="lbl-tipo" style="display: inline-flex; padding: 3px; border-radius: 999px; background: #f1f3ef">
+<sc-for list="{{opcionesTipo}}" as="o" hint-placeholder-count="3">
+<label class="seg" title="{{o.ayuda}}" style="position: relative; display: inline-flex; cursor: pointer">
+<input type="radio" name="tipo-aparicion" value="{{o.valor}}" checked="{{o.marcado}}" onChange="{{o.elegir}}" style="position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer">
+<span style="padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; white-space: nowrap; background: {{o.fondo}}; color: {{o.color}}; box-shadow: {{o.sombra}}">{{o.etiqueta}}</span>
+</label>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{panelAbierto}}" hint-placeholder-val="{{false}}">
+<div id="panel-columnas" role="dialog" aria-label="Columnas de la tabla" style="position: absolute; top: calc(100% + 6px); right: 16px; z-index: 5; width: 360px; display: flex; flex-direction: column; overflow: hidden; background: #ffffff; border: 1px solid #e2e5e1; border-radius: 10px; box-shadow: 0 12px 28px rgb(17 24 17 / 10%), 0 4px 8px rgb(17 24 17 / 5%)">
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 14px 16px 10px; border-bottom: 1px solid #e2e5e1">
+<span style="font-size: 15px; font-weight: 800">Columnas</span>
+<span style="font-size: 12px; line-height: 1.4; color: #6b7370">Marca las que quieres ver y arrástralas, o usa las flechas, para cambiar su orden. Se guarda en este navegador. La descarga a Excel incluye solo las columnas marcadas, en este orden.</span>
+</div>
+<ul style="list-style: none; margin: 0; padding: 4px 0; max-height: 380px; overflow-y: auto">
+<sc-for list="{{itemsColumnas}}" as="it" hint-placeholder-count="6">
+<li draggable="true" onDragStart="{{it.iniciar}}" onDragOver="{{it.sobre}}" onDrop="{{it.soltar}}" onDragEnd="{{it.terminar}}" class="fila-col" style="display: flex; align-items: center; gap: 4px; padding: 0 10px 0 8px; border-top: 2px solid {{it.bordeArriba}}; border-bottom: 2px solid {{it.bordeAbajo}}; opacity: {{it.opacidad}}">
+<span aria-hidden="true" title="Arrastra para cambiar el orden" style="flex: none; width: 28px; height: 36px; display: flex; align-items: center; justify-content: center; color: #9aa19d; cursor: grab">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.8"></circle><circle cx="15" cy="6" r="1.8"></circle><circle cx="9" cy="12" r="1.8"></circle><circle cx="15" cy="12" r="1.8"></circle><circle cx="9" cy="18" r="1.8"></circle><circle cx="15" cy="18" r="1.8"></circle></svg>
+</span>
+<label style="flex: 1; display: flex; align-items: center; gap: 10px; min-height: 40px; font-size: 14px; color: {{it.color}}; cursor: pointer">
+<input type="checkbox" checked="{{it.visible}}" disabled="{{it.bloqueada}}" onChange="{{it.alternar}}" style="width: 16px; height: 16px; margin: 0; accent-color: #101e8e">
+{{it.etiqueta}}
+</label>
+<button type="button" class="mini" onClick="{{it.subir}}" disabled="{{it.esPrimera}}" aria-label="{{it.ayudaSubir}}" style="flex: none; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; background: transparent; color: {{it.colorSubir}}; cursor: pointer">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg>
+</button>
+<button type="button" class="mini" onClick="{{it.bajar}}" disabled="{{it.esUltima}}" aria-label="{{it.ayudaBajar}}" style="flex: none; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; background: transparent; color: {{it.colorBajar}}; cursor: pointer">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+</button>
+</li>
+</sc-for>
+</ul>
+<div style="display: flex; align-items: center; gap: 6px; padding: 10px 12px; border-top: 1px solid #e2e5e1; background: #f8f9f6">
+<button type="button" class="btn-link" onClick="{{mostrarTodas}}" style="min-height: 36px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; font-family: inherit; font-size: 13px; font-weight: 600; color: #101e8e; cursor: pointer">Mostrar todas</button>
+<button type="button" class="btn-link" onClick="{{restablecerColumnas}}" style="min-height: 36px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; font-family: inherit; font-size: 13px; font-weight: 600; color: #101e8e; cursor: pointer">Restablecer</button>
+<button type="button" class="listo" onClick="{{cerrarPanel}}" style="margin-left: auto; min-height: 36px; padding: 0 16px; border: 0; border-radius: 8px; background: #101e8e; font-family: inherit; font-size: 13px; font-weight: 600; color: #ffffff; cursor: pointer">Listo</button>
+</div>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{hayResultados}}" hint-placeholder-val="{{true}}">
+<div role="table" aria-label="Consolidado de SKU por tienda" aria-rowcount="{{totalFilasAria}}" aria-busy="{{cargando}}" style="flex: 1; min-height: 0; overflow: auto; background: #ffffff; border: 1px solid #e2e5e1; border-radius: 8px">
+<div role="row" style="position: sticky; top: 0; z-index: 1; box-sizing: border-box; width: {{anchoTotal}}px; display: grid; grid-template-columns: {{plantilla}}; align-items: center; background: #f8f9f6; border-bottom: 1px solid #e2e5e1; border-left: 4px solid transparent">
+<div role="columnheader" style="padding: 0 8px"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Detalle y alertas</span></div>
+<sc-for list="{{columnas}}" as="c" hint-placeholder-count="8">
+<div role="columnheader" aria-sort="{{c.ariaSort}}" style="display: flex; justify-content: {{c.justificar}}; padding: 4px 4px; min-width: 0">
+<sc-if value="{{c.ordenable}}" hint-placeholder-val="{{true}}">
+<button type="button" class="enc-orden" onClick="{{c.ordenar}}" title="{{c.ayuda}}" style="display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; padding: 8px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: {{c.peso}}; letter-spacing: 0.03em; color: {{c.color}}">
+{{c.etiqueta}}
+<sc-if value="{{c.asc}}" hint-placeholder-val="{{false}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"></path></svg></sc-if>
+<sc-if value="{{c.desc}}" hint-placeholder-val="{{false}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"></path></svg></sc-if>
+<sc-if value="{{c.sinOrden}}" hint-placeholder-val="{{true}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c5cac6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"></path></svg></sc-if>
+</button>
+</sc-if>
+<sc-if value="{{c.fijo}}" hint-placeholder-val="{{false}}">
+<span style="padding: 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.03em; color: #6b7370">{{c.etiqueta}}</span>
+</sc-if>
+</div>
+</sc-for>
+</div>
+
+<sc-if value="{{enCarga}}" hint-placeholder-val="{{false}}">
+<div role="status" style="position: sticky; left: 0; width: 1200px; box-sizing: border-box; padding: 14px 20px; display: flex; flex-direction: column; gap: 14px">
+<span style="font-size: 13px; font-weight: 600; color: #4a524d">Cargando consolidado…</span>
+<sc-for list="{{esqueleto}}" as="e" hint-placeholder-count="6">
+<div aria-hidden="true" style="display: flex; align-items: center; gap: 16px">
+<span style="width: 32px; height: 32px; border-radius: 6px; background: #f1f3ef"></span>
+<span style="width: 90px; height: 12px; border-radius: 6px; background: #f1f3ef"></span>
+<span style="width: 260px; height: 12px; border-radius: 6px; background: #f1f3ef"></span>
+<span style="width: 160px; height: 12px; border-radius: 6px; background: #f1f3ef"></span>
+<span style="width: 140px; height: 12px; border-radius: 6px; background: #f1f3ef"></span>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{noCargando}}" hint-placeholder-val="{{true}}">
+<sc-for list="{{gruposVisibles}}" as="g" hint-placeholder-count="6">
+<div role="rowgroup" style="box-sizing: border-box; width: {{anchoTotal}}px; border-bottom: 1px solid #f1f3ef; border-left: 4px solid {{g.barra}}; background: {{g.fondo}}">
+<sc-for list="{{g.filas}}" as="f" hint-placeholder-count="2">
+<div role="row" class="fila" style="display: grid; grid-template-columns: {{plantilla}}; align-items: center; background-color: {{f.fondoFila}}; border-top: {{f.bordeSup}}">
+<div role="cell" style="display: flex; align-items: center; gap: 4px; padding: 0 4px 0 {{f.padIzq}}px; min-width: 0">
+<sc-if value="{{f.conChevron}}" hint-placeholder-val="{{true}}">
+<button type="button" class="btn-exp" onClick="{{f.alternar}}" aria-expanded="{{f.abierto}}" aria-controls="{{f.subId}}" aria-label="{{f.ayuda}}" style="flex: none; width: 32px; height: 32px; border: 0; background: transparent; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #4a524d">
+<sc-if value="{{f.abierto}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></sc-if>
+<sc-if value="{{f.cerrado}}" hint-placeholder-val="{{true}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></sc-if>
+</button>
+</sc-if>
+<sc-if value="{{f.dup}}" hint-placeholder-val="{{false}}">
+<span title="{{f.dupAyuda}}" style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 800; background: #c4321a; color: #ffffff; white-space: nowrap">
+<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path></svg>
+{{f.dupTexto}}
+</span>
+</sc-if>
+<sc-if value="{{f.badge}}" hint-placeholder-val="{{false}}">
+<span style="display: inline-flex; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; background: {{f.badgeFondo}}; color: {{f.badgeColor}}">{{f.badgeEt}}</span>
+</sc-if>
+</div>
+<sc-for list="{{f.celdas}}" as="c" hint-placeholder-count="8">
+<div role="cell" style="padding: {{padCelda}}; min-width: 0; display: flex; flex-direction: column; gap: 3px; align-items: {{c.align}}">
+<sc-if value="{{c.hayL1}}" hint-placeholder-val="{{true}}"><span title="{{c.titulo}}" style="max-width: 100%; font-family: {{c.fuente}}; font-size: {{c.tam}}px; font-weight: {{c.peso}}; font-variant-numeric: tabular-nums; color: {{c.color}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.l1}}</span></sc-if>
+<sc-if value="{{c.hayL2}}" hint-placeholder-val="{{false}}"><span style="max-width: 100%; font-size: 12px; color: #6b7370; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.l2}}</span></sc-if>
+<sc-if value="{{c.chip}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; background: {{c.chipFondo}}; color: {{c.chipColor}}"><span aria-hidden="true" style="width: 6px; height: 6px; border-radius: 999px; background: {{c.chipColor}}"></span>{{c.chipEt}}</span></sc-if>
+<sc-if value="{{c.sinPl}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; padding: 3px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; color: #4a524d; border: 1px dashed #9aa19d; white-space: nowrap">Sin planograma</span></sc-if>
+<sc-if value="{{c.hayChips}}" hint-placeholder-val="{{false}}">
+<span style="display: flex; flex-wrap: wrap; gap: 4px">
+<sc-for list="{{c.chips}}" as="ch" hint-placeholder-count="1">
+<span style="display: inline-flex; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; background: {{ch.fondo}}; color: {{ch.color}}">{{ch.etiqueta}}</span>
+</sc-for>
+</span>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</sc-for>
+
+<sc-if value="{{g.abierto}}" hint-placeholder-val="{{false}}">
+<div id="{{g.subId}}">
+<sc-for list="{{g.subs}}" as="f" hint-placeholder-count="2">
+<div role="row" class="fila" style="display: grid; grid-template-columns: {{plantilla}}; align-items: center; background-color: {{f.fondoFila}}; border-top: {{f.bordeSup}}">
+<div role="cell" style="display: flex; align-items: center; gap: 4px; padding: 0 4px 0 {{f.padIzq}}px; min-width: 0">
+<sc-if value="{{f.badge}}" hint-placeholder-val="{{true}}">
+<span style="display: inline-flex; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; background: {{f.badgeFondo}}; color: {{f.badgeColor}}">{{f.badgeEt}}</span>
+</sc-if>
+</div>
+<sc-for list="{{f.celdas}}" as="c" hint-placeholder-count="8">
+<div role="cell" style="padding: {{padCelda}}; min-width: 0; display: flex; flex-direction: column; gap: 3px; align-items: {{c.align}}">
+<sc-if value="{{c.hayL1}}" hint-placeholder-val="{{true}}"><span title="{{c.titulo}}" style="max-width: 100%; font-family: {{c.fuente}}; font-size: {{c.tam}}px; font-weight: {{c.peso}}; font-variant-numeric: tabular-nums; color: {{c.color}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.l1}}</span></sc-if>
+<sc-if value="{{c.hayL2}}" hint-placeholder-val="{{false}}"><span style="max-width: 100%; font-size: 12px; color: #6b7370; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.l2}}</span></sc-if>
+<sc-if value="{{c.chip}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; background: {{c.chipFondo}}; color: {{c.chipColor}}"><span aria-hidden="true" style="width: 6px; height: 6px; border-radius: 999px; background: {{c.chipColor}}"></span>{{c.chipEt}}</span></sc-if>
+<sc-if value="{{c.sinPl}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; padding: 3px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; color: #4a524d; border: 1px dashed #9aa19d; white-space: nowrap">Sin planograma</span></sc-if>
+<sc-if value="{{c.hayChips}}" hint-placeholder-val="{{false}}">
+<span style="display: flex; flex-wrap: wrap; gap: 4px">
+<sc-for list="{{c.chips}}" as="ch" hint-placeholder-count="1">
+<span style="display: inline-flex; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; background: {{ch.fondo}}; color: {{ch.color}}">{{ch.etiqueta}}</span>
+</sc-for>
+</span>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</sc-for>
+<sc-if value="{{g.sinSubs}}" hint-placeholder-val="{{false}}">
+<div role="row"><div role="cell" style="position: sticky; left: 0; width: 1200px; box-sizing: border-box; padding: 10px 16px 10px 48px; font-size: 13px; color: #4a524d; background-color: rgb(16 30 142 / 4%); border-top: 1px solid #f1f3ef">Sin apariciones cross ni impulso en esta tienda.</div></div>
+</sc-if>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{sinResultados}}" hint-placeholder-val="{{false}}">
+<div style="flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 24px; background: #ffffff; border: 1px dashed #c5cac6; border-radius: 8px; text-align: center">
+<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9aa19d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"></path><path d="M3 8l9 5 9-5M12 13v8"></path></svg>
+<div style="font-size: 15px; font-weight: 700">{{vacioTitulo}}</div>
+<div style="font-size: 13px; color: #6b7370">Ajusta la tienda, el planograma, la jerarquía o el estado de la versión.</div>
+<button type="button" class="btn-link" onClick="{{limpiarFiltros}}" style="margin-top: 4px; font-family: inherit; font-weight: 600; font-size: 13px; cursor: pointer; padding: 0 12px; height: 36px; border-radius: 8px; background: transparent; color: #101e8e; border: 0">Limpiar filtros</button>
+</div>
+</sc-if>
+
+<div style="flex: none; display: flex; align-items: center; gap: 16px; padding: 2px 4px; min-height: {{pagMin}}">
+<span role="status" style="font-size: 13px; color: #4a524d">{{rango}}</span>
+<label style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #6b7370">
+{{etiquetaPagina}}
+<select value="{{tamPagina}}" onChange="{{onTamPagina}}" style="height: 32px; padding: 0 8px; border: 1px solid #e2e5e1; border-radius: 8px; font-family: inherit; font-size: 13px; color: #111811; background: #ffffff">
+<option value="25">25</option>
+<option value="50">50</option>
+<option value="100">100</option>
+<option value="200">200</option>
+</select>
+</label>
+<div style="margin-left: auto; display: flex; align-items: center; gap: 6px">
+<button type="button" class="btn-sec" onClick="{{irAnterior}}" disabled="{{sinAnterior}}" style="height: 32px; padding: 0 12px; border: 1px solid #e2e5e1; border-radius: 8px; background: #ffffff; font-family: inherit; font-size: 13px; font-weight: 600; color: {{colorAnterior}}; cursor: {{cursorAnterior}}">Anterior</button>
+<span style="font-size: 13px; color: #4a524d; min-width: 96px; text-align: center">{{paginaTexto}}</span>
+<button type="button" class="btn-sec" onClick="{{irSiguiente}}" disabled="{{sinSiguiente}}" style="height: 32px; padding: 0 12px; border: 1px solid #e2e5e1; border-radius: 8px; background: #ffffff; font-family: inherit; font-size: 13px; font-weight: 600; color: {{colorSiguiente}}; cursor: {{cursorSiguiente}}">Siguiente</button>
+</div>
+</div>
+</main>
+
+<sc-if value="{{modalAbierto}}" hint-placeholder-val="{{false}}">
+<div onClick="{{cerrarModal}}" onKeyDown="{{teclaModal}}" style="position: absolute; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box; background: rgb(17 24 17 / 50%)">
+<div role="dialog" aria-modal="true" aria-label="Descargar consolidado" aria-busy="{{generando}}" onClick="{{detener}}" style="width: 100%; max-width: 680px; max-height: 85%; overflow-y: auto; background: #ffffff; border-radius: 12px; box-shadow: 0 12px 28px rgb(17 24 17 / 10%), 0 4px 8px rgb(17 24 17 / 5%)">
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; border-bottom: 1px solid #f1f3ef">
+<span style="font-size: 20px; color: #111811">Descargar consolidado</span>
+<button type="button" class="cerrar-x" onClick="{{cerrarModal}}" aria-label="Cerrar" style="width: 32px; height: 32px; border: 0; border-radius: 6px; background: transparent; font-size: 24px; line-height: 1; color: #6b7370; cursor: pointer">&times;</button>
+</div>
+<div style="padding: 22px; display: flex; flex-direction: column; gap: 16px">
+<div role="radiogroup" aria-labelledby="lbl-formato" style="display: flex; flex-direction: column; gap: 10px">
+<span id="lbl-formato" style="font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: #6b7370">FORMATO DE LA DESCARGA</span>
+<sc-for list="{{opcionesFormato}}" as="o" hint-placeholder-count="3">
+<label class="opc" style="display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; border: 1px solid {{o.borde}}; border-radius: 10px; background: {{o.fondo}}; cursor: pointer">
+<span style="display: flex; align-items: flex-start; gap: 12px">
+<input type="radio" name="formato-descarga" value="{{o.valor}}" checked="{{o.marcado}}" onChange="{{o.elegir}}" autoFocus="{{o.primero}}" style="width: 16px; height: 16px; margin: 2px 0 0; flex: none; accent-color: #101e8e">
+<span style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 14px; font-weight: 700; color: #111811">{{o.etiqueta}}</span>
+<span style="font-size: 13px; line-height: 1.4; color: #4a524d">{{o.desc}}</span>
+</span>
+</span>
+<sc-if value="{{o.mostrarHojas}}" hint-placeholder-val="{{false}}">
+<fieldset aria-describedby="msg-hojas" style="margin: 0 0 0 28px; padding: 0; border: 0; display: flex; flex-direction: column; gap: 8px">
+<legend style="padding: 0; margin-bottom: 8px; font-size: 12px; font-weight: 600; color: #4a524d">Hojas que se incluyen</legend>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{hojasItems}}" as="h" hint-placeholder-count="3">
+<label class="hoja" style="display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px; box-sizing: border-box; border: 1px solid {{h.borde}}; border-radius: 8px; background: {{h.fondo}}; font-size: 14px; color: #111811; cursor: pointer; white-space: nowrap">
+<input type="checkbox" checked="{{h.marcada}}" onChange="{{h.alternar}}" style="width: 16px; height: 16px; margin: 0; accent-color: #101e8e">
+{{h.etiqueta}}
+<span style="font-size: 12px; color: #6b7370">{{h.conteo}}</span>
+</label>
+</sc-for>
+</div>
+<sc-if value="{{hojasInvalido}}" hint-placeholder-val="{{false}}">
+<span id="msg-hojas" role="alert" style="font-size: 12px; font-weight: 600; color: #c4321a">Elige al menos una hoja para descargar.</span>
+</sc-if>
+</fieldset>
+</sc-if>
+</label>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 10px; background: #f8f9f6; border: 1px solid #e2e5e1">
+<span style="font-size: 13px; font-weight: 700; color: #111811">{{conteoDescarga}}</span>
+<span style="font-size: 12px; line-height: 1.5; color: #4a524d">{{notaDescarga}}</span>
+<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+<span style="font-size: 12px; font-weight: 600; color: #111811">{{textoColumnas}}</span>
+<button type="button" class="btn-link" onClick="{{elegirColumnas}}" style="height: 28px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; font-family: inherit; font-size: 12px; font-weight: 600; color: #101e8e; cursor: pointer">Elegir columnas</button>
+</div>
+<sc-if value="{{sinFilasDescarga}}" hint-placeholder-val="{{false}}">
+<span role="alert" style="font-size: 12px; font-weight: 600; color: #c4321a">No hay filas para descargar con los filtros actuales.</span>
+</sc-if>
+</div>
+</div>
+<div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding: 16px 22px; border-top: 1px solid #f1f3ef">
+<button type="button" class="btn-sec" onClick="{{cerrarModal}}" style="min-height: 40px; padding: 0 16px; border: 1px solid #e2e5e1; border-radius: 8px; background: #ffffff; font-family: inherit; font-size: 14px; font-weight: 600; color: #111811; cursor: pointer">Cancelar</button>
+<button type="button" class="listo" onClick="{{descargar}}" disabled="{{descargaBloqueada}}" style="min-height: 40px; padding: 0 18px; display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 8px; background: {{fondoDescargar}}; font-family: inherit; font-size: 14px; font-weight: 600; color: #ffffff; cursor: {{cursorDescargar}}">
+<sc-if value="{{generando}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true" style="animation: giro 0.8s linear infinite"><path d="M12 3a9 9 0 1 0 9 9"></path></svg></sc-if>
+{{etiquetaDescargar}}
+</button>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{selAbierta}}" hint-placeholder-val="{{false}}">
+<div onClick="{{cerrarSel}}" onKeyDown="{{teclaSel}}" style="position: absolute; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box; background: rgb(17 24 17 / 50%)">
+<div role="dialog" aria-modal="true" aria-label="{{sel.titulo}}" onClick="{{detener}}" style="width: 100%; max-width: 680px; max-height: 85%; overflow-y: auto; background: #ffffff; border-radius: 12px; box-shadow: 0 12px 28px rgb(17 24 17 / 10%), 0 4px 8px rgb(17 24 17 / 5%)">
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; border-bottom: 1px solid #f1f3ef">
+<span style="font-size: 20px; color: #111811">{{sel.titulo}}</span>
+<button type="button" class="cerrar-x" onClick="{{cerrarSel}}" aria-label="Cerrar" style="width: 32px; height: 32px; border: 0; border-radius: 6px; background: transparent; font-size: 24px; line-height: 1; color: #6b7370; cursor: pointer">&times;</button>
+</div>
+<div style="padding: 22px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+<input type="search" class="sel-busq" placeholder="{{sel.placeholder}}" aria-label="{{sel.placeholder}}" value="{{sel.busqueda}}" onChange="{{sel.onBusqueda}}" autoFocus="{{sel.enfocar}}" style="flex: 1; min-width: 220px; height: 40px; padding: 0 12px; border: 1px solid #e2e5e1; border-radius: 8px; font-family: inherit; font-size: 14px; color: #111811; box-sizing: border-box">
+<sc-if value="{{sel.hayOrden}}" hint-placeholder-val="{{true}}">
+<div role="group" aria-label="Ordenar por" style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #6b7370">
+<span style="margin-right: 4px">Ordenar por</span>
+<sc-for list="{{sel.ordenes}}" as="o" hint-placeholder-count="3">
+<button type="button" class="{{o.clase}}" aria-pressed="{{o.activo}}" onClick="{{o.ordenar}}" style="height: 32px; padding: 0 10px; border: 1px solid {{o.borde}}; border-radius: 6px; background: {{o.fondo}}; font-family: inherit; font-size: 13px; font-weight: {{o.peso}}; color: {{o.color}}; cursor: pointer">{{o.etiqueta}}{{o.flecha}}</button>
+</sc-for>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{sel.hayLista}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; gap: 2px; max-height: 430px; overflow-y: auto; border: 1px solid #e2e5e1; border-radius: 8px; padding: 6px">
+<label class="sel-fila" style="display: flex; align-items: center; gap: 12px; padding: 8px 10px; margin-bottom: 4px; border-bottom: 1px solid #f1f3ef; font-size: 14px; font-weight: 600; color: #111811; cursor: pointer">
+<input type="checkbox" checked="{{sel.todosMarcado}}" onChange="{{sel.alternarTodos}}" style="flex: none; width: 16px; height: 16px; margin: 0; accent-color: #101e8e">
+<span>{{sel.todosTexto}}</span>
+</label>
+<sc-for list="{{sel.filas}}" as="r" hint-placeholder-count="6">
+<label class="sel-fila" style="display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 6px; font-size: 14px; color: #111811; cursor: pointer">
+<input type="checkbox" checked="{{r.marcado}}" onChange="{{r.alternar}}" style="flex: none; width: 16px; height: 16px; margin: 0; accent-color: #101e8e">
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="display: flex; align-items: baseline; gap: 8px; min-width: 0">
+<span style="font-size: 14px; font-weight: 400; color: #111811">{{r.nombre}}</span>
+</span>
+<sc-if value="{{r.hayDetalle}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; color: #6b7370">{{r.detalle}}</span></sc-if>
+</span>
+<sc-for list="{{r.meta}}" as="m" hint-placeholder-count="2">
+<span style="flex: none; min-width: 80px; text-align: right; font-size: 12px; color: #6b7370">
+<sc-if value="{{m.esTxt}}" hint-placeholder-val="{{true}}">{{m.txt}}</sc-if>
+</span>
+</sc-for>
+</label>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{sel.sinLista}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 32px 16px; border: 1px dashed #c5cac6; border-radius: 8px; text-align: center">
+<div style="font-size: 15px; font-weight: 700">{{sel.vacioTitulo}}</div>
+<sc-if value="{{sel.hayVacioHint}}" hint-placeholder-val="{{false}}"><div style="font-size: 13px; color: #6b7370">Prueba con otro texto de búsqueda.</div></sc-if>
+</div>
+</sc-if>
+</div>
+<div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding: 16px 22px; border-top: 1px solid #f1f3ef">
+<span style="margin-right: auto; align-self: center; font-size: 13px; color: #4a524d">{{sel.conteoTexto}}</span>
+<sc-if value="{{sel.hayElegidos}}" hint-placeholder-val="{{false}}">
+<button type="button" class="btn-ghost" onClick="{{sel.limpiar}}" style="min-height: 40px; padding: 0 16px; border: 0; border-radius: 8px; background: transparent; font-family: inherit; font-size: 14px; font-weight: 600; color: #4a524d; cursor: pointer">Limpiar selección</button>
+</sc-if>
+<button type="button" class="btn-sec" onClick="{{cerrarSel}}" style="min-height: 40px; padding: 0 16px; border: 1px solid #e2e5e1; border-radius: 8px; background: #ffffff; font-family: inherit; font-size: 14px; font-weight: 600; color: #111811; cursor: pointer">Cancelar</button>
+<button type="button" class="listo" onClick="{{sel.aplicar}}" style="min-height: 40px; padding: 0 18px; border: 0; border-radius: 8px; background: #101e8e; font-family: inherit; font-size: 14px; font-weight: 600; color: #ffffff; cursor: pointer">Aplicar</button>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{svAbierta}}" hint-placeholder-val="{{false}}">
+<div onClick="{{cerrarSv}}" onKeyDown="{{teclaSv}}" style="position: absolute; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box; background: rgb(17 24 17 / 50%)">
+<div role="dialog" aria-modal="true" aria-label="Filtrar por planograma versión" onClick="{{detener}}" style="width: 100%; max-width: 680px; max-height: 85%; overflow-y: auto; background: #ffffff; border-radius: 12px; box-shadow: 0 12px 28px rgb(17 24 17 / 10%), 0 4px 8px rgb(17 24 17 / 5%)">
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; border-bottom: 1px solid #f1f3ef">
+<span style="font-size: 20px; color: #111811">Filtrar por planograma versión</span>
+<button type="button" class="cerrar-x" onClick="{{cerrarSv}}" aria-label="Cerrar" style="width: 32px; height: 32px; border: 0; border-radius: 6px; background: transparent; font-size: 24px; line-height: 1; color: #6b7370; cursor: pointer">&times;</button>
+</div>
+<div style="padding: 22px; display: flex; flex-direction: column; gap: 16px">
+<p style="margin: 0; font-size: 13px; color: #4a524d">Versiones publicadas y en piloto asignadas a tiendas.</p>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: #4a524d">
+<span>Buscar</span>
+<input type="search" placeholder="Código, planograma o departamento" value="{{sv.busqueda}}" onChange="{{sv.onBusqueda}}" autoFocus="true" style="height: 40px; padding: 0 14px; border: 1px solid #e2e5e1; border-radius: 8px; font-family: inherit; font-size: 14px; color: #111811; box-sizing: border-box">
+</label>
+<div style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px">
+<button type="button" class="sv-enlace" onClick="{{sv.seleccionarVisibles}}" style="min-height: 32px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; font-family: inherit; font-size: 13px; font-weight: 600; color: #101e8e; cursor: pointer">Seleccionar todas</button>
+<button type="button" class="sv-enlace" onClick="{{sv.quitar}}" style="min-height: 32px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; font-family: inherit; font-size: 13px; font-weight: 600; color: #101e8e; cursor: pointer">Quitar selección</button>
+<span aria-live="polite" style="margin-left: auto; font-size: 13px; font-weight: 600; color: #4a524d; font-variant-numeric: tabular-nums">{{sv.conteoTexto}}</span>
+</div>
+</div>
+
+<sc-if value="{{sv.sinLista}}" hint-placeholder-val="{{false}}">
+<p style="margin: 0; padding: 32px 0; text-align: center; font-size: 14px; color: #4a524d">{{sv.vacio}}</p>
+</sc-if>
+<sc-if value="{{sv.hayLista}}" hint-placeholder-val="{{true}}">
+<div style="display: flex; flex-direction: column; max-height: 50vh; overflow-y: auto; border: 1px solid #e2e5e1; border-radius: 8px">
+<sc-for list="{{sv.filas}}" as="v" hint-placeholder-count="6">
+<label class="{{v.clase}}" style="display: flex; align-items: center; gap: 14px; padding: 10px 16px; border-top: {{v.bordeSup}}; cursor: pointer">
+<input type="checkbox" checked="{{v.marcada}}" onChange="{{v.alternar}}" style="flex: none; width: 18px; height: 18px; margin: 0; accent-color: #101e8e">
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+<span style="display: flex; align-items: center; gap: 8px">
+<span style="font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500">{{v.cod}}</span>
+<span style="display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: {{v.badgeFondo}}; color: {{v.badgeColor}}">{{v.badgeEt}}</span>
+</span>
+<span title="{{v.desc}}" style="overflow: hidden; font-size: 14px; font-weight: 600; color: #111811; text-overflow: ellipsis; white-space: nowrap">{{v.desc}}</span>
+<span style="font-size: 13px; color: #4a524d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{v.nombre}}</span>
+</span>
+<span style="flex: none; font-size: 13px; color: #4a524d; font-variant-numeric: tabular-nums; white-space: nowrap">{{v.total}}</span>
+</label>
+</sc-for>
+</div>
+</sc-if>
+</div>
+<div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding: 16px 22px; border-top: 1px solid #f1f3ef">
+<span style="margin-right: auto; align-self: center; font-size: 12px; color: #6b7370">Sin selección se muestran todas las versiones.</span>
+<button type="button" class="btn-ghost" onClick="{{cerrarSv}}" style="min-height: 40px; padding: 0 16px; border: 0; border-radius: 8px; background: transparent; font-family: inherit; font-size: 14px; font-weight: 600; color: #4a524d; cursor: pointer">Cancelar</button>
+<button type="button" class="listo" onClick="{{sv.aplicar}}" style="min-height: 40px; padding: 0 18px; border: 0; border-radius: 8px; background: #101e8e; font-family: inherit; font-size: 14px; font-weight: 600; color: #ffffff; cursor: pointer">{{sv.textoAplicar}}</button>
+</div>
+</div>
+</div>
+</sc-if>
+
+<div role="status" aria-live="polite" style="position: absolute; right: 24px; bottom: 24px; z-index: 50">
+<sc-if value="{{hayToast}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; align-items: center; gap: 10px; padding: 12px 8px 12px 14px; background: #ffffff; border: 1px solid #e2e5e1; border-left: 4px solid #4f7300; border-radius: 10px; box-shadow: 0 12px 28px rgb(17 24 17 / 10%), 0 4px 8px rgb(17 24 17 / 5%)">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4f7300" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>
+<span style="font-size: 14px; color: #111811">{{toast}}</span>
+<button type="button" class="cerrar-x" onClick="{{cerrarToast}}" aria-label="Cerrar aviso" style="width: 28px; height: 28px; border: 0; border-radius: 6px; background: transparent; font-size: 20px; line-height: 1; color: #6b7370; cursor: pointer">&times;</button>
+</div>
+</sc-if>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":860}}'>
+// Datos de ejemplo inventados pero coherentes con el modelo: Tienda -> VersionTienda -> versión
+// (publicada o piloto) -> Gondola -> Nivel -> Posicion. Cada tienda monta una versión por planograma.
+// Modo PLANOGRAMA: una fila = SKU-tienda-versión (las ubicaciones de la misma versión se suman);
+// cross e impulso salen como sub-filas del grupo SKU-tienda, con las MISMAS columnas que la fila.
+// Modos CROSS / IMPULSO: cada aparición de ese tipo es una fila principal (SKU-tienda-versión).
+// Ronda 4: tienda y estado usan el modal genérico (SeleccionMultipleModal, multiselección); planograma versión
+// reutiliza SeleccionVersionesModal (lista plana, multiselección); la jerarquía es la cascada CATI de 5 niveles
+// de Productos (un valor por nivel). El rojo de duplicados NO depende de los filtros: ver `dupN`.
+// Caso de ejemplo: SKU 1200206 en la tienda 101 está en 3 planogramas; con el filtro de versión AUTOS 02-TG
+// solo se ve una fila y sigue en rojo ("3 planogramas").
+// La descarga incluye solo las columnas visibles, en su orden, en los tres formatos.
+var MODOS = {
+  PLANOGRAMA: { etiqueta: 'Planograma', fondo: '#e2e5fb', color: '#101e8e' },
+  CROSS: { etiqueta: 'Cross', fondo: '#ffe8d2', color: '#8a3f00' },
+  IMPULSO: { etiqueta: 'Impulso', fondo: '#f4fbe3', color: '#4f7300' }
+};
+var ESTADOS_V = {
+  piloto: { etiqueta: 'Piloto', fondo: '#ffe8d2', color: '#8a3f00' },
+  publicado: { etiqueta: 'Publicada', fondo: '#f4fbe3', color: '#4f7300' }
+};
+var ACTIVO = { etiqueta: 'Activo', fondo: '#f4fbe3', color: '#4f7300' };
+var INACTIVO = { etiqueta: 'Inactivo', fondo: '#f1f3ef', color: '#4a524d' };
+var TIPOS = { GRANDE: 'Tienda grande', MEDIANA: 'Tienda mediana', EXPRESS: 'Tienda express' };
+var TIPO_LBL = { GRANDE: 'Grande', MEDIANA: 'Mediana', EXPRESS: 'Express' };
+var ORDEN_TIPO = ['EXPRESS', 'MEDIANA', 'GRANDE'];
+var SUF_TIPO = { TG: 'GRANDE', TM: 'MEDIANA', TE: 'EXPRESS' };
+var DUP_FONDO = '#fdeae5';
+var DUP_BARRA = '#c4321a';
+var SUB_FONDO = 'rgb(16 30 142 / 4%)';
+var SIN_PL = { sin: true, cod: '', base: '', estado: '', planograma: '' };
+
+var BASES = {
+  'AUTOS 01': 'Autos · Limpieza exterior',
+  'AUTOS 02': 'Autos · Aromatizantes',
+  'AUTOS 03': 'Autos · Aceites y aditivos',
+  'CAJAS 01': 'Cajas · Impulso autos',
+  'LIMP 05': 'Limpieza · Aromas del hogar'
+};
+var VERSIONES = {
+  'AUTOS 01-TG': 'publicado', 'AUTOS 01-TM': 'publicado',
+  'AUTOS 02-TG': 'publicado', 'AUTOS 02-TE': 'piloto',
+  'AUTOS 03-TG': 'publicado', 'CAJAS 01-TG': 'publicado', 'LIMP 05-TG': 'publicado'
+};
+var TIENDAS = [
+  { id: '101', nombre: 'Cemaco Zona 9', tipo: 'GRANDE', marca: 'Cemaco', versiones: ['AUTOS 01-TG', 'AUTOS 02-TG', 'AUTOS 03-TG', 'CAJAS 01-TG', 'LIMP 05-TG'] },
+  { id: '102', nombre: 'Cemaco Miraflores', tipo: 'GRANDE', marca: 'Cemaco', versiones: ['AUTOS 01-TG', 'AUTOS 02-TG', 'AUTOS 03-TG', 'CAJAS 01-TG', 'LIMP 05-TG'] },
+  { id: '103', nombre: 'Cemaco Carretera a El Salvador', tipo: 'MEDIANA', marca: 'Cemaco', versiones: ['AUTOS 01-TM', 'AUTOS 02-TG', 'LIMP 05-TG'] },
+  { id: '104', nombre: 'Cemaco Escuintla', tipo: 'MEDIANA', marca: 'Cemaco', versiones: ['AUTOS 01-TM', 'AUTOS 03-TG', 'CAJAS 01-TG'] },
+  { id: '105', nombre: 'Cemaco Pradera Xela', tipo: 'EXPRESS', marca: null, versiones: ['AUTOS 02-TE', 'LIMP 05-TG'] },
+  { id: '106', nombre: 'Cemaco Mixco', tipo: 'GRANDE', marca: 'Cemaco', versiones: ['AUTOS 01-TG', 'AUTOS 02-TG', 'CAJAS 01-TG'] }
+];
+
+// Jerarquía CATI de 5 niveles: Área > Departamento > Familia > Categoría > Subcategoría (n = nombre, h = hijos).
+var JERARQUIA = [
+  { n: 'Automotriz', h: [
+    { n: 'Autos', h: [
+      { n: 'Cuidado del auto', h: [
+        { n: 'Ceras y pulidores', h: [{ n: 'Ceras' }, { n: 'Pulidores' }] },
+        { n: 'Paños y toallas', h: [{ n: 'Paños' }, { n: 'Esponjas' }] },
+        { n: 'Alfombras', h: [{ n: 'Alfombras de tela' }] }
+      ] },
+      { n: 'Ambientación del auto', h: [
+        { n: 'Aromatizantes', h: [{ n: 'Colgantes' }, { n: 'Ventila' }, { n: 'Gel' }] }
+      ] },
+      { n: 'Mecánica ligera', h: [
+        { n: 'Aceites', h: [{ n: 'Aceite de motor' }] },
+        { n: 'Aditivos', h: [{ n: 'Inyectores' }] },
+        { n: 'Baterías', h: [{ n: 'Terminales' }] }
+      ] }
+    ] }
+  ] },
+  { n: 'Hogar', h: [
+    { n: 'Limpieza', h: [
+      { n: 'Aromas y desinfección', h: [
+        { n: 'Aromatizantes del hogar', h: [{ n: 'Aerosoles' }, { n: 'Eléctricos' }] },
+        { n: 'Desinfectantes', h: [{ n: 'Multiusos' }] }
+      ] }
+    ] }
+  ] }
+];
+var NIVEL_K = ['area', 'dep', 'fam', 'cat', 'sub'];
+var NIVELES_JER = [
+  { k: 'area', etiqueta: 'Área', todos: 'Todas las áreas' },
+  { k: 'dep', etiqueta: 'Departamento', todos: 'Todos los departamentos' },
+  { k: 'fam', etiqueta: 'Familia', todos: 'Todas las familias' },
+  { k: 'cat', etiqueta: 'Categoría', todos: 'Todas las categorías' },
+  { k: 'sub', etiqueta: 'Subcategoría', todos: 'Todas las subcategorías' }
+];
+var JER_VACIA = { area: '', dep: '', fam: '', cat: '', sub: '' };
+var RUTA_POR_SUB = {};
+(function recorrer(nodos, ruta) {
+  nodos.forEach(function (n) {
+    var r = ruta.concat([n.n]);
+    if (n.h) recorrer(n.h, r); else RUTA_POR_SUB[n.n] = r;
+  });
+})(JERARQUIA, []);
+// Opciones del nivel i según lo elegido en los de arriba (vacío si el padre no está elegido).
+function opcionesNivel(i, j) {
+  var nodos = JERARQUIA;
+  for (var l = 0; l < i; l++) {
+    var sel = nodos.filter(function (n) { return n.n === j[NIVEL_K[l]]; })[0];
+    if (!sel) return [];
+    nodos = sel.h || [];
+  }
+  return nodos.map(function (n) { return n.n; });
+}
+// Un valor por nivel; el SKU debe coincidir en todos los niveles elegidos (equivale al más específico).
+function enJer(j, p) {
+  for (var i = 0; i < NIVEL_K.length; i++) { if (j[NIVEL_K[i]] && p.ruta[i] !== j[NIVEL_K[i]]) return false; }
+  return true;
+}
+
+function ap(b, modo, g, n, o) { return Object.assign({ b: b, modo: modo, g: g, n: n }, o || {}); }
+var PRODUCTOS = [
+  { sku: '1200101', nombre: 'Cera líquida para auto 473 ml', marca: 'Cemaco', cat: 'Ceras y pulidores', sub: 'Ceras',
+    ap: [ap('AUTOS 01', 'PLANOGRAMA', 1, 3, { acc: 'Repisa' }), ap('CAJAS 01', 'IMPULSO', 1, 1)] },
+  { sku: '1200102', nombre: 'Cera en pasta 300 g', marca: 'Proveedor A', cat: 'Ceras y pulidores', sub: 'Ceras',
+    ap: [ap('AUTOS 01', 'PLANOGRAMA', 1, 2, { acc: 'Repisa', ub2: { g: 2, n: 1 } }), ap('CAJAS 01', 'IMPULSO', 1, 2), ap('LIMP 05', 'CROSS', 2, 1)] },
+  { sku: '1200110', nombre: 'Pulidor para faros 250 ml', marca: 'Proveedor B', cat: 'Ceras y pulidores', sub: 'Pulidores',
+    ap: [ap('AUTOS 01', 'PLANOGRAMA', 2, 4, { acc: 'Repisa', obs: 'Etiqueta al frente' }), ap('LIMP 05', 'CROSS', 3, 2)] },
+  { sku: '1200205', nombre: 'Aromatizante colgante pino', marca: 'Cemaco', cat: 'Aromatizantes', sub: 'Colgantes',
+    ap: [ap('AUTOS 02', 'PLANOGRAMA', 1, 4, { acc: 'Gancho 12"', ganchos: 6 }), ap('CAJAS 01', 'IMPULSO', 1, 2), ap('LIMP 05', 'CROSS', 3, 3, { ext: true, acc: 'Gancho 12"', ganchos: 4 }), ap('AUTOS 03', 'CROSS', 1, 3)] },
+  { sku: '1200206', nombre: 'Aromatizante de ventila vainilla', marca: 'Proveedor C', cat: 'Aromatizantes', sub: 'Ventila',
+    ap: [ap('AUTOS 02', 'PLANOGRAMA', 1, 3, { acc: 'Gancho 8"', ganchos: 8 }), ap('AUTOS 01', 'PLANOGRAMA', 2, 2, { acc: 'Gancho 8"', ganchos: 4 }), ap('LIMP 05', 'PLANOGRAMA', 3, 1, { acc: 'Gancho 8"', ganchos: 4, disp: true }), ap('CAJAS 01', 'IMPULSO', 1, 1)] },
+  { sku: '1200215', nombre: 'Aromatizante en gel para auto 80 g', marca: 'Proveedor C', cat: 'Aromatizantes', sub: 'Gel',
+    ap: [ap('AUTOS 02', 'PLANOGRAMA', 2, 3, { acc: 'Repisa' }), ap('AUTOS 01', 'CROSS', 2, 3), ap('CAJAS 01', 'IMPULSO', 1, 1)] },
+  { sku: '1200301', nombre: 'Paño de microfibra 40 × 40 cm', marca: 'Cemaco', cat: 'Paños y toallas', sub: 'Paños',
+    ap: [ap('AUTOS 01', 'CROSS', 1, 2, { ext: true, acc: 'Gancho 10"', ganchos: 3 }), ap('CAJAS 01', 'IMPULSO', 1, 3)] },
+  { sku: '1200320', nombre: 'Esponja de lavado doble cara', marca: 'Cemaco', cat: 'Paños y toallas', sub: 'Esponjas',
+    ap: [ap('AUTOS 01', 'CROSS', 2, 2, { acc: 'Repisa' }), ap('CAJAS 01', 'IMPULSO', 1, 2)] },
+  { sku: '1200403', nombre: 'Set 3 alfombras de tela', marca: 'Proveedor A', cat: 'Alfombras', sub: 'Alfombras de tela',
+    ap: [ap('AUTOS 01', 'PLANOGRAMA', 2, 1, { acc: 'Repisa', desb: true }), ap('CAJAS 01', 'IMPULSO', 1, 3)] },
+  { sku: '1200501', nombre: 'Aceite de motor 20W50 1 qt', marca: 'Proveedor D', cat: 'Aceites', sub: 'Aceite de motor', inactivo: true,
+    sust: '1200502 · Aceite de motor 20W50 1 qt, nueva presentación',
+    ap: [ap('AUTOS 03', 'PLANOGRAMA', 1, 2, { acc: 'Repisa', obs: 'Agotar existencias' }), ap('AUTOS 02', 'CROSS', 2, 2)] },
+  { sku: '1200510', nombre: 'Limpiador de inyectores 300 ml', marca: 'Proveedor B', cat: 'Aditivos', sub: 'Inyectores',
+    ap: [ap('AUTOS 03', 'PLANOGRAMA', 1, 4, { acc: 'Repisa' }), ap('CAJAS 01', 'IMPULSO', 1, 1)] },
+  { sku: '1200601', nombre: 'Limpiador de terminales de batería 400 ml', marca: 'Cemaco', cat: 'Baterías', sub: 'Terminales',
+    ap: [ap('AUTOS 03', 'PLANOGRAMA', 2, 1, { acc: 'Repisa' }), ap('AUTOS 01', 'CROSS', 1, 2)] },
+  { sku: '1400301', nombre: 'Aromatizante en aerosol lavanda 400 ml', marca: 'Proveedor C', cat: 'Aromatizantes del hogar', sub: 'Aerosoles',
+    ap: [ap('LIMP 05', 'PLANOGRAMA', 1, 3, { acc: 'Repisa' }), ap('AUTOS 02', 'PLANOGRAMA', 1, 1, { acc: 'Repisa' }), ap('CAJAS 01', 'IMPULSO', 1, 2)] },
+  { sku: '1400305', nombre: 'Desinfectante multiusos lavanda 1 gal', marca: 'Cemaco', cat: 'Desinfectantes', sub: 'Multiusos',
+    ap: [ap('LIMP 05', 'PLANOGRAMA', 2, 2, { acc: 'Repisa', ub2: { g: 2, n: 3 } }), ap('CAJAS 01', 'IMPULSO', 1, 2), ap('AUTOS 03', 'CROSS', 2, 1)] },
+  { sku: '1400310', nombre: 'Ambientador eléctrico, recarga 21 ml', marca: 'Proveedor C', cat: 'Aromatizantes del hogar', sub: 'Eléctricos',
+    ap: [ap('LIMP 05', 'PLANOGRAMA', 3, 4, { acc: 'Gancho 10"', ganchos: 5, disp: true }), ap('AUTOS 02', 'CROSS', 2, 2)] },
+  { sku: '1400320', nombre: 'Atomizador de limpieza multiusos 500 ml', marca: 'Proveedor B', cat: 'Desinfectantes', sub: 'Multiusos',
+    ap: [ap('AUTOS 01', 'CROSS', 1, 1, { ext: true, acc: 'Gancho 10"', ganchos: 3 }), ap('CAJAS 01', 'IMPULSO', 1, 3)] }
+];
+PRODUCTOS.forEach(function (p) { p.ruta = RUTA_POR_SUB[p.sub]; });
+
+function hash(s) { var h = 7; for (var i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) >>> 0; } return h; }
+function versionDe(tienda, base) {
+  for (var i = 0; i < tienda.versiones.length; i++) { if (tienda.versiones[i].indexOf(base + '-') === 0) return tienda.versiones[i]; }
+  return null;
+}
+
+// Misma forma de objeto para planograma, cross e impulso: así comparten todas las columnas.
+function construirFila(p, t, a, cod) {
+  var h = hash(p.sku + '|' + cod + '|' + t.id + (a.modo === 'PLANOGRAMA' ? '' : '|' + a.modo + a.g + a.n));
+  var fac = 1 + h % 4, apil = 1 + (h >> 3) % 3, capFac = 6 + (h >> 5) % 11;
+  var capMax = fac * apil * capFac;
+  var nFac = fac;
+  var ubic = 1;
+  var gTxt = 'Góndola ' + a.g, nTxt = String(a.n);
+  if (a.ub2) {
+    var f2 = 1 + (h >> 9) % 3;
+    nFac += f2; capMax += f2 * apil * capFac; ubic = 2;
+    gTxt = a.ub2.g === a.g ? 'Góndola ' + a.g : 'Góndolas ' + a.g + ' y ' + a.ub2.g;
+    nTxt = a.n + ' y ' + a.ub2.n;
+  }
+  var minEst = Math.max(2, Math.round(capMax * 0.25));
+  var minFin = minEst + (h >> 7) % 3;
+  var maxFin = Math.min(capMax, Math.max(minFin + 2, Math.round(capMax * 0.9)));
+  return {
+    sin: false, modo: a.modo, cod: cod, base: a.b, estado: VERSIONES[cod], planograma: BASES[a.b],
+    gondola: gTxt, ubicaciones: ubic, nivel: nTxt, seccion: String(1 + h % 2), orden: 1 + (h >> 4) % 6,
+    ganchos: a.ganchos || 0, acc: a.acc || '', ext: !!a.ext, disp: !!a.disp, desb: !!a.desb,
+    facings: nFac, apil: apil, capFac: capFac, capMax: capMax, minEst: minEst, minFin: minFin, maxFin: maxFin,
+    perfil: h % 2 ? 'MRP' : 'ZSRE', obs: a.obs || ''
+  };
+}
+
+var GRUPOS = [];
+PRODUCTOS.forEach(function (p) {
+  TIENDAS.forEach(function (t) {
+    var filas = [], subs = [];
+    p.ap.forEach(function (a) {
+      var cod = versionDe(t, a.b);
+      if (!cod) return;
+      if (a.modo === 'PLANOGRAMA') filas.push(construirFila(p, t, a, cod));
+      else subs.push(construirFila(p, t, a, cod));
+    });
+    if (!filas.length && !subs.length) return;
+    filas.sort(function (x, y) { return x.cod.localeCompare(y.cod, 'es'); });
+    subs.sort(function (x, y) { return x.modo.localeCompare(y.modo, 'es') || x.cod.localeCompare(y.cod, 'es'); });
+    // Planogramas distintos del SKU en la tienda, calculado sin filtros: el rojo de duplicados depende solo de esto.
+    var dupN = filas.length;
+    if (!filas.length) filas.push(SIN_PL);
+    GRUPOS.push({ id: p.sku + '|' + t.id, p: p, t: t, filas: filas, subs: subs, dupN: dupN });
+  });
+});
+
+// Catálogos de los selectores (conteos "N productos" sobre todos los datos, sin filtros).
+function contarSku(fn) {
+  var set = {};
+  GRUPOS.forEach(function (g) { if (fn(g)) set[g.p.sku] = 1; });
+  return Object.keys(set).length;
+}
+var VERS = Object.keys(VERSIONES).sort(function (a, b) { return a.localeCompare(b, 'es'); }).map(function (cod) {
+  var i = cod.lastIndexOf('-');
+  var base = cod.slice(0, i), partes = BASES[base].split(' · ');
+  return { id: cod, cod: cod, base: base, estado: VERSIONES[cod], tipo: SUF_TIPO[cod.slice(i + 1)], dep: partes[0], desc: partes[1],
+    n: contarSku(function (g) { return g.filas.concat(g.subs).some(function (f) { return f.cod === cod; }); }) };
+});
+var N_TIENDA = {};
+TIENDAS.forEach(function (t) { N_TIENDA[t.id] = contarSku(function (g) { return g.t.id === t.id; }); });
+function txtProductos(n) { return n + (n === 1 ? ' producto' : ' productos'); }
+
+// Columnas: las de la vista Por versión + las propias del consolidado (tienda, estado de la versión, montaje).
+var COLUMNAS = [
+  { k: 'sku', e: 'SKU', w: 96, def: true, ord: true },
+  { k: 'producto', e: 'Producto', w: 210, def: true, ord: true },
+  { k: 'tienda', e: 'Tienda', w: 160, def: true, ord: true },
+  { k: 'version', e: 'Planograma versión', w: 170, def: true, ord: true },
+  { k: 'estadoVersion', e: 'Estado de la versión', w: 112, def: true },
+  { k: 'seccion', e: 'Sección', w: 80 },
+  { k: 'gondola', e: 'Góndola', w: 110, def: true },
+  { k: 'nivel', e: 'Nivel', w: 64, def: true, num: true },
+  { k: 'orden', e: 'Posición en nivel', w: 90, num: true },
+  { k: 'ganchos', e: 'Ganchos', w: 80, num: true },
+  { k: 'accesorio', e: 'Accesorio de montaje', w: 140 },
+  { k: 'montaje', e: 'Montaje', w: 170, def: true },
+  { k: 'facings', e: 'Facing horizontal', w: 90, num: true },
+  { k: 'apilable', e: 'Cantidad apilable', w: 90, num: true },
+  { k: 'capFacing', e: 'Capacidad del facing', w: 100, num: true },
+  { k: 'capMax', e: 'Capacidad máxima', w: 100, num: true },
+  { k: 'minEst', e: 'Mín. estético', w: 90, num: true },
+  { k: 'minFinal', e: 'Mín. final', w: 72, def: true, num: true },
+  { k: 'maxFinal', e: 'Máx. final', w: 72, def: true, num: true },
+  { k: 'perfil', e: 'Perfil de redondeo', w: 100 },
+  { k: 'modo', e: 'Modo', w: 110 },
+  { k: 'decision', e: 'Decisión', w: 100 },
+  { k: 'observaciones', e: 'Observaciones', w: 170 },
+  { k: 'sustituto', e: 'SKU sustituto', w: 220 }
+];
+var POR_K = {};
+COLUMNAS.forEach(function (c) { POR_K[c.k] = c; });
+var ORDEN_INICIAL = COLUMNAS.map(function (c) { return c.k; });
+var OCULTAS_INICIAL = COLUMNAS.filter(function (c) { return !c.def; }).map(function (c) { return c.k; });
+// Tienda, versión y estado son listas (vacío = "todos"; estado vacío = publicada y piloto); la jerarquía es un valor por nivel.
+var FILTROS_VACIOS = { busqueda: '', tiendas: [], versiones: [], estadosV: [], soloDup: false, jer: JER_VACIA };
+var SORT_INICIAL = { campo: 'sku', dir: 'asc' };
+var GRIS = '#6b7370';
+var OPCIONES_TIPO = [
+  { valor: 'PLANOGRAMA', etiqueta: 'Planograma', ayuda: 'Vista normal: una fila por planograma; cross e impulso se despliegan debajo' },
+  { valor: 'CROSS', etiqueta: 'Solo cross', ayuda: 'Lista solo las apariciones como cross, una fila por SKU–tienda–versión' },
+  { valor: 'IMPULSO', etiqueta: 'Solo impulso', ayuda: 'Lista solo las apariciones como impulso, una fila por SKU–tienda–versión' }
+];
+var FORMATOS = [
+  { valor: 'DETALLADO', etiqueta: 'Detallado', archivo: 'consolidado-tiendas-detallado.xlsx',
+    desc: 'Una fila por cada SKU–tienda de planograma, una por cada cross y una por cada impulso, con una columna que indica el tipo.' },
+  { valor: 'AGREGADO', etiqueta: 'Min/Max agregado', archivo: 'consolidado-tiendas-minmax.xlsx',
+    desc: 'Una fila por SKU–tienda. El mín. y el máx. son la suma de planograma + cross + impulso. Las columnas de montaje (góndola, nivel, accesorio…) salen de la fila de planograma, solo si están visibles en el selector de columnas y en su orden.' },
+  { valor: 'HOJAS', etiqueta: 'Hojas separadas', archivo: 'consolidado-tiendas-hojas.xlsx',
+    desc: 'Un solo libro con una hoja por tipo de aparición: Planograma, Cross e Impulso. Elige cuáles incluir.' }
+];
+var HOJAS = [
+  { k: 'PLANOGRAMA', etiqueta: 'Planograma' },
+  { k: 'CROSS', etiqueta: 'Cross' },
+  { k: 'IMPULSO', etiqueta: 'Impulso' }
+];
+
+function C(o) {
+  return Object.assign({ align: 'flex-start', fuente: 'inherit', tam: 13, peso: 500, color: '#111811', l1: '', l2: '', hayL1: false, hayL2: false, titulo: '',
+    chip: false, chipEt: '', chipFondo: '', chipColor: '', chips: [], hayChips: false, sinPl: false }, o);
+}
+function T(l1, l2, o) { return C(Object.assign({ l1: l1, hayL1: l1 !== '', l2: l2 || '', hayL2: !!l2, titulo: l1 }, o || {})); }
+function VACIO() { return T('—', '', { color: '#9aa19d' }); }
+function NUM(v) { return T(String(v), '', { align: 'flex-end' }); }
+function CHIP(e) { return C({ chip: true, chipEt: e.etiqueta, chipFondo: e.fondo, chipColor: e.color }); }
+function MILES(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+
+function celda(k, f, g) {
+  var p = g.p, t = g.t;
+  var txt = p.inactivo ? GRIS : '#111811';
+  if (k === 'sku') return T(p.sku, '', { fuente: "'DM Mono', monospace", color: txt });
+  if (k === 'producto') return T(p.nombre, p.marca + ' · ' + p.cat, { tam: 14, peso: 600, color: txt });
+  if (k === 'tienda') return T(t.id + ' · ' + t.nombre, TIPOS[t.tipo] + ' · Cemaco');
+  if (k === 'version') {
+    if (f.sin) return C({ sinPl: true });
+    return T(f.cod, f.planograma, { fuente: "'DM Mono', monospace", tam: 12 });
+  }
+  if (f.sin) return VACIO();
+  if (k === 'estadoVersion') return CHIP(ESTADOS_V[f.estado]);
+  if (k === 'seccion') return T(f.seccion);
+  if (k === 'gondola') return T(f.gondola, f.ubicaciones > 1 ? f.ubicaciones + ' ubicaciones' : '');
+  if (k === 'nivel') return NUM(f.nivel);
+  if (k === 'orden') return NUM(f.orden);
+  if (k === 'ganchos') return f.ganchos ? NUM(f.ganchos) : T('—', '', { color: '#9aa19d', align: 'flex-end' });
+  if (k === 'accesorio') return f.acc ? T(f.acc) : VACIO();
+  if (k === 'montaje') {
+    var chips = [];
+    if (f.ext) chips.push({ etiqueta: 'Colgante externo', fondo: '#ffe8d2', color: '#8a3f00' });
+    if (f.disp) chips.push({ etiqueta: 'Display', fondo: '#e2e5fb', color: '#101e8e' });
+    if (f.desb) chips.push({ etiqueta: 'Desborda la góndola', fondo: '#fff6d6', color: '#6b4d00' });
+    return T(f.acc || '—', '', { color: f.acc ? '#111811' : '#9aa19d', chips: chips, hayChips: chips.length > 0 });
+  }
+  if (k === 'facings') return NUM(f.facings);
+  if (k === 'apilable') return NUM(f.apil);
+  if (k === 'capFacing') return NUM(f.capFac);
+  if (k === 'capMax') return NUM(f.capMax);
+  if (k === 'minEst') return NUM(f.minEst);
+  if (k === 'minFinal') return NUM(f.minFin);
+  if (k === 'maxFinal') return NUM(f.maxFin);
+  if (k === 'perfil') return T(f.perfil);
+  if (k === 'modo') return CHIP(MODOS[f.modo]);
+  if (k === 'decision') return CHIP(p.inactivo ? INACTIVO : ACTIVO);
+  if (k === 'observaciones') return f.obs ? T(f.obs) : VACIO();
+  if (k === 'sustituto') return p.sust ? T(p.sust) : VACIO();
+  return VACIO();
+}
+
+// x = unidad de la tabla: { g: grupo SKU-tienda, filas: filas principales, subs: sub-filas, dupN: planogramas del SKU en la tienda sin filtrar }
+function claveOrden(x, campo) {
+  if (campo === 'sku') return Number(x.g.p.sku);
+  if (campo === 'producto') return x.g.p.nombre;
+  if (campo === 'tienda') return x.g.t.nombre;
+  return x.filas[0].cod;
+}
+function comparar(a, b) {
+  if (typeof a === 'number' && typeof b === 'number') return a - b;
+  return String(a).localeCompare(String(b), 'es', { sensitivity: 'base' });
+}
+function vistaSel(activo, bloqueado) {
+  return { borde: activo ? '#101e8e' : '#e2e5e1', fondo: activo ? '#f0f2fd' : (bloqueado ? '#f8f9f6' : '#ffffff'),
+    color: bloqueado ? '#9aa19d' : '#111811', cursor: bloqueado ? 'not-allowed' : 'pointer', opacidad: bloqueado ? 0.6 : 1 };
+}
+// Lista vacía = sin filtro.
+function en(arr, v) { return arr.length === 0 || arr.indexOf(v) >= 0; }
+function haceTexto(q, p) { return !q || p.sku.indexOf(q) >= 0 || p.nombre.toLowerCase().indexOf(q) >= 0 || p.marca.toLowerCase().indexOf(q) >= 0; }
+function hayJer(j) { return NIVEL_K.some(function (k) { return !!j[k]; }); }
+
+var LBL_ESTADO = { publicado: 'Publicada', piloto: 'Piloto' };
+function etiquetaTienda(id) { var t = TIENDAS.filter(function (x) { return x.id === id; })[0]; return t.id + ' · ' + t.nombre; }
+function nombreTienda(id) { return TIENDAS.filter(function (x) { return x.id === id; })[0].nombre; }
+function versionPorId(id) { return VERS.filter(function (v) { return v.id === id; })[0]; }
+
+// Filas que traería la descarga con los filtros activos. El tipo de aparición (vista) NO la limita:
+// el formato elegido en el modal define qué filas salen.
+function contarDescarga(s) {
+  var q = s.busqueda.trim().toLowerCase();
+  var c = { PLANOGRAMA: 0, CROSS: 0, IMPULSO: 0, grupos: 0 };
+  GRUPOS.forEach(function (g) {
+    var p = g.p;
+    if (!en(s.tiendas, g.t.id) || !enJer(s.jer, p) || !haceTexto(q, p)) return;
+    var ok = function (f) { return en(s.estadosV, f.estado) && en(s.versiones, f.cod); };
+    var fil = g.filas.filter(function (f) { return !f.sin && ok(f); });
+    var sub = g.subs.filter(ok);
+    if (s.soloDup && s.tipo === 'PLANOGRAMA' && g.dupN < 2) return;
+    if (!fil.length && !sub.length) return;
+    c.grupos++;
+    c.PLANOGRAMA += fil.length;
+    sub.forEach(function (f) { c[f.modo]++; });
+  });
+  return c;
+}
+
+// Catálogo de los selectores genéricos (SeleccionMultipleModal): tiendas y estado de la versión.
+// Planograma versión usa su propio modal (SeleccionVersionesModal) y la jerarquía son selects en cascada.
+function catalogo(kind) {
+  var porNombre = function (a, b) { return a.nombre.localeCompare(b.nombre, 'es'); };
+  if (kind === 'tiendas') {
+    return {
+      titulo: 'Filtrar por tienda', placeholder: 'Buscar por nombre, código, marca o tipo', vacio: 'No hay tiendas',
+      ordenes: [
+        { id: 'nombre', etiqueta: 'Nombre', cmp: porNombre },
+        { id: 'tipo', etiqueta: 'Tipo', cmp: function (a, b) { return ORDEN_TIPO.indexOf(a.t.tipo) - ORDEN_TIPO.indexOf(b.t.tipo) || porNombre(a, b); } },
+        { id: 'marca', etiqueta: 'Marca', cmp: function (a, b) { return (a.t.marca || 'Sin marca').localeCompare(b.t.marca || 'Sin marca', 'es') || porNombre(a, b); } },
+        { id: 'codigo', etiqueta: 'Código', cmp: function (a, b) { return Number(a.id) - Number(b.id); } }
+      ],
+      items: TIENDAS.map(function (t) {
+        return { id: t.id, t: t, nombre: t.nombre, texto: [t.nombre, t.id, t.marca || '', TIPO_LBL[t.tipo]].join(' '),
+          detalle: t.id + ' · ' + (t.marca || 'Sin marca'), meta: [{ txt: TIPO_LBL[t.tipo] }, { txt: txtProductos(N_TIENDA[t.id]) }] };
+      })
+    };
+  }
+  return {
+    titulo: 'Filtrar por estado de la versión', placeholder: 'Buscar estado', vacio: 'No hay estados',
+    ordenes: [{ id: 'nombre', etiqueta: 'Nombre', cmp: porNombre }],
+    items: ['publicado', 'piloto'].map(function (e) {
+      return { id: e, nombre: LBL_ESTADO[e], texto: LBL_ESTADO[e],
+        detalle: e === 'publicado' ? 'Versión vigente en las tiendas' : 'Versión en prueba en tiendas piloto',
+        meta: [{ txt: VERS.filter(function (v) { return v.estado === e; }).length + ' versiones' }] };
+    })
+  };
+}
+var CAMPO_SEL = { tiendas: 'tiendas', estado: 'estadosV' };
+function aObjeto(arr) { var o = {}; arr.forEach(function (x) { o[x] = true; }); return o; }
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = Object.assign({}, FILTROS_VACIOS, {
+      tipo: 'PLANOGRAMA',
+      orden: ORDEN_INICIAL, ocultas: OCULTAS_INICIAL, sort: SORT_INICIAL,
+      abiertos: { '1200206|101': true, '1200301|101': true },
+      filtrosVisibles: true, panelAbierto: false, menuAbierto: false,
+      extendido: false, extFiltros: false,
+      modal: false, formato: 'DETALLADO', hojas: { PLANOGRAMA: true, CROSS: true, IMPULSO: true }, generando: false, toast: '',
+      sel: null, selQ: '', selOrd: { id: 'nombre', dir: 'asc' }, selBor: {},
+      sv: false, svQ: '', svBor: {},
+      pagina: 1, tamPagina: 50, enCarga: false, arrastrando: null, sobre: null
+    });
+    // Escape se atiende en el elemento (onKeyDown), no con un manejador global de teclado.
+    this.teclaMenu = (e) => { if (e.key === 'Escape' && this.state.menuAbierto) this.setState({ menuAbierto: false }); };
+    this.teclaCard = (e) => { if (e.key === 'Escape' && this.state.panelAbierto) this.setState({ panelAbierto: false }); };
+    this.teclaModal = (e) => { if (e.key === 'Escape') this.cerrarModal(); };
+    this.teclaSel = (e) => { if (e.key === 'Escape') this.setState({ sel: null }); };
+    this.teclaSv = (e) => { if (e.key === 'Escape') this.setState({ sv: false }); };
+    this.detener = (e) => { e.stopPropagation(); };
+    this.alClicFuera = (e) => {
+      var t = e.target, s = this.state, cambio = {};
+      if (!t || !t.closest) return;
+      if (s.panelAbierto && !t.closest('#panel-columnas') && !t.closest('[aria-controls="panel-columnas"]')) cambio.panelAbierto = false;
+      if (s.menuAbierto && !t.closest('#menu-mant') && !t.closest('[aria-controls="menu-mant"]')) cambio.menuAbierto = false;
+      if (Object.keys(cambio).length) this.setState(cambio);
+    };
+  }
+
+  componentDidMount() {
+    document.addEventListener('mousedown', this.alClicFuera);
+  }
+  componentWillUnmount() {
+    document.removeEventListener('mousedown', this.alClicFuera);
+    if (this.temporizador) clearTimeout(this.temporizador);
+    if (this.tDescarga) clearTimeout(this.tDescarga);
+    if (this.tToast) clearTimeout(this.tToast);
+  }
+
+  // Simula la ida al servidor al cambiar de página o de tamaño de página.
+  cargarPagina(cambio) {
+    this.setState(Object.assign({ enCarga: true }, cambio));
+    if (this.temporizador) clearTimeout(this.temporizador);
+    this.temporizador = setTimeout(() => this.setState({ enCarga: false }), 500);
+  }
+
+  filtrar(cambio) { this.setState(Object.assign({ pagina: 1 }, cambio)); }
+
+  // El tipo de aparición es un modo de vista, no un filtro: no cuenta en el embudo ni lo limpia "Limpiar filtros".
+  // Cada filtro cuenta una vez (la jerarquía también), sin importar cuántos valores o niveles tenga.
+  contarFiltros() {
+    var s = this.state;
+    return Object.keys(FILTROS_VACIOS).filter((k) => {
+      if (k === 'soloDup') return s.soloDup && s.tipo === 'PLANOGRAMA';
+      if (k === 'busqueda') return s.busqueda.trim() !== '';
+      if (k === 'jer') return hayJer(s.jer);
+      return s[k].length > 0;
+    }).length;
+  }
+
+  ordenarPor(campo) {
+    var o = this.state.sort;
+    this.setState({ pagina: 1, sort: { campo: campo, dir: o.campo === campo && o.dir === 'asc' ? 'desc' : 'asc' } });
+  }
+
+  alternar(id) {
+    var a = Object.assign({}, this.state.abiertos);
+    a[id] = !a[id];
+    this.setState({ abiertos: a });
+  }
+
+  mover(clave, delta) {
+    var o = this.state.orden.slice();
+    var i = o.indexOf(clave), j = i + delta;
+    if (j < 0 || j >= o.length) return;
+    o.splice(i, 1); o.splice(j, 0, clave);
+    this.setState({ orden: o });
+  }
+
+  soltar(desde, hacia) {
+    if (!desde || desde === hacia) { this.setState({ arrastrando: null, sobre: null }); return; }
+    var idxDesde = this.state.orden.indexOf(desde), idxHacia = this.state.orden.indexOf(hacia);
+    var o = this.state.orden.filter((k) => k !== desde);
+    var destino = o.indexOf(hacia);
+    o.splice(idxDesde < idxHacia ? destino + 1 : destino, 0, desde);
+    this.setState({ orden: o, arrastrando: null, sobre: null });
+  }
+
+  alternarColumna(clave) {
+    var o = this.state.ocultas;
+    this.setState({ ocultas: o.indexOf(clave) >= 0 ? o.filter((k) => k !== clave) : o.concat([clave]) });
+  }
+
+  cerrarModal() {
+    if (this.tDescarga) clearTimeout(this.tDescarga);
+    this.setState({ modal: false, generando: false });
+  }
+
+  cerrarToast() {
+    if (this.tToast) clearTimeout(this.tToast);
+    this.setState({ toast: '' });
+  }
+
+  // Simula la generación del .xlsx y el aviso de éxito.
+  iniciarDescarga(archivo) {
+    this.setState({ generando: true });
+    if (this.tDescarga) clearTimeout(this.tDescarga);
+    this.tDescarga = setTimeout(() => {
+      this.setState({ modal: false, generando: false, toast: 'Descarga lista: ' + archivo });
+      if (this.tToast) clearTimeout(this.tToast);
+      this.tToast = setTimeout(() => this.setState({ toast: '' }), 5000);
+    }, 1500);
+  }
+
+  // Abre un selector: la selección es un borrador que solo se aplica con "Aplicar" (como SeleccionMultipleModal).
+  abrirSel(kind) {
+    var s = this.state;
+    this.setState({ sel: kind, selQ: '', selOrd: { id: 'nombre', dir: 'asc' }, selBor: aObjeto(s[CAMPO_SEL[kind]]), sv: false, panelAbierto: false, menuAbierto: false, modal: false });
+  }
+
+  // Modal de planograma versión (SeleccionVersionesModal): borrador y búsqueda se reinician al abrir.
+  abrirSv() {
+    this.setState({ sv: true, svQ: '', svBor: aObjeto(this.state.versiones), sel: null, panelAbierto: false, menuAbierto: false, modal: false });
+  }
+
+  // Elegir un nivel de la jerarquía limpia los de abajo, que podrían no pertenecer al nuevo padre.
+  elegirNivel(i, valor) {
+    var nueva = Object.assign({}, this.state.jer);
+    NIVEL_K.forEach((k, l) => { if (l === i) nueva[k] = valor; if (l > i) nueva[k] = ''; });
+    this.filtrar({ jer: nueva });
+  }
+
+  renderVals() {
+    var s = this.state;
+    var q = s.busqueda.trim().toLowerCase();
+    var modoSub = s.tipo !== 'PLANOGRAMA';
+    var etTipo = s.tipo === 'CROSS' ? 'cross' : 'impulso';
+    var ext = s.extendido;
+    var filtrosVis = ext ? s.extFiltros : s.filtrosVisibles;
+
+    // ---------- columnas
+    var visiblesK = s.orden.filter((k) => s.ocultas.indexOf(k) < 0);
+    var cols = visiblesK.map((k) => POR_K[k]);
+    var suma = cols.reduce((a, c) => a + c.w, 0);
+    var plantilla = '136px ' + cols.map((c) => c.w + 'px').join(' ');
+    var columnas = cols.map((c) => {
+      var activa = s.sort.campo === c.k;
+      return {
+        etiqueta: c.e.toUpperCase(), justificar: c.num ? 'flex-end' : 'flex-start', ordenable: !!c.ord, fijo: !c.ord,
+        asc: activa && s.sort.dir === 'asc', desc: activa && s.sort.dir === 'desc', sinOrden: !activa,
+        ariaSort: activa ? (s.sort.dir === 'asc' ? 'ascending' : 'descending') : 'none',
+        color: activa ? '#101e8e' : '#6b7370', peso: activa ? 800 : 600,
+        ayuda: 'Ordenar por ' + c.e.toLowerCase() + ' de ' + (activa && s.sort.dir === 'asc' ? 'mayor a menor' : 'menor a mayor'),
+        ordenar: () => this.ordenarPor(c.k)
+      };
+    });
+    var itemsColumnas = s.orden.map((k, i) => {
+      var c = POR_K[k];
+      var visible = s.ocultas.indexOf(k) < 0;
+      var bloqueada = visible && visiblesK.length === 1;
+      var arr = s.arrastrando, idxA = arr ? s.orden.indexOf(arr) : -1;
+      var esDestino = idxA >= 0 && idxA !== i && s.sobre === k;
+      var primera = i === 0, ultima = i === s.orden.length - 1;
+      return {
+        etiqueta: c.e, visible: visible, bloqueada: bloqueada, color: visible ? '#111811' : '#6b7370',
+        esPrimera: primera, esUltima: ultima,
+        colorSubir: primera ? '#c5cac6' : '#4a524d', colorBajar: ultima ? '#c5cac6' : '#4a524d',
+        ayudaSubir: 'Subir ' + c.e, ayudaBajar: 'Bajar ' + c.e,
+        bordeArriba: esDestino && idxA > i ? '#101e8e' : 'transparent',
+        bordeAbajo: esDestino && idxA < i ? '#101e8e' : 'transparent',
+        opacidad: arr === k ? 0.45 : 1,
+        alternar: () => this.alternarColumna(k),
+        subir: () => this.mover(k, -1), bajar: () => this.mover(k, 1),
+        iniciar: (e) => { if (e.dataTransfer) { e.dataTransfer.setData('text/plain', k); e.dataTransfer.effectAllowed = 'move'; } this.setState({ arrastrando: k }); },
+        sobre: (e) => { if (!s.arrastrando) return; e.preventDefault(); if (s.sobre !== k) this.setState({ sobre: k }); },
+        soltar: (e) => { e.preventDefault(); this.soltar(s.arrastrando, k); },
+        terminar: () => this.setState({ arrastrando: null, sobre: null })
+      };
+    });
+
+    // ---------- filtros (en el servidor real; aquí sobre los datos de ejemplo). Lista vacía = sin filtrar.
+    var hayFV = s.versiones.length > 0 || s.estadosV.length > 0;
+    var okV = (f) => en(s.versiones, f.cod) && en(s.estadosV, f.estado);
+    var unidades;
+    if (!modoSub) {
+      unidades = GRUPOS
+        .filter((g) => en(s.tiendas, g.t.id) && enJer(s.jer, g.p) && haceTexto(q, g.p))
+        .map((g) => {
+          var filas = hayFV ? g.filas.filter((f) => !f.sin && okV(f)) : g.filas;
+          var subs = hayFV ? g.subs.filter(okV) : g.subs;
+          if (!filas.length && subs.length) filas = [SIN_PL];
+          return { g: g, filas: filas, subs: subs, dupN: g.dupN };
+        })
+        .filter((x) => x.filas.length > 0)
+        // "Solo con más de un planograma" usa el conteo sin filtrar, igual que el rojo.
+        .filter((x) => !s.soloDup || x.dupN > 1);
+    } else {
+      unidades = [];
+      GRUPOS.forEach((g) => g.subs.forEach((f) => { if (f.modo === s.tipo) unidades.push({ g: g, filas: [f], subs: [], dupN: 0 }); }));
+      unidades = unidades
+        .filter((x) => okV(x.filas[0]))
+        .filter((x) => en(s.tiendas, x.g.t.id) && enJer(s.jer, x.g.p) && haceTexto(q, x.g.p));
+    }
+
+    unidades.sort((a, b) => {
+      var r = comparar(claveOrden(a, s.sort.campo), claveOrden(b, s.sort.campo));
+      if (r !== 0) return s.sort.dir === 'asc' ? r : -r;
+      return comparar(a.g.t.id, b.g.t.id) || comparar(a.filas[0].cod, b.filas[0].cod);
+    });
+
+    var total = unidades.length;
+    var dups = modoSub ? 0 : unidades.filter((x) => x.dupN > 1 && !x.filas[0].sin).length;
+    var sinPl = modoSub ? 0 : unidades.filter((x) => x.filas[0].sin).length;
+    var paginas = Math.max(1, Math.ceil(total / s.tamPagina));
+    var pagina = Math.min(s.pagina, paginas);
+    var desde = (pagina - 1) * s.tamPagina;
+    var pagUnidades = unidades.slice(desde, desde + s.tamPagina);
+    var filasEnPagina = 0, filasAria = 0;
+
+    function armarFila(f, g, extra) {
+      return Object.assign({
+        conChevron: false, abierto: false, cerrado: true, subId: '', ayuda: '', alternar: function () {},
+        dup: false, dupTexto: '', dupAyuda: '',
+        badge: false, badgeEt: '', badgeFondo: '', badgeColor: '',
+        padIzq: 4, fondoFila: 'transparent', bordeSup: '0',
+        celdas: cols.map((c) => celda(c.k, f, g))
+      }, extra);
+    }
+    function badgeDe(f) { var m = MODOS[f.modo]; return { badge: true, badgeEt: m.etiqueta, badgeFondo: m.fondo, badgeColor: m.color }; }
+
+    var gruposVisibles = pagUnidades.map((x) => {
+      var g = x.g, filas = x.filas;
+      // El rojo depende de los planogramas reales del SKU en la tienda (dupN), no de las filas que dejan ver los filtros.
+      var dup = !modoSub && x.dupN > 1 && !filas[0].sin;
+      var abierto = !modoSub && !!s.abiertos[g.id];
+      var subId = 'sub-' + g.id.replace('|', '-');
+      var ayuda = (abierto ? 'Ocultar' : 'Ver') + ' apariciones cross e impulso de ' + g.p.nombre + ' en ' + g.t.nombre;
+      var dupAyuda = 'Este SKU está en ' + x.dupN + ' planogramas distintos en esta tienda' +
+        (filas.length < x.dupN ? '; los filtros dejan ver ' + filas.length : '');
+      filasEnPagina += filas.length;
+      filasAria += filas.length + (abierto ? Math.max(1, x.subs.length) : 0);
+      return {
+        abierto: abierto, subId: subId,
+        barra: dup ? DUP_BARRA : 'transparent',
+        fondo: dup ? DUP_FONDO : (abierto ? '#fbfcfa' : '#ffffff'),
+        filas: filas.map((f) => modoSub
+          ? armarFila(f, g, Object.assign({ padIzq: 12 }, badgeDe(f)))
+          : armarFila(f, g, {
+              conChevron: true, abierto: abierto, cerrado: !abierto, subId: subId, ayuda: ayuda, alternar: () => this.alternar(g.id),
+              dup: dup, dupTexto: x.dupN + ' planogramas', dupAyuda: dupAyuda
+            })),
+        subs: x.subs.map((f) => armarFila(f, g, Object.assign({ padIzq: 32, fondoFila: SUB_FONDO, bordeSup: '1px solid #f1f3ef' }, badgeDe(f)))),
+        sinSubs: x.subs.length === 0
+      };
+    });
+
+    // ---------- disparadores
+    var nFiltros = this.contarFiltros();
+    var abiertoF = filtrosVis;
+    var resaltado = abiertoF || nFiltros > 0;
+    var nSku = new Set(unidades.map((x) => x.g.p.sku)).size, nTiendas = new Set(unidades.map((x) => x.g.t.id)).size;
+    var textoPagina;
+    if (total === 0) textoPagina = 'Sin resultados';
+    else if (modoSub) textoPagina = 'Mostrando ' + (desde + 1) + '–' + (desde + pagUnidades.length) + ' de ' + total + (total === 1 ? ' aparición' : ' apariciones') + ' como ' + etTipo;
+    else textoPagina = 'Mostrando ' + (desde + 1) + '–' + (desde + pagUnidades.length) + ' de ' + total + (total === 1 ? ' grupo' : ' grupos') +
+        ' SKU–tienda · ' + filasEnPagina + (filasEnPagina === 1 ? ' fila' : ' filas');
+    var sinAnt = pagina <= 1 || s.enCarga, sinSig = pagina >= paginas || s.enCarga;
+
+    // Réplica de BotonSeleccionMultiple (tienda y estado).
+    function boton(kind, ids, nombreDe, vacio, plural, aria) {
+      var activo = ids.length > 0;
+      return {
+        clase: 'bsel' + (activo ? ' bsel-act' : ''),
+        texto: ids.length === 0 ? vacio : ids.length === 1 ? nombreDe(ids[0]) : ids.length + ' ' + plural,
+        titulo: activo ? ids.map(nombreDe).join(', ') : '', aria: aria,
+        abrir: () => this.abrirSel(kind)
+      };
+    }
+    var bTienda = boton.call(this, 'tiendas', s.tiendas, nombreTienda, 'Todas las tiendas', 'tiendas', 'Filtrar por tienda');
+    var bEstado = boton.call(this, 'estado', s.estadosV, (id) => LBL_ESTADO[id], 'Publicada y piloto', 'estados', 'Filtrar por estado de la versión');
+
+    // Disparador de planograma versión: réplica del de ProductosVersiones (texto, contador y icono de filtro).
+    var nv = s.versiones.length;
+    var textoVersion = nv === 0 ? 'Todas las versiones'
+      : nv === 1 ? s.versiones[0] + ' · ' + versionPorId(s.versiones[0]).base
+      : s.versiones.join(', ');
+    var bVersion = {
+      clase: 'vsel' + (nv ? ' vsel-act' : ''), texto: textoVersion, titulo: textoVersion,
+      hayConteo: nv > 1, conteo: String(nv), abrir: () => this.abrirSv()
+    };
+
+    // Jerarquía CATI: 5 selects en cascada, cada uno depende del anterior (réplica de ProductosFiltros).
+    var nivelesJer = NIVELES_JER.map((nv2, i) => {
+      var padreSinElegir = i > 0 && !s.jer[NIVEL_K[i - 1]];
+      return {
+        etiqueta: nv2.etiqueta, sep: i > 0, valor: s.jer[nv2.k], off: padreSinElegir,
+        clase: 'jsel' + (s.jer[nv2.k] ? ' jsel-act' : ''),
+        textoVacio: padreSinElegir ? nv2.etiqueta : nv2.todos,
+        opciones: opcionesNivel(i, s.jer),
+        cambiar: (e) => this.elegirNivel(i, e.target.value)
+      };
+    });
+    var rutaJer = NIVEL_K.map((k) => s.jer[k]).filter(Boolean);
+
+    // ---------- quitar un valor de un filtro múltiple
+    var sinValor = (campo, id) => s[campo].filter((x) => x !== id);
+    var quitarDe = {
+      tiendas: (id) => ({ tiendas: sinValor('tiendas', id) }),
+      versiones: (id) => ({ versiones: sinValor('versiones', id) }),
+      estadosV: (id) => ({ estadosV: sinValor('estadosV', id) })
+    };
+    var vaciarDe = { tiendas: { tiendas: [] }, versiones: { versiones: [] }, estadosV: { estadosV: [] } };
+
+    // chips de tiendas bajo la barra (patrón de ProductosFiltros): uno por valor cuando hay más de uno
+    var chipsTiendas = [];
+    if (s.tiendas.length > 1) s.tiendas.forEach((id) => chipsTiendas.push({ etiqueta: nombreTienda(id), ayuda: 'Quitar ' + nombreTienda(id), quitar: () => this.filtrar(quitarDe.tiendas(id)) }));
+    // chips de versiones bajo la barra: réplica de los de ProductosVersiones (código, estado y ✕)
+    var chipsVersiones = [];
+    if (nv > 1) s.versiones.forEach((id) => {
+      var v = versionPorId(id);
+      chipsVersiones.push({ cod: id, estado: ESTADOS_V[v.estado].etiqueta, color: ESTADOS_V[v.estado].color,
+        ayuda: 'Quitar ' + id + ' del filtro', quitar: () => this.filtrar(quitarDe.versiones(id)) });
+    });
+
+    // ---------- chips de filtros activos (modo extendido, con la barra de filtros oculta)
+    // Hasta 2 valores se muestran uno por chip; con más se agrupan en un chip "Tiendas: 5" cuyo ✕ quita todos.
+    var chips = [];
+    if (s.busqueda.trim()) chips.push({ etiqueta: 'Búsqueda: ' + s.busqueda.trim(), titulo: '', q: { busqueda: '' } });
+    var agrupar = (campo, sing, plur, etiquetaDe) => {
+      var ids = s[campo];
+      if (ids.length === 0) return;
+      if (ids.length <= 2) ids.forEach((id) => chips.push({ etiqueta: sing + ': ' + etiquetaDe(id), titulo: '', q: quitarDe[campo](id) }));
+      else chips.push({ etiqueta: plur + ': ' + ids.length, titulo: ids.map(etiquetaDe).join(', '), q: vaciarDe[campo] });
+    };
+    agrupar('tiendas', 'Tienda', 'Tiendas', etiquetaTienda);
+    agrupar('versiones', 'Versión', 'Versiones', (id) => id);
+    agrupar('estadosV', 'Estado', 'Estados', (id) => LBL_ESTADO[id]);
+    if (s.soloDup && !modoSub) chips.push({ etiqueta: 'Más de un planograma', titulo: '', q: { soloDup: false } });
+    // La jerarquía es un solo chip con la ruta elegida; su ✕ la vacía entera (no se puede dejar un nivel huérfano).
+    if (rutaJer.length) chips.push({ etiqueta: 'Jerarquía: ' + rutaJer.join(' › '), titulo: rutaJer.join(' › '), q: { jer: JER_VACIA } });
+    var chipsFiltros = chips.map((c) => ({
+      etiqueta: c.etiqueta, titulo: c.titulo, quitable: true, fijo: false, fondo: '#e2e5fb', color: '#101e8e',
+      ayuda: 'Quitar filtro ' + c.etiqueta, quitar: () => this.filtrar(c.q)
+    }));
+    // La vista (tipo de aparición) no es un filtro: se muestra pero no se quita desde aquí.
+    if (modoSub) chipsFiltros.unshift({ etiqueta: 'Vista: ' + (s.tipo === 'CROSS' ? 'Solo cross' : 'Solo impulso'), titulo: '', quitable: false, fijo: true, fondo: '#f1f3ef', color: '#4a524d', ayuda: '', quitar: function () {} });
+
+    // ---------- modal de selección múltiple (réplica de SeleccionMultipleModal: tienda y estado)
+    var selVm = {
+      titulo: '', placeholder: '', busqueda: '', enfocar: true, onBusqueda: function () {}, hayOrden: false, ordenes: [],
+      hayLista: false, sinLista: false, vacioTitulo: '', hayVacioHint: false, todosMarcado: false, todosTexto: '', alternarTodos: function () {}, filas: [],
+      conteoTexto: '', hayElegidos: false, limpiar: function () {}, aplicar: function () {}
+    };
+    if (s.sel) {
+      var kind = s.sel, cat = catalogo(kind);
+      var qs = s.selQ.trim().toLowerCase();
+      var items = cat.items.filter((i) => !qs || i.texto.toLowerCase().indexOf(qs) >= 0);
+      var ord = cat.ordenes.filter((o) => o.id === s.selOrd.id)[0] || cat.ordenes[0];
+      var signo = s.selOrd.dir === 'asc' ? 1 : -1;
+      var bor = s.selBor;
+      var poner = (ids, marcar) => { var n = Object.assign({}, s.selBor); ids.forEach((id) => { if (marcar) n[id] = true; else delete n[id]; }); this.setState({ selBor: n }); };
+      var filas = [];
+      items.sort((a, b) => signo * ord.cmp(a, b)).forEach((i) => filas.push({
+        marcado: !!bor[i.id], alternar: () => poner([i.id], !bor[i.id]),
+        nombre: i.nombre, hayDetalle: !!i.detalle, detalle: i.detalle || '',
+        meta: (i.meta || []).map((m) => ({ esTxt: true, txt: m.txt }))
+      }));
+      var idsVisibles = items.map((i) => i.id);
+      var todos = idsVisibles.length > 0 && idsVisibles.every((id) => bor[id]);
+      var nBor = Object.keys(bor).length;
+      selVm = {
+        titulo: cat.titulo, placeholder: cat.placeholder, busqueda: s.selQ, enfocar: true,
+        onBusqueda: (e) => this.setState({ selQ: e.target.value }),
+        hayOrden: cat.ordenes.length > 1,
+        ordenes: cat.ordenes.map((o) => {
+          var act = s.selOrd.id === o.id;
+          return {
+            etiqueta: o.etiqueta, activo: act, flecha: act ? (s.selOrd.dir === 'asc' ? ' ↑' : ' ↓') : '', clase: act ? 'sel-ord-act' : 'sel-ord',
+            borde: act ? '#101e8e' : '#e2e5e1', fondo: act ? '#f0f2fd' : '#ffffff', color: act ? '#101e8e' : '#4a524d', peso: act ? 600 : 400,
+            ordenar: () => this.setState({ selOrd: s.selOrd.id === o.id ? { id: o.id, dir: s.selOrd.dir === 'asc' ? 'desc' : 'asc' } : { id: o.id, dir: 'asc' } })
+          };
+        }),
+        hayLista: items.length > 0, sinLista: items.length === 0,
+        vacioTitulo: cat.items.length === 0 ? cat.vacio : 'Ningún resultado coincide', hayVacioHint: cat.items.length > 0,
+        todosMarcado: todos, todosTexto: (qs ? 'Todos los resultados (' : 'Todos (') + idsVisibles.length + ')',
+        alternarTodos: () => poner(idsVisibles, !todos),
+        filas: filas,
+        conteoTexto: nBor === 0 ? 'Ninguno seleccionado' : nBor === 1 ? '1 seleccionado' : nBor + ' seleccionados',
+        hayElegidos: nBor > 0, limpiar: () => this.setState({ selBor: {} }),
+        aplicar: () => {
+          var cambio = {};
+          cambio[CAMPO_SEL[kind]] = cat.items.map((i) => i.id).filter((id) => bor[id]);
+          this.filtrar(Object.assign(cambio, { sel: null }));
+        }
+      };
+    }
+
+    // ---------- modal de planograma versión (réplica de SeleccionVersionesModal: lista plana, sin agrupar)
+    var qv = s.svQ.trim().toLowerCase();
+    var visV = VERS.filter((v) => !qv || [v.cod, v.base, v.desc, v.dep].join(' ').toLowerCase().indexOf(qv) >= 0);
+    var nBorV = Object.keys(s.svBor).length;
+    var svVm = {
+      busqueda: s.svQ, onBusqueda: (e) => this.setState({ svQ: e.target.value }),
+      seleccionarVisibles: () => { var n = Object.assign({}, s.svBor); visV.forEach((v) => { n[v.id] = true; }); this.setState({ svBor: n }); },
+      quitar: () => this.setState({ svBor: {} }),
+      conteoTexto: nBorV === 0 ? 'Ninguna seleccionada' : nBorV === 1 ? '1 seleccionada' : nBorV + ' seleccionadas',
+      hayLista: visV.length > 0, sinLista: visV.length === 0,
+      vacio: VERS.length === 0 ? 'No hay versiones publicadas ni en piloto asignadas a tiendas.' : 'Ninguna versión coincide con la búsqueda.',
+      filas: visV.map((v, i) => {
+        var marcada = !!s.svBor[v.id], est = ESTADOS_V[v.estado];
+        return {
+          cod: v.cod, badgeEt: est.etiqueta, badgeFondo: est.fondo, badgeColor: est.color, desc: v.desc,
+          nombre: v.base + ' · ' + v.dep, total: txtProductos(v.n), marcada: marcada,
+          clase: 'sv-op' + (marcada ? ' sv-op-on' : ''), bordeSup: i === 0 ? '0' : '1px solid #f1f3ef',
+          alternar: () => { var n = Object.assign({}, s.svBor); if (n[v.id]) delete n[v.id]; else n[v.id] = true; this.setState({ svBor: n }); }
+        };
+      }),
+      textoAplicar: nBorV === 0 ? 'Mostrar todas' : 'Mostrar productos',
+      // Se conserva el orden de la lista, no el orden en que se marcaron.
+      aplicar: () => this.filtrar({ versiones: VERS.map((v) => v.id).filter((id) => s.svBor[id]), sv: false })
+    };
+
+    // ---------- descarga
+    var cd = contarDescarga(s);
+    var nHojas = HOJAS.filter((h) => s.hojas[h.k]).length;
+    var filasDesc = s.formato === 'DETALLADO' ? cd.PLANOGRAMA + cd.CROSS + cd.IMPULSO
+      : s.formato === 'AGREGADO' ? cd.grupos
+      : HOJAS.reduce((a, h) => a + (s.hojas[h.k] ? cd[h.k] : 0), 0);
+    var hojasInvalido = s.formato === 'HOJAS' && nHojas === 0;
+    var sinFilasDescarga = !hojasInvalido && filasDesc === 0;
+    var bloqueada = hojasInvalido || sinFilasDescarga || s.generando;
+    var fmt = FORMATOS.filter((f) => f.valor === s.formato)[0];
+    var conteoDescarga = hojasInvalido ? 'Filas estimadas: 0' : 'Filas estimadas: ' + MILES(filasDesc) +
+      (s.formato === 'HOJAS' ? ' · ' + HOJAS.filter((h) => s.hojas[h.k]).map((h) => h.etiqueta + ' ' + MILES(cd[h.k])).join(' · ') : '');
+    // Las tres variantes usan solo las columnas visibles, en el orden de la tabla.
+    var textoColumnas = 'Se descargan las ' + visiblesK.length + (visiblesK.length === 1 ? ' columna visible' : ' columnas visibles') + ', en el orden de la tabla.';
+    var notaDescarga = 'Respeta los filtros activos' + (nFiltros ? ' (' + nFiltros + (nFiltros === 1 ? ' aplicado)' : ' aplicados)') : ' (ninguno aplicado)') +
+      '. No depende de la vista de tipo de aparición.' +
+      (s.formato === 'AGREGADO' ? ' Las columnas de montaje salen de la fila de planograma; si el SKU no tiene planograma en la tienda, quedan vacías.' : '');
+
+    return {
+      // modo extendido
+      ext: ext, noExt: !ext,
+      mainMax: ext ? 'none' : '1232px',
+      mainPad: ext ? '8px 12px' : '20px 24px 16px',
+      cardPad: ext ? '6px 10px' : '10px 12px',
+      filaMin: ext ? '40px' : '44px',
+      padCelda: ext ? '6px 12px' : '10px 12px',
+      pagMin: ext ? '32px' : '40px',
+      alternarExtendido: () => this.setState({ extendido: !s.extendido, extFiltros: false, menuAbierto: false, panelAbierto: false }),
+      bExt: ext
+        ? { presionado: 'true', ayuda: 'Salir del modo extendido', pad: '0 14px', borde: '#101e8e', fondo: '#f0f2fd', color: '#101e8e' }
+        : { presionado: 'false', ayuda: 'Activar modo extendido: oculta la navegación y los textos de ayuda para ver más filas', pad: '0', borde: '#e2e5e1', fondo: '#ffffff', color: '#4a524d' },
+      chipsVisibles: ext && !filtrosVis, chipsFiltros: chipsFiltros, sinChips: chipsFiltros.length === 0,
+      // encabezado
+      menuAbierto: s.menuAbierto, menuExpandido: s.menuAbierto ? 'true' : 'false',
+      alternarMenu: () => this.setState({ menuAbierto: !s.menuAbierto, panelAbierto: false }),
+      teclaMenu: this.teclaMenu, teclaCard: this.teclaCard,
+      conteo: modoSub
+        ? (total === 1 ? '1 aparición como ' + etTipo : total + ' apariciones como ' + etTipo)
+        : (total === 1 ? '1 combinación SKU–tienda' : total + ' combinaciones SKU–tienda'),
+      resumen: modoSub
+        ? nSku + ' SKU en ' + nTiendas + (nTiendas === 1 ? ' tienda' : ' tiendas')
+        : dups + ' con más de un planograma · ' + sinPl + ' sin planograma',
+      // columnas
+      panelAbierto: s.panelAbierto, panelExpandido: s.panelAbierto ? 'true' : 'false',
+      alternarPanel: () => this.setState({ panelAbierto: !s.panelAbierto, menuAbierto: false }),
+      cerrarPanel: () => this.setState({ panelAbierto: false }),
+      bColumnas: { borde: s.panelAbierto ? '#101e8e' : '#e2e5e1', fondo: s.panelAbierto ? '#f0f2fd' : '#ffffff', color: s.panelAbierto ? '#101e8e' : '#4a524d' },
+      itemsColumnas: itemsColumnas,
+      mostrarTodas: () => this.setState({ ocultas: [] }),
+      restablecerColumnas: () => this.setState({ orden: ORDEN_INICIAL, ocultas: OCULTAS_INICIAL }),
+      columnas: columnas, plantilla: plantilla, anchoTotal: 136 + suma + 4,
+      // filtros
+      filtrosVisibles: filtrosVis,
+      alternarFiltros: () => this.setState(ext ? { extFiltros: !s.extFiltros } : { filtrosVisibles: !s.filtrosVisibles }),
+      bFiltros: {
+        expandido: abiertoF ? 'true' : 'false',
+        ayuda: (abiertoF ? 'Ocultar' : 'Mostrar') + ' filtros' + (nFiltros ? ' (' + nFiltros + (nFiltros === 1 ? ' aplicado)' : ' aplicados)') : ''),
+        texto: abiertoF ? 'Ocultar filtros' : 'Mostrar filtros', pad: ext ? '0 14px' : '0',
+        borde: resaltado ? '#101e8e' : '#e2e5e1', fondo: abiertoF ? '#f0f2fd' : '#ffffff', color: resaltado ? '#101e8e' : '#4a524d',
+        hayConteo: nFiltros > 0, conteo: String(nFiltros)
+      },
+      hayFiltros: nFiltros > 0,
+      limpiarFiltros: () => this.filtrar(FILTROS_VACIOS),
+      busqueda: s.busqueda, soloDup: s.soloDup && !modoSub,
+      onBusqueda: (e) => this.filtrar({ busqueda: e.target.value }),
+      onSoloDup: (e) => this.filtrar({ soloDup: !!e.target.checked }),
+      bTienda: bTienda, bVersion: bVersion, bEstado: bEstado,
+      nivelesJer: nivelesJer,
+      chipsTiendas: chipsTiendas, hayChipsTiendas: chipsTiendas.length > 0,
+      chipsVersiones: chipsVersiones, hayChipsVersiones: chipsVersiones.length > 0,
+      fDup: Object.assign(vistaSel(s.soloDup && !modoSub, modoSub), { ayuda: modoSub ? 'Solo aplica en la vista Planograma' : '' }),
+      dupBloqueado: modoSub,
+      // selector múltiple (tienda y estado)
+      selAbierta: !!s.sel, sel: selVm,
+      cerrarSel: () => this.setState({ sel: null }), teclaSel: this.teclaSel,
+      // modal de planograma versión
+      svAbierta: s.sv, sv: svVm,
+      cerrarSv: () => this.setState({ sv: false }), teclaSv: this.teclaSv,
+      // tipo de aparición (control segmentado)
+      opcionesTipo: OPCIONES_TIPO.map((o) => {
+        var on = s.tipo === o.valor;
+        return {
+          valor: o.valor, etiqueta: o.etiqueta, ayuda: o.ayuda, marcado: on,
+          fondo: on ? '#ffffff' : 'transparent', color: on ? '#101e8e' : '#4a524d',
+          sombra: on ? '0 1px 2px rgb(17 24 17 / 4%)' : 'none',
+          elegir: () => this.filtrar({ tipo: o.valor })
+        };
+      }),
+      // modal Descargar
+      modalAbierto: s.modal, generando: s.generando,
+      abrirModal: () => this.setState({ modal: true, generando: false, panelAbierto: false, menuAbierto: false, sel: null, sv: false }),
+      cerrarModal: () => this.cerrarModal(),
+      // "Elegir columnas": cierra el modal y abre el panel de columnas (en el front real, el foco vuelve a Descargar al cerrar el panel)
+      elegirColumnas: () => { if (this.tDescarga) clearTimeout(this.tDescarga); this.setState({ modal: false, generando: false, panelAbierto: true }); },
+      textoColumnas: textoColumnas,
+      teclaModal: this.teclaModal, detener: this.detener,
+      opcionesFormato: FORMATOS.map((f, i) => {
+        var on = s.formato === f.valor;
+        return {
+          valor: f.valor, etiqueta: f.etiqueta, desc: f.desc, marcado: on, primero: i === 0,
+          borde: on ? '#101e8e' : '#e2e5e1', fondo: on ? '#f0f2fd' : '#ffffff',
+          mostrarHojas: on && f.valor === 'HOJAS',
+          elegir: () => this.setState({ formato: f.valor })
+        };
+      }),
+      hojasItems: HOJAS.map((h) => {
+        var on = !!s.hojas[h.k];
+        return {
+          etiqueta: h.etiqueta, marcada: on, conteo: MILES(cd[h.k]) + ' filas',
+          borde: on ? '#101e8e' : '#e2e5e1', fondo: '#ffffff',
+          alternar: () => { var n = Object.assign({}, s.hojas); n[h.k] = !n[h.k]; this.setState({ hojas: n }); }
+        };
+      }),
+      hojasInvalido: hojasInvalido, sinFilasDescarga: sinFilasDescarga,
+      conteoDescarga: conteoDescarga, notaDescarga: notaDescarga,
+      descargaBloqueada: bloqueada,
+      fondoDescargar: bloqueada && !s.generando ? '#9aa19d' : '#101e8e',
+      cursorDescargar: bloqueada ? 'not-allowed' : 'pointer',
+      etiquetaDescargar: s.generando ? 'Generando…' : 'Descargar (.xlsx)',
+      descargar: () => { if (!bloqueada) this.iniciarDescarga(fmt.archivo); },
+      hayToast: s.toast !== '', toast: s.toast, cerrarToast: () => this.cerrarToast(),
+      // tabla
+      hayResultados: total > 0, sinResultados: total === 0,
+      vacioTitulo: modoSub ? 'No hay productos como ' + etTipo + ' con estos filtros' : 'No hay combinaciones SKU–tienda con esos filtros',
+      totalFilasAria: filasAria + 1,
+      cargando: s.enCarga, enCarga: s.enCarga, noCargando: !s.enCarga,
+      esqueleto: [1, 2, 3, 4, 5, 6, 7, 8],
+      gruposVisibles: gruposVisibles,
+      // paginación por servidor
+      rango: textoPagina, tamPagina: String(s.tamPagina), etiquetaPagina: modoSub ? 'Filas por página' : 'Grupos por página',
+      onTamPagina: (e) => this.cargarPagina({ tamPagina: Number(e.target.value), pagina: 1 }),
+      paginaTexto: 'Página ' + pagina + ' de ' + paginas,
+      sinAnterior: sinAnt, sinSiguiente: sinSig,
+      colorAnterior: sinAnt ? '#9aa19d' : '#111811', colorSiguiente: sinSig ? '#9aa19d' : '#111811',
+      cursorAnterior: sinAnt ? 'not-allowed' : 'pointer', cursorSiguiente: sinSig ? 'not-allowed' : 'pointer',
+      irAnterior: () => this.cargarPagina({ pagina: Math.max(1, pagina - 1) }),
+      irSiguiente: () => this.cargarPagina({ pagina: Math.min(paginas, pagina + 1) })
+    };
+  }
+}
+</script>
+</body>
+</html>

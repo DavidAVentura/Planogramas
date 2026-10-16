@@ -68,6 +68,7 @@ primera línea del archivo. `routes/index.js` no lleva reglas: cada `*.routes.js
 | `asignaciones` | A (router) + PLA001 | — |
 | `auth` | — (excepción: solo autenticado) | `GET /sesion`, `POST /keepalive` |
 | `catalogo` | A (router) | — |
+| `consolidado` (`/consolidado/tiendas…`) | A (router) | `GET /tiendas` y `GET /tiendas/exportar` → además `validarQuery` y limitador por usuario (60/min y 5/min), en ese orden después de A · `GET /tiendas/filtros` → solo A |
 | `evidencias` | I (router) | — |
 | `gondolas` | A (router) | toda ruta no `GET` → C |
 | `implementacion` (`/implementacion/*`) | A (router) | — |
@@ -96,7 +97,7 @@ con `RequierePermiso`. `capacidades.analista` lo calcula el back (fuente única 
 |---|---|---|
 | `/planogramas`, `/planogramas/:id`, `/planogramas/:id/versiones/:versionId/editor` | analista | A |
 | `/planogramas/:id/versiones/:versionId/lienzo[/gondola/:gondolaId]` | analista | A + PLA006 |
-| `/tiendas`, `/productos`, `/por-version`, `/accesorios` | analista | A |
+| `/tiendas`, `/productos`, `/por-version`, `/accesorios`, `/mantenimiento/consolidado-tiendas` | analista | A |
 | `/estructura` | analista | A + PLA001 |
 | `/mi-tienda` | implementador | PLA009 |
 | `/mi-tienda/productos` | implementador | PLA010 |
@@ -122,6 +123,7 @@ PCOMER-EST y CATEGORIA-EST). Registrado como **DT-11**.
 5. Editar dimensiones de producto.
 6. Agente extractor (foto / PDF / IA).
 7. Voz.
+8. Consolidado Tiendas: ver y descargar (`/consolidado/*`, decisión D1 del plan `2026-10-15-consolidado-tiendas`: la descarga usa el mismo permiso que la vista; revisable).
 
 **Cómo reemplazar A cuando lleguen los códigos**: (1) agregar el código a `PERMISOS` en `permisos.js`
 (y en `permisos.ts` del front); (2) cambiar en la ruta `requiereAnalista` por `requierePermiso(...)`;
@@ -147,7 +149,7 @@ seguro). Detalle y checklist en `DESPLIEGUE_AZURE.md` §6.
 
 DT-01 (parcial), DT-10 (sin filtro por tienda), DT-11 (acciones con regla A), DT-12 (evidencias de
 cualquier tienda), DT-13 (nombre del perfil de tienda), DT-14 (revocación hasta 2 min), DT-15 (timeout
-a CAO), DT-16 (parseo de body antes de autenticar), DT-17 a DT-19 (front y Postman). Ver
+a CAO), DT-16 (parseo de body antes de autenticar), DT-17 a DT-19 (front y Postman), DT-43 (limitadores por IP sin `trust proxy`). Ver
 `DEUDA_TECNICA.md`.
 
 Pendiente de verificar en DEV (T17): si CAO responde `200` con `perfiles: []` o `401` a un usuario

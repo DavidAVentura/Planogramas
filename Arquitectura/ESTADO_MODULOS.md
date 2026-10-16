@@ -88,6 +88,40 @@ El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
     extractor de PDF sigue devolviendo enteros (DT-27): los `54E` quedan en "Por ubicar" con advertencia.
   - **Antes de publicar**: consulta SQL de solo lectura de ganchos no canónicos en DEV y PROD (0 filas;
     ver `04_implementacion.md` del plan `2026-10-15-importar-excel-tamano-accesorio`).
+- **Implementado end-to-end: `consolidado` (21, Consolidado Tiendas)**. Solo lectura, solo analista; en el menú es
+  Productos → "Por tienda" (ruta `/mantenimiento/consolidado-tiendas`). Contratos en `Contratos/21_consolidado/`
+  (README con la tubería completa). Postman: carpeta `21 - Consolidado tiendas` (reutiliza los fixtures de
+  `16 - Implementación`, corre después). Reglas no obvias:
+  - **Sin tabla nueva ni paginación SQL**: `cargarBase` (`infrastructure/repositories/consolidado.repository.js`)
+    hace 7 consultas filtradas por la subconsulta `versionesMontables` (publicado/piloto con tienda activa),
+    nunca listas de ids (límite de 2100 parámetros); el resto es dominio puro en
+    `domain/consolidado/consolidado.entity.js`. La 017 solo agrega índices.
+  - **Reusa el módulo 19**: `recorrerVersion` (sección, nivel, ganchos) y `valorComun` de `skuVersion.entity.js`, y
+    los mapeadores de `repositories/mapeadoresVersion.js` (compartidos con `cargarVersion`). No duplicarlos.
+  - **`planogramasEnTienda` se cuenta antes de los filtros** (`contarPlanogramasPorGrupo` antes de `aplicarFiltros`):
+    el rojo no depende del filtro de versión, estado, jerarquía o búsqueda. No mover ese orden.
+  - **Sumas del Min/Max agregado** (`sumarMinMaxAgregado`, `sumarFisicosAgregado`): mín./máx. final suman **una vez
+    por versión** (primera fila PLANOGRAMA → CROSS → IMPULSO; si una versión "Varía", la columna sale `Varía`, no una
+    suma parcial); mín. estético y capacidad máxima suman **todas** las filas del grupo (son físicos de cada posición).
+  - **DETALLADO antepone `modo`** si no viene en `columnas` (D2). Columnas: lista blanca única en
+    `domain/consolidado/columnas.js`, duplicada en `front/src/domain/consolidado/columnasConsolidado.ts` (DT-39; las
+    pruebas de ambos lados comparan el mismo literal de 24 claves).
+  - **Orden de capas** (`consolidado.routes.js`): `requiereAnalista` → `validarQuery(schema)` → limitador por usuario
+    (`numeroEmpleado`: listado 60/min, exportación 5/min) → controller. Los `400` no gastan cupo; toda petición válida
+    lo gasta aunque se aborte (no usar `skipFailedRequests`: devuelve el cupo al abortar). `validarQuery` y el
+    controller validan con el mismo esquema estricto (`validarQueryEstricta`, sin `stripUnknown`; `validarConJoi`
+    no se usa aquí, DT-42).
+  - **Exportación**: tope `CONSOLIDADO_EXPORTACION_MAX_FILAS` (def. 100 000, máx. 200 000) → `422` antes de construir
+    celdas; semáforo de 1 por proceso (`application/consolidado/semaforo.js`) → `503 EXPORTACION_EN_CURSO`. El libro
+    se genera completo antes de las cabeceras. `write-excel-file@4.1.1` solo se importa en
+    `infrastructure/exportacion/libroXlsx.js` (celdas de texto siempre `String`, nunca fórmula).
+  - **CATI**: con jerarquía se resuelve antes de cargar la base (falla → `503` sin datos parciales);
+    `catiClient.listarSkusPorJerarquia` deduplica llamadas en vuelo por clave.
+  - Front: `pages/ConsolidadoTiendas/` (modo extendido con el patrón de `ProductosVersiones`), `components/dominio/consolidado/`
+    (`ConsolidadoFiltros`, `ConsolidadoTable`, `DescargarConsolidadoModal`), `domain/consolidado/` (lógica pura con pruebas),
+    `hooks/useConsolidado.ts` y `useFiltrosConsolidado.ts`. Comparte con Por planograma `PanelColumnas<K>`,
+    `domain/columnas/preferenciasColumnas.ts`, `modales/SeleccionVersionesModal` y `productos/CadenaJerarquia` (DT-48).
+    Preferencias de columnas en `localStorage` (`planogramas.consolidado.columnas`).
 - **Implementado, sin carpeta Postman todavía**: `adjuntos` (13, CRUD sobre Azure Blob) y
   `agente-extractor`.
 - **Autorización (permisos CAO, 2026-10-12)**: aplicada en todos los módulos; detalle, perfiles y
@@ -105,7 +139,7 @@ El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
   - Pendiente: filtro por tienda (DT-10) y permisos propios en CAO para las acciones con regla A (DT-11).
 - **Pendiente**: `sustituciones` (06) y `exportacion` (07) no están montados en
   `back/src/infrastructure/http/routes/index.js`. Su contrato ya existe en `Arquitectura/Contratos/`.
-- Migraciones: `001` a `016` en `back/src/infrastructure/db/migrations/`. Antes de implementar un
+- Migraciones: `001` a `017` en `back/src/infrastructure/db/migrations/`. Antes de implementar un
   módulo nuevo, revisa si el esquema ya cubre las tablas que necesita o si hace falta una migración
   adicional (`015_...`, ver convención de nombres en `ESTRUCTURA_BACKEND.md`). Un valor nuevo de
   una columna `varchar` sin CHECK (ej. `Posicion.modo = 'IMPULSO'`) no requiere migración: basta
