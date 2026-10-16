@@ -10,7 +10,7 @@ import {
   validarPreferenciasConsolidado,
 } from './columnasConsolidado';
 
-// Mismo literal que back/test/domain/consolidadoColumnas.test.js (DT-39).
+// Mismo literal que back/test/domain/consolidadoColumnas.test.js (DT-43).
 const CLAVES_ESPERADAS = [
   'sku', 'producto', 'tienda', 'version', 'estadoVersion', 'seccion', 'gondola', 'nivel', 'orden',
   'ganchos', 'accesorio', 'montaje', 'facings', 'apilable', 'capacidadFacing', 'capacidadMaxima',

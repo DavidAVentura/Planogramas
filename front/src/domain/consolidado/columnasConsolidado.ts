@@ -1,5 +1,5 @@
 // Columnas del Consolidado Tiendas: catálogo, texto de cada celda y preferencias (orden/visibilidad).
-// Lógica pura, sin React. El back duplica la lista de claves y las etiquetas para el Excel (DT-39):
+// Lógica pura, sin React. El back duplica la lista de claves y las etiquetas para el Excel (DT-43):
 // ambas pruebas comparan el mismo literal de 24 claves.
 import { DECISION_POSICION_META } from '../../constants/implementacion';
 import { MODO_APARICION_META } from '../../constants/productos';

@@ -177,7 +177,7 @@ front/
 │   │   ├── columnas/
 │   │   │   └── preferenciasColumnas.ts  # orden/visibilidad genéricos <K extends string> (PanelColumnas, Por planograma, Consolidado)
 │   │   └── consolidado/
-│   │       ├── columnasConsolidado.ts # lista de 24 columnas (espejo del back, DT-39) y texto de celdas
+│   │       ├── columnasConsolidado.ts # lista de 24 columnas (espejo del back, DT-43) y texto de celdas
 │   │       └── filtrosConsolidado.ts  # query del listado/exportación, chips, filas estimadas, nombre de archivo
 │   │
 │   └── utils/                         # Funciones puras, sin estado ni JSX
@@ -346,7 +346,7 @@ Si la versión ya no está en el estado esperado, Estructura queda solo filtrada
 planograma → `/por-version`, Por tienda → `/mantenimiento/consolidado-tiendas`) y "Mantenimiento" (Accesorios →
 `/accesorios`, Tiendas → `/tiendas`). Solo agrupan en el menú: cada hijo conserva su ruta. `opcionesVisibles`
 filtra hijos por regla y quita grupos sin hijos visibles; `AppTopbar` marca el grupo activo por las rutas de sus
-hijos. `/productos` sigue viva pero fuera del menú (DT-47).
+hijos. `/productos` sigue viva pero fuera del menú (DT-51).
 
 ## Testing
 

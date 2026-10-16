@@ -44,7 +44,7 @@ Repaso de T1–T21 contra el PLAN: se contrastaron los criterios verificables po
 | `cd front && npm test` | 10 archivos, **102 pruebas OK** |
 | `cd front && npx tsc -b` | sin errores |
 | `cd front && npm run build` | OK (3,09 s); aviso conocido de chunk > 500 kB |
-| `cd front && npm run lint` | 469 problemas (29 errores, 440 avisos), **todos preexistentes** en CSS ajenos (UsarAdjuntos, AsignarSku, etc.). El único error en un archivo que toqué es `SeleccionVersionesModal.css` (3 errores de literales: `0 0 0 3px`, `6px`, `#f7f8fe`), contenido movido sin cambios (git lo ve como renombre puro) y ya cubierto por DT-46. Los archivos nuevos solo dan un aviso: `CadenaJerarquia.tsx:6` (`react(only-export-components)`, por exportar `NIVELES_JERARQUIA` como pide T17). |
+| `cd front && npm run lint` | 469 problemas (29 errores, 440 avisos), **todos preexistentes** en CSS ajenos (UsarAdjuntos, AsignarSku, etc.). El único error en un archivo que toqué es `SeleccionVersionesModal.css` (3 errores de literales: `0 0 0 3px`, `6px`, `#f7f8fe`), contenido movido sin cambios (git lo ve como renombre puro) y ya cubierto por DT-50. Los archivos nuevos solo dan un aviso: `CadenaJerarquia.tsx:6` (`react(only-export-components)`, por exportar `NIVELES_JERARQUIA` como pide T17). |
 | `npm ls fflate` | `write-excel-file@4.1.1` → `fflate@0.8.3` |
 | `npm audit --omit=dev` | 5 hallazgos (joi, proxy-addr, qs, sprintf-js y otro), todos de dependencias previas; ninguno de `write-excel-file` ni `fflate` |
 | `npm run migrate:status` | no se pudo ejecutar: `Failed to connect to comerciales.database.windows.net:1433` (sin acceso a la BD desde esta sesión). No se tocó la BD |
@@ -61,9 +61,9 @@ Repaso de T1–T21 contra el PLAN: se contrastaron los criterios verificables po
 
 ## Deuda detectada
 
-Sin deuda nueva respecto de la ya prevista en el PLAN (DT-39 a DT-46). Observaciones para el cierre:
+Sin deuda nueva respecto de la ya prevista en el PLAN (DT-43 a DT-50). Observaciones para el cierre:
 - `CadenaJerarquia.tsx` exporta constantes junto con el componente (aviso `only-export-components`); resolver moviendo `NIVELES_JERARQUIA` a `constants/` si se quiere cero avisos.
-- Errores de stylelint preexistentes (29) en CSS ajenos; `SeleccionVersionesModal.css` encaja en DT-46.
+- Errores de stylelint preexistentes (29) en CSS ajenos; `SeleccionVersionesModal.css` encaja en DT-50.
 - `npm audit --omit=dev` tiene 5 hallazgos previos (joi, qs, proxy-addr, sprintf-js); no registrados en `DEUDA_TECNICA.md` según lo revisado.
 
 ## Correcciones ronda 1
@@ -87,7 +87,7 @@ Notas: M3 de calidad (desviación del 400 sin cupo) queda resuelta por el nuevo 
   (conserva la ruta `/accesorios`); `AppTopbar.tsx` marca el grupo activo también cuando la ruta coincide con un
   hijo fuera del prefijo `/mantenimiento`; `permisos.test.ts` actualizado. Front: 102/102, `tsc -b` sin errores.
 - **Productos oculta del menú del analista** (pedido del usuario, sin eliminarla): se quitó la entrada de
-  `constants/navegacion.ts`; la ruta `/productos` sigue activa. Registrada como **DT-47** en `DEUDA_TECNICA.md`.
+  `constants/navegacion.ts`; la ruta `/productos` sigue activa. Registrada como **DT-51** en `DEUDA_TECNICA.md`.
 - **Min/Max agregado suma también mín. estético y capacidad máxima** (pedido del usuario): `sumarFisicosAgregado`
   en `consolidado.entity.js` suma TODAS las filas del grupo (planograma + cross + impulso), sin deduplicar por
   versión como el mín./máx. final, porque son valores físicos de cada posición; las filas sin valor no aportan y
@@ -97,7 +97,7 @@ Notas: M3 de calidad (desviación del 400 sin cupo) queda resuelta por el nuevo 
   navegación). `navegacion.ts`: el grupo Productos agrupa `/por-version` y `/mantenimiento/consolidado-tiendas`
   (etiqueta "Por tienda"); Mantenimiento queda con Accesorios. Las rutas no cambian. `AppTopbar.tsx`: el grupo se
   marca activo solo por las rutas de sus hijos (si no, Mantenimiento se marcaba en Por tienda). `permisos.test.ts`
-  actualizado. Front 102/102, `tsc -b` sin errores. Tabla duplicada y ruta registradas como **DT-48**.
+  actualizado. Front 102/102, `tsc -b` sin errores. Tabla duplicada y ruta registradas como **DT-52**.
 - **"Por versión" pasa a llamarse "Por planograma"** (solo el texto: menú y migas de `ProductosPorVersion`; la ruta
   `/por-version` no cambia) y **Tiendas pasa al grupo Mantenimiento** (junto a Accesorios; ruta `/tiendas` sin
   cambios). `permisos.test.ts` actualizado. Front 102/102, `tsc -b` sin errores.

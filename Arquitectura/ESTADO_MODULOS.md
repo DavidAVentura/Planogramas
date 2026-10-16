@@ -104,13 +104,13 @@ El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
     por versión** (primera fila PLANOGRAMA → CROSS → IMPULSO; si una versión "Varía", la columna sale `Varía`, no una
     suma parcial); mín. estético y capacidad máxima suman **todas** las filas del grupo (son físicos de cada posición).
   - **DETALLADO antepone `modo`** si no viene en `columnas` (D2). Columnas: lista blanca única en
-    `domain/consolidado/columnas.js`, duplicada en `front/src/domain/consolidado/columnasConsolidado.ts` (DT-39; las
+    `domain/consolidado/columnas.js`, duplicada en `front/src/domain/consolidado/columnasConsolidado.ts` (DT-43; las
     pruebas de ambos lados comparan el mismo literal de 24 claves).
   - **Orden de capas** (`consolidado.routes.js`): `requiereAnalista` → `validarQuery(schema)` → limitador por usuario
     (`numeroEmpleado`: listado 60/min, exportación 5/min) → controller. Los `400` no gastan cupo; toda petición válida
     lo gasta aunque se aborte (no usar `skipFailedRequests`: devuelve el cupo al abortar). `validarQuery` y el
     controller validan con el mismo esquema estricto (`validarQueryEstricta`, sin `stripUnknown`; `validarConJoi`
-    no se usa aquí, DT-42).
+    no se usa aquí, DT-46).
   - **Exportación**: tope `CONSOLIDADO_EXPORTACION_MAX_FILAS` (def. 100 000, máx. 200 000) → `422` antes de construir
     celdas; semáforo de 1 por proceso (`application/consolidado/semaforo.js`) → `503 EXPORTACION_EN_CURSO`. El libro
     se genera completo antes de las cabeceras. `write-excel-file@4.1.1` solo se importa en
@@ -120,7 +120,7 @@ El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
   - Front: `pages/ConsolidadoTiendas/` (modo extendido con el patrón de `ProductosVersiones`), `components/dominio/consolidado/`
     (`ConsolidadoFiltros`, `ConsolidadoTable`, `DescargarConsolidadoModal`), `domain/consolidado/` (lógica pura con pruebas),
     `hooks/useConsolidado.ts` y `useFiltrosConsolidado.ts`. Comparte con Por planograma `PanelColumnas<K>`,
-    `domain/columnas/preferenciasColumnas.ts`, `modales/SeleccionVersionesModal` y `productos/CadenaJerarquia` (DT-48).
+    `domain/columnas/preferenciasColumnas.ts`, `modales/SeleccionVersionesModal` y `productos/CadenaJerarquia` (DT-52).
     Preferencias de columnas en `localStorage` (`planogramas.consolidado.columnas`).
 - **Implementado, sin carpeta Postman todavía**: `adjuntos` (13, CRUD sobre Azure Blob) y
   `agente-extractor`.

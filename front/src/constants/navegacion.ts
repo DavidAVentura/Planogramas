@@ -6,7 +6,7 @@ export const OPCIONES_POR_MODO: Record<Modo, readonly OpcionNavegacion[]> = {
     { etiqueta: 'Planogramas', ruta: '/planogramas', regla: REGLAS.analista },
     { etiqueta: 'Estructura', ruta: '/estructura', regla: REGLAS.estructura },
     // Grupos con menú desplegable. Solo agrupan en el menú: cada hijo conserva su ruta.
-    // La vista vieja de Productos (`/productos`) sigue oculta del menú pero activa (DT-47).
+    // La vista vieja de Productos (`/productos`) sigue oculta del menú pero activa (DT-51).
     {
       etiqueta: 'Productos',
       ruta: '/productos',

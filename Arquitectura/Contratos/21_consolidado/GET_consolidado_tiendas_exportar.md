@@ -53,7 +53,7 @@ Prohibidos (→ 400): `vista`, `page`, `pageSize`, `orden`, `direccion` y cualqu
 | `accesorio` | Accesorio de montaje | `observaciones` | Observaciones |
 | `montaje` | Montaje | `sustituto` | SKU sustituto |
 
-Fuente única: `back/src/domain/consolidado/columnas.js` (el front la duplica, DT-39). Clave fuera de
+Fuente única: `back/src/domain/consolidado/columnas.js` (el front la duplica, DT-43). Clave fuera de
 la lista → `400 VALIDATION_ERROR` con `details: { columnasInvalidas: [...] }` (cada valor recortado a
 40 caracteres); clave repetida → 400.
 

@@ -560,14 +560,14 @@ Orden de implementación: back de adentro hacia afuera (T1–T13), luego front (
 
 | ID | Descripción | Severidad | Área |
 |---|---|---|---|
-| DT-39 | Catálogo de columnas del consolidado duplicado back (Excel) / front (tabla); mitigado con el mismo literal de 24 claves en una prueba de cada lado (como DT-29) | Baja | back · front |
-| DT-40 | "Una versión por planograma por tienda" solo la garantiza el dominio, no la BD | Baja | back · BD |
-| DT-41 | El consolidado recalcula toda la base en cada request (sin caché); medir p95 en PROD (objetivo < 2 s) y, si se supera, caché de 60 s de la base | Baja | back |
-| DT-42 | `validarConJoi` fuerza `stripUnknown: true`: los parámetros desconocidos se descartan en silencio en los módulos 16 y 17 | Media | back |
-| DT-43 | Limitadores por IP sin `trust proxy`: en App Service `vozLimiter` agrupa a todos los usuarios bajo la IP del proxy | Media | back |
-| DT-44 | Exportación síncrona en el event loop (mitigada con tope y semáforo de 1); si crece el uso, worker o descarga asíncrona | Baja | back |
-| DT-45 | `ui/Modal` sin Escape, foco inicial, trampa de foco ni devolución del foco al disparador | Media | front |
-| DT-46 | Colores literales en `Modal.css`, `SeleccionMultipleModal.css`, `BotonSeleccionMultiple.css`, `SeleccionVersionesModal.css` (`#f7f8fe`), `ProductosVersiones.css`, `ProductosFiltros.css` (incl. `999px`), `constants/tiendas.ts` y `ESTADO_VERSION_IMPLEMENTACION_META` | Baja | front |
+| DT-43 | Catálogo de columnas del consolidado duplicado back (Excel) / front (tabla); mitigado con el mismo literal de 24 claves en una prueba de cada lado (como DT-29) | Baja | back · front |
+| DT-44 | "Una versión por planograma por tienda" solo la garantiza el dominio, no la BD | Baja | back · BD |
+| DT-45 | El consolidado recalcula toda la base en cada request (sin caché); medir p95 en PROD (objetivo < 2 s) y, si se supera, caché de 60 s de la base | Baja | back |
+| DT-46 | `validarConJoi` fuerza `stripUnknown: true`: los parámetros desconocidos se descartan en silencio en los módulos 16 y 17 | Media | back |
+| DT-47 | Limitadores por IP sin `trust proxy`: en App Service `vozLimiter` agrupa a todos los usuarios bajo la IP del proxy | Media | back |
+| DT-48 | Exportación síncrona en el event loop (mitigada con tope y semáforo de 1); si crece el uso, worker o descarga asíncrona | Baja | back |
+| DT-49 | `ui/Modal` sin Escape, foco inicial, trampa de foco ni devolución del foco al disparador | Media | front |
+| DT-50 | Colores literales en `Modal.css`, `SeleccionMultipleModal.css`, `BotonSeleccionMultiple.css`, `SeleccionVersionesModal.css` (`#f7f8fe`), `ProductosVersiones.css`, `ProductosFiltros.css` (incl. `999px`), `constants/tiendas.ts` y `ESTADO_VERSION_IMPLEMENTACION_META` | Baja | front |
 
 ## Verificación final
 
@@ -580,8 +580,8 @@ Orden de implementación: back de adentro hacia afuera (T1–T13), luego front (
 
 ## Riesgos
 
-- Volumen de PROD (10⁵–3·10⁵ filas expandidas) supera el p95 de 2 s → logs de duración (S12) y DT-41 (caché de 60 s de la base).
-- Generación del libro bloquea el event loop varios segundos con el tope → semáforo de 1, tope de 100 000, `exportacionLimiter`; DT-44.
+- Volumen de PROD (10⁵–3·10⁵ filas expandidas) supera el p95 de 2 s → logs de duración (S12) y DT-45 (caché de 60 s de la base).
+- Generación del libro bloquea el event loop varios segundos con el tope → semáforo de 1, tope de 100 000, `exportacionLimiter`; DT-48.
 - CATI lento en frío con jerarquía (hasta 60 s) → 503 sin datos parciales, caché de 30 min y deduplicación en vuelo (D20).
 - PROD sin 017 → consultas más lentas pero correctas; aplicar al resolver DT-08.
 - Opción de buffer de `write-excel-file` distinta a la esperada → el adaptador es el único punto de contacto; la prueba de T9 lo detecta.

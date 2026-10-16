@@ -121,7 +121,7 @@ Deben cerrarse antes de la aprobación final, aunque los hallazgos de arriba se 
 
 ## Deuda
 
-Sin deuda nueva aparte de DT-39 a DT-46. Si M5 o M10 no se corrigen ahora, registrarlos con DT-46.
+Sin deuda nueva aparte de DT-43 a DT-50. Si M5 o M10 no se corrigen ahora, registrarlos con DT-50.
 
 ## Veredicto
 

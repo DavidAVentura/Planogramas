@@ -4,7 +4,7 @@
  * texto de la celda. Es la única fuente de qué claves acepta la exportación: nunca se usa una
  * clave de la query como propiedad sin pasar por `esClaveColumna`. Sin dependencias externas.
  *
- * El front duplica el catálogo (DT-39); ambas pruebas comparan el mismo literal de 24 claves.
+ * El front duplica el catálogo (DT-43); ambas pruebas comparan el mismo literal de 24 claves.
  */
 
 const { textoGancho } = require('../compartido/gancho');

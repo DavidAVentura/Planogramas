@@ -52,25 +52,25 @@ aquí en la etapa de cierre.
 | DT-36 | El front no aplica dos topes del back en la importación: 100 ganchos por producto y 100 facings implícitos (el lote falla con 400 de Joi sin fila de Excel) | Baja | front | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
 | DT-37 | Enteros de importación sin máximo (`unidades_por_facing`, `cantidad_apilable`, `capacidad_maxima`) pueden desbordar `INT` y terminar en `500` con rollback | Baja | back · front | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
 | DT-38 | El lector del Excel convierte en silencio un `0` explícito en `Cantidad_x_facing`/`cantidad_apilable` (a 1) y `capacidad_maxima` (a `null`) | Baja | front | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
-| DT-39 | Catálogo de columnas del consolidado duplicado back (Excel) / front (tabla); mitigado con el mismo literal de 24 claves en una prueba de cada lado | Baja | back · front | 2026-10-15 · plan `2026-10-15-consolidado-tiendas` | Abierta |
-| DT-40 | "Una versión por planograma por tienda" solo la garantiza el dominio, no la BD | Baja | back · BD | 2026-10-15 · plan `2026-10-15-consolidado-tiendas` | Abierta |
-| DT-41 | El consolidado recalcula toda la base en cada request (sin caché); medir p95 en PROD (objetivo < 2 s) | Baja | back | 2026-10-15 · plan `2026-10-15-consolidado-tiendas` | Abierta |
-| DT-42 | `validarConJoi` fuerza `stripUnknown: true`: los parámetros desconocidos se descartan en silencio en los módulos 16 y 17 | Media | back | 2026-10-15 · plan `2026-10-15-consolidado-tiendas` | Abierta |
-| DT-43 | Limitadores por IP sin `trust proxy`: en App Service `vozLimiter` agrupa a todos los usuarios bajo la IP del proxy | Media | back | 2026-10-15 · plan `2026-10-15-consolidado-tiendas` | Abierta |
-| DT-44 | Exportación del consolidado síncrona en el event loop (mitigada con tope y semáforo de 1) | Baja | back | 2026-10-15 · plan `2026-10-15-consolidado-tiendas` | Abierta |
-| DT-45 | `ui/Modal` sin Escape, foco inicial, trampa de foco ni devolución del foco al disparador | Media | front | 2026-10-15 · plan `2026-10-15-consolidado-tiendas` | Abierta |
-| DT-46 | Colores literales en modales y filtros compartidos (`Modal.css`, `SeleccionMultipleModal.css`, `BotonSeleccionMultiple.css`, `SeleccionVersionesModal.css`, `ProductosVersiones.css`, `ProductosFiltros.css`), `constants/tiendas.ts` y `ESTADO_VERSION_IMPLEMENTACION_META` | Baja | front | 2026-10-15 · plan `2026-10-15-consolidado-tiendas` | Abierta |
-| DT-47 | Vista Productos (`/productos`) oculta del menú del analista pero viva: ruta, página, endpoints y pruebas siguen activos sin acceso visible | Baja | front · back | 2026-10-16 · plan `2026-10-15-consolidado-tiendas` | Abierta |
-| DT-48 | Tablas de Productos por versión y por tienda duplicadas (`ProductosVersiones` y `ConsolidadoTable`) y ruta de Por tienda fuera del grupo Productos (`/mantenimiento/consolidado-tiendas`) | Baja | front | 2026-10-16 · plan `2026-10-15-consolidado-tiendas` | Abierta |
-| DT-49 | Consolidado: la exportación carga toda la base antes de tomar el semáforo y `/consolidado/tiendas/filtros` no tiene limitador | Media | back | 2026-10-16 · revisiones de calidad (M2) y seguridad (M1, M2) del plan `2026-10-15-consolidado-tiendas` | Abierta |
-| DT-50 | El `down` de la 017 borra índices que la migración no creó y el `up` solo compara por nombre (posible índice duplicado en PROD) | Baja | BD | 2026-10-16 · revisión de seguridad (M3) del plan `2026-10-15-consolidado-tiendas` | Abierta |
-| DT-51 | Deduplicación en vuelo de `listarSkusPorJerarquia`: si la primera llamada falla, todas las que esperaban reciben el mismo 503 | Baja | back | 2026-10-16 · revisión de seguridad (M4) del plan `2026-10-15-consolidado-tiendas` | Abierta (aceptada) |
-| DT-52 | Las pruebas no fijan el orden de capas del consolidado (`validarQuery` → limitador) y `/consolidado/*` no tiene filas en `matrizPermisos.test.js` | Baja | back · pruebas | 2026-10-16 · revisión de seguridad (R1-M1) del plan `2026-10-15-consolidado-tiendas` | Abierta |
-| DT-53 | Ganchos de exhibición menores que 10: el consolidado muestra `5E` y el resto de la app `05E`; helper de texto de gancho duplicado en el front | Baja | back · front | 2026-10-16 · revisión de calidad (M1) del plan `2026-10-15-consolidado-tiendas` | Abierta |
-| DT-54 | Consolidado: peticiones y conteos desfasados (la búsqueda desde una página > 1 hace una petición de más; "Descargar" usa el resumen anterior mientras recarga) | Baja | front | 2026-10-16 · revisión de calidad (M4, M7) del plan `2026-10-15-consolidado-tiendas` | Abierta |
-| DT-55 | Consolidado: estados incompletos (429 del listado se muestra como falla de conexión; filtros sin indicio de carga, chips con ids y selector de versión deshabilitado sin estilo) | Baja | front | 2026-10-16 · revisión de calidad (M8, N1, N2) del plan `2026-10-15-consolidado-tiendas` | Abierta |
-| DT-56 | `ConsolidadoTable` repite chevron y badge `N planogramas` en cada fila principal de un grupo duplicado (controles idénticos para teclado y lector de pantalla) | Baja | front | 2026-10-16 · revisión de calidad (M6) del plan `2026-10-15-consolidado-tiendas` | Abierta |
-| DT-57 | Limpieza del consolidado: `useConRetardo` definido en la página, `NIVELES_JERARQUIA` exportado junto al componente (aviso `only-export-components`) y rango de diacríticos con caracteres invisibles | Baja | back · front | 2026-10-16 · revisión de calidad (M5, M9, M10) del plan `2026-10-15-consolidado-tiendas` | Abierta |
+| DT-43 | Catálogo de columnas del consolidado duplicado back (Excel) / front (tabla); mitigado con el mismo literal de 24 claves en una prueba de cada lado | Baja | back · front | 2026-10-15 · plan `2026-10-15-consolidado-tiendas` | Abierta |
+| DT-44 | "Una versión por planograma por tienda" solo la garantiza el dominio, no la BD | Baja | back · BD | 2026-10-15 · plan `2026-10-15-consolidado-tiendas` | Abierta |
+| DT-45 | El consolidado recalcula toda la base en cada request (sin caché); medir p95 en PROD (objetivo < 2 s) | Baja | back | 2026-10-15 · plan `2026-10-15-consolidado-tiendas` | Abierta |
+| DT-46 | `validarConJoi` fuerza `stripUnknown: true`: los parámetros desconocidos se descartan en silencio en los módulos 16 y 17 | Media | back | 2026-10-15 · plan `2026-10-15-consolidado-tiendas` | Abierta |
+| DT-47 | Limitadores por IP sin `trust proxy`: en App Service `vozLimiter` agrupa a todos los usuarios bajo la IP del proxy | Media | back | 2026-10-15 · plan `2026-10-15-consolidado-tiendas` | Abierta |
+| DT-48 | Exportación del consolidado síncrona en el event loop (mitigada con tope y semáforo de 1) | Baja | back | 2026-10-15 · plan `2026-10-15-consolidado-tiendas` | Abierta |
+| DT-49 | `ui/Modal` sin Escape, foco inicial, trampa de foco ni devolución del foco al disparador | Media | front | 2026-10-15 · plan `2026-10-15-consolidado-tiendas` | Abierta |
+| DT-50 | Colores literales en modales y filtros compartidos (`Modal.css`, `SeleccionMultipleModal.css`, `BotonSeleccionMultiple.css`, `SeleccionVersionesModal.css`, `ProductosVersiones.css`, `ProductosFiltros.css`), `constants/tiendas.ts` y `ESTADO_VERSION_IMPLEMENTACION_META` | Baja | front | 2026-10-15 · plan `2026-10-15-consolidado-tiendas` | Abierta |
+| DT-51 | Vista Productos (`/productos`) oculta del menú del analista pero viva: ruta, página, endpoints y pruebas siguen activos sin acceso visible | Baja | front · back | 2026-10-16 · plan `2026-10-15-consolidado-tiendas` | Abierta |
+| DT-52 | Tablas de Productos por versión y por tienda duplicadas (`ProductosVersiones` y `ConsolidadoTable`) y ruta de Por tienda fuera del grupo Productos (`/mantenimiento/consolidado-tiendas`) | Baja | front | 2026-10-16 · plan `2026-10-15-consolidado-tiendas` | Abierta |
+| DT-53 | Consolidado: la exportación carga toda la base antes de tomar el semáforo y `/consolidado/tiendas/filtros` no tiene limitador | Media | back | 2026-10-16 · revisiones de calidad (M2) y seguridad (M1, M2) del plan `2026-10-15-consolidado-tiendas` | Abierta |
+| DT-54 | El `down` de la 017 borra índices que la migración no creó y el `up` solo compara por nombre (posible índice duplicado en PROD) | Baja | BD | 2026-10-16 · revisión de seguridad (M3) del plan `2026-10-15-consolidado-tiendas` | Abierta |
+| DT-55 | Deduplicación en vuelo de `listarSkusPorJerarquia`: si la primera llamada falla, todas las que esperaban reciben el mismo 503 | Baja | back | 2026-10-16 · revisión de seguridad (M4) del plan `2026-10-15-consolidado-tiendas` | Abierta (aceptada) |
+| DT-56 | Las pruebas no fijan el orden de capas del consolidado (`validarQuery` → limitador) y `/consolidado/*` no tiene filas en `matrizPermisos.test.js` | Baja | back · pruebas | 2026-10-16 · revisión de seguridad (R1-M1) del plan `2026-10-15-consolidado-tiendas` | Abierta |
+| DT-57 | Ganchos de exhibición menores que 10: el consolidado muestra `5E` y el resto de la app `05E`; helper de texto de gancho duplicado en el front | Baja | back · front | 2026-10-16 · revisión de calidad (M1) del plan `2026-10-15-consolidado-tiendas` | Abierta |
+| DT-58 | Consolidado: peticiones y conteos desfasados (la búsqueda desde una página > 1 hace una petición de más; "Descargar" usa el resumen anterior mientras recarga) | Baja | front | 2026-10-16 · revisión de calidad (M4, M7) del plan `2026-10-15-consolidado-tiendas` | Abierta |
+| DT-59 | Consolidado: estados incompletos (429 del listado se muestra como falla de conexión; filtros sin indicio de carga, chips con ids y selector de versión deshabilitado sin estilo) | Baja | front | 2026-10-16 · revisión de calidad (M8, N1, N2) del plan `2026-10-15-consolidado-tiendas` | Abierta |
+| DT-60 | `ConsolidadoTable` repite chevron y badge `N planogramas` en cada fila principal de un grupo duplicado (controles idénticos para teclado y lector de pantalla) | Baja | front | 2026-10-16 · revisión de calidad (M6) del plan `2026-10-15-consolidado-tiendas` | Abierta |
+| DT-61 | Limpieza del consolidado: `useConRetardo` definido en la página, `NIVELES_JERARQUIA` exportado junto al componente (aviso `only-export-components`) y rango de diacríticos con caracteres invisibles | Baja | back · front | 2026-10-16 · revisión de calidad (M5, M9, M10) del plan `2026-10-15-consolidado-tiendas` | Abierta |
 
 ## Detalle
 
@@ -170,7 +170,7 @@ Una consulta `buscarPorCodigo` por código (tope de 200). Agregar `buscarPorCodi
 Sin índice; se nota al leer accesorios de muchas posiciones. **Resuelta (2026-10-16, plan `2026-10-15-consolidado-tiendas`)**: la migración
 `017_indices_consolidado.js` crea `IX_PosicionAccesorio_posicion` y, además, `IX_Gondola_version`, `IX_Nivel_gondola`,
 `IX_Posicion_nivel` e `IX_VersionTienda_tienda`. Aplicada en DEV (`OTB`); en PROD queda pendiente hasta resolver
-DT-08 (antes, ver DT-50).
+DT-08 (antes, ver DT-54).
 
 ### DT-25 — Sin auditoría de la importación
 `importarProductos` no registra quién importó ni cuándo.
@@ -225,101 +225,101 @@ Un valor como `Cantidad_x_facing = 3000000000` pasa el front y Joi y el `insert`
 `unidades || 1`, `apilable || 1`, `capacidad || null` en el lector del Excel contradicen "el front no convierte
 inválidos". Que `0` sea `ErrorLectura` ("debe ser al menos 1") y dejar `?? 1`/`?? null` solo para vacíos.
 
-### DT-39 — Columnas del consolidado duplicadas
+### DT-43 — Columnas del consolidado duplicadas
 La lista blanca vive en `back/src/domain/consolidado/columnas.js` (encabezados y celdas del Excel) y su espejo en
 `front/src/domain/consolidado/columnasConsolidado.ts` (tabla). Las pruebas de cada lado comparan el mismo literal de
 24 claves (como DT-29). Al agregar una columna, tocar ambos lados y ambas pruebas.
 
-### DT-40 — Una versión por planograma por tienda
+### DT-44 — Una versión por planograma por tienda
 La regla la aplican `asignaciones` y `promover`; la BD no tiene una restricción única que la garantice. El
 consolidado la da por cierta para el conteo `planogramasEnTienda`.
 
-### DT-41 — Consolidado sin caché
+### DT-45 — Consolidado sin caché
 Cada listado y cada descarga recargan toda la base (7 consultas) y recalculan la tubería. Con DEV (~3 200 filas) es
 suficiente; en PROD se esperan 10⁵–3·10⁵ filas expandidas. Medir el p95 con los logs `[consolidado] listado ms=…`
 y, si supera 2 s, agregar una caché de la base de ~60 s.
 
-### DT-42 — `validarConJoi` con `stripUnknown`
+### DT-46 — `validarConJoi` con `stripUnknown`
 `application/compartido/validacion.js` → `validarConJoi` descarta en silencio los parámetros desconocidos. El
 consolidado usa `validarQueryEstricta` (sin `stripUnknown`); los módulos 16 y 17 siguen con el comportamiento laxo.
 Migrarlos a la validación estricta (cuidar que el front no mande parámetros de más).
 
-### DT-43 — Limitadores por IP detrás del proxy
+### DT-47 — Limitadores por IP detrás del proxy
 `vozLimiter` (`middlewares/rateLimit.js`) usa la IP y la app no configura `trust proxy`: en App Service todos los
 usuarios comparten la IP del proxy y el cupo. Los limitadores del consolidado ya son por `numeroEmpleado`
 (`crearLimiterPorUsuario`); usar lo mismo en `/voz`.
 
-### DT-44 — Exportación síncrona
+### DT-48 — Exportación síncrona
 `write-excel-file` genera el libro en el event loop; con el tope de 100 000 filas puede bloquear varios segundos.
 Mitigado con el tope (`422`), el semáforo de 1 (`503 EXPORTACION_EN_CURSO`) y `exportacionLimiter` (5/min). Si el
-uso crece: worker thread o descarga asíncrona. Ver también DT-49.
+uso crece: worker thread o descarga asíncrona. Ver también DT-53.
 
-### DT-45 — `ui/Modal` sin manejo de foco
+### DT-49 — `ui/Modal` sin manejo de foco
 El modal base no cierra con Escape, no pone el foco inicial, no atrapa el foco ni lo devuelve al disparador. Afecta
 a todos los modales (incluidos los del consolidado). Resolverlo en `components/ui/Modal/`.
 
-### DT-46 — Colores literales en componentes compartidos
+### DT-50 — Colores literales en componentes compartidos
 Literales en `Modal.css`, `SeleccionMultipleModal.css`, `BotonSeleccionMultiple.css`, `SeleccionVersionesModal.css`
 (`#f7f8fe`, `0 0 0 3px`, `6px`), `ProductosVersiones.css`, `ProductosFiltros.css` (incl. `999px`),
 `constants/tiendas.ts` y `ESTADO_VERSION_IMPLEMENTACION_META`. Faltan tokens como `--danger-bg-hover` o
 `--row-sub-bg` (propuesta del agente disenador-ux). Complementa DT-02.
 
-### DT-47 — Vista Productos oculta sin retirar
+### DT-51 — Vista Productos oculta sin retirar
 El usuario pidió ocultar Productos del menú del analista sin eliminarla (2026-10-16). Solo se quitó la entrada
 de `front/src/constants/navegacion.ts`; la ruta `/productos` (`router/routes.tsx`), `ProductosListado`, los
 endpoints `GET /catalog/productos` y `GET /catalog/productos/{sku}/planogramas` y sus pruebas siguen activos y se
 llega por URL directa. Decidir si vuelve al menú (p. ej. dentro de Mantenimiento) o se retira con su código; al
 retirarla, cuidar lo compartido con el consolidado (`CadenaJerarquia`, `PanelColumnas`, `preferenciasColumnas`).
 
-### DT-48 — Productos por versión y por tienda: tabla duplicada
+### DT-52 — Productos por versión y por tienda: tabla duplicada
 Por decisión del usuario (2026-10-16) las dos vistas se agrupan solo en el menú (grupo "Productos": "Por versión"
 y "Por tienda") y siguen siendo páginas separadas, por su granularidad y carga distintas. Comparten
 `PanelColumnas`, `preferenciasColumnas` y `SeleccionVersionesModal`, pero la tabla está duplicada
 (`ProductosVersiones` y `ConsolidadoTable`: celdas, cabeceras y columnas fijas). Extraer una tabla común. La ruta de
 Por tienda se dejó en `/mantenimiento/consolidado-tiendas` para no romper enlaces; si se mueve a
-`/productos/por-tienda`, dejar una redirección (y resolver antes DT-47, que usa `/productos`).
+`/productos/por-tienda`, dejar una redirección (y resolver antes DT-51, que usa `/productos`).
 
-### DT-49 — Consolidado: base fuera del semáforo y `/filtros` sin limitador
+### DT-53 — Consolidado: base fuera del semáforo y `/filtros` sin limitador
 `exportarConsolidado` (`domain/consolidado/consolidado.usecases.js`) carga la base, arma los grupos y filtra antes de
 `semaforo.intentarTomar()`: N exportaciones simultáneas hacen N veces las 7 consultas y cargan N copias de la base, y
 solo la generación del libro queda en serie (el semáforo protege el event loop, no la BD ni la memoria). Tomar el
 semáforo al inicio y envolver todo (base, `422` y libro) en el `try/finally`, con una prueba de que un `422` lo
 libera. Además `GET /consolidado/tiendas/filtros` (4 consultas, dos `COUNT(DISTINCT sku)` sobre todas las posiciones
-montables) no tiene limitador: montar `consolidadoLimiter` (o una instancia propia). Relacionada con DT-44.
+montables) no tiene limitador: montar `consolidadoLimiter` (o una instancia propia). Relacionada con DT-48.
 
-### DT-50 — `down` de la 017 y chequeo por nombre
+### DT-54 — `down` de la 017 y chequeo por nombre
 El `up` se salta un índice que ya existe por nombre (`IF NOT EXISTS`), pero el `down` hace `DROP INDEX IF EXISTS`
 igual: si en PROD existía, p. ej., `IX_Posicion_nivel` creado a mano, un rollback lo elimina. Un índice equivalente con
 otro nombre quedaría duplicado. Antes de aplicar la 017 en PROD (DT-08), revisar `sys.indexes` de `Gondola`, `Nivel`,
 `Posicion`, `PosicionAccesorio` y `VersionTienda` por columna y anotarlo en la migración.
 
-### DT-51 — Fallo compartido en la deduplicación de CATI
+### DT-55 — Fallo compartido en la deduplicación de CATI
 `catiClient.listarSkusPorJerarquia` comparte la promesa en vuelo por clave: si la primera llamada en frío falla
 (timeout de 30 s), todas las que esperaban la misma clave reciben el mismo `503`. Aceptado: el token es de servicio
 (`tokenManager`), no se mezclan identidades.
 
-### DT-52 — Orden de capas del consolidado sin prueba
+### DT-56 — Orden de capas del consolidado sin prueba
 `test/http/consolidadoRutas.test.js` solo comprueba que listar y exportar tengan 3 capas (`length`); si el limitador
 quedara antes de `validarQuery`, la prueba pasaría y los `400` volverían a gastar cupo. `rateLimitUsuario.test.js`
 usa un validador simulado, no `validarQuery`. Verificar el orden comparando `route.stack.map((l) => l.handle)` con los
 middlewares importados, y agregar las 3 rutas `/consolidado/*` a `matrizPermisos.test.js` (hoy la regla A la cubren
 `consolidadoRutas.test.js` y `rutasProtegidas.test.js`).
 
-### DT-53 — Texto de ganchos de exhibición en el consolidado
+### DT-57 — Texto de ganchos de exhibición en el consolidado
 `textoGancho` del back (`domain/compartido/gancho.js`) rellena solo los números (`5` → `05`) y deja `"5E"` tal cual;
 el front del consolidado repite esa regla en `textoGanchoConsolidado` (`domain/consolidado/columnasConsolidado.ts`) en
 vez de usar `textoGancho` de `domain/ganchos/gancho.ts`, que muestra `05E` (lienzo, Por planograma). Unificar: en el
 front usar `textoGancho`; en el back rellenar también la exhibición y agregar `'5E' → '05E'` a `gancho.test.js`.
 Relacionada con DT-29.
 
-### DT-54 — Consolidado: peticiones y conteos desfasados
+### DT-58 — Consolidado: peticiones y conteos desfasados
 - Búsqueda (`ConsolidadoTiendas.tsx`): `cambiarFiltros({ busqueda })` vuelve a la página 1 en el momento, pero la
   búsqueda espera 300 ms; desde la página 3 se pide la página 1 con la búsqueda anterior y luego la buena (las dos
   gastan cupo de 60/min). Reiniciar la página cuando cambia el valor ya retrasado.
 - "Descargar" solo depende de `!resumen`: si se abre el modal mientras recarga, `Filas estimadas` y la validación del
   máximo usan el resumen anterior (el `422` del servidor sigue protegiendo). Usar `disabled={!resumen || cargando}`.
 
-### DT-55 — Consolidado: estados de error y carga incompletos
+### DT-59 — Consolidado: estados de error y carga incompletos
 - `detalleErrorListado` (`domain/consolidado/filtrosConsolidado.ts`) muestra un `429` como "Revisa tu conexión…";
   mostrar un texto de espera y agregar el caso a `filtrosConsolidado.test.ts`.
 - `.consolidado-filtros__selector` no tiene estilo `:disabled` (mantiene cursor y hover mientras carga o tras el error
@@ -327,11 +327,11 @@ Relacionada con DT-29.
 - Mientras llega `/filtros` (o si falla), los chips de tiendas muestran ids (`7`, `12`) y no hay indicio de carga más
   allá de los disparadores deshabilitados: `aria-busy` en la barra o "Cargando…" en los disparadores.
 
-### DT-56 — Chevron y badge repetidos en grupos duplicados
+### DT-60 — Chevron y badge repetidos en grupos duplicados
 `ConsolidadoTable.tsx`: un grupo con 3 planogramas pinta 3 chevrons (mismo `aria-controls` y misma acción) y 3 badges
 `3 planogramas`. Dibujarlos solo en la primera fila principal del grupo.
 
-### DT-57 — Limpieza del consolidado
+### DT-61 — Limpieza del consolidado
 - `useConRetardo` es un hook genérico definido en `pages/ConsolidadoTiendas/ConsolidadoTiendas.tsx`: moverlo a
   `front/src/hooks/`.
 - `CadenaJerarquia.tsx` exporta `NIVELES_JERARQUIA` junto al componente (aviso `react(only-export-components)`):

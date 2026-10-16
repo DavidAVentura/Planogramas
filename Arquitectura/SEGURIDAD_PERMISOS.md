@@ -149,7 +149,7 @@ seguro). Detalle y checklist en `DESPLIEGUE_AZURE.md` §6.
 
 DT-01 (parcial), DT-10 (sin filtro por tienda), DT-11 (acciones con regla A), DT-12 (evidencias de
 cualquier tienda), DT-13 (nombre del perfil de tienda), DT-14 (revocación hasta 2 min), DT-15 (timeout
-a CAO), DT-16 (parseo de body antes de autenticar), DT-17 a DT-19 (front y Postman), DT-43 (limitadores por IP sin `trust proxy`). Ver
+a CAO), DT-16 (parseo de body antes de autenticar), DT-17 a DT-19 (front y Postman), DT-47 (limitadores por IP sin `trust proxy`). Ver
 `DEUDA_TECNICA.md`.
 
 Pendiente de verificar en DEV (T17): si CAO responde `200` con `perfiles: []` o `401` a un usuario

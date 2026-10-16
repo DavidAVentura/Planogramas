@@ -10,7 +10,7 @@ const {
   textoMontaje, textoAccesorios,
 } = require('../../src/domain/consolidado/columnas');
 
-// Mismo literal que front/src/domain/consolidado/columnasConsolidado.test.ts (DT-39).
+// Mismo literal que front/src/domain/consolidado/columnasConsolidado.test.ts (DT-43).
 const CLAVES_ESPERADAS = [
   'sku', 'producto', 'tienda', 'version', 'estadoVersion', 'seccion', 'gondola', 'nivel', 'orden',
   'ganchos', 'accesorio', 'montaje', 'facings', 'apilable', 'capacidadFacing', 'capacidadMaxima',

@@ -48,5 +48,5 @@ mismo permiso que la vista, sin PLA011; D2, en Detallado la columna "Modo" va si
    `git status --short`. Máximo 2 rondas de correcciones.
 3. Aprobación 2. Preguntar al usuario si se aplica la migración 017 en DEV (BD compartida `OTB`); en
    PROD no se aplica hasta cerrar DT-08.
-4. Cierre: commit de código, commit de documentación (T23, DT-39 a DT-46, cierre de DT-24, CLAUDE.md)
+4. Cierre: commit de código, commit de documentación (T23, DT-43 a DT-50, cierre de DT-24, CLAUDE.md)
    y preguntar si se integra a `develop`.
