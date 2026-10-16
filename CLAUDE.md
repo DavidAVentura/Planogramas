@@ -77,8 +77,8 @@ Lo que sabemos que hay que corregir y se pospone se registra en `Arquitectura/DE
 - No se agrega deuda nueva sin registrarla; cada agente la reporta en su entregable y el coordinador
   la consolida en el cierre de `/desarrollo`.
 - Antes de planear, revisar si el cambio toca una deuda abierta.
-- Abiertas críticas/altas hoy: **DT-01** (parcial: permisos aplicados, falta el filtro por tienda),
-  **DT-10** (sin filtro por tienda del usuario) y **DT-08** (migraciones de PROD sin verificar).
+- Abiertas críticas/altas hoy: **DT-01** (parcial: permisos aplicados, falta el filtro por tienda) y
+  **DT-10** (sin filtro por tienda del usuario).
 
 ## Deployment
 

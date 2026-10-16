@@ -21,7 +21,7 @@ aquí en la etapa de cierre.
 | DT-05 | 26 errores de stylelint preexistentes y `npm run lint` no corre en CI | Media | front · CI | 2026-10-12 · configuración de `/desarrollo` | Abierta |
 | DT-06 | Cobertura de pruebas mínima: sin pruebas del resto de entidades, casos de uso ni integración HTTP/BD | Media | back · front | 2026-10-12 · configuración de `/desarrollo` | Abierta |
 | DT-07 | `adjuntos` (13) y `agente-extractor` sin carpeta de pruebas Postman | Media | back | 2026-10-12 · `CLAUDE.md` | Abierta |
-| DT-08 | Estado de migraciones de PROD sin verificar | Alta | BD | 2026-10-12 · `CLAUDE.md` | Abierta |
+| DT-08 | Estado de migraciones de PROD sin verificar | Alta | BD | 2026-10-12 · `CLAUDE.md` | Resuelta (2026-10-16: PROD verificado y en `017_indices_consolidado.js`, aplicada con `npm run migrate:prod`) |
 | DT-09 | El workflow de API PROD instala devDependencies y usa `actions/setup-node@v3` (DEV usa `--omit=dev` y v4) | Baja | CI | 2026-10-12 · configuración de `/desarrollo` | Abierta |
 | DT-10 | Sin filtro por tienda del usuario en los endpoints I | Alta | back · front | 2026-10-12 · plan `2026-10-12-permisos-cao` | Abierta |
 | DT-11 | Acciones con la regla transitoria A sin permiso propio en CAO | Media | back · front | 2026-10-12 · plan `2026-10-12-permisos-cao` | Abierta |
@@ -173,8 +173,8 @@ Una consulta `buscarPorCodigo` por código (tope de 200). Agregar `buscarPorCodi
 ### DT-24 — Índice en `PosicionAccesorio.posicion_id` (Resuelta)
 Sin índice; se nota al leer accesorios de muchas posiciones. **Resuelta (2026-10-16, plan `2026-10-15-consolidado-tiendas`)**: la migración
 `017_indices_consolidado.js` crea `IX_PosicionAccesorio_posicion` y, además, `IX_Gondola_version`, `IX_Nivel_gondola`,
-`IX_Posicion_nivel` e `IX_VersionTienda_tienda`. Aplicada en DEV (`OTB`); en PROD queda pendiente hasta resolver
-DT-08 (antes, ver DT-54).
+`IX_Posicion_nivel` e `IX_VersionTienda_tienda`. Aplicada en DEV (`OTB`) y en PROD (`db-planogramas`)
+el 2026-10-16 (ver DT-54).
 
 ### DT-25 — Sin auditoría de la importación
 `importarProductos` no registra quién importó ni cuándo.
@@ -322,7 +322,7 @@ montables) no tiene limitador: montar `consolidadoLimiter` (o una instancia prop
 ### DT-54 — `down` de la 017 y chequeo por nombre
 El `up` se salta un índice que ya existe por nombre (`IF NOT EXISTS`), pero el `down` hace `DROP INDEX IF EXISTS`
 igual: si en PROD existía, p. ej., `IX_Posicion_nivel` creado a mano, un rollback lo elimina. Un índice equivalente con
-otro nombre quedaría duplicado. Antes de aplicar la 017 en PROD (DT-08), revisar `sys.indexes` de `Gondola`, `Nivel`,
+otro nombre quedaría duplicado. La 017 ya se aplicó en PROD (2026-10-16); antes de un rollback, revisar `sys.indexes` de `Gondola`, `Nivel`,
 `Posicion`, `PosicionAccesorio` y `VersionTienda` por columna y anotarlo en la migración.
 
 ### DT-55 — Fallo compartido en la deduplicación de CATI
