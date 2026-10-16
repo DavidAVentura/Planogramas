@@ -4,11 +4,27 @@ import { REGLAS, type Modo, type OpcionNavegacion } from '../domain/permisos/per
 export const OPCIONES_POR_MODO: Record<Modo, readonly OpcionNavegacion[]> = {
   analista: [
     { etiqueta: 'Planogramas', ruta: '/planogramas', regla: REGLAS.analista },
-    { etiqueta: 'Tiendas', ruta: '/tiendas', regla: REGLAS.analista },
     { etiqueta: 'Estructura', ruta: '/estructura', regla: REGLAS.estructura },
-    { etiqueta: 'Productos', ruta: '/productos', regla: REGLAS.analista },
-    { etiqueta: 'Por versión', ruta: '/por-version', regla: REGLAS.analista },
-    { etiqueta: 'Accesorios', ruta: '/accesorios', regla: REGLAS.analista },
+    // Grupos con menú desplegable. Solo agrupan en el menú: cada hijo conserva su ruta.
+    // La vista vieja de Productos (`/productos`) sigue oculta del menú pero activa (DT-47).
+    {
+      etiqueta: 'Productos',
+      ruta: '/productos',
+      regla: REGLAS.analista,
+      hijos: [
+        { etiqueta: 'Por planograma', ruta: '/por-version', regla: REGLAS.analista },
+        { etiqueta: 'Por tienda', ruta: '/mantenimiento/consolidado-tiendas', regla: REGLAS.analista },
+      ],
+    },
+    {
+      etiqueta: 'Mantenimiento',
+      ruta: '/mantenimiento',
+      regla: REGLAS.analista,
+      hijos: [
+        { etiqueta: 'Accesorios', ruta: '/accesorios', regla: REGLAS.analista },
+        { etiqueta: 'Tiendas', ruta: '/tiendas', regla: REGLAS.analista },
+      ],
+    },
   ],
   // El Implementador solo ve su tienda y los productos de sus planogramas.
   implementador: [

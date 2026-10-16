@@ -11,6 +11,7 @@ import { MiTienda } from '../pages/MiTienda/MiTienda';
 import { ProductosTienda } from '../pages/ProductosTienda/ProductosTienda';
 import { ProductosPorVersion } from '../pages/ProductosPorVersion/ProductosPorVersion';
 import { AccesoriosListado } from '../pages/AccesoriosListado/AccesoriosListado';
+import { ConsolidadoTiendas } from '../pages/ConsolidadoTiendas/ConsolidadoTiendas';
 import { REGLAS, type Modo, type ReglaAcceso } from '../domain/permisos/permisos';
 import { RedirigirInicio } from './RedirigirInicio';
 import { RequierePermiso } from './RequierePermiso';
@@ -42,6 +43,10 @@ export function AppRoutes() {
       <Route path="/productos" element={protegida(REGLAS.analista, 'analista', <ProductosListado />)} />
       <Route path="/por-version" element={protegida(REGLAS.analista, 'analista', <ProductosPorVersion />)} />
       <Route path="/accesorios" element={protegida(REGLAS.analista, 'analista', <AccesoriosListado />)} />
+      <Route
+        path="/mantenimiento/consolidado-tiendas"
+        element={protegida(REGLAS.analista, 'analista', <ConsolidadoTiendas />)}
+      />
       <Route path="/mi-tienda" element={protegida(REGLAS.miTienda, 'implementador', <MiTienda />)} />
       <Route
         path="/mi-tienda/productos"

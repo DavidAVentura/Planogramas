@@ -88,7 +88,7 @@ function ContenidoPorVersion({ extendida, alternarExtendida }: { extendida: bool
       productos={productos}
       cargando={cargando}
       requiereSeleccion
-      ruta={[{ etiqueta: 'Por versión' }]}
+      ruta={[{ etiqueta: 'Por planograma' }]}
       titulo="Productos por versión"
       controles={selectorTienda}
       textosSelector={{

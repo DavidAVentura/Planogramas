@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Modal } from '../../../ui/Modal/Modal';
 import { Button } from '../../../ui/Button/Button';
-import { EstadoVersionBadge } from '../EstadoVersionBadge/EstadoVersionBadge';
+import { EstadoVersionBadge } from '../../implementacion/EstadoVersionBadge/EstadoVersionBadge';
 import { contieneTexto } from '../../../../domain/implementacion/filtrosColumna';
 import { textoConteo } from '../../../../utils/formatters';
 import type { VersionElegible } from '../../../../types/implementacion';

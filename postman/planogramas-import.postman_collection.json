@@ -26205,6 +26205,1925 @@
       ]
     },
     {
+      "name": "21 - Consolidado tiendas",
+      "description": "Consolidado Tiendas (módulo 21, solo analista): todas las combinaciones SKU–tienda–versión de lo que las tiendas montan (versiones publicado y piloto asignadas). Ver Arquitectura/Contratos/21_consolidado/ y back/src/infrastructure/http/routes/consolidado.routes.js. No crea datos propios: reutiliza los fixtures de \"16 - Implementación\" (tienda activa con una versión en piloto de un SKU fixture, y una versión en borrador sin asignar), así que debe correr DESPUÉS de esa carpeta en la misma corrida. No hay escenario 403 (haría falta un token sin permisos de analista) ni 429 (cupo por usuario).",
+      "item": [
+        {
+          "name": "Listar consolidado de tiendas (GET /consolidado/tiendas)",
+          "item": [
+            {
+              "name": "200 - Sin filtros: forma paginada y resumen",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const b = pm.response.json();",
+                      "pm.test('Forma paginada con resumen', () => { pm.expect(b).to.have.all.keys('data', 'total', 'page', 'pageSize', 'resumen'); pm.expect(b.data).to.be.an('array'); pm.expect(b.total).to.be.a('number'); pm.expect(b.resumen).to.have.all.keys('filas', 'skus', 'tiendas', 'gruposConVariosPlanogramas', 'conteos', 'maximoExportacion'); pm.expect(b.resumen.conteos).to.have.all.keys('PLANOGRAMA', 'CROSS', 'IMPULSO', 'AGREGADO'); });",
+                      "pm.test('Valores por defecto: página 1 de 50', () => { pm.expect(b.page).to.eql(1); pm.expect(b.pageSize).to.eql(50); });",
+                      "pm.test('Al menos la tienda de prueba aporta un grupo; total = grupos SKU–tienda', () => { pm.expect(b.total).to.be.at.least(1); pm.expect(b.total).to.eql(b.resumen.conteos.AGREGADO); pm.expect(b.resumen.maximoExportacion).to.be.a('number'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Filtrando por la tienda de prueba: una fila de planograma de la versión en piloto",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?tiendaIds={{tiendaIdImplementacion}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "tiendaIds",
+                      "value": "{{tiendaIdImplementacion}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const b = pm.response.json();",
+                      "pm.test('Forma paginada con resumen', () => { pm.expect(b).to.have.all.keys('data', 'total', 'page', 'pageSize', 'resumen'); pm.expect(b.data).to.be.an('array'); pm.expect(b.total).to.be.a('number'); pm.expect(b.resumen).to.have.all.keys('filas', 'skus', 'tiendas', 'gruposConVariosPlanogramas', 'conteos', 'maximoExportacion'); pm.expect(b.resumen.conteos).to.have.all.keys('PLANOGRAMA', 'CROSS', 'IMPULSO', 'AGREGADO'); });",
+                      "const sku = String(pm.collectionVariables.get('skuExistente')); const tid = Number(pm.collectionVariables.get('tiendaIdImplementacion')); pm.test('Un grupo con el SKU fixture en la versión piloto', () => { pm.expect(b.total).to.eql(1); const g = b.data[0]; pm.expect(g).to.have.all.keys('sku', 'producto', 'tienda', 'planogramasEnTienda', 'planograma', 'otras'); pm.expect(g.sku).to.eql(sku); pm.expect(g.tienda.id).to.eql(tid); pm.expect(g.planogramasEnTienda).to.eql(1); pm.expect(g.otras).to.eql([]); pm.expect(g.planograma.length).to.eql(1); const f = g.planograma[0]; pm.expect(f.versionId).to.eql(Number(pm.collectionVariables.get('versionIdImplementacion'))); pm.expect(f.estadoVersion).to.eql('piloto'); pm.expect(f.modo).to.eql('PLANOGRAMA'); pm.expect(f.facings).to.eql(2); });",
+                      "pm.test('La fila tiene exactamente las claves del contrato', () => { const f = b.data[0].planograma[0]; pm.expect(f).to.have.all.keys('versionId', 'codigoVersion', 'planogramaId', 'planogramaNombre', 'estadoVersion', 'modo', 'ubicaciones', 'accesorios', 'facings', 'cantidadApilable', 'capacidadFacing', 'capacidadMaxima', 'minEstetico', 'minFinal', 'maxFinal', 'minVaria', 'maxVaria', 'perfil', 'decision', 'observaciones', 'montaje'); pm.expect(f.ubicaciones[0]).to.have.all.keys('posicionId', 'gondola', 'porUbicar', 'seccion', 'nivel', 'orden', 'ganchos'); pm.expect(f.montaje).to.have.all.keys('colganteExterno', 'display', 'desborda', 'notaDesborde'); });",
+                      "pm.test('El resumen cuenta lo filtrado', () => { pm.expect(b.resumen.filas).to.eql(1); pm.expect(b.resumen.skus).to.eql(1); pm.expect(b.resumen.tiendas).to.eql(1); pm.expect(b.resumen.gruposConVariosPlanogramas).to.eql(0); pm.expect(b.resumen.conteos).to.eql({ PLANOGRAMA: 1, CROSS: 0, IMPULSO: 0, AGREGADO: 1 }); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Con tiendaIds, versionIds, estados, búsqueda y orden",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?tiendaIds={{tiendaIdImplementacion}}&versionIds={{versionIdImplementacion}}&estados=piloto&busqueda={{skuExistente}}&orden=producto&direccion=desc&pageSize=25",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "tiendaIds",
+                      "value": "{{tiendaIdImplementacion}}"
+                    },
+                    {
+                      "key": "versionIds",
+                      "value": "{{versionIdImplementacion}}"
+                    },
+                    {
+                      "key": "estados",
+                      "value": "piloto"
+                    },
+                    {
+                      "key": "busqueda",
+                      "value": "{{skuExistente}}"
+                    },
+                    {
+                      "key": "orden",
+                      "value": "producto"
+                    },
+                    {
+                      "key": "direccion",
+                      "value": "desc"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "25"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const b = pm.response.json();",
+                      "pm.test('Forma paginada con resumen', () => { pm.expect(b).to.have.all.keys('data', 'total', 'page', 'pageSize', 'resumen'); pm.expect(b.data).to.be.an('array'); pm.expect(b.total).to.be.a('number'); pm.expect(b.resumen).to.have.all.keys('filas', 'skus', 'tiendas', 'gruposConVariosPlanogramas', 'conteos', 'maximoExportacion'); pm.expect(b.resumen.conteos).to.have.all.keys('PLANOGRAMA', 'CROSS', 'IMPULSO', 'AGREGADO'); });",
+                      "pm.test('Un grupo y pageSize 25', () => { pm.expect(b.total).to.eql(1); pm.expect(b.pageSize).to.eql(25); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Estado publicado: la versión de prueba está en piloto, no aparece",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?tiendaIds={{tiendaIdImplementacion}}&estados=publicado",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "tiendaIds",
+                      "value": "{{tiendaIdImplementacion}}"
+                    },
+                    {
+                      "key": "estados",
+                      "value": "publicado"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const b = pm.response.json();",
+                      "pm.test('Forma paginada con resumen', () => { pm.expect(b).to.have.all.keys('data', 'total', 'page', 'pageSize', 'resumen'); pm.expect(b.data).to.be.an('array'); pm.expect(b.total).to.be.a('number'); pm.expect(b.resumen).to.have.all.keys('filas', 'skus', 'tiendas', 'gruposConVariosPlanogramas', 'conteos', 'maximoExportacion'); pm.expect(b.resumen.conteos).to.have.all.keys('PLANOGRAMA', 'CROSS', 'IMPULSO', 'AGREGADO'); });",
+                      "pm.test('Sin grupos', () => { pm.expect(b.total).to.eql(0); pm.expect(b.data).to.eql([]); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Versión en borrador (versionIds): 0 filas",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?versionIds={{versionIdImplementacionNoAsignada}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "versionIds",
+                      "value": "{{versionIdImplementacionNoAsignada}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const b = pm.response.json();",
+                      "pm.test('Forma paginada con resumen', () => { pm.expect(b).to.have.all.keys('data', 'total', 'page', 'pageSize', 'resumen'); pm.expect(b.data).to.be.an('array'); pm.expect(b.total).to.be.a('number'); pm.expect(b.resumen).to.have.all.keys('filas', 'skus', 'tiendas', 'gruposConVariosPlanogramas', 'conteos', 'maximoExportacion'); pm.expect(b.resumen.conteos).to.have.all.keys('PLANOGRAMA', 'CROSS', 'IMPULSO', 'AGREGADO'); });",
+                      "pm.test('Un borrador nunca se consolida', () => { pm.expect(b.total).to.eql(0); pm.expect(b.data).to.eql([]); pm.expect(b.resumen.filas).to.eql(0); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Vista CROSS de la tienda de prueba: sin filas",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?tiendaIds={{tiendaIdImplementacion}}&vista=CROSS",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "tiendaIds",
+                      "value": "{{tiendaIdImplementacion}}"
+                    },
+                    {
+                      "key": "vista",
+                      "value": "CROSS"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const b = pm.response.json();",
+                      "pm.test('Forma paginada con resumen', () => { pm.expect(b).to.have.all.keys('data', 'total', 'page', 'pageSize', 'resumen'); pm.expect(b.data).to.be.an('array'); pm.expect(b.total).to.be.a('number'); pm.expect(b.resumen).to.have.all.keys('filas', 'skus', 'tiendas', 'gruposConVariosPlanogramas', 'conteos', 'maximoExportacion'); pm.expect(b.resumen.conteos).to.have.all.keys('PLANOGRAMA', 'CROSS', 'IMPULSO', 'AGREGADO'); });",
+                      "pm.test('Total cuenta filas cross', () => { pm.expect(b.total).to.eql(0); pm.expect(b.data).to.eql([]); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Vista IMPULSO de la tienda de prueba: sin filas",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?tiendaIds={{tiendaIdImplementacion}}&vista=IMPULSO",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "tiendaIds",
+                      "value": "{{tiendaIdImplementacion}}"
+                    },
+                    {
+                      "key": "vista",
+                      "value": "IMPULSO"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const b = pm.response.json();",
+                      "pm.test('Forma paginada con resumen', () => { pm.expect(b).to.have.all.keys('data', 'total', 'page', 'pageSize', 'resumen'); pm.expect(b.data).to.be.an('array'); pm.expect(b.total).to.be.a('number'); pm.expect(b.resumen).to.have.all.keys('filas', 'skus', 'tiendas', 'gruposConVariosPlanogramas', 'conteos', 'maximoExportacion'); pm.expect(b.resumen.conteos).to.have.all.keys('PLANOGRAMA', 'CROSS', 'IMPULSO', 'AGREGADO'); });",
+                      "pm.test('Total cuenta filas impulso', () => { pm.expect(b.total).to.eql(0); pm.expect(b.data).to.eql([]); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - soloDuplicados en la tienda de prueba: ningún SKU en más de un planograma",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?tiendaIds={{tiendaIdImplementacion}}&soloDuplicados=true",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "tiendaIds",
+                      "value": "{{tiendaIdImplementacion}}"
+                    },
+                    {
+                      "key": "soloDuplicados",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const b = pm.response.json();",
+                      "pm.test('Forma paginada con resumen', () => { pm.expect(b).to.have.all.keys('data', 'total', 'page', 'pageSize', 'resumen'); pm.expect(b.data).to.be.an('array'); pm.expect(b.total).to.be.a('number'); pm.expect(b.resumen).to.have.all.keys('filas', 'skus', 'tiendas', 'gruposConVariosPlanogramas', 'conteos', 'maximoExportacion'); pm.expect(b.resumen.conteos).to.have.all.keys('PLANOGRAMA', 'CROSS', 'IMPULSO', 'AGREGADO'); });",
+                      "pm.test('Sin grupos duplicados', () => { pm.expect(b.total).to.eql(0); pm.expect(b.data).to.eql([]); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Página fuera de rango: data vacía y total correcto",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?tiendaIds={{tiendaIdImplementacion}}&page=10000",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "tiendaIds",
+                      "value": "{{tiendaIdImplementacion}}"
+                    },
+                    {
+                      "key": "page",
+                      "value": "10000"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const b = pm.response.json();",
+                      "pm.test('Forma paginada con resumen', () => { pm.expect(b).to.have.all.keys('data', 'total', 'page', 'pageSize', 'resumen'); pm.expect(b.data).to.be.an('array'); pm.expect(b.total).to.be.a('number'); pm.expect(b.resumen).to.have.all.keys('filas', 'skus', 'tiendas', 'gruposConVariosPlanogramas', 'conteos', 'maximoExportacion'); pm.expect(b.resumen.conteos).to.have.all.keys('PLANOGRAMA', 'CROSS', 'IMPULSO', 'AGREGADO'); });",
+                      "pm.test('data vacía, total 1, page 10000', () => { pm.expect(b.data).to.eql([]); pm.expect(b.total).to.eql(1); pm.expect(b.page).to.eql(10000); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 o 503 - Con jerarquía (CATI): 503 SERVICIO_NO_DISPONIBLE sin datos parciales si CATI no responde",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?tiendaIds={{tiendaIdImplementacion}}&departamento={{jerarquiaDepartamentoIdExistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "tiendaIds",
+                      "value": "{{tiendaIdImplementacion}}"
+                    },
+                    {
+                      "key": "departamento",
+                      "value": "{{jerarquiaDepartamentoIdExistente}}"
+                    }
+                  ]
+                },
+                "description": "Depende de CATI: acepta 200 (filtra por los SKUs del departamento) o 503 (CATI caído; nunca datos parciales)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 o 503', () => pm.expect([200, 503]).to.include(pm.response.code));",
+                      "if (pm.response.code === 200) { const b = pm.response.json(); pm.test('Forma paginada', () => { pm.expect(b).to.have.all.keys('data', 'total', 'page', 'pageSize', 'resumen'); pm.expect(b.data).to.be.an('array'); }); } else { pm.test('Error estándar sin datos', () => { const j = pm.response.json(); pm.expect(j.error).to.have.property('code'); pm.expect(j).to.not.have.property('data'); }); }"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Parámetro desconocido",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?foo=1",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "foo",
+                      "value": "1"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Parámetro repetido (tiendaIds dos veces)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?tiendaIds=1&tiendaIds=2",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "tiendaIds",
+                      "value": "1"
+                    },
+                    {
+                      "key": "tiendaIds",
+                      "value": "2"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - tiendaIds con elemento vacío (1,,2)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?tiendaIds=1,,2",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "tiendaIds",
+                      "value": "1,,2"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - tiendaIds con elemento no entero (1,abc)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?tiendaIds=1,abc",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "tiendaIds",
+                      "value": "1,abc"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - tiendaIds con 0",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?tiendaIds=0",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "tiendaIds",
+                      "value": "0"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - tiendaIds con más de 200 elementos",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?tiendaIds=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "tiendaIds",
+                      "value": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - tiendaIds de 5 000 caracteres",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?tiendaIds=11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "tiendaIds",
+                      "value": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - estados con un valor fuera de la lista (borrador)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?estados=borrador",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "estados",
+                      "value": "borrador"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - orden fuera de la lista (intento de inyección)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?orden=sku;DROP%20TABLE%20Posicion",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "orden",
+                      "value": "sku;DROP%20TABLE%20Posicion"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - pageSize fuera de la lista",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?pageSize=100000",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "pageSize",
+                      "value": "100000"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - page no entero",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?page=1.5",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1.5"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - page mayor que 10000",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?page=10001",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "10001"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Jerarquía vacía (area=)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?area=",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "area",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Jerarquía con caracteres no permitidos",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?area=A%20B",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "area",
+                      "value": "A%20B"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - busqueda de más de 100 caracteres",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?busqueda=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "busqueda",
+                      "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - soloDuplicados=true con vista CROSS",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas?soloDuplicados=true&vista=CROSS",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ],
+                  "query": [
+                    {
+                      "key": "soloDuplicados",
+                      "value": "true"
+                    },
+                    {
+                      "key": "vista",
+                      "value": "CROSS"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "401 - Sin header Authorization",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));",
+                      "pm.test('error.code UNAUTHORIZED', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'UNAUTHORIZED'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Obtener filtros del consolidado (GET /consolidado/tiendas/filtros)",
+          "item": [
+            {
+              "name": "200 - Tiendas y versiones montables",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas/filtros",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas",
+                    "filtros"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const b = pm.response.json();",
+                      "pm.test('Forma { tiendas, versiones }', () => { pm.expect(b).to.have.all.keys('tiendas', 'versiones'); pm.expect(b.tiendas).to.be.an('array'); pm.expect(b.versiones).to.be.an('array'); });",
+                      "pm.test('La tienda de prueba aparece con 1 SKU', () => { const t = b.tiendas.find((x) => x.id === Number(pm.collectionVariables.get('tiendaIdImplementacion'))); pm.expect(t).to.be.an('object'); pm.expect(t).to.have.all.keys('id', 'codigo', 'nombre', 'tipo', 'marca', 'totalSkus'); pm.expect(t.totalSkus).to.eql(1); });",
+                      "pm.test('La versión en piloto aparece con 1 producto', () => { const v = b.versiones.find((x) => x.versionId === Number(pm.collectionVariables.get('versionIdImplementacion'))); pm.expect(v).to.be.an('object'); pm.expect(v).to.have.all.keys('versionId', 'codigo', 'estado', 'nombre', 'descripcion', 'departamento', 'totalProductos'); pm.expect(v.estado).to.eql('piloto'); pm.expect(v.totalProductos).to.eql(1); });",
+                      "pm.test('Solo versiones publicadas o en piloto; el borrador no aparece', () => { pm.expect(b.versiones.every((v) => ['publicado', 'piloto'].includes(v.estado))).to.eql(true); pm.expect(b.versiones.some((v) => v.versionId === Number(pm.collectionVariables.get('versionIdImplementacionNoAsignada')))).to.eql(false); });",
+                      "pm.test('Tiendas sin versión montable o inactivas no aparecen', () => { const ids = b.tiendas.map((t) => t.id); pm.expect(ids).to.not.include(Number(pm.collectionVariables.get('tiendaIdImplementacionSinVersiones'))); pm.expect(ids).to.not.include(Number(pm.collectionVariables.get('tiendaIdImplementacionInactiva'))); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Cualquier parámetro es inválido",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas/filtros?foo=1",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas",
+                    "filtros"
+                  ],
+                  "query": [
+                    {
+                      "key": "foo",
+                      "value": "1"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "401 - Sin header Authorization",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas/filtros",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas",
+                    "filtros"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));",
+                      "pm.test('error.code UNAUTHORIZED', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'UNAUTHORIZED'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Descargar consolidado (GET /consolidado/tiendas/exportar)",
+          "description": "El 422 EXPORTACION_DEMASIADO_GRANDE y el 503 EXPORTACION_EN_CURSO no se pueden provocar de forma repetible con esta colección (exigen CONSOLIDADO_EXPORTACION_MAX_FILAS bajo y dos descargas simultáneas): se cubren con las pruebas de back/test y se verifican a mano. El 429 (5 descargas por minuto por usuario) tampoco se automatiza.",
+          "item": [
+            {
+              "name": "200 - DETALLADO con filtro por la tienda de prueba",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas/exportar?tiendaIds={{tiendaIdImplementacion}}&formato=DETALLADO&columnas=sku,producto,tienda,version,minFinal,maxFinal",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas",
+                    "exportar"
+                  ],
+                  "query": [
+                    {
+                      "key": "tiendaIds",
+                      "value": "{{tiendaIdImplementacion}}"
+                    },
+                    {
+                      "key": "formato",
+                      "value": "DETALLADO"
+                    },
+                    {
+                      "key": "columnas",
+                      "value": "sku,producto,tienda,version,minFinal,maxFinal"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type de .xlsx', () => pm.expect(pm.response.headers.get('Content-Type')).to.eql('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'));",
+                      "pm.test('Content-Disposition con el nombre del archivo', () => pm.expect(pm.response.headers.get('Content-Disposition')).to.match(/^attachment; filename=\"consolidado-tiendas-detallado-\\d{8}\\.xlsx\"$/));",
+                      "pm.test('Cache-Control no-store y Content-Length', () => { pm.expect(pm.response.headers.get('Cache-Control')).to.eql('no-store'); pm.expect(Number(pm.response.headers.get('Content-Length'))).to.be.above(0); });",
+                      "pm.test('El cuerpo es un zip (.xlsx)', () => { const s = pm.response.stream; pm.expect(s[0]).to.eql(0x50); pm.expect(s[1]).to.eql(0x4b); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - AGREGADO (Min/Max)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas/exportar?tiendaIds={{tiendaIdImplementacion}}&formato=AGREGADO&columnas=sku,producto,tienda,version,minFinal,maxFinal",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas",
+                    "exportar"
+                  ],
+                  "query": [
+                    {
+                      "key": "tiendaIds",
+                      "value": "{{tiendaIdImplementacion}}"
+                    },
+                    {
+                      "key": "formato",
+                      "value": "AGREGADO"
+                    },
+                    {
+                      "key": "columnas",
+                      "value": "sku,producto,tienda,version,minFinal,maxFinal"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type de .xlsx', () => pm.expect(pm.response.headers.get('Content-Type')).to.eql('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'));",
+                      "pm.test('Content-Disposition con el nombre del archivo', () => pm.expect(pm.response.headers.get('Content-Disposition')).to.match(/^attachment; filename=\"consolidado-tiendas-minmax-\\d{8}\\.xlsx\"$/));",
+                      "pm.test('Cache-Control no-store y Content-Length', () => { pm.expect(pm.response.headers.get('Cache-Control')).to.eql('no-store'); pm.expect(Number(pm.response.headers.get('Content-Length'))).to.be.above(0); });",
+                      "pm.test('El cuerpo es un zip (.xlsx)', () => { const s = pm.response.stream; pm.expect(s[0]).to.eql(0x50); pm.expect(s[1]).to.eql(0x4b); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - HOJAS con Planograma y Cross",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas/exportar?tiendaIds={{tiendaIdImplementacion}}&formato=HOJAS&hojas=PLANOGRAMA,CROSS&columnas=sku,producto,tienda,version,minFinal,maxFinal",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas",
+                    "exportar"
+                  ],
+                  "query": [
+                    {
+                      "key": "tiendaIds",
+                      "value": "{{tiendaIdImplementacion}}"
+                    },
+                    {
+                      "key": "formato",
+                      "value": "HOJAS"
+                    },
+                    {
+                      "key": "hojas",
+                      "value": "PLANOGRAMA,CROSS"
+                    },
+                    {
+                      "key": "columnas",
+                      "value": "sku,producto,tienda,version,minFinal,maxFinal"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type de .xlsx', () => pm.expect(pm.response.headers.get('Content-Type')).to.eql('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'));",
+                      "pm.test('Content-Disposition con el nombre del archivo', () => pm.expect(pm.response.headers.get('Content-Disposition')).to.match(/^attachment; filename=\"consolidado-tiendas-hojas-\\d{8}\\.xlsx\"$/));",
+                      "pm.test('Cache-Control no-store y Content-Length', () => { pm.expect(pm.response.headers.get('Cache-Control')).to.eql('no-store'); pm.expect(Number(pm.response.headers.get('Content-Length'))).to.be.above(0); });",
+                      "pm.test('El cuerpo es un zip (.xlsx)', () => { const s = pm.response.stream; pm.expect(s[0]).to.eql(0x50); pm.expect(s[1]).to.eql(0x4b); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - Sin filas: solo encabezados (versión en borrador)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas/exportar?versionIds={{versionIdImplementacionNoAsignada}}&formato=DETALLADO&columnas=sku,modo",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas",
+                    "exportar"
+                  ],
+                  "query": [
+                    {
+                      "key": "versionIds",
+                      "value": "{{versionIdImplementacionNoAsignada}}"
+                    },
+                    {
+                      "key": "formato",
+                      "value": "DETALLADO"
+                    },
+                    {
+                      "key": "columnas",
+                      "value": "sku,modo"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type de .xlsx', () => pm.expect(pm.response.headers.get('Content-Type')).to.eql('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'));",
+                      "pm.test('Content-Disposition con el nombre del archivo', () => pm.expect(pm.response.headers.get('Content-Disposition')).to.match(/^attachment; filename=\"consolidado-tiendas-detallado-\\d{8}\\.xlsx\"$/));",
+                      "pm.test('Cache-Control no-store y Content-Length', () => { pm.expect(pm.response.headers.get('Cache-Control')).to.eql('no-store'); pm.expect(Number(pm.response.headers.get('Content-Length'))).to.be.above(0); });",
+                      "pm.test('El cuerpo es un zip (.xlsx)', () => { const s = pm.response.stream; pm.expect(s[0]).to.eql(0x50); pm.expect(s[1]).to.eql(0x4b); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Sin formato",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas/exportar?columnas=sku,producto,tienda,version,minFinal,maxFinal",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas",
+                    "exportar"
+                  ],
+                  "query": [
+                    {
+                      "key": "columnas",
+                      "value": "sku,producto,tienda,version,minFinal,maxFinal"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - formato fuera de la lista",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas/exportar?formato=CSV&columnas=sku,producto,tienda,version,minFinal,maxFinal",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas",
+                    "exportar"
+                  ],
+                  "query": [
+                    {
+                      "key": "formato",
+                      "value": "CSV"
+                    },
+                    {
+                      "key": "columnas",
+                      "value": "sku,producto,tienda,version,minFinal,maxFinal"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - HOJAS sin hojas",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas/exportar?formato=HOJAS&columnas=sku,producto,tienda,version,minFinal,maxFinal",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas",
+                    "exportar"
+                  ],
+                  "query": [
+                    {
+                      "key": "formato",
+                      "value": "HOJAS"
+                    },
+                    {
+                      "key": "columnas",
+                      "value": "sku,producto,tienda,version,minFinal,maxFinal"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - hojas con un formato distinto de HOJAS",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas/exportar?formato=DETALLADO&hojas=CROSS&columnas=sku,producto,tienda,version,minFinal,maxFinal",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas",
+                    "exportar"
+                  ],
+                  "query": [
+                    {
+                      "key": "formato",
+                      "value": "DETALLADO"
+                    },
+                    {
+                      "key": "hojas",
+                      "value": "CROSS"
+                    },
+                    {
+                      "key": "columnas",
+                      "value": "sku,producto,tienda,version,minFinal,maxFinal"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - hojas con un valor fuera de la lista",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas/exportar?formato=HOJAS&hojas=OTRA&columnas=sku,producto,tienda,version,minFinal,maxFinal",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas",
+                    "exportar"
+                  ],
+                  "query": [
+                    {
+                      "key": "formato",
+                      "value": "HOJAS"
+                    },
+                    {
+                      "key": "hojas",
+                      "value": "OTRA"
+                    },
+                    {
+                      "key": "columnas",
+                      "value": "sku,producto,tienda,version,minFinal,maxFinal"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Sin columnas",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas/exportar?formato=DETALLADO",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas",
+                    "exportar"
+                  ],
+                  "query": [
+                    {
+                      "key": "formato",
+                      "value": "DETALLADO"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Columna fuera de la lista blanca (__proto__): details.columnasInvalidas",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas/exportar?formato=DETALLADO&columnas=sku,__proto__",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas",
+                    "exportar"
+                  ],
+                  "query": [
+                    {
+                      "key": "formato",
+                      "value": "DETALLADO"
+                    },
+                    {
+                      "key": "columnas",
+                      "value": "sku,__proto__"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });",
+                      "pm.test('details.columnasInvalidas', () => pm.expect(pm.response.json().error.details).to.eql({ columnasInvalidas: ['__proto__'] }));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Columnas duplicadas",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas/exportar?formato=DETALLADO&columnas=sku,sku",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas",
+                    "exportar"
+                  ],
+                  "query": [
+                    {
+                      "key": "formato",
+                      "value": "DETALLADO"
+                    },
+                    {
+                      "key": "columnas",
+                      "value": "sku,sku"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Parámetro de listado prohibido (vista)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas/exportar?formato=DETALLADO&columnas=sku,producto,tienda,version,minFinal,maxFinal&vista=CROSS",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas",
+                    "exportar"
+                  ],
+                  "query": [
+                    {
+                      "key": "formato",
+                      "value": "DETALLADO"
+                    },
+                    {
+                      "key": "columnas",
+                      "value": "sku,producto,tienda,version,minFinal,maxFinal"
+                    },
+                    {
+                      "key": "vista",
+                      "value": "CROSS"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Parámetro desconocido",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas/exportar?formato=DETALLADO&columnas=sku,producto,tienda,version,minFinal,maxFinal&foo=1",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas",
+                    "exportar"
+                  ],
+                  "query": [
+                    {
+                      "key": "formato",
+                      "value": "DETALLADO"
+                    },
+                    {
+                      "key": "columnas",
+                      "value": "sku,producto,tienda,version,minFinal,maxFinal"
+                    },
+                    {
+                      "key": "foo",
+                      "value": "1"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code VALIDATION_ERROR', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'VALIDATION_ERROR'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "401 - Sin header Authorization",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/consolidado/tiendas/exportar?formato=DETALLADO&columnas=sku,producto,tienda,version,minFinal,maxFinal",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "consolidado",
+                    "tiendas",
+                    "exportar"
+                  ],
+                  "query": [
+                    {
+                      "key": "formato",
+                      "value": "DETALLADO"
+                    },
+                    {
+                      "key": "columnas",
+                      "value": "sku,producto,tienda,version,minFinal,maxFinal"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));",
+                      "pm.test('error.code UNAUTHORIZED', () => { const e = pm.response.json().error; pm.expect(e).to.have.property('code', 'UNAUTHORIZED'); pm.expect(e.message).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "voz",
       "description": "Modo voz del chat del Agente extractor. Los casos de éxito llaman a OpenAI (consumen créditos, requieren OPENIA_TOKEN). Todo el módulo comparte un rate limit de 30 req/min por IP.",
       "item": [

@@ -6,7 +6,7 @@ const { describe, it } = require('node:test');
 const assert           = require('node:assert/strict');
 
 const {
-  normalizarGancho, numeroGancho, esGanchoExhibicion, compararGanchos, parsearGanchosJson,
+  normalizarGancho, numeroGancho, esGanchoExhibicion, compararGanchos, parsearGanchosJson, textoGancho,
 } = require('../../src/domain/compartido/gancho');
 
 describe('gancho', () => {
@@ -41,5 +41,11 @@ describe('gancho', () => {
     assert.deepEqual(parsearGanchosJson('[4,9]'), [4, 9]);
     assert.deepEqual(parsearGanchosJson('[4,4,"x"]'), [4]);
     for (const malo of ['x', '{}', '[]', null, '']) assert.equal(parsearGanchosJson(malo), null);
+  });
+
+  it('textoGancho: número con 2 dígitos, exhibición tal cual', () => {
+    assert.equal(textoGancho(5), '05');
+    assert.equal(textoGancho(54), '54');
+    assert.equal(textoGancho('54E'), '54E');
   });
 });

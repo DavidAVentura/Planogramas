@@ -62,6 +62,19 @@ function validarConJoi(schema, datos) {
 }
 
 /**
+ * Validación estricta de la query (módulo 21): rechaza cualquier parámetro desconocido en lugar de
+ * descartarlo en silencio como hace `validarConJoi` (stripUnknown). Relanza el error de Joi.
+ * @param {import('joi').Schema} schema
+ * @param {any} datos
+ * @returns {any} valor validado, con los valores por defecto aplicados
+ */
+function validarQueryEstricta(schema, datos) {
+  const { error, value } = schema.validate(datos, { abortEarly: false, allowUnknown: false, stripUnknown: false, convert: true });
+  if (error) throw error;
+  return value;
+}
+
+/**
  * Usuario del JWT (lo deja el middleware de autenticación en `req.usuario`).
  * @param {import('express').Request} req
  * @returns {string}
@@ -88,6 +101,7 @@ module.exports = {
   parsearEnteroPositivo,
   parsearListaEnterosPositivos,
   validarConJoi,
+  validarQueryEstricta,
   usuarioActual,
   usuarioAuditoria,
 };

@@ -1,0 +1,365 @@
+/* Mismo formato compacto que ProductosFiltros: controles de 38px, etiquetas solo para lectores de pantalla. */
+.consolidado-filtros {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+
+  &[hidden] { display: none; }
+}
+
+.consolidado-filtros__fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.consolidado-filtros__fila--jerarquia { justify-content: space-between; }
+
+.consolidado-filtros__campo {
+  display: flex;
+  --boton-seleccion-alto: 38px;
+
+  input {
+    height: 38px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--fg-1);
+    background: var(--white);
+
+    &:focus {
+      outline: 3px solid var(--cemaco-indigo-100);
+      border-color: var(--cemaco-indigo);
+    }
+  }
+}
+
+/* La búsqueda toma el ancho sobrante de la fila. */
+.consolidado-filtros__campo--busqueda {
+  flex: 1 1 220px;
+
+  input { width: 100%; }
+}
+
+.consolidado-filtros__oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Aviso cuando fallan las opciones de tienda y versión. */
+.consolidado-filtros__aviso {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-2);
+}
+
+/* Disparador del modal de versiones: mismo aspecto que el de Por versión, a 38px. */
+.consolidado-filtros__selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 260px;
+  max-width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--fg-1);
+  text-align: left;
+  cursor: pointer;
+
+  svg {
+    flex: none;
+    color: var(--fg-2);
+  }
+
+  &:hover { background: var(--ink-50); }
+
+  &:focus-visible {
+    outline: 3px solid var(--cemaco-indigo-100);
+    border-color: var(--cemaco-indigo);
+  }
+}
+
+.consolidado-filtros__selector--activo,
+.consolidado-filtros__selector--activo:hover {
+  border-color: var(--cemaco-indigo);
+  background: var(--cemaco-indigo-50);
+  font-weight: 600;
+}
+
+.consolidado-filtros__selector-texto {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.consolidado-filtros__selector-conteo {
+  flex: none;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--cemaco-indigo);
+  color: var(--white);
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Chips de tiendas (2 o más) */
+.consolidado-filtros__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.consolidado-filtros__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 4px 3px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--cemaco-indigo-100);
+  color: var(--cemaco-indigo);
+  font-size: 12px;
+  font-weight: 600;
+
+  button {
+    padding: 0 4px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+  }
+}
+
+/* Chips de versiones (2 o más): réplica de los de Por versión */
+.consolidado-filtros__versiones {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--white);
+  border: 1px solid var(--cemaco-indigo-200);
+  border-radius: var(--radius-md);
+}
+
+.consolidado-filtros__versiones-titulo {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-2);
+}
+
+.consolidado-filtros__version {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 4px 2px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--cemaco-indigo-50);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cemaco-indigo);
+}
+
+.consolidado-filtros__version-codigo {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.consolidado-filtros__version-quitar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--cemaco-indigo);
+  cursor: pointer;
+
+  &:hover { background: var(--cemaco-indigo-100); }
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 1px;
+  }
+}
+
+/* Tipo de aparición: control segmentado con radios nativos */
+.consolidado-filtros__tipo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.consolidado-filtros__rotulo {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+.consolidado-filtros__opcion-tipo {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-2);
+  cursor: pointer;
+
+  input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  &:hover { background: var(--ink-50); }
+
+  &:has(input:checked) {
+    border-color: var(--cemaco-indigo);
+    background: var(--cemaco-indigo-50);
+    color: var(--cemaco-indigo);
+  }
+
+  &:has(input:focus-visible) {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 2px;
+  }
+}
+
+.consolidado-filtros__duplicados {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-2);
+
+  &:has(input:disabled) {
+    color: var(--fg-4);
+    cursor: not-allowed;
+  }
+}
+
+@media (width <= 640px) {
+  .consolidado-filtros__fila {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .consolidado-filtros__selector { width: 100%; }
+
+  .consolidado-filtros__tipo {
+    flex-wrap: wrap;
+  }
+}
+
+/* Modo extendido: filtros activos en una sola fila */
+.consolidado-filtros-compacto {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: 8px;
+}
+
+.consolidado-filtros-compacto__chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  flex: 1;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.consolidado-filtros-compacto__vacio {
+  font-size: 13px;
+  color: var(--fg-3);
+}
+
+.consolidado-filtros-compacto__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 280px;
+  padding: 3px 4px 3px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--cemaco-indigo-100);
+  color: var(--cemaco-indigo);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  button {
+    padding: 0 4px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+  }
+}
+
+/* La vista no se quita desde aquí: chip gris sin ✕. */
+.consolidado-filtros-compacto__chip--vista {
+  padding-right: 10px;
+  background: var(--ink-100);
+  color: var(--fg-2);
+}
+
+.consolidado-filtros-compacto__alternar {
+  flex: none;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cemaco-indigo);
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover { background: var(--cemaco-indigo-50); }
+}

@@ -1,9 +1,7 @@
 import { useMemo, useState } from 'react';
 import { AppTopbar } from '../../components/dominio/layout/AppTopbar/AppTopbar';
-import {
-  NIVELES_JERARQUIA,
-  ProductosFiltros,
-} from '../../components/dominio/productos/ProductosFiltros/ProductosFiltros';
+import { ProductosFiltros } from '../../components/dominio/productos/ProductosFiltros/ProductosFiltros';
+import { NIVELES_JERARQUIA } from '../../components/dominio/productos/CadenaJerarquia/CadenaJerarquia';
 import { BotonFiltros } from '../../components/ui/BotonFiltros/BotonFiltros';
 import { ProductosTable } from '../../components/dominio/productos/ProductosTable/ProductosTable';
 import { FILTROS_PRODUCTOS_INICIALES, JERARQUIA_VACIA } from '../../constants/productos';

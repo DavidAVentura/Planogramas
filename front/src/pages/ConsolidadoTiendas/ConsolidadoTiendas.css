@@ -1,0 +1,134 @@
+/* Encabezado: título, "Solo lectura" y resumen de lo filtrado */
+.consolidado__cabecera {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
+.consolidado__titulos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.consolidado__titulo {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.consolidado__solo-lectura {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--ink-100);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--fg-2);
+}
+
+.consolidado__resumen {
+  margin: 0;
+  font-size: 13px;
+  color: var(--fg-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tarjeta de herramientas: conteo, acciones y (debajo) la barra de filtros */
+.consolidado__herramientas {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.consolidado__fila-herramientas {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 40px;
+}
+
+.consolidado__conteo {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg-2);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Las acciones se pegan a la derecha. */
+.consolidado__acciones {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.consolidado__boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg-1);
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover { background: var(--ink-100); }
+
+  &:focus-visible {
+    outline: 2px solid var(--cemaco-indigo);
+    outline-offset: 2px;
+  }
+
+  &[aria-pressed='true'] {
+    border-color: var(--cemaco-indigo);
+    background: var(--cemaco-indigo-50);
+    color: var(--cemaco-indigo);
+  }
+}
+
+.consolidado__boton--icono { padding: 0 12px; }
+
+.consolidado__boton-conteo {
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--cemaco-indigo-50);
+  color: var(--cemaco-indigo);
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.consolidado__descargar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.consolidado__estado {
+  margin: 0;
+  padding: 24px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--fg-3);
+}
+
+@media (width <= 760px) {
+  .consolidado__fila-herramientas {
+    flex-wrap: wrap;
+  }
+}

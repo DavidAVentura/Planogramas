@@ -17,6 +17,14 @@ import {
   type DireccionOrden,
   type ValorOrdenable,
 } from '../orden/ordenAnidado';
+import {
+  alternarVisibilidadBase,
+  columnasVisibles,
+  moverColumna,
+  soltarColumna,
+  validarOrdenVisibilidad,
+  type PreferenciasOrdenVisibilidad,
+} from '../columnas/preferenciasColumnas';
 import { contieneTexto, parsearFiltroNumerico } from './filtrosColumna';
 
 export const CLAVES_COLUMNA = [
@@ -268,9 +276,7 @@ export { alternarOrden };
 
 // ─── Preferencias de columnas (orden, visibilidad y orden de filas) ──────────
 
-export interface PreferenciasColumnas {
-  orden: ClaveColumna[];
-  ocultas: ClaveColumna[];
+export interface PreferenciasColumnas extends PreferenciasOrdenVisibilidad<ClaveColumna> {
   criterios: CriterioOrdenProducto[];
 }
 
@@ -287,14 +293,7 @@ export const PREFERENCIAS_INICIALES: PreferenciasColumnas = {
 export function validarPreferencias(crudo: unknown): PreferenciasColumnas {
   if (!crudo || typeof crudo !== 'object') return PREFERENCIAS_INICIALES;
   const datos = crudo as Record<string, unknown>;
-
-  const orden = [...new Set(Array.isArray(datos.orden) ? datos.orden.filter(esClaveColumna) : [])];
-  CLAVES_COLUMNA.forEach((clave) => {
-    if (!orden.includes(clave)) orden.push(clave);
-  });
-
-  let ocultas = [...new Set(Array.isArray(datos.ocultas) ? datos.ocultas.filter(esClaveColumna) : [])];
-  if (ocultas.length >= orden.length) ocultas = [];
+  const { orden, ocultas } = validarOrdenVisibilidad(crudo, CLAVES_COLUMNA, []);
 
   const vistos = new Set<ClaveColumna>();
   const criterios = (Array.isArray(datos.criterios) ? datos.criterios : []).filter(
@@ -314,42 +313,15 @@ export function validarPreferencias(crudo: unknown): PreferenciasColumnas {
   return { orden, ocultas, criterios: criterios.map(({ campo, dir }) => ({ campo, dir: dir as DireccionOrden })) };
 }
 
-/** Mueve una columna `delta` lugares (flechas del teclado en el panel). Fuera de rango: sin cambio. */
-export function moverColumna(orden: ClaveColumna[], clave: ClaveColumna, delta: number): ClaveColumna[] {
-  const i = orden.indexOf(clave);
-  const j = i + delta;
-  if (i < 0 || j < 0 || j >= orden.length) return orden;
-  const nuevo = orden.filter((k) => k !== clave);
-  nuevo.splice(j, 0, clave);
-  return nuevo;
-}
-
-/**
- * Soltar `desde` sobre `hacia`: ocupa el lugar de `hacia`, así que si viene de la izquierda queda
- * después de ella y si viene de la derecha, antes.
- */
-export function soltarColumna(orden: ClaveColumna[], desde: ClaveColumna, hacia: ClaveColumna): ClaveColumna[] {
-  if (desde === hacia || !orden.includes(desde) || !orden.includes(hacia)) return orden;
-  const destino = orden.indexOf(hacia);
-  const nuevo = orden.filter((k) => k !== desde);
-  nuevo.splice(destino, 0, desde);
-  return nuevo;
-}
+// Mover, soltar y listar las visibles viven en la lógica genérica compartida con el Consolidado.
+export { moverColumna, soltarColumna, columnasVisibles };
 
 /**
  * Muestra u oculta una columna. Ocultarla también quita su criterio de orden (y la vista quita su
  * filtro) para no ordenar ni filtrar por algo que no se ve. La última visible no se puede ocultar.
  */
 export function alternarVisibilidad(prefs: PreferenciasColumnas, clave: ClaveColumna): PreferenciasColumnas {
-  if (prefs.ocultas.includes(clave)) return { ...prefs, ocultas: prefs.ocultas.filter((k) => k !== clave) };
-  if (columnasVisibles(prefs).length <= 1) return prefs;
-  return {
-    ...prefs,
-    ocultas: [...prefs.ocultas, clave],
-    criterios: prefs.criterios.filter((c) => c.campo !== clave),
-  };
-}
-
-export function columnasVisibles(prefs: PreferenciasColumnas): ClaveColumna[] {
-  return prefs.orden.filter((k) => !prefs.ocultas.includes(k));
+  const nuevas = alternarVisibilidadBase(prefs, clave);
+  if (nuevas === prefs || !nuevas.ocultas.includes(clave)) return nuevas;
+  return { ...nuevas, criterios: nuevas.criterios.filter((c) => c.campo !== clave) };
 }

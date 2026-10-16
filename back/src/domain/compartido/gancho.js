@@ -33,6 +33,11 @@ function compararGanchos(a, b) {
   return (numeroGancho(a) - numeroGancho(b)) || (Number(esGanchoExhibicion(a)) - Number(esGanchoExhibicion(b)));
 }
 
+/** Texto de presentación: número con 2 dígitos ("05"), exhibición tal cual ("54E"). */
+function textoGancho(g) {
+  return typeof g === 'number' ? String(g).padStart(2, '0') : String(g);
+}
+
 /**
  * Lee el JSON de la columna `Posicion.ganchos`. Tolerante: descarta valores no canónicos y repetidos.
  * Es el único `JSON.parse` de ganchos del backend.
@@ -51,4 +56,4 @@ function parsearGanchosJson(texto) {
   return ganchos.length ? ganchos : null;
 }
 
-module.exports = { normalizarGancho, numeroGancho, esGanchoExhibicion, compararGanchos, parsearGanchosJson };
+module.exports = { normalizarGancho, numeroGancho, esGanchoExhibicion, compararGanchos, parsearGanchosJson, textoGancho };

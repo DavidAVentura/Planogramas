@@ -382,6 +382,17 @@ async function listarSkusPorJerarquia(nivel, id) {
   const cacheado = obtenerDeCache(clave);
   if (cacheado) return cacheado;
 
+  // Deduplicación en vuelo: llamadas simultáneas con la misma clave en frío comparten la paginación.
+  if (skusEnVuelo.has(clave)) return skusEnVuelo.get(clave);
+  const promesa = pedirSkusPorJerarquia(clave, nivel, id).finally(() => skusEnVuelo.delete(clave));
+  skusEnVuelo.set(clave, promesa);
+  return promesa;
+}
+
+/** Promesas de `listarSkusPorJerarquia` en curso, por clave de caché. */
+const skusEnVuelo = new Map();
+
+async function pedirSkusPorJerarquia(clave, nivel, id) {
   const pedirPagina = (pagina) => get('/Product/search', {
     Profile:    'CEMACO',
     PageNumber: String(pagina),

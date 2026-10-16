@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { OPCIONES_POR_MODO } from '../../constants/navegacion';
 import type { UsuarioSesion } from '../../types/usuario';
+import type { OpcionNavegacion } from './permisos';
 import {
   cumpleRegla,
   modoDeRuta,
   modoInicial,
   modosDisponibles,
+  opcionesVisibles,
   REGLAS,
   resolverModo,
   rutaInicio,
@@ -74,5 +76,60 @@ describe('rutaInicio y cumpleRegla', () => {
     expect(cumpleRegla(sinLienzo, REGLAS.lienzo)).toBe(false);
     expect(cumpleRegla(analista, REGLAS.lienzo)).toBe(true);
     expect(cumpleRegla(tienda, REGLAS.analista)).toBe(false);
+  });
+});
+
+describe('opcionesVisibles (grupos con hijos)', () => {
+  it('analista ve el grupo Productos (por planograma y por tienda) y Mantenimiento con Accesorios y Tiendas', () => {
+    const visibles = opcionesVisibles(OPCIONES_POR_MODO.analista, analista);
+    const productos = visibles.find((o) => o.etiqueta === 'Productos');
+    expect(productos?.hijos?.map((h) => h.ruta)).toEqual(['/por-version', '/mantenimiento/consolidado-tiendas']);
+    const mantenimiento = visibles.find((o) => o.etiqueta === 'Mantenimiento');
+    expect(mantenimiento?.hijos?.map((h) => h.ruta)).toEqual(['/accesorios', '/tiendas']);
+  });
+
+  it('implementador no ve el grupo Mantenimiento', () => {
+    expect(opcionesVisibles(OPCIONES_POR_MODO.analista, tienda)).toEqual([]);
+    expect(opcionesVisibles(OPCIONES_POR_MODO.implementador, tienda).some((o) => o.etiqueta === 'Mantenimiento')).toBe(false);
+  });
+
+  it('un grupo cuyo único hijo no cumple la regla se quita', () => {
+    const opciones: OpcionNavegacion[] = [
+      { etiqueta: 'Libre', ruta: '/libre', regla: REGLAS.analista },
+      {
+        etiqueta: 'Grupo',
+        ruta: '/grupo',
+        regla: REGLAS.analista,
+        hijos: [{ etiqueta: 'Lienzo', ruta: '/grupo/lienzo', regla: REGLAS.lienzo }],
+      },
+    ];
+    const sinLienzo = usuario(todos.filter((c) => c !== 'PLA006'), true);
+    expect(opcionesVisibles(opciones, sinLienzo).map((o) => o.etiqueta)).toEqual(['Libre']);
+    expect(opcionesVisibles(opciones, analista).map((o) => o.etiqueta)).toEqual(['Libre', 'Grupo']);
+  });
+
+  it('filtra los hijos que no cumplen y conserva los demás', () => {
+    const opciones: OpcionNavegacion[] = [{
+      etiqueta: 'Grupo',
+      ruta: '/grupo',
+      regla: REGLAS.analista,
+      hijos: [
+        { etiqueta: 'A', ruta: '/grupo/a', regla: REGLAS.lienzo },
+        { etiqueta: 'B', ruta: '/grupo/b', regla: REGLAS.analista },
+      ],
+    }];
+    const sinLienzo = usuario(todos.filter((c) => c !== 'PLA006'), true);
+    expect(opcionesVisibles(opciones, sinLienzo)[0].hijos?.map((h) => h.etiqueta)).toEqual(['B']);
+  });
+
+  it('rutaInicio usa la ruta del primer hijo cuando la primera opción es un grupo', () => {
+    const opciones: OpcionNavegacion[] = [{
+      etiqueta: 'Grupo',
+      ruta: '/grupo',
+      regla: REGLAS.analista,
+      hijos: [{ etiqueta: 'A', ruta: '/grupo/a', regla: REGLAS.analista }],
+    }];
+    expect(rutaInicio(opciones, analista)).toBe('/grupo/a');
+    expect(rutaInicio(opciones, tienda)).toBeNull();
   });
 });
