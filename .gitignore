@@ -15,6 +15,8 @@ out/
 back/.env
 back/.env.local
 back/.env.*.local
+# Conexión a PROD para migraciones (`npm run migrate:prod`); la plantilla es conexion.prod.example.json.
+back/conexion.prod.json
 
 # ─── LOGS ────────────────────────────────────────────────────────────────────
 logs/

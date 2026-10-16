@@ -1,0 +1,9 @@
+{
+  "host": "<servidor>.database.windows.net",
+  "port": 1433,
+  "database": "db-planogramas",
+  "user": "<usuario>",
+  "password": "<contraseña>",
+  "encrypt": true,
+  "trustServerCertificate": false
+}
