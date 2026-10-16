@@ -178,7 +178,7 @@ versión, 21 consolidado de tiendas; sin Postman todavía: 13 adjuntos y agente-
 | Ambiente | BD | Última migración aplicada | Pendientes | Verificado |
 |----------|----|---------------------------|------------|------------|
 | DEV | `OTB` | `017_indices_consolidado.js` | Ninguna | 2026-10-16 (`npm run migrate:status`) |
-| PROD | `db-planogramas` | Sin verificar | Sin verificar; al menos `017_indices_consolidado.js` (no aplicar hasta resolver DT-08) | — |
+| PROD | `db-planogramas` | `017_indices_consolidado.js` | Ninguna | 2026-10-16 (`npm run migrate:prod`, ejecutado por el usuario) |
 
 > **Mantener esta tabla al día.** Cada vez que se cree una migración nueva o se aplique
 > (`npm run migrate`) en un ambiente, actualizar la fila correspondiente con la última migración
