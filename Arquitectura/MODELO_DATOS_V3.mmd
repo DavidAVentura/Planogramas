@@ -188,7 +188,8 @@ erDiagram
         nvarchar    blob_container              "contenedor en Azure Blob Storage"
         nvarchar    blob_path                   "ruta/nombre del blob dentro del contenedor"
         nvarchar    blob_url                    "URL completa sin SAS — ver nota arriba, no es descargable directamente"
-        nvarchar    subido_por
+        nvarchar    subido_por                  "número de empleado (user de CAO), del token"
+        nvarchar    subido_por_nombre           "NULL; nombre de CAO fijo al cargar (migración 018, nvarchar 150); filas anteriores en NULL"
         datetime2   created_at
     }
 
@@ -212,7 +213,8 @@ erDiagram
         nvarchar    blob_container
         nvarchar    blob_path
         nvarchar    blob_url                    "URL sin SAS, igual que Adjunto.blob_url"
-        nvarchar    subido_por
+        nvarchar    subido_por                  "número de empleado (user de CAO), del token"
+        nvarchar    subido_por_nombre           "NULL; nombre de CAO fijo al cargar (migración 018, nvarchar 150); filas anteriores en NULL"
         datetime2   created_at
     }
 

@@ -37,7 +37,7 @@ Sube una foto de una góndola montada. Mismo formato de carga que `POST /version
 ## Reglas de negocio
 
 1. Reglas comunes del módulo (ver `README.md`).
-2. `subido_por` = usuario del JWT. `blob_path` = `evidencias/{tiendaCodigo}/{versionId}/{uuid}-{nombre}`.
+2. `subido_por` = número de empleado del JWT y `subido_por_nombre` = nombre de CAO; ambos salen del token y, si el body trae `subido_por` o `subido_por_nombre`, se descartan. El nombre se sanea (sin caracteres de control ni de formato) y se recorta a 150. `blob_path` = `evidencias/{tiendaCodigo}/{versionId}/{uuid}-{nombre}`.
 3. Si falla el guardado en BD después de subir el blob, se borra el blob (sin huérfanos).
 
 ---
@@ -51,7 +51,8 @@ Sube una foto de una góndola montada. Mismo formato de carga que `POST /version
   "nombre_original": "gondola1.jpg",
   "tipo_mime": "image/jpeg",
   "tamano_bytes": 482133,
-  "subido_por": "jlopez",
+  "subido_por": "10234",
+  "subido_por_nombre": "JUAN LÓPEZ",
   "created_at": "2026-09-26T15:10:00.000Z",
   "puedeEliminar": true
 }

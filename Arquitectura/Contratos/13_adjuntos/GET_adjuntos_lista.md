@@ -38,13 +38,14 @@ No requiere que la versión esté en modo editable — la consulta está disponi
     "blobContainer": "adjuntos",
     "blobPath": "versiones/10/3f2a1c9e-foto-rack-frontal.jpg",
     "blobUrl": "https://{cuenta}.blob.core.windows.net/adjuntos/versiones/10/3f2a1c9e-foto-rack-frontal.jpg",
-    "subidoPor": "sistema",
+    "subidoPor": "10234",
+    "subidoPorNombre": "JUAN LÓPEZ",
     "createdAt": "2026-09-16T14:32:00.000Z"
   }
 ]
 ```
 
-`blobUrl` es la URL base del blob **sin SAS** — el contenedor es privado, así que no sirve para descarga directa desde el navegador; se incluye solo como referencia/debug. Para abrir o descargar el archivo, pedir una URL SAS con `GET /adjuntos/{id}/url-descarga` (ver `GET_adjuntos_url_descarga.md`).
+`subidoPorNombre` es `string | null` (`null` en adjuntos anteriores a la migración 018). `blobUrl` es la URL base del blob **sin SAS** — el contenedor es privado, así que no sirve para descarga directa desde el navegador; se incluye solo como referencia/debug. Para abrir o descargar el archivo, pedir una URL SAS con `GET /adjuntos/{id}/url-descarga` (ver `GET_adjuntos_url_descarga.md`).
 
 ---
 

@@ -71,6 +71,13 @@ aquí en la etapa de cierre.
 | DT-59 | Consolidado: estados incompletos (429 del listado se muestra como falla de conexión; filtros sin indicio de carga, chips con ids y selector de versión deshabilitado sin estilo) | Baja | front | 2026-10-16 · revisión de calidad (M8, N1, N2) del plan `2026-10-15-consolidado-tiendas` | Abierta |
 | DT-60 | `ConsolidadoTable` repite chevron y badge `N planogramas` en cada fila principal de un grupo duplicado (controles idénticos para teclado y lector de pantalla) | Baja | front | 2026-10-16 · revisión de calidad (M6) del plan `2026-10-15-consolidado-tiendas` | Abierta |
 | DT-61 | Limpieza del consolidado: `useConRetardo` definido en la página, `NIVELES_JERARQUIA` exportado junto al componente (aviso `only-export-components`) y rango de diacríticos con caracteres invisibles | Baja | back · front | 2026-10-16 · revisión de calidad (M5, M9, M10) del plan `2026-10-15-consolidado-tiendas` | Abierta |
+| DT-62 | Filas antiguas de `EvidenciaImplementacion` y `Adjunto` con `subido_por` no numérico (nombre completo, `sistema`, fixtures): no se pueden atribuir y, en evidencias, nadie puede eliminarlas | Media | BD · back | 2026-10-16 · plan `2026-10-16-evidencia-usuario-carga` | Abierta |
+| DT-63 | `mapAdjunto` expone `blobContainer`/`blobPath`/`blobUrl` en las respuestas de adjuntos | Baja | back | 2026-10-16 · plan `2026-10-16-evidencia-usuario-carga` | Abierta |
+| DT-64 | `agregarAdjunto`/`reemplazarAdjunto` no borran el blob nuevo si falla la escritura en BD (queda huérfano) | Baja | back | 2026-10-16 · plan `2026-10-16-evidencia-usuario-carga` | Abierta |
+| DT-65 | `usuarioActual` conserva respaldos `usuario`/`id`/`'sistema'` aunque el middleware garantiza `numeroEmpleado` | Baja | back | 2026-10-16 · plan `2026-10-16-evidencia-usuario-carga` | Abierta |
+| DT-66 | El módulo 17 (evidencias) no tiene casos de uso en `CASOS_DE_USO.md` (los contratos citan CU-07-03, que no existe) | Baja | docs | 2026-10-16 · plan `2026-10-16-evidencia-usuario-carga` | Abierta |
+| DT-67 | El nombre del autor de una carga puede salir de los claims del JWT si CAO no manda `username` | Baja | back | 2026-10-16 · plan `2026-10-16-evidencia-usuario-carga` | Abierta |
+| DT-68 | Menores sin corregir de la revisión de calidad del autor de la carga: pruebas faltantes en `adjunto.test.js`, `formatearAutor` duplicado en el montaje, `title` que tapa el aviso "Supera el máximo", `tipoTitulo` con guiones y apóstrofos e indentación de `VersionResumenModal` | Baja | back · front | 2026-10-16 · revisión de calidad (M-01, M-02, M-03, M-05, M-06) del plan `2026-10-16-evidencia-usuario-carga` | Abierta |
 
 ## Detalle
 
@@ -118,7 +125,9 @@ la prueba no detectaría que se quite uno; hallazgo M-03 de `05_revision_segurid
 Sin filtro por tienda, un implementador lista y descarga evidencias de otra tienda (IDs secuenciales
 en `/evidencias/:id/descargar`), sube evidencias a otra tienda (contamina su avance) y borra las que
 él mismo subió en cualquier tienda (el dominio limita el borrado al autor). El borrado es físico, sin
-auditoría. Se resuelve con DT-10 y, si se requiere trazabilidad, con borrado lógico.
+auditoría. Además, desde 2026-10-16 la lista de evidencias de otra tienda expone el nombre y el número de
+empleado de quien las subió (`subido_por`, `subido_por_nombre`); se aceptó (herramienta interna, usuarios CAO
+autenticados). Se resuelve con DT-10 y, si se requiere trazabilidad, con borrado lógico.
 
 ### DT-13 — Nombre provisional del perfil de tienda
 IT CAO está validando el nombre (en la matriz original aparece `TIENDAS-EST`; hoy `TIENDA-EST`). Vive
@@ -338,3 +347,37 @@ Relacionada con DT-29.
   moverlo a `front/src/constants/productos.ts`.
 - `normalizarTexto` (`back/src/domain/consolidado/consolidado.entity.js`) usa un rango de diacríticos con caracteres
   combinantes literales, invisibles en el editor: escribirlo con escapes `\u0300-\u036f`.
+
+### DT-62 — Filas antiguas sin autor atribuible
+`EvidenciaImplementacion.subido_por` y `Adjunto.subido_por` tienen filas heredadas con valores no numéricos
+(nombre completo, `sistema`, fixtures de pruebas). No se pueden atribuir a un empleado y, en evidencias, como
+`puedeEliminar` compara por número, nadie puede quitarlas. La UI las muestra tal cual. Decidir con el negocio si
+se limpian o se asignan a un responsable.
+
+### DT-63 — `mapAdjunto` expone datos del blob
+`back/src/infrastructure/repositories/adjunto.repository.js`: las respuestas incluyen `blobContainer`, `blobPath` y
+`blobUrl` (sin SAS, sin uso en el front). Quitarlos de las respuestas y de los contratos de `13_adjuntos`.
+
+### DT-64 — Blob huérfano si falla la BD en adjuntos
+`agregarAdjunto` y `reemplazarAdjunto` (`adjunto.usecases.js`) no borran el blob nuevo si falla `crear` o
+`actualizarArchivo`. Evidencias sí lo hace. Aplicar el mismo patrón.
+
+### DT-65 — Respaldo innecesario de `usuarioActual`
+`usuarioActual(req)` cae a `usuario`, `id` o `'sistema'` aunque el middleware `validar_token` garantiza
+`numeroEmpleado`. Quitar los respaldos (el autor de cargas ya no los usa: `normalizarAutor` rechaza `'sistema'`).
+
+### DT-66 — Casos de uso del módulo 17 sin documentar
+`CASOS_DE_USO.md` no tiene los casos de uso de evidencias; los contratos de `17_evidencias` citan CU-07-03 (que no
+existe). Redactarlos (listar, subir, descargar, eliminar) y alinear los contratos.
+
+### DT-67 — Nombre del autor desde claims del JWT
+Si CAO no manda `username`, `usuarioAuditoria` toma el nombre de los claims del JWT o cae al número (en ese caso
+`normalizarAutor` guarda `NULL`). Confirmar con IT CAO qué campo es el nombre oficial y fijar un solo origen.
+
+### DT-68 — Menores de la revisión de calidad (autor de la carga)
+Referencias a `05_revision_calidad.md` del plan `2026-10-16-evidencia-usuario-carga`:
+- **M-01**: `adjunto.test.js` no prueba `nombre: null` en `agregar` ni C-01 (autor de `datos` ignorado) en `reemplazar`.
+- **M-02**: `MontajeTiendaModal` calcula `formatearAutor` dos veces por foto; guardar `autor` en `FotoMontaje`.
+- **M-03**: en `UsarAdjuntos` el `title` del detalle tapa el aviso "Supera el máximo": `title={excede ? undefined : detalle}`.
+- **M-05**: `tipoTitulo` no capitaliza tras guion ni apóstrofo (`María-josé`, `O'neill`).
+- **M-06**: `VersionResumenModal.tsx` (líneas 205-215) con la indentación anterior al cambio.

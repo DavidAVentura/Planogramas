@@ -43,7 +43,7 @@ La operación se permite en cualquier estado de la versión (`borrador`, `en_des
 4. El blob debe existir en Azure; si no, `422` (la subida no terminó o falló).
 5. El tamaño real del blob no puede superar **40MB**, y su `Content-Type` debe ser igual a `tipo_mime` y estar en la lista blanca. Si alguna de estas condiciones falla, se borra el blob y se responde `400`.
 6. `tamano_bytes` se toma del blob real en Azure, no de lo que declaró el cliente.
-7. `subido_por` se completa en el backend con el usuario del JWT de CAO; el cliente no lo envía.
+7. `subidoPor` (número de empleado) y `subidoPorNombre` (nombre de CAO) se completan en el backend con el token; el cliente no los envía y, si llegan en el body, se descartan.
 
 ---
 
@@ -71,7 +71,8 @@ La operación se permite en cualquier estado de la versión (`borrador`, `en_des
   "blobContainer": "adjuntos",
   "blobPath": "versiones/10/3f2a1c9e-...-Surtido_Autos_Q4.xlsx",
   "blobUrl": "https://{cuenta}.blob.core.windows.net/adjuntos/versiones/10/3f2a1c9e-...-Surtido_Autos_Q4.xlsx",
-  "subidoPor": "usuario@cemaco.com",
+  "subidoPor": "10234",
+  "subidoPorNombre": "JUAN LÓPEZ",
   "createdAt": "2026-10-05T15:02:00.000Z"
 }
 ```

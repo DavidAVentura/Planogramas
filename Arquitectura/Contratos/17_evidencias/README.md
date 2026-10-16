@@ -18,7 +18,8 @@ Tabla nueva `EvidenciaImplementacion` (migración `011_evidencia_implementacion.
 | `blob_container` | varchar(100) | mismo contenedor privado que `Adjunto` |
 | `blob_path` | varchar(500) | `evidencias/{tiendaCodigo}/{versionId}/{uuid}-{nombre}` |
 | `blob_url` | varchar(1000) | URL sin SAS; la descarga siempre pasa por el backend |
-| `subido_por` | varchar(100) | usuario del JWT (`req.usuario.usuario`) |
+| `subido_por` | varchar(100) | número de empleado: el `user` de CAO (`req.usuario.numeroEmpleado`), tomado del token, nunca del body |
+| `subido_por_nombre` | nvarchar(150) NULL | nombre del usuario de CAO al momento de la carga (migración `018_autor_nombre_evidencia_adjunto.js`). Fijo; las filas anteriores a la 018 quedan en `NULL` |
 | `created_at` | datetime | default `now()` |
 
 Índice por `(tienda_id, planograma_version_id)`.
@@ -28,6 +29,7 @@ Reglas comunes a los endpoints:
 - La versión debe ser `publicado` o `piloto` **y** estar asignada a la tienda (`VersionTienda`);
   si no → `404 NOT_FOUND`.
 - La góndola debe pertenecer a esa versión; si no → `400 VALIDATION_ERROR`.
+- El autor (`subido_por`, `subido_por_nombre`) sale siempre del token; si el body los trae se descartan.
 - El binario se guarda con el mismo `blobClient` que Adjuntos (módulo 13).
 
 Endpoints:

@@ -65,6 +65,11 @@ propone como componente base.
 - Estilos inline solo para valores calculados en tiempo de ejecución (escala/posición del lienzo).
 - Textos de UI en español, en tono directo y sin tecnicismos (“Guardar cambios”, no “Submit”).
 - Accesibilidad mínima: botones con texto o `aria-label`, foco visible, contraste del DS.
+- **Autor de una carga** (evidencias y adjuntos): siempre con `formatearAutor(numero, nombre)` de
+  `front/src/utils/autorCarga.ts`. Con nombre se muestra `Nombre (#código)` (ej. `Juan López (#10234)`); sin
+  nombre, `#código`; si el código no es numérico (fila heredada), tal cual. El nombre va en tipo título solo en la
+  presentación (lo guardado no cambia) y siempre como texto, nunca como HTML. Donde se trunca con elipsis se agrega
+  `title` con el texto completo; en el visor móvil (pie de `VisorImagenes`) no se trunca, envuelve.
 
 ## 6. Pendiente (deuda DT-04)
 

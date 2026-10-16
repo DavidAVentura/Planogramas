@@ -209,11 +209,11 @@ Archivos (imágenes, PDF o Excel, hasta 40MB) que el analista asocia a una versi
 
 | Método | Ruta | Actor | Permiso | CU | Descripción |
 |--------|------|-------|---------|----|-------------|
-| `GET` | `/versiones/{id}/adjuntos` | Analista | I | CU-09-02 | Lista los adjuntos de una versión, más recientes primero. |
+| `GET` | `/versiones/{id}/adjuntos` | Analista | I | CU-09-02 | Lista los adjuntos de una versión, más recientes primero, con `subidoPor` y `subidoPorNombre`. |
 | `POST` | `/versiones/{id}/adjuntos/subida` | Analista | A | CU-09-01 | Valida nombre/tipo/tamaño y devuelve la URL SAS (solo escritura, 30 min) para subir un adjunto nuevo directo a Azure. |
-| `POST` | `/versiones/{id}/adjuntos` | Analista | A | CU-09-01 | Confirma el blob ya subido y crea el adjunto. Body: `nombre_original`, `tipo_mime`, `blob_path`. Admitido en cualquier estado de la versión. |
+| `POST` | `/versiones/{id}/adjuntos` | Analista | A | CU-09-01 | Confirma el blob ya subido y crea el adjunto; registra código y nombre del autor desde el token (nunca del body). Body: `nombre_original`, `tipo_mime`, `blob_path`. Admitido en cualquier estado de la versión. |
 | `POST` | `/adjuntos/{id}/subida` | Analista | A | CU-09-03 | URL SAS para subir el archivo de reemplazo de un adjunto. |
-| `PUT` | `/adjuntos/{id}` | Analista | A | CU-09-03 | Confirma el blob de reemplazo, conservando el id del adjunto. Mismo body que agregar. |
+| `PUT` | `/adjuntos/{id}` | Analista | A | CU-09-03 | Confirma el blob de reemplazo, conservando el id del adjunto; el autor pasa a ser quien reemplaza. Mismo body que agregar. |
 | `DELETE` | `/adjuntos/{id}` | Analista | A | CU-09-04 | Elimina un adjunto (fila + blob en Azure). Admitido en cualquier estado de la versión. |
 | `GET` | `/adjuntos/{id}/url-descarga` | Analista / Implementador | I | CU-09-05 | URL SAS de solo lectura (5 min) para abrir (`modo=inline`) o descargar (`modo=attachment`) el archivo directo desde Azure. |
 

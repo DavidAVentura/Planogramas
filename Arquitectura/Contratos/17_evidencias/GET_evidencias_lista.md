@@ -19,7 +19,8 @@ mostrar "Sin fotos" y el avance.
 
 1. Reglas comunes del módulo (ver `README.md`): versión publicada o piloto asignada a la tienda.
 2. Góndolas ordenadas por `Gondola.orden`; fotos por `created_at` ascendente.
-3. `puedeEliminar` es `true` solo si `subido_por` coincide con el usuario del JWT.
+3. `puedeEliminar` es `true` solo si `subido_por` coincide con el número de empleado del JWT (el nombre no interviene).
+4. `subido_por_nombre` es `string | null`: `null` en filas anteriores a la migración 018 o si CAO no mandó nombre. El cliente muestra `Nombre (#código)` o solo `#código`.
 
 ---
 
@@ -40,7 +41,8 @@ mostrar "Sin fotos" y el avance.
           "nombre_original": "gondola1.jpg",
           "tipo_mime": "image/jpeg",
           "tamano_bytes": 482133,
-          "subido_por": "jlopez",
+          "subido_por": "10234",
+          "subido_por_nombre": "JUAN LÓPEZ",
           "created_at": "2026-09-18T16:42:00.000Z",
           "puedeEliminar": true
         }

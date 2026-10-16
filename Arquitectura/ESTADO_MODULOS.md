@@ -124,6 +124,15 @@ El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
     Preferencias de columnas en `localStorage` (`planogramas.consolidado.columnas`).
 - **Implementado, sin carpeta Postman todavía**: `adjuntos` (13, CRUD sobre Azure Blob) y
   `agente-extractor`.
+- **Autor de la carga (adjuntos 13 y evidencias 17, 2026-10-16, migración 018)**: ambas tablas guardan
+  `subido_por` (número de empleado, el `user` de CAO) y `subido_por_nombre` (nvarchar 150, NULL en filas anteriores).
+  - Regla única en `domain/compartido/autor.js` (`normalizarAutor`): sanea y recorta el nombre, no transforma el
+    número y lanza (500) si falta o es `'sistema'`. No duplicarla en otros módulos.
+  - El autor llega a los casos de uso como parámetro `autor` aparte de `datos`, armado en el controller con
+    `usuarioAuditoria(req)`: el body nunca lo fija. El reemplazo de un adjunto sobrescribe el autor con quien reemplaza.
+  - `puedeEliminar`/`eliminarEvidencia` siguen comparando solo por número. Respuestas: `subido_por_nombre` (17) y
+    `subidoPorNombre` (13). Front: `utils/autorCarga.ts` (`formatearAutor`), ver `DISENO_SISTEMA.md`.
+  - Deuda relacionada: DT-12, DT-62 a DT-68.
 - **Autorización (permisos CAO, 2026-10-12)**: aplicada en todos los módulos; detalle, perfiles y
   matrices en `Arquitectura/SEGURIDAD_PERMISOS.md`.
   - Vive en `domain/compartido/permisos.js` (códigos y reglas puras) y

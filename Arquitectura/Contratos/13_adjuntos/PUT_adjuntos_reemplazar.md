@@ -47,7 +47,7 @@ Mismas reglas de validación que `POST /versiones/{id}/adjuntos` (ver ese contra
 1. El adjunto debe existir — `404` si no.
 2. No se valida el estado de la versión a la que pertenece el adjunto: se admite en cualquier estado, incluidos `publicado` y `archivado`.
 3. Mismas validaciones que al agregar: `blob_path` de la versión del adjunto y no registrado (`400` / `409`); el blob debe existir (`422`); tipo y tamaño reales permitidos, hasta 40MB (si no, se borra el blob nuevo y se responde `400`).
-4. `subido_por` se actualiza al usuario que hizo el reemplazo (JWT de CAO).
+4. `subidoPor` y `subidoPorNombre` se sobrescriben con los del usuario que hizo el reemplazo (token de CAO, nunca el body): el autor es quien subió el archivo vigente, sin historia de autores anteriores.
 5. El blob viejo se borra **después** de confirmar la actualización de la fila — nunca antes.
 
 ---
@@ -76,7 +76,8 @@ Mismas reglas de validación que `POST /versiones/{id}/adjuntos` (ver ese contra
   "blobContainer": "adjuntos",
   "blobPath": "versiones/10/9c7b4e21-foto-rack-frontal-v2.jpg",
   "blobUrl": "https://{cuenta}.blob.core.windows.net/adjuntos/versiones/10/9c7b4e21-foto-rack-frontal-v2.jpg",
-  "subidoPor": "sistema",
+  "subidoPor": "10234",
+  "subidoPorNombre": "JUAN LÓPEZ",
   "createdAt": "2026-09-16T14:32:00.000Z"
 }
 ```
