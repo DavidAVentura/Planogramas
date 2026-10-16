@@ -24532,6 +24532,194 @@
               "response": []
             },
             {
+              "name": "400 - gancho con letra distinta de E",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacion}}/importar-layout",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacion}}",
+                    "importar-layout"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cuerpos\": [\n    {\n      \"destino\": \"NUEVA\",\n      \"nombre\": \"Ganchos E\",\n      \"ancho_cm\": 100,\n      \"alto_cm\": 200,\n      \"profundidad_cm\": 50,\n      \"secciones\": [],\n      \"niveles\": [\n        {\n          \"seccion_clave\": null,\n          \"orden\": 1,\n          \"altura_desde_piso_cm\": 150,\n          \"tipo_accesorio\": \"GANCHO\",\n          \"codigo_accesorio_id\": null,\n          \"tamano_accesorio_pulgadas\": 12,\n          \"notas\": null,\n          \"posiciones\": [\n            {\n              \"orden_horizontal\": 1,\n              \"sku\": null,\n              \"ancho_asignado_cm\": 12,\n              \"facings_horizontal\": 1,\n              \"nombre_detectado\": \"leido del PDF\",\n              \"confidence\": 60,\n              \"datos_vision\": null,\n              \"ganchos\": [\n                \"54A\"\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - gancho en notación científica",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacion}}/importar-layout",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacion}}",
+                    "importar-layout"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cuerpos\": [\n    {\n      \"destino\": \"NUEVA\",\n      \"nombre\": \"Ganchos E\",\n      \"ancho_cm\": 100,\n      \"alto_cm\": 200,\n      \"profundidad_cm\": 50,\n      \"secciones\": [],\n      \"niveles\": [\n        {\n          \"seccion_clave\": null,\n          \"orden\": 1,\n          \"altura_desde_piso_cm\": 150,\n          \"tipo_accesorio\": \"GANCHO\",\n          \"codigo_accesorio_id\": null,\n          \"tamano_accesorio_pulgadas\": 12,\n          \"notas\": null,\n          \"posiciones\": [\n            {\n              \"orden_horizontal\": 1,\n              \"sku\": null,\n              \"ancho_asignado_cm\": 12,\n              \"facings_horizontal\": 1,\n              \"nombre_detectado\": \"leido del PDF\",\n              \"confidence\": 60,\n              \"datos_vision\": null,\n              \"ganchos\": [\n                \"5E1\"\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - ganchos repetidos tras normalizar",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacion}}/importar-layout",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacion}}",
+                    "importar-layout"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cuerpos\": [\n    {\n      \"destino\": \"NUEVA\",\n      \"nombre\": \"Ganchos E\",\n      \"ancho_cm\": 100,\n      \"alto_cm\": 200,\n      \"profundidad_cm\": 50,\n      \"secciones\": [],\n      \"niveles\": [\n        {\n          \"seccion_clave\": null,\n          \"orden\": 1,\n          \"altura_desde_piso_cm\": 150,\n          \"tipo_accesorio\": \"GANCHO\",\n          \"codigo_accesorio_id\": null,\n          \"tamano_accesorio_pulgadas\": 12,\n          \"notas\": null,\n          \"posiciones\": [\n            {\n              \"orden_horizontal\": 1,\n              \"sku\": null,\n              \"ancho_asignado_cm\": 12,\n              \"facings_horizontal\": 1,\n              \"nombre_detectado\": \"leido del PDF\",\n              \"confidence\": 60,\n              \"datos_vision\": null,\n              \"ganchos\": [\n                54,\n                \"54\"\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - más de 100 ganchos en un espacio",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacion}}/importar-layout",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacion}}",
+                    "importar-layout"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cuerpos\": [\n    {\n      \"destino\": \"NUEVA\",\n      \"nombre\": \"Ganchos E\",\n      \"ancho_cm\": 100,\n      \"alto_cm\": 200,\n      \"profundidad_cm\": 50,\n      \"secciones\": [],\n      \"niveles\": [\n        {\n          \"seccion_clave\": null,\n          \"orden\": 1,\n          \"altura_desde_piso_cm\": 150,\n          \"tipo_accesorio\": \"GANCHO\",\n          \"codigo_accesorio_id\": null,\n          \"tamano_accesorio_pulgadas\": 12,\n          \"notas\": null,\n          \"posiciones\": [\n            {\n              \"orden_horizontal\": 1,\n              \"sku\": null,\n              \"ancho_asignado_cm\": 12,\n              \"facings_horizontal\": 1,\n              \"nombre_detectado\": \"leido del PDF\",\n              \"confidence\": 60,\n              \"datos_vision\": null,\n              \"ganchos\": [\n                1,\n                2,\n                3,\n                4,\n                5,\n                6,\n                7,\n                8,\n                9,\n                10,\n                11,\n                12,\n                13,\n                14,\n                15,\n                16,\n                17,\n                18,\n                19,\n                20,\n                21,\n                22,\n                23,\n                24,\n                25,\n                26,\n                27,\n                28,\n                29,\n                30,\n                31,\n                32,\n                33,\n                34,\n                35,\n                36,\n                37,\n                38,\n                39,\n                40,\n                41,\n                42,\n                43,\n                44,\n                45,\n                46,\n                47,\n                48,\n                49,\n                50,\n                51,\n                52,\n                53,\n                54,\n                55,\n                56,\n                57,\n                58,\n                59,\n                60,\n                61,\n                62,\n                63,\n                64,\n                65,\n                66,\n                67,\n                68,\n                69,\n                70,\n                71,\n                72,\n                73,\n                74,\n                75,\n                76,\n                77,\n                78,\n                79,\n                80,\n                81,\n                82,\n                83,\n                84,\n                85,\n                86,\n                87,\n                88,\n                89,\n                90,\n                91,\n                92,\n                93,\n                94,\n                95,\n                96,\n                97,\n                98,\n                99,\n                100,\n                101\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('error.code = VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
               "name": "404 - version no encontrada",
               "request": {
                 "method": "POST",
@@ -26110,7 +26298,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{ \"usar_por_ubicar\": true, \"cuerpos\": [ { \"destino\": \"NUEVA\", \"nombre\": \"PINTURAS TG-10 · cuerpo 1/1\", \"ancho_cm\": 122, \"alto_cm\": 229, \"profundidad_cm\": 56, \"secciones\": [],  \"niveles\": [ { \"seccion_clave\": null, \"orden\": 1, \"altura_desde_piso_cm\": 190, \"tipo_accesorio\": \"GANCHO\", \"codigo_accesorio_id\": null, \"tamano_accesorio_pulgadas\": 12, \"notas\": null, \"posiciones\": [ { \"orden_horizontal\": 1, \"sku\": null, \"ancho_asignado_cm\": 12, \"facings_horizontal\": 1, \"nombre_detectado\": \"leído del PDF\", \"confidence\": 60, \"datos_vision\": null, \"ganchos\": [4] } ] }, { \"seccion_clave\": null, \"orden\": 2, \"altura_desde_piso_cm\": 160, \"tipo_accesorio\": \"GANCHO\", \"codigo_accesorio_id\": null, \"tamano_accesorio_pulgadas\": 12, \"notas\": null, \"posiciones\": [ { \"orden_horizontal\": 1, \"sku\": null, \"ancho_asignado_cm\": 12, \"facings_horizontal\": 1, \"nombre_detectado\": \"leído del PDF\", \"confidence\": 60, \"datos_vision\": null, \"ganchos\": [9] } ] }, { \"seccion_clave\": null, \"orden\": 3, \"altura_desde_piso_cm\": 130, \"tipo_accesorio\": \"GANCHO\", \"codigo_accesorio_id\": null, \"tamano_accesorio_pulgadas\": 12, \"notas\": null, \"posiciones\": [ { \"orden_horizontal\": 1, \"sku\": null, \"ancho_asignado_cm\": 12, \"facings_horizontal\": 1, \"nombre_detectado\": \"leído del PDF\", \"confidence\": 60, \"datos_vision\": null, \"ganchos\": [14] } ] }, { \"seccion_clave\": null, \"orden\": 4, \"altura_desde_piso_cm\": 100, \"tipo_accesorio\": \"GANCHO\", \"codigo_accesorio_id\": null, \"tamano_accesorio_pulgadas\": 12, \"notas\": null, \"posiciones\": [ { \"orden_horizontal\": 1, \"sku\": null, \"ancho_asignado_cm\": 12, \"facings_horizontal\": 1, \"nombre_detectado\": \"leído del PDF\", \"confidence\": 60, \"datos_vision\": null, \"ganchos\": [19] }, { \"orden_horizontal\": 2, \"sku\": null, \"ancho_asignado_cm\": 12, \"facings_horizontal\": 1, \"nombre_detectado\": \"leído del PDF\", \"confidence\": 60, \"datos_vision\": null, \"ganchos\": [55] } ] } ] } ] }",
+                  "raw": "{ \"usar_por_ubicar\": true, \"cuerpos\": [ { \"destino\": \"NUEVA\", \"nombre\": \"PINTURAS TG-10 · cuerpo 1/1\", \"ancho_cm\": 122, \"alto_cm\": 229, \"profundidad_cm\": 56, \"secciones\": [],  \"niveles\": [ { \"seccion_clave\": null, \"orden\": 1, \"altura_desde_piso_cm\": 190, \"tipo_accesorio\": \"GANCHO\", \"codigo_accesorio_id\": null, \"tamano_accesorio_pulgadas\": 12, \"notas\": null, \"posiciones\": [ { \"orden_horizontal\": 1, \"sku\": null, \"ancho_asignado_cm\": 12, \"facings_horizontal\": 1, \"nombre_detectado\": \"leído del PDF\", \"confidence\": 60, \"datos_vision\": null, \"ganchos\": [4] } ] }, { \"seccion_clave\": null, \"orden\": 2, \"altura_desde_piso_cm\": 160, \"tipo_accesorio\": \"GANCHO\", \"codigo_accesorio_id\": null, \"tamano_accesorio_pulgadas\": 12, \"notas\": null, \"posiciones\": [ { \"orden_horizontal\": 1, \"sku\": null, \"ancho_asignado_cm\": 12, \"facings_horizontal\": 1, \"nombre_detectado\": \"leído del PDF\", \"confidence\": 60, \"datos_vision\": null, \"ganchos\": [9] } ] }, { \"seccion_clave\": null, \"orden\": 3, \"altura_desde_piso_cm\": 130, \"tipo_accesorio\": \"GANCHO\", \"codigo_accesorio_id\": null, \"tamano_accesorio_pulgadas\": 12, \"notas\": null, \"posiciones\": [ { \"orden_horizontal\": 1, \"sku\": null, \"ancho_asignado_cm\": 12, \"facings_horizontal\": 1, \"nombre_detectado\": \"leído del PDF\", \"confidence\": 60, \"datos_vision\": null, \"ganchos\": [14] } ] }, { \"seccion_clave\": null, \"orden\": 4, \"altura_desde_piso_cm\": 100, \"tipo_accesorio\": \"GANCHO\", \"codigo_accesorio_id\": null, \"tamano_accesorio_pulgadas\": 12, \"notas\": null, \"posiciones\": [ { \"orden_horizontal\": 1, \"sku\": null, \"ancho_asignado_cm\": 12, \"facings_horizontal\": 1, \"nombre_detectado\": \"leído del PDF\", \"confidence\": 60, \"datos_vision\": null, \"ganchos\": [19] }, { \"orden_horizontal\": 2, \"sku\": null, \"ancho_asignado_cm\": 12, \"facings_horizontal\": 1, \"nombre_detectado\": \"leído del PDF\", \"confidence\": 60, \"datos_vision\": null, \"ganchos\": [55] }, { \"orden_horizontal\": 3, \"sku\": null, \"ancho_asignado_cm\": 12, \"facings_horizontal\": 1, \"nombre_detectado\": \"leído del PDF\", \"confidence\": 60, \"datos_vision\": null, \"ganchos\": [901] }, { \"orden_horizontal\": 4, \"sku\": null, \"ancho_asignado_cm\": 12, \"facings_horizontal\": 1, \"nombre_detectado\": \"leído del PDF\", \"confidence\": 60, \"datos_vision\": null, \"ganchos\": [\"902E\"] }, { \"orden_horizontal\": 5, \"sku\": null, \"ancho_asignado_cm\": 12, \"facings_horizontal\": 1, \"nombre_detectado\": \"leído del PDF\", \"confidence\": 60, \"datos_vision\": null, \"ganchos\": [902] } ] } ] } ] }",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -26126,8 +26314,8 @@
                     "exec": [
                       "pm.test('Status 201', () => pm.response.to.have.status(201));",
                       "const b = pm.response.json();",
-                      "pm.test('Los 5 espacios se llenaron desde Por ubicar', () => pm.expect(b.desdePorUbicar).to.eql(5));",
-                      "pm.test('Crea la góndola del layout con 5 posiciones', () => pm.expect(b.gondolas[0].totalPosiciones).to.eql(5));"
+                      "pm.test('Los 7 espacios se llenaron desde Por ubicar', () => pm.expect(b.desdePorUbicar).to.eql(7));",
+                      "pm.test('Crea la góndola del layout con 8 posiciones', () => pm.expect(b.gondolas[0].totalPosiciones).to.eql(8));"
                     ]
                   }
                 }
@@ -26196,6 +26384,42 @@
                       "pm.test('Ganchos del PDF/Excel', () => pm.expect(sku.ganchos).to.eql([4, 9, 14, 19]));",
                       "pm.test('4 ubicaciones fuera de Por ubicar', () => { pm.expect(sku.ubicaciones.length).to.eql(4); sku.ubicaciones.forEach((u) => pm.expect(u.porUbicar).to.eql(false)); });",
                       "pm.test('Conserva mín./máx. del Excel', () => { pm.expect(sku.minFinal).to.eql(65); pm.expect(sku.maxFinal).to.eql(80); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - El gancho 902E cruzó con su producto y el 902 no",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/versiones/{{versionIdImportacionProductos}}/skus",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "versiones",
+                    "{{versionIdImportacionProductos}}",
+                    "skus"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "const b = pm.response.json();",
+                      "const sku = b.skus.find((s) => s.sku === pm.collectionVariables.get('skuSinDimensiones'));",
+                      "pm.test('Ganchos [901, 902E] del Excel', () => pm.expect(sku.ganchos).to.eql([901, '902E']));",
+                      "pm.test('2 ubicaciones fuera de Por ubicar', () => { pm.expect(sku.ubicaciones.length).to.eql(2); sku.ubicaciones.forEach((u) => pm.expect(u.porUbicar).to.eql(false)); });"
                     ]
                   }
                 }

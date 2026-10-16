@@ -2,6 +2,7 @@
  * request de POST /versiones/:id/importar-layout a partir de lo que el usuario revisó. */
 
 import type { Gancho } from '../../../../types/gancho';
+import { compararGanchos, esGanchoExhibicion, numeroGancho } from '../../../../domain/ganchos/gancho';
 import type {
   CuerpoImportar,
   CuerpoPdf,
@@ -139,7 +140,7 @@ export function construirCuerpoImportar(
       tipo_accesorio: nivel.tipo_accesorio,
       codigo_accesorio_id: nivel.codigo_accesorio_id,
       tamano_accesorio_pulgadas: nivel.tamano_accesorio_pulgadas,
-      notas: nivel.codigo_accesorio ? `${nivel.codigo_accesorio} · ganchos ${rangoGanchos(nivel)}`.slice(0, 200) : null,
+      notas: notasNivel(nivel),
       posiciones: nivel.espacios.map((espacio) => {
         const sku = seleccion[claveEspacio(cuerpo, nivel, espacio)] ?? null;
         return {
@@ -160,12 +161,40 @@ export function construirCuerpoImportar(
   };
 }
 
-export function rangoGanchos(nivel: NivelPdf): string {
-  const numeros = nivel.espacios.flatMap((e) => e.ganchos);
-  if (!numeros.length) return '—';
-  const min = Math.min(...numeros);
-  const max = Math.max(...numeros);
-  return min === max ? String(min) : `${min}-${max}`;
+/** Rango de los ganchos normales (`1-9`) y luego cada gancho de exhibición (`54E`). Con `maxLargo`
+ * termina en `…` sin cortar nunca un token. */
+export function rangoGanchos(nivel: NivelPdf, maxLargo = Infinity): string {
+  const ganchos = [...new Set(nivel.espacios.flatMap((e) => e.ganchos))].sort(compararGanchos);
+  const normales = ganchos.filter((g) => !esGanchoExhibicion(g));
+  const exhibicion = ganchos.filter(esGanchoExhibicion);
+  const tokens: string[] = [];
+  if (normales.length) {
+    const min = numeroGancho(normales[0]);
+    const max = numeroGancho(normales[normales.length - 1]);
+    tokens.push(min === max ? String(min) : `${min}-${max}`);
+  }
+  exhibicion.forEach((g) => tokens.push(String(g)));
+  if (!tokens.length) return '—';
+
+  const sufijo = ', …';
+  let texto = '';
+  for (let i = 0; i < tokens.length; i += 1) {
+    const candidato = texto ? `${texto}, ${tokens[i]}` : tokens[i];
+    const reserva = i < tokens.length - 1 ? sufijo.length : 0;
+    if (candidato.length + reserva > maxLargo) return texto ? `${texto}${sufijo}` : '…';
+    texto = candidato;
+  }
+  return texto;
+}
+
+const MAX_NOTAS = 200;
+
+/** Notas del nivel: código del accesorio y ganchos, sin pasar de 200 caracteres ni cortar un token. */
+function notasNivel(nivel: NivelPdf): string | null {
+  if (!nivel.codigo_accesorio) return null;
+  const prefijo = `${nivel.codigo_accesorio} · ganchos `;
+  if (prefijo.length >= MAX_NOTAS - 1) return nivel.codigo_accesorio.slice(0, MAX_NOTAS);
+  return prefijo + rangoGanchos(nivel, MAX_NOTAS - prefijo.length);
 }
 
 // ─── Cruce con la góndola "Por ubicar" ───────────────────────────────────────

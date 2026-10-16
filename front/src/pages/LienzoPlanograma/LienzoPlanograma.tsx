@@ -847,6 +847,7 @@ export function LienzoPlanograma() {
         <AgenteExtractorBubble
           puedeEscribir={puedeEscribir && esAnalista}
           versionId={versionIdNumerico}
+          tipoVersion={version?.tipo}
           gondolas={gondolas}
           gondolaActiva={gondolaActivaParaAgente}
           categoria={planograma?.departamento ?? ''}

@@ -1,10 +1,17 @@
 /** Lectura del Excel de productos de un planograma (una fila por SKU con sus ganchos, cantidades,
  * mín./máx. y accesorios de montaje) al formato de POST /versiones/:id/importar-productos.
  *
- * Los encabezados se reconocen sin importar mayúsculas, tildes ni el sufijo del tipo de tienda
- * (`Facings_TG`, `Facings_TM`...): las columnas de gancho son `TG1`, `TG2`... (prefijo de 2 letras
- * + número). Se ignoran las columnas que no se guardan (jerarquía, marca, modelo, temporada,
- * fecha, sustitución y su justificación, planograma — este último solo se usa para avisar si el archivo es de otro planograma).
+ * Los encabezados se reconocen sin importar mayúsculas ni tildes. El archivo trae un bloque de
+ * columnas por tamaño de tienda (sufijo `_TG`, `_TM`, `_TE`; ganchos `TG1`…, `TM1`…, `TE1`…) y se
+ * lee SOLO el del tipo de la versión destino (GRANDE → TG, MEDIANA → TM, EXPRESS → TE); las columnas
+ * de los otros bloques se ignoran. Una columna sin sufijo (`SKU`, `Descripcion`, `Modo`, o `Facings`
+ * de un archivo antiguo) es común y vale para cualquier tipo; si un campo tiene columna con sufijo
+ * del bloque y sin sufijo, gana la del bloque. Si el archivo trae bloques y no el de la versión, no
+ * se importa (bloque ausente); un bloque sin productos tampoco (bloque vacío). Un `Planograma_<S>`
+ * que nombra otro tamaño (sigla TG/TM/TE ajena como palabra) es error bloqueante. Se ignoran las
+ * columnas que no se guardan (jerarquía, marca, modelo, temporada, fecha, sustitución y su
+ * justificación); la columna planograma se usa para avisar si el archivo es de otro planograma y
+ * para el error de bloque ajeno de arriba.
  *
  * Reglas de lectura:
  * - `//` separa varios accesorios en `Nombre_accesorio_*` y `Tamano_accesorio_*` (un `/` simple no).
@@ -17,6 +24,8 @@
 import type { DecisionPosicion, ModoPosicion, PerfilRedondeo } from '../types/posicion';
 import type { AccesorioExcel, ProductoExcel } from '../types/importacionProductos';
 import type { Gancho } from '../types/gancho';
+import type { VersionTipo } from '../types/version';
+import { SIGLA_TIPO_TIENDA, TIPO_TIENDA_META } from '../constants/tiendas';
 import { esGanchoExhibicion, leerGancho, textoGancho } from '../domain/ganchos/gancho';
 import { normalizarCodigoAccesorio } from '../domain/accesorios/codigoAccesorio';
 
@@ -30,6 +39,13 @@ const MAX_TEXTO = 500;
 const MAX_FACINGS = 100;
 const MAX_TAMANO_PULGADAS = 999;
 const MAX_GANCHO = 999999;
+
+export type SiglaBloque = 'TG' | 'TM' | 'TE';
+
+/** GRANDE → 'TG', MEDIANA → 'TM', EXPRESS → 'TE'. */
+export function siglaBloque(tipo: VersionTipo): SiglaBloque {
+  return SIGLA_TIPO_TIENDA[tipo];
+}
 
 type Campo =
   | 'sku'
@@ -82,6 +98,10 @@ export interface OrigenAccesorio {
 }
 
 export interface LecturaExcelProductos {
+  /** Sigla del bloque que corresponde a la versión. */
+  bloque: SiglaBloque;
+  /** Siglas presentes en la fila de encabezado (sufijo `_xx` o prefijo de gancho), sin repetir, en orden de aparición. */
+  bloquesEnArchivo: SiglaBloque[];
   /** Vacío si hay errores. */
   productos: ProductoExcel[];
   /** Valores de la columna Planograma_XX (ej. "PINTURAS TG-10"), para avisar si no es la versión. */
@@ -120,13 +140,62 @@ function normalizarEncabezado(texto: Celda): string {
     .replace(/^_|_$/g, '');
 }
 
-/** `facings_tg` → `facings`; `tg1` se deja (es columna de gancho). */
-function sinSufijoTipo(clave: string): string {
-  const partes = clave.split('_');
-  return partes.length > 1 && /^t[a-z]$/.test(partes[partes.length - 1]) ? partes.slice(0, -1).join('_') : clave;
+/** `facings_tm` → { campo: 'facings', sigla: 'TM' }; `sku` → { campo: 'sku', sigla: null }. Solo tg|tm|te. */
+function separarSufijo(clave: string): { campo: string; sigla: SiglaBloque | null } {
+  const m = /^(.+)_(tg|tm|te)$/.exec(clave);
+  return m ? { campo: m[1], sigla: m[2].toUpperCase() as SiglaBloque } : { campo: clave, sigla: null };
 }
 
-const esColumnaGancho = (clave: string) => /^t[a-z]\d{1,2}$/.test(clave);
+/** `tm3` → 'TM'; cualquier otra clave → null. */
+function siglaDeGancho(clave: string): SiglaBloque | null {
+  const m = /^(tg|tm|te)\d{1,2}$/.exec(clave);
+  return m ? (m[1].toUpperCase() as SiglaBloque) : null;
+}
+
+/** Sigla TG/TM/TE como palabra: delimitada por no-letras Unicode (la Ñ y las tildes sí son letras) o borde. */
+const RE_SIGLA = /(?<!\p{L})(TG|TM|TE)(?!\p{L})/giu;
+
+/** Siglas TG/TM/TE presentes como palabra (delimitadas por no-letras o borde), en mayúsculas. */
+export function siglasEnNombre(nombre: string): SiglaBloque[] {
+  return [...nombre.matchAll(RE_SIGLA)].map((m) => m[1].toUpperCase() as SiglaBloque);
+}
+
+const MAX_VALOR_MENSAJE = 40;
+const recortar = (t: string) => (t.length > MAX_VALOR_MENSAJE ? `${t.slice(0, MAX_VALOR_MENSAJE)}…` : t);
+
+export interface AvisoBloqueo {
+  titulo: string;
+  detalle: string;
+}
+
+export const AVISO_SIN_TIPO: AvisoBloqueo = {
+  titulo: 'No se pudo leer el archivo',
+  detalle: 'No se pudo determinar el tipo de tienda de la versión; recarga la página.',
+};
+
+const TIPO_POR_SIGLA: Record<SiglaBloque, VersionTipo> = { TG: 'GRANDE', TM: 'MEDIANA', TE: 'EXPRESS' };
+
+function nombreTamano(sigla: SiglaBloque): string {
+  return `Tienda ${TIPO_TIENDA_META[TIPO_POR_SIGLA[sigla]].label.toLowerCase()}`;
+}
+
+/** Bloque ausente o vacío → aviso; en cualquier otro caso null. */
+export function bloqueoDeLectura(lectura: LecturaExcelProductos): AvisoBloqueo | null {
+  const { bloque, bloquesEnArchivo, errores, productos, columnasFaltantes } = lectura;
+  if (bloquesEnArchivo.length > 0 && !bloquesEnArchivo.includes(bloque)) {
+    return {
+      titulo: 'No se importó nada',
+      detalle: `El archivo no trae el bloque ${bloque} (${nombreTamano(bloque)}), que es el que corresponde a esta versión. Trae: ${bloquesEnArchivo.join(', ')}. Carga el archivo que incluya el bloque ${bloque}.`,
+    };
+  }
+  if (bloquesEnArchivo.includes(bloque) && errores.length === 0 && productos.length === 0 && columnasFaltantes.length === 0) {
+    return {
+      titulo: 'No se importó nada',
+      detalle: `El bloque ${bloque} (${nombreTamano(bloque)}) no tiene productos: todas sus filas están vacías o en 0. Verifica que el archivo tenga datos para esta versión.`,
+    };
+  }
+  return null;
+}
 
 /** 0 → `A`, 25 → `Z`, 26 → `AA`, 27 → `AB`. */
 export function letraColumna(indice: number): string {
@@ -353,31 +422,50 @@ interface Columna {
 /**
  * Convierte las filas crudas de la hoja (primera hoja del libro) en productos a importar.
  * @param filas - filas de celdas tal cual las devuelve `readSheet`
+ * @param tipo - tipo de la versión destino: decide qué bloque TG/TM/TE se lee
  */
-export function interpretarHojaProductos(filas: Celda[][]): LecturaExcelProductos {
+export function interpretarHojaProductos(filas: Celda[][], tipo: VersionTipo): LecturaExcelProductos {
+  const s = siglaBloque(tipo);
   const vacia: LecturaExcelProductos = {
     productos: [], planogramas: [], columnasFaltantes: [], errores: [], filasOmitidas: [], origenesAccesorio: [],
+    bloque: s, bloquesEnArchivo: [],
   };
   const indiceEncabezado = filas
     .slice(0, FILAS_MAXIMAS_ENCABEZADO)
     .findIndex((fila) => fila.some((c) => normalizarEncabezado(c) === 'sku'));
   if (indiceEncabezado < 0) return { ...vacia, columnasFaltantes: ['SKU'] };
 
-  const columnas = new Map<Campo, Columna>();
+  const columnasComunes = new Map<Campo, Columna>();
+  const columnasBloque = new Map<Campo, Columna>();
   const columnasGancho: Columna[] = [];
+  const bloquesEnArchivo: SiglaBloque[] = [];
+  const verBloque = (sigla: SiglaBloque | null) => {
+    if (sigla && !bloquesEnArchivo.includes(sigla)) bloquesEnArchivo.push(sigla);
+  };
   filas[indiceEncabezado].forEach((celda, indice) => {
     const clave = normalizarEncabezado(celda);
     const columna = { indice, nombre: String(celda ?? '').trim() };
-    if (esColumnaGancho(clave)) {
-      columnasGancho.push(columna);
+    const siglaGancho = siglaDeGancho(clave);
+    if (siglaGancho) {
+      verBloque(siglaGancho);
+      if (siglaGancho === s) columnasGancho.push(columna);
       return;
     }
-    const campo = sinSufijoTipo(clave) as Campo;
-    if (CAMPOS.includes(campo) && !columnas.has(campo)) columnas.set(campo, columna);
+    const { campo, sigla } = separarSufijo(clave);
+    verBloque(sigla);
+    if (!CAMPOS.includes(campo as Campo)) return;
+    if (sigla === s && !columnasBloque.has(campo as Campo)) columnasBloque.set(campo as Campo, columna);
+    else if (sigla === null && !columnasComunes.has(campo as Campo)) columnasComunes.set(campo as Campo, columna);
   });
+  const columnas = new Map<Campo, Columna>([...columnasComunes, ...columnasBloque]);
 
-  const columnasFaltantes = OBLIGATORIAS.filter((c) => !columnas.has(c));
-  if (columnasFaltantes.length) return { ...vacia, columnasFaltantes };
+  // Hay bloques en el archivo y falta el de la versión: no se lee nada (lo avisa `bloqueoDeLectura`).
+  if (bloquesEnArchivo.length > 0 && !bloquesEnArchivo.includes(s)) return { ...vacia, bloquesEnArchivo };
+
+  const columnasFaltantes = OBLIGATORIAS
+    .filter((c) => !columnas.has(c))
+    .map((c) => (c === 'sku' ? 'SKU' : `Facings_${s}`));
+  if (columnasFaltantes.length) return { ...vacia, columnasFaltantes, bloquesEnArchivo };
 
   const valor = (fila: Celda[], campo: Campo): Celda => {
     const columna = columnas.get(campo);
@@ -467,6 +555,20 @@ export function interpretarHojaProductos(filas: Celda[][]): LecturaExcelProducto
     if (resultadoAccesorios.ok) accesorios = resultadoAccesorios.valor;
     else registrar((resultadoAccesorios.campo === 'nombre_accesorio' ? columnaNombre : columnaTamano) as Columna, resultadoAccesorios);
 
+    // Solo filas que serían producto: un bloque en 0 con el nombre copiado de otro tamaño es "bloque vacío".
+    const columnaPlanograma = columnas.get('planograma');
+    if (facings && facings >= 1 && columnaPlanograma) {
+      const nombrePlano = texto(valor(fila, 'planograma'));
+      const siglas = nombrePlano ? siglasEnNombre(nombrePlano) : [];
+      if (nombrePlano && siglas.length && !siglas.includes(s)) {
+        const ejemplo = nombrePlano.replace(RE_SIGLA, s);
+        registrar(columnaPlanograma, {
+          motivo: `El nombre «${recortar(nombrePlano)}» no corresponde al bloque ${s}`,
+          esperado: `Un nombre de planograma de ${nombreTamano(s).toLowerCase()} (${s}), p. ej. «${recortar(ejemplo)}»`,
+        });
+      }
+    }
+
     errores.push(...erroresFila);
     if (erroresFila.length) return;
 
@@ -512,15 +614,17 @@ export function interpretarHojaProductos(filas: Celda[][]): LecturaExcelProducto
       errores: errores.map(({ indice: _indice, ...e }) => e),
       filasOmitidas,
       origenesAccesorio: [],
+      bloque: s,
+      bloquesEnArchivo,
     };
   }
 
-  return { productos, planogramas: [...planogramas], columnasFaltantes: [], errores: [], filasOmitidas, origenesAccesorio };
+  return { productos, planogramas: [...planogramas], columnasFaltantes: [], errores: [], filasOmitidas, origenesAccesorio, bloque: s, bloquesEnArchivo };
 }
 
 /** Lee la primera hoja del archivo. La librería se carga solo cuando se usa. */
-export async function leerExcelProductos(archivo: File): Promise<LecturaExcelProductos> {
+export async function leerExcelProductos(archivo: File, tipo: VersionTipo): Promise<LecturaExcelProductos> {
   const { readSheet } = await import('read-excel-file/browser');
   const filas = (await readSheet(archivo)) as Celda[][];
-  return interpretarHojaProductos(filas);
+  return interpretarHojaProductos(filas, tipo);
 }

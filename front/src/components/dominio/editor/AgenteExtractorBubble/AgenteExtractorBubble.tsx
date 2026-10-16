@@ -16,6 +16,7 @@ import { useAccesorios } from '../../../../hooks/useAccesorios';
 import { usePosicionFlotante } from '../../../../hooks/usePosicionFlotante';
 import { construirContextoAgente } from '../../../../utils/agenteExtractorContexto';
 import type { GondolaListItem } from '../../../../types/gondola';
+import type { VersionTipo } from '../../../../types/version';
 import './AgenteExtractorBubble.css';
 
 const ANCHO_BURBUJA = 88;
@@ -28,6 +29,8 @@ type MetodoExtraccion = 'ninguno' | 'elegir' | 'imagen-numerada' | 'vision-catal
 interface AgenteExtractorBubbleProps {
   puedeEscribir: boolean;
   versionId: number;
+  /** Tipo de la versión: decide qué bloque TG/TM/TE se lee del Excel. */
+  tipoVersion: VersionTipo | undefined;
   /** Todas las góndolas de la versión — el agente opera sobre la versión completa, no solo la
    * góndola activa en pantalla. */
   gondolas: GondolaListItem[];
@@ -48,6 +51,7 @@ interface AgenteExtractorBubbleProps {
 export function AgenteExtractorBubble({
   puedeEscribir,
   versionId,
+  tipoVersion,
   gondolas,
   gondolaActiva,
   categoria,
@@ -182,6 +186,7 @@ export function AgenteExtractorBubble({
       {metodoExtraccion === 'excel' && (
         <ImportarExcelProductosModal
           versionId={versionId}
+          tipoVersion={tipoVersion}
           onClose={() => setMetodoExtraccion('ninguno')}
           onImportado={() => {
             setMetodoExtraccion('ninguno');

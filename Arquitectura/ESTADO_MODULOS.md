@@ -77,6 +77,16 @@ El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
     archivo) o, si un accesorio no está en el catálogo al pulsar Importar, con otra de origen catálogo
     (sin petición). El 422 de catálogo se reconoce por `Array.isArray(err.details?.codigos)`, no por el
     status (el 422 de versión no editable comparte `code`).
+  - **Bloques TG/TM/TE (2026-10-15)**: se lee solo el bloque del tipo de la versión (`version.tipo`:
+    GRANDE → TG, MEDIANA → TM, EXPRESS → TE; nunca del archivo), pasado página → `AgenteExtractorBubble`
+    → modal → `interpretarHojaProductos(filas, tipo)`. Columnas por sufijo exacto `_tg|_tm|_te` y gancho
+    `^(tg|tm|te)\d{1,2}$`; las de otros bloques ni se leen ni se validan. Columna sin sufijo es común
+    (archivos antiguos); si existe la del bloque, gana esta. Bloque ausente (el archivo trae bloques pero no
+    el de la versión) o vacío (sin productos) → `bloqueoDeLectura` muestra `BloqueoErrores` en el paso 1 y
+    no se importa. `Planograma_<S>` con una sigla TG/TM/TE ajena como palabra (`RE_SIGLA`, letras Unicode)
+    es `ErrorLectura` bloqueante, solo en filas que serían producto. Versión sin tipo: no se lee.
+    Versiones TG importadas antes del 2026-10-15 desde archivos de tres bloques pueden tener ganchos TM
+    mezclados (el lector anterior unía los de todos los bloques); se reimportan a mano.
   - **Ganchos de exhibición**: `Posicion.ganchos` es un arreglo mixto (`54` normal, `"54E"` exhibición,
     distintos). Única regla de ganchos: `back/src/domain/compartido/gancho.js` (`normalizarGancho`,
     `compararGanchos`, `parsearGanchosJson` — el único `JSON.parse` de ganchos) y su espejo
@@ -85,7 +95,8 @@ El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
     El código de accesorio del front se normaliza solo con `normalizarCodigoAccesorio`.
   - **Cruce con "Por ubicar"** (`cruzarConPorUbicar`): compara ganchos en forma canónica; un espacio del PDF
     con `54` no toma un producto con `54E`; el reparto de facings cuenta solo los ganchos normales. El
-    extractor de PDF sigue devolviendo enteros (DT-27): los `54E` quedan en "Por ubicar" con advertencia.
+    extractor de PDF lee y normaliza los `54E` (`ganchosDelEspacio`, plan `2026-10-15-ganchos-exhibicion-pdf`),
+    así que `54E` del PDF cruza con `54E` del Excel. El extractor de imagen numerada sigue con enteros (DT-39).
   - **Antes de publicar**: consulta SQL de solo lectura de ganchos no canónicos en DEV y PROD (0 filas;
     ver `04_implementacion.md` del plan `2026-10-15-importar-excel-tamano-accesorio`).
 - **Implementado end-to-end: `consolidado` (21, Consolidado Tiendas)**. Solo lectura, solo analista; en el menú es

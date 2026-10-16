@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Modal } from '../../../ui/Modal/Modal';
 import { Button } from '../../../ui/Button/Button';
+import { Badge } from '../../../ui/Badge/Badge';
 import { Table, type TableColumn } from '../../../ui/Table/Table';
 import { ZonaArrastreArchivo } from '../../../ui/ZonaArrastreArchivo/ZonaArrastreArchivo';
 import { UsarAdjuntos } from '../../UsarAdjuntos/UsarAdjuntos';
@@ -11,20 +12,28 @@ import { importacionProductosService } from '../../../../services/importacionPro
 import { ApiError } from '../../../../services/httpClient';
 import {
   agruparAccesorios,
+  AVISO_SIN_TIPO,
+  bloqueoDeLectura,
   erroresDeCatalogo,
   leerExcelProductos,
+  siglaBloque,
+  type AvisoBloqueo,
   type ErrorLectura,
   type LecturaExcelProductos,
 } from '../../../../utils/excelProductosPlanograma';
 import { mensajeDeError } from '../../../../utils/errors';
 import { normalizarCodigoAccesorio } from '../../../../domain/accesorios/codigoAccesorio';
 import { textoGanchos } from '../../../../domain/ganchos/gancho';
+import { TIPO_TIENDA_META } from '../../../../constants/tiendas';
+import type { VersionTipo } from '../../../../types/version';
 import type { AccesorioExcel, ProductoExcel } from '../../../../types/importacionProductos';
 import type { TipoAccesorioCatalogo } from '../../../../types/accesorio';
 import './ImportarExcelProductosModal.css';
 
 interface ImportarExcelProductosModalProps {
   versionId: number;
+  /** Tipo de la versión destino: decide el bloque TG/TM/TE del Excel. Sin tipo no se lee. */
+  tipoVersion: VersionTipo | undefined;
   onClose: () => void;
   /** Se llama tras importar, para recargar el lienzo. */
   onImportado: () => void;
@@ -117,25 +126,41 @@ const columnasErrores: TableColumn<ErrorLectura>[] = [
  * accesorios de montaje...) y lo importa a la góndola "Por ubicar" de la versión, una posición por
  * SKU. El analista después arrastra cada producto a su lugar real en el lienzo.
  *
+ * Del archivo se lee solo el bloque (TG/TM/TE) que corresponde al tipo de la versión; si el
+ * archivo no lo trae o está vacío, se avisa en el paso 1 y no se importa nada.
+ *
  * Todo o nada: si el archivo trae errores, o algún accesorio sigue sin existir en el catálogo al
  * pulsar Importar, se muestra la vista de errores y no se envía nada.
  */
-export function ImportarExcelProductosModal({ versionId, onClose, onImportado }: ImportarExcelProductosModalProps) {
+export function ImportarExcelProductosModal({ versionId, tipoVersion, onClose, onImportado }: ImportarExcelProductosModalProps) {
   const [archivo, setArchivo] = useState<File | null>(null);
   const [leyendo, setLeyendo] = useState(false);
   const [importando, setImportando] = useState(false);
+  const [bloqueoLectura, setBloqueoLectura] = useState<AvisoBloqueo | null>(null);
   const [lectura, setLectura] = useState<LecturaExcelProductos | null>(null);
   const [erroresCatalogo, setErroresCatalogo] = useState<ErrorLectura[] | null>(null);
   const [accesorioAlta, setAccesorioAlta] = useState<{ codigo: string; tipo: TipoAccesorioCatalogo } | null>(null);
   const { accesorios, cargando: cargandoCatalogo, fallo: falloCatalogo, recargar: recargarAccesorios } = useAccesorios();
   const { mostrarToast } = useToast();
 
+  const aviso = tipoVersion ? bloqueoLectura : AVISO_SIN_TIPO;
+  const metaTipo = tipoVersion ? TIPO_TIENDA_META[tipoVersion] : null;
+
+  function seleccionar(nuevo: File | null) {
+    setArchivo(nuevo);
+    setBloqueoLectura(null);
+  }
+
   async function leer() {
-    if (!archivo || leyendo) return;
+    if (!archivo || leyendo || !tipoVersion) return;
     setLeyendo(true);
+    setBloqueoLectura(null);
     try {
-      const resultado = await leerExcelProductos(archivo);
-      if (resultado.columnasFaltantes.length) {
+      const resultado = await leerExcelProductos(archivo, tipoVersion);
+      const bloqueo = bloqueoDeLectura(resultado);
+      if (bloqueo) {
+        setBloqueoLectura(bloqueo);
+      } else if (resultado.columnasFaltantes.length) {
         mostrarToast(`El archivo no tiene las columnas: ${resultado.columnasFaltantes.join(', ')}`, 'error');
       } else if (resultado.errores.length === 0 && !resultado.productos.length) {
         mostrarToast('El archivo no tiene productos para importar', 'error');
@@ -152,6 +177,7 @@ export function ImportarExcelProductosModal({ versionId, onClose, onImportado }:
   function cargarOtroArchivo() {
     setLectura(null);
     setArchivo(null);
+    setBloqueoLectura(null);
     setErroresCatalogo(null);
   }
 
@@ -323,7 +349,12 @@ export function ImportarExcelProductosModal({ versionId, onClose, onImportado }:
       >
         <div className="importar-excel">
           <p className="importar-excel__ayuda">
-            {lectura.productos.length} producto(s)
+            {lectura.productos.length} producto(s) · Bloque{' '}
+            {metaTipo && (
+              <Badge bg={metaTipo.bg} color={metaTipo.color}>
+                {lectura.bloque} · {metaTipo.label}
+              </Badge>
+            )}
             {lectura.planogramas.length ? ` del planograma ${lectura.planogramas.join(', ')}` : ''}. Se colocan en la góndola
             "Por ubicar" (10 por nivel, en orden de gancho) con todos sus datos; después los arrastras a su lugar en el lienzo. Los
             SKU que ya están en la versión se omiten.
@@ -369,7 +400,12 @@ export function ImportarExcelProductosModal({ versionId, onClose, onImportado }:
           <Button variante="outline" onClick={onClose} disabled={leyendo}>
             Cancelar
           </Button>
-          <Button variante="primary" onClick={leer} disabled={!archivo || leyendo}>
+          <Button
+            variante="primary"
+            onClick={leer}
+            disabled={!archivo || leyendo || !tipoVersion}
+            title={tipoVersion ? undefined : 'No se pudo determinar el tipo de tienda de la versión'}
+          >
             {leyendo ? 'Leyendo…' : 'Leer archivo'}
           </Button>
         </>
@@ -377,8 +413,12 @@ export function ImportarExcelProductosModal({ versionId, onClose, onImportado }:
     >
       <div className="importar-excel">
         <p className="importar-excel__ayuda">
-          Sube el Excel del planograma (una fila por SKU con sus ganchos TG1…TG10, facings, cantidades, mín./máx., accesorio
-          y observaciones). Se lee la primera hoja; la jerarquía, marca, modelo, temporada y sustitución no se importan.
+          Sube el Excel del planograma (una fila por SKU con sus ganchos, facings, cantidades, mín./máx., accesorio y
+          observaciones).{' '}
+          {tipoVersion && metaTipo
+            ? `Esta versión es de Tienda ${metaTipo.label.toLowerCase()}: se lee solo el bloque ${siglaBloque(tipoVersion)} del archivo. `
+            : ''}
+          Se lee la primera hoja; la jerarquía, marca, modelo, temporada y sustitución no se importan.
         </p>
         <ZonaArrastreArchivo
           accept=".xlsx"
@@ -386,16 +426,22 @@ export function ImportarExcelProductosModal({ versionId, onClose, onImportado }:
           maxBytes={MAX_BYTES_EXCEL}
           indicacion="Una fila por SKU; se lee solo la primera hoja."
           archivo={archivo}
-          onSeleccionar={setArchivo}
+          onSeleccionar={seleccionar}
           disabled={leyendo}
         />
         <UsarAdjuntos
           versionId={versionId}
           accept=".xlsx"
           maxBytes={MAX_BYTES_EXCEL}
-          onSeleccionar={setArchivo}
+          onSeleccionar={seleccionar}
           disabled={leyendo}
         />
+        {aviso && (
+          <BloqueoErrores key={aviso.detalle}>
+            <strong>{aviso.titulo}</strong>
+            <span>{aviso.detalle}</span>
+          </BloqueoErrores>
+        )}
       </div>
     </Modal>
   );

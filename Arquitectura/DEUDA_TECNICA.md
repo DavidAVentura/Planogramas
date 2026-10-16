@@ -21,7 +21,7 @@ aquí en la etapa de cierre.
 | DT-05 | 26 errores de stylelint preexistentes y `npm run lint` no corre en CI | Media | front · CI | 2026-10-12 · configuración de `/desarrollo` | Abierta |
 | DT-06 | Cobertura de pruebas mínima: sin pruebas del resto de entidades, casos de uso ni integración HTTP/BD | Media | back · front | 2026-10-12 · configuración de `/desarrollo` | Abierta |
 | DT-07 | `adjuntos` (13) y `agente-extractor` sin carpeta de pruebas Postman | Media | back | 2026-10-12 · `CLAUDE.md` | Abierta |
-| DT-08 | Estado de migraciones de PROD sin verificar | Alta | BD | 2026-10-12 · `CLAUDE.md` | Abierta |
+| DT-08 | Estado de migraciones de PROD sin verificar | Alta | BD | 2026-10-12 · `CLAUDE.md` | Resuelta (2026-10-16: PROD verificado y en `017_indices_consolidado.js`, aplicada con `npm run migrate:prod`) |
 | DT-09 | El workflow de API PROD instala devDependencies y usa `actions/setup-node@v3` (DEV usa `--omit=dev` y v4) | Baja | CI | 2026-10-12 · configuración de `/desarrollo` | Abierta |
 | DT-10 | Sin filtro por tienda del usuario en los endpoints I | Alta | back · front | 2026-10-12 · plan `2026-10-12-permisos-cao` | Abierta |
 | DT-11 | Acciones con la regla transitoria A sin permiso propio en CAO | Media | back · front | 2026-10-12 · plan `2026-10-12-permisos-cao` | Abierta |
@@ -40,7 +40,7 @@ aquí en la etapa de cierre.
 | DT-24 | Sin índice en `PosicionAccesorio.posicion_id` | Baja | BD | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Resuelta (2026-10-16, plan `2026-10-15-consolidado-tiendas`, migración 017; aplicada en DEV, PROD pendiente por DT-08) |
 | DT-25 | `importarProductos` no registra quién importó | Baja | back | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
 | DT-26 | Importación de Excel sin caso de uso en `CASOS_DE_USO.md` | Baja | docs | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
-| DT-27 | Extractores de PDF e imagen numerada solo devuelven ganchos enteros: el PDF sí imprime `54E`, hoy se lee como 54 o no cruza con "Por ubicar" | Media | back · IA | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
+| DT-27 | Extractores de PDF e imagen numerada solo devuelven ganchos enteros: el PDF sí imprime `54E`, hoy se lee como 54 o no cruza con "Por ubicar" | Media | back · IA | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Resuelta 2026-10-15 · plan `2026-10-15-ganchos-exhibicion-pdf` |
 | DT-28 | `Gancho = number \| string` (forma mixta) en vez de un tipo explícito | Baja | back · front | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
 | DT-29 | Reglas duplicadas entre back y front: ganchos y código de accesorio | Baja | back · front | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
 | DT-30 | La unicidad de ganchos solo se valida dentro de cada posición, no entre posiciones de la versión (preexistente) | Baja | back | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
@@ -52,6 +52,10 @@ aquí en la etapa de cierre.
 | DT-36 | El front no aplica dos topes del back en la importación: 100 ganchos por producto y 100 facings implícitos (el lote falla con 400 de Joi sin fila de Excel) | Baja | front | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
 | DT-37 | Enteros de importación sin máximo (`unidades_por_facing`, `cantidad_apilable`, `capacidad_maxima`) pueden desbordar `INT` y terminar en `500` con rollback | Baja | back · front | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
 | DT-38 | El lector del Excel convierte en silencio un `0` explícito en `Cantidad_x_facing`/`cantidad_apilable` (a 1) y `capacidad_maxima` (a `null`) | Baja | front | 2026-10-15 · plan `2026-10-15-importar-excel-tamano-accesorio` | Abierta |
+| DT-39 | El extractor de imagen numerada descarta los ganchos de exhibición `54E` (schema `integer[]`) | Baja | back · IA | 2026-10-15 · plan `2026-10-15-ganchos-exhibicion-pdf` | Abierta |
+| DT-40 | `datos_vision` de `importar-layout` sin tope de tamaño y con `ganchos_pdf`/`moduleId` sin validar | Baja | back | 2026-10-15 · plan `2026-10-15-ganchos-exhibicion-pdf` | Abierta |
+| DT-41 | `TIPO_TIENDA_META.EXPRESS` usa el color literal `#7a5900` en vez de un token | Baja | front | 2026-10-15 · plan `2026-10-15-importar-excel-bloque-tamano` | Abierta |
+| DT-42 | En el Excel, un campo por bloque que venga sin sufijo (p. ej. `Facings` en vez de `Facings_TM`) se toma en silencio para TM/TE | Baja | front | 2026-10-15 · plan `2026-10-15-importar-excel-bloque-tamano` | Abierta |
 | DT-43 | Catálogo de columnas del consolidado duplicado back (Excel) / front (tabla); mitigado con el mismo literal de 24 claves en una prueba de cada lado | Baja | back · front | 2026-10-15 · plan `2026-10-15-consolidado-tiendas` | Abierta |
 | DT-44 | "Una versión por planograma por tienda" solo la garantiza el dominio, no la BD | Baja | back · BD | 2026-10-15 · plan `2026-10-15-consolidado-tiendas` | Abierta |
 | DT-45 | El consolidado recalcula toda la base en cada request (sin caché); medir p95 en PROD (objetivo < 2 s) | Baja | back | 2026-10-15 · plan `2026-10-15-consolidado-tiendas` | Abierta |
@@ -178,18 +182,24 @@ Una consulta `buscarPorCodigo` por código (tope de 200). Agregar `buscarPorCodi
 ### DT-24 — Índice en `PosicionAccesorio.posicion_id` (Resuelta)
 Sin índice; se nota al leer accesorios de muchas posiciones. **Resuelta (2026-10-16, plan `2026-10-15-consolidado-tiendas`)**: la migración
 `017_indices_consolidado.js` crea `IX_PosicionAccesorio_posicion` y, además, `IX_Gondola_version`, `IX_Nivel_gondola`,
-`IX_Posicion_nivel` e `IX_VersionTienda_tienda`. Aplicada en DEV (`OTB`); en PROD queda pendiente hasta resolver
-DT-08 (antes, ver DT-54).
+`IX_Posicion_nivel` e `IX_VersionTienda_tienda`. Aplicada en DEV (`OTB`) y en PROD (`db-planogramas`)
+el 2026-10-16 (ver DT-54).
 
 ### DT-25 — Sin auditoría de la importación
 `importarProductos` no registra quién importó ni cuándo.
 
 ### DT-26 — Caso de uso de la importación
-La importación del Excel de productos no tiene caso de uso en `CASOS_DE_USO.md`.
+La importación del Excel de productos no tiene caso de uso en `CASOS_DE_USO.md`. Al escribirlo, notar que
+la elección del bloque TG/TM/TE vive solo en el front: el back no valida que los productos vengan del bloque
+de la versión (plan `2026-10-15-importar-excel-bloque-tamano`).
 
 ### DT-27 — Extractores sin ganchos de exhibición
 El PDF imprime `54E` y los extractores (PDF e imagen numerada) solo devuelven enteros; el espacio se lee como
 54 o el producto `54E` no cruza con "Por ubicar" y se arrastra a mano. Requiere un plan aparte.
+
+**Resuelta 2026-10-15** (plan `2026-10-15-ganchos-exhibicion-pdf`): el extractor de PDF pide los ganchos como
+texto y los normaliza con `normalizarGancho` (`ganchosDelEspacio`); `importar-layout` con `usar_por_ubicar` cruza
+`54E` con `54E`. El extractor de imagen numerada pasa a DT-39.
 
 ### DT-28 — `Gancho` como forma mixta
 `number | string` (`54` normal, `"54E"` exhibición). Si aparecen otras variantes, migrar a `{ numero, tipo }`
@@ -201,6 +211,9 @@ Ganchos (`back/src/domain/compartido/gancho.js` ↔ `front/src/domain/ganchos/ga
 
 ### DT-30 — Unicidad de ganchos entre posiciones
 Dos posiciones de la misma versión pueden guardar el mismo `54`/`54E`; solo los chips del front lo impiden.
+Un cliente directo de `importar-layout` puede mandar el mismo gancho en dos espacios: el extractor de PDF solo lo
+advierte, y `cruzarConPorUbicar` **no** lo evita (`usados` solo limpia "Por ubicar"), así que llena ambos espacios
+con el mismo producto (prueba en `back/test/domain/importacion.test.js`, también con ganchos enteros).
 
 ### DT-31 — Carrera accesorio eliminado
 Si un accesorio se elimina entre la verificación del catálogo y el `insert`, la FK falla: rollback y `500`.
@@ -233,6 +246,25 @@ Un valor como `Cantidad_x_facing = 3000000000` pasa el front y Joi y el `insert`
 ### DT-38 — `0` explícito convertido en silencio
 `unidades || 1`, `apilable || 1`, `capacidad || null` en el lector del Excel contradicen "el front no convierte
 inválidos". Que `0` sea `ErrorLectura` ("debe ser al menos 1") y dejar `?? 1`/`?? null` solo para vacíos.
+
+### DT-39 — Imagen numerada sin ganchos de exhibición
+El extractor de imagen numerada (`extractorImagenNumerada.js`, schema `integer[]`) descarta los ganchos `54E`. Hoy
+solo afecta el texto que se manda al chat del Agente Extractor (no se persisten ganchos). Atender si ese flujo llega
+a guardar `Posicion.ganchos`: reutilizar `ganchosDelEspacio` del extractor de PDF.
+
+### DT-40 — `datos_vision` sin tope ni validación
+`datos_vision` en `importar-layout` (`importacion.schemas.js`, `Joi.object().unknown(true)`) no tiene tope de tamaño,
+y `ganchos_pdf`/`moduleId` no se validan. Validar `ganchos_pdf` con `schemaGanchos` y limitar el tamaño del objeto
+cuando se toque ese esquema.
+
+### DT-41 — Color literal en `TIPO_TIENDA_META.EXPRESS`
+`front/src/constants/tiendas.ts` usa `#7a5900` para el texto de Express en vez de un token semántico. Ahora
+también se ve en el Badge del bloque del modal de importación. Moverlo a un token de `tokens.css`.
+
+### DT-42 — Columna común sin sufijo en archivos de tres bloques
+Para mantener los archivos antiguos, una columna sin sufijo vale para cualquier tipo. Si un archivo de tres
+bloques trae un campo sin sufijo (`Facings` en vez de `Facings_TM`), una versión TM/TE lo importa sin aviso.
+Si aparece, avisar cuando el archivo tiene bloques y el campo del bloque falta pero existe el común.
 
 ### DT-43 — Columnas del consolidado duplicadas
 La lista blanca vive en `back/src/domain/consolidado/columnas.js` (encabezados y celdas del Excel) y su espejo en
@@ -299,7 +331,7 @@ montables) no tiene limitador: montar `consolidadoLimiter` (o una instancia prop
 ### DT-54 — `down` de la 017 y chequeo por nombre
 El `up` se salta un índice que ya existe por nombre (`IF NOT EXISTS`), pero el `down` hace `DROP INDEX IF EXISTS`
 igual: si en PROD existía, p. ej., `IX_Posicion_nivel` creado a mano, un rollback lo elimina. Un índice equivalente con
-otro nombre quedaría duplicado. Antes de aplicar la 017 en PROD (DT-08), revisar `sys.indexes` de `Gondola`, `Nivel`,
+otro nombre quedaría duplicado. La 017 ya se aplicó en PROD (2026-10-16); antes de un rollback, revisar `sys.indexes` de `Gondola`, `Nivel`,
 `Posicion`, `PosicionAccesorio` y `VersionTienda` por columna y anotarlo en la migración.
 
 ### DT-55 — Fallo compartido en la deduplicación de CATI

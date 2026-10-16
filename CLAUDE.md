@@ -77,8 +77,8 @@ Lo que sabemos que hay que corregir y se pospone se registra en `Arquitectura/DE
 - No se agrega deuda nueva sin registrarla; cada agente la reporta en su entregable y el coordinador
   la consolida en el cierre de `/desarrollo`.
 - Antes de planear, revisar si el cambio toca una deuda abierta.
-- Abiertas críticas/altas hoy: **DT-01** (parcial: permisos aplicados, falta el filtro por tienda),
-  **DT-10** (sin filtro por tienda del usuario) y **DT-08** (migraciones de PROD sin verificar).
+- Abiertas críticas/altas hoy: **DT-01** (parcial: permisos aplicados, falta el filtro por tienda) y
+  **DT-10** (sin filtro por tienda del usuario).
 
 ## Deployment
 
@@ -178,7 +178,7 @@ versión, 21 consolidado de tiendas; sin Postman todavía: 13 adjuntos y agente-
 | Ambiente | BD | Última migración aplicada | Pendientes | Verificado |
 |----------|----|---------------------------|------------|------------|
 | DEV | `OTB` | `018_autor_nombre_evidencia_adjunto.js` | Ninguna | 2026-10-16 (migrate + rollback + migrate en OTB; `sys.columns`: `nvarchar(150) NULL` en `EvidenciaImplementacion` y `Adjunto`) |
-| PROD | `db-planogramas` | `017_indices_consolidado.js` | `018_autor_nombre_evidencia_adjunto.js` | 2026-10-16 (017 aplicada por el usuario con `npm run migrate:prod`, rama `feat/migracion-prod-por-archivo`) |
+| PROD | `db-planogramas` | `017_indices_consolidado.js` | `018_autor_nombre_evidencia_adjunto.js` | 2026-10-16 (`npm run migrate:prod`, ejecutado por el usuario) |
 
 > **Mantener esta tabla al día.** Cada vez que se cree una migración nueva o se aplique
 > (`npm run migrate`) en un ambiente, actualizar la fila correspondiente con la última migración

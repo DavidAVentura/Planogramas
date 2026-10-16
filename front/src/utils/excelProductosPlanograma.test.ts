@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
-  accesoriosDeCeldas, agruparAccesorios, erroresDeCatalogo, ganchosCelda, interpretarHojaProductos, letraColumna,
+  accesoriosDeCeldas, agruparAccesorios, bloqueoDeLectura, erroresDeCatalogo, ganchosCelda, interpretarHojaProductos,
+  letraColumna, siglaBloque, siglasEnNombre,
 } from './excelProductosPlanograma';
 
 const ENCABEZADO = ['SKU', 'Facings_TG', 'Nombre_accesorio_TG', 'Tamano_accesorio_TG', 'TG1', 'TG2'];
 type Celda = string | number | null;
-const hoja = (...filas: Celda[][]) => interpretarHojaProductos([ENCABEZADO, ...filas]);
+const hoja = (...filas: Celda[][]) => interpretarHojaProductos([ENCABEZADO, ...filas], 'GRANDE');
 
 describe('letraColumna', () => {
   it('convierte el índice a letra de Excel', () => {
@@ -98,7 +99,7 @@ describe('interpretarHojaProductos', () => {
     expect(r.origenesAccesorio).toEqual([{ fila: 2, columna: 'Nombre_accesorio_TG', letra: 'C', codigo: 'VDA-22R-PTH' }]);
   });
 
-  it('une los ganchos de todas las columnas sin mezclar 54 con 54E', () => {
+  it('une los ganchos de las columnas del bloque sin mezclar 54 con 54E', () => {
     const r = hoja(['1', 2, null, null, 54, '54E']);
     expect(r.productos[0].ganchos).toEqual([54, '54E']);
   });
@@ -162,8 +163,8 @@ describe('interpretarHojaProductos', () => {
 
   it('sin SKU se omite; sin la columna SKU o Facings se informa', () => {
     expect(hoja([null, 2, 'A', null, null, null]).filasOmitidas).toEqual([{ fila: 2, motivo: 'Sin SKU' }]);
-    expect(interpretarHojaProductos([['Otra']]).columnasFaltantes).toEqual(['SKU']);
-    expect(interpretarHojaProductos([['SKU']]).columnasFaltantes).toEqual(['facings']);
+    expect(interpretarHojaProductos([['Otra']], 'GRANDE').columnasFaltantes).toEqual(['SKU']);
+    expect(interpretarHojaProductos([['SKU']], 'GRANDE').columnasFaltantes).toEqual(['Facings_TG']);
   });
 });
 
@@ -184,5 +185,121 @@ describe('erroresDeCatalogo y agruparAccesorios', () => {
     expect(agruparAccesorios([A22, A22, B12, A22])).toEqual([
       { ...A22, cantidad: 2 }, { ...B12, cantidad: 1 }, { ...A22, cantidad: 1 },
     ]);
+  });
+});
+
+describe('bloques TG/TM/TE', () => {
+  const TRES = ['SKU', 'Planograma_TG', 'Facings_TG', 'TG1', 'Inner', '.', 'Planograma_TM', 'Facings_TM', 'TM1', '.', 'Planograma_TE', 'Facings_TE', 'TE1'];
+  type C = string | number | null;
+  const tres = (tipo: 'GRANDE' | 'MEDIANA' | 'EXPRESS', ...filas: C[][]) => interpretarHojaProductos([TRES, ...filas], tipo);
+  // SKU, plano TG, fac TG, TG1, Inner, ., plano TM, fac TM, TM1, ., plano TE, fac TE, TE1
+  const FILA: C[] = ['1', 'X TG-09', 2, 54, null, null, 'X TM-09', 3, 65, null, 'X TE-09', 4, 70];
+
+  it('siglaBloque según el tipo', () => {
+    expect(siglaBloque('GRANDE')).toBe('TG');
+    expect(siglaBloque('MEDIANA')).toBe('TM');
+    expect(siglaBloque('EXPRESS')).toBe('TE');
+  });
+
+  it('cada tipo lee facings y ganchos de su bloque', () => {
+    expect(tres('GRANDE', FILA).productos[0]).toMatchObject({ facings_horizontal: 2, ganchos: [54] });
+    expect(tres('MEDIANA', FILA).productos[0]).toMatchObject({ facings_horizontal: 3, ganchos: [65] });
+    expect(tres('EXPRESS', FILA).productos[0]).toMatchObject({ facings_horizontal: 4, ganchos: [70] });
+  });
+
+  it('bloque y bloquesEnArchivo', () => {
+    const r = tres('MEDIANA', FILA);
+    expect(r.bloque).toBe('TM');
+    expect(r.bloquesEnArchivo).toEqual(['TG', 'TM', 'TE']);
+  });
+
+  it('un error en un bloque ajeno no bloquea; en el propio sí', () => {
+    const fila: C[] = ['1', null, 2, '54A', null, null, null, 3, 65, null, null, 4, 70];
+    expect(tres('MEDIANA', fila).errores).toEqual([]);
+    expect(tres('MEDIANA', fila).productos).toHaveLength(1);
+    const g = tres('GRANDE', fila);
+    expect(g.productos).toEqual([]);
+    expect(g.errores[0]).toMatchObject({ columna: 'TG1', letra: 'D' });
+  });
+
+  it('bloque ausente: archivo solo TG con versión MEDIANA', () => {
+    const r = interpretarHojaProductos([['SKU', 'Facings_TG', 'TG1'], ['1', 2, 54]], 'MEDIANA');
+    expect(r.productos).toEqual([]);
+    expect(r.columnasFaltantes).toEqual([]);
+    expect(r.bloquesEnArchivo).toEqual(['TG']);
+    const aviso = bloqueoDeLectura(r);
+    expect(aviso?.titulo).toBe('No se importó nada');
+    expect(aviso?.detalle).toContain('bloque TM (Tienda mediana)');
+    expect(aviso?.detalle).toContain('Trae: TG');
+  });
+
+  it('archivo con campos sin sufijo y gancho TG1 funciona con GRANDE y es bloque ausente con MEDIANA', () => {
+    const filas = [['SKU', 'Facings', 'TG1'], ['1', 2, 54]];
+    expect(interpretarHojaProductos(filas, 'GRANDE').productos[0].ganchos).toEqual([54]);
+    expect(interpretarHojaProductos(filas, 'MEDIANA').bloquesEnArchivo).toEqual(['TG']);
+  });
+
+  it('bloque vacío: TE en 0 con EXPRESS', () => {
+    const fila: C[] = ['1', 'X TG-09', 2, 54, null, null, 'X TG-09', 3, 65, null, 'X TG-09', 0, null];
+    const r = tres('EXPRESS', fila, ['2', null, 2, 1, null, null, null, 1, 1, null, null, null, null]);
+    expect(r.errores).toEqual([]);
+    expect(r.productos).toEqual([]);
+    expect(r.filasOmitidas).toHaveLength(2);
+    expect(bloqueoDeLectura(r)?.detalle).toContain('El bloque TE (Tienda express) no tiene productos');
+  });
+
+  it('una lectura correcta no tiene bloqueo', () => {
+    expect(bloqueoDeLectura(tres('MEDIANA', FILA))).toBeNull();
+  });
+
+  it('archivo sin siglas funciona con cualquier tipo; Facings_TM gana sobre Facings', () => {
+    expect(interpretarHojaProductos([['SKU', 'Facings'], ['1', 2]], 'MEDIANA').productos).toHaveLength(1);
+    const r = interpretarHojaProductos([['SKU', 'Facings', 'Facings_TM'], ['1', 2, 5]], 'MEDIANA');
+    expect(r.productos[0].facings_horizontal).toBe(5);
+  });
+
+  it('columna faltante lleva la sigla del bloque', () => {
+    expect(interpretarHojaProductos([['SKU', 'TM1']], 'MEDIANA').columnasFaltantes).toEqual(['Facings_TM']);
+  });
+
+  it('no une ganchos entre bloques', () => {
+    const fila: C[] = ['1', null, 2, 54, null, null, null, 3, 65, null, null, 4, 70];
+    expect(tres('GRANDE', fila).productos[0].ganchos).toEqual([54]);
+    expect(tres('MEDIANA', fila).productos[0].ganchos).toEqual([65]);
+  });
+});
+
+describe('siglasEnNombre y Planograma_<S>', () => {
+  it('detecta siglas como palabra', () => {
+    expect(siglasEnNombre('LIMPIEZA TG-09')).toEqual(['TG']);
+    expect(siglasEnNombre('ACEITE')).toEqual([]);
+    expect(siglasEnNombre('PINTURAS TM10')).toEqual(['TM']);
+    expect(siglasEnNombre('TINTES Y TEÑIDO')).toEqual([]);
+    expect(siglasEnNombre('ÁTE TG')).toEqual(['TG']);
+  });
+
+  const encabezado = ['SKU', 'Planograma_TM', 'Facings_TM'];
+  const leer = (nombre: string) => interpretarHojaProductos([encabezado, ['1', nombre, 2]], 'MEDIANA');
+
+  it('una sigla ajena es error con motivo y esperado exactos', () => {
+    const r = leer('LIMPIEZA TG-09');
+    expect(r.productos).toEqual([]);
+    expect(r.errores).toHaveLength(1);
+    expect(r.errores[0]).toMatchObject({
+      fila: 2, columna: 'Planograma_TM', letra: 'B',
+      motivo: 'El nombre «LIMPIEZA TG-09» no corresponde al bloque TM',
+      esperado: 'Un nombre de planograma de tienda mediana (TM), p. ej. «LIMPIEZA TM-09»',
+    });
+  });
+
+  it('la sigla propia o sin sigla no es error', () => {
+    expect(leer('LIMPIEZA TM-09').errores).toEqual([]);
+    expect(leer('LIMPIEZA').errores).toEqual([]);
+  });
+
+  it('el nombre se recorta a 40 caracteres', () => {
+    const r = leer(`${'A'.repeat(45)} TG`);
+    expect(r.errores[0].motivo).toBe(`El nombre «${'A'.repeat(40)}…» no corresponde al bloque TM`);
+    expect(r.errores[0].esperado).toBe(`Un nombre de planograma de tienda mediana (TM), p. ej. «${'A'.repeat(40)}…»`);
   });
 });

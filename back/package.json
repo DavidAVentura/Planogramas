@@ -9,6 +9,8 @@
     "migrate": "knex migrate:latest",
     "migrate:rollback": "knex migrate:rollback",
     "migrate:status": "knex migrate:status",
+    "migrate:prod": "knex --knexfile knexfile.prod.js migrate:latest",
+    "migrate:prod:status": "knex --knexfile knexfile.prod.js migrate:status",
     "test": "node --test"
   },
   "keywords": [],

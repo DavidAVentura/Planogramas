@@ -92,6 +92,21 @@ repetir el paso 1. No se resuelve con un merge en sentido contrario ni con `--fo
 Si en el futuro se instala la CLI `gh`, el paso 1 puede hacerse como PR `develop` → `main` en
 `origin`. El paso 2 es igual.
 
+### Migraciones en PROD
+
+Los workflows no migran. Las migraciones de PROD se aplican a mano desde `back/`, con la conexión
+en `back/conexion.prod.json`. Ese archivo está en `.gitignore` y no se versiona: se crea copiando
+`back/conexion.prod.example.json` y lo llena quien migra. El `.env` local sigue apuntando a DEV.
+
+```bash
+cd back
+npm run migrate:prod:status   # imprime el destino (host / BD) y el estado; revisar las pendientes
+npm run migrate:prod          # aplica las pendientes en PROD
+```
+
+Antes de aplicar, confirmar que el destino impreso es `db-planogramas` y que las pendientes son las
+esperadas. Después, actualizar la fila de PROD en la tabla de migraciones de `CLAUDE.md`.
+
 ## 5. Verificar el despliegue
 
 - Ejecuciones: https://github.com/DavidAVentura/Planogramas/actions

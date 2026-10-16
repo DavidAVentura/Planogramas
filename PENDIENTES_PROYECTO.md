@@ -10,6 +10,12 @@
 - Ajustar textos de captura para lenguaje de tienda.
 - Probar en movil real la navegacion inferior y el espacio disponible en pantalla.
 
+## Recarga De Productos Del Excel Por Bloque TG/TM/TE (2026-10-15)
+
+- Pendiente: las versiones importadas antes del 2026-10-15 desde Excel de tres bloques tienen datos del bloque equivocado en "Por ubicar" (TG con ganchos TM/TE mezclados; TM/TE con datos de TG). Reimportar no las corrige (se omiten los SKU ya presentes).
+- Plan listo y en pausa: `Arquitectura/claudeplans/2026-10-15-reemplazar-productos-excel/` (bandera `reemplazar` en `importar-productos`, lector del Excel en el back y comando `npm run recarga-excel` con simulación, respaldo y token CAO; recarga de todas las versiones de Limpieza en DEV, incluidas publicadas).
+- Orden acordado: terminar la feature en paralelo → diseño de front (opción "Reemplazar productos" del modal y pantalla de recarga) → actualizar el plan → aprobación → desarrollo.
+
 ## Diseño De Gondola Por Secciones (2026-10-05)
 
 - HECHO: secciones de gondola (columnas/franjas con sus propios niveles, migracion 012), detalle de gondola desde el lienzo (boton expandir), panel "SKU en la version" (totales por SKU, min./max. una vez por SKU) y numeracion de ganchos calculada. Contratos 18 y 19, carpetas Postman 18 y 19.

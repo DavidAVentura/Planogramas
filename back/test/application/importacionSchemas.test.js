@@ -70,4 +70,31 @@ describe('schemaImportar (layout)', () => {
     }, opciones);
     assert.equal(error, undefined);
   });
+
+  const layoutCon = (ganchos) => schemaImportar.validate({
+    cuerpos: [{
+      destino: 'NUEVA', nombre: 'G1', ancho_cm: 100, alto_cm: 200, profundidad_cm: 50,
+      niveles: [{
+        orden: 1, altura_desde_piso_cm: 10, tipo_accesorio: 'GANCHO',
+        posiciones: [{ orden_horizontal: 1, ancho_asignado_cm: 10, facings_horizontal: 1, ganchos }],
+      }],
+    }],
+  }, opciones);
+
+  it('rechaza ganchos no canónicos', () => {
+    const ciento1 = Array.from({ length: 101 }, (_, i) => i + 1);
+    for (const malo of [['54A'], ['5E1'], [54, '54'], ciento1]) {
+      assert.ok(layoutCon(malo).error, `debía rechazar ${JSON.stringify(malo).slice(0, 40)}`);
+    }
+  });
+
+  it('normaliza "54e " a "54E"', () => {
+    const { error, value } = layoutCon(['54e ']);
+    assert.equal(error, undefined);
+    assert.deepEqual(value.cuerpos[0].niveles[0].posiciones[0].ganchos, ['54E']);
+  });
+
+  it('acepta ganchos mixtos [54, "54E"]', () => {
+    assert.equal(layoutCon([54, '54E']).error, undefined);
+  });
 });
