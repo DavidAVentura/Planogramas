@@ -6,6 +6,7 @@ import { EstadoVersionBadge } from '../EstadoVersionBadge/EstadoVersionBadge';
 import { useEvidenciasDeVersion, useImagenEvidencia } from '../../../../hooks/useEvidencias';
 import { TIPOS_EVIDENCIA } from '../../../../utils/prepararImagenEvidencia';
 import { textoAvanceEvidencia } from '../../../../domain/implementacion/miTienda';
+import { formatearAutor } from '../../../../utils/autorCarga';
 import { formatearFechaHora, textoConteo, tooltipPlanograma } from '../../../../utils/formatters';
 import type { Evidencia } from '../../../../types/evidencia';
 import type { ResumenVersion, TiendaImplementador } from '../../../../types/implementacion';
@@ -40,6 +41,7 @@ function MiniaturaEvidencia({
 }) {
   const { url, error } = useImagenEvidencia(evidencia.id);
   const fecha = formatearFechaHora(evidencia.created_at);
+  const autor = formatearAutor(evidencia.subido_por, evidencia.subido_por_nombre);
 
   return (
     <figure className="evidencia-foto">
@@ -54,7 +56,7 @@ function MiniaturaEvidencia({
       )}
       <figcaption className="evidencia-foto__pie">
         <span>{fecha}</span>
-        <span className="evidencia-foto__autor">{evidencia.subido_por}</span>
+        <span className="evidencia-foto__autor" title={autor}>{autor}</span>
       </figcaption>
       {evidencia.puedeEliminar && (
         <button

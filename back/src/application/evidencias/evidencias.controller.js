@@ -12,7 +12,7 @@ const { MIME_TYPES_EVIDENCIA } = require('../../domain/evidencia/evidencia.entit
 const evidenciaRepo      = require('../../infrastructure/repositories/evidencia.repository');
 const implementacionRepo = require('../../infrastructure/repositories/implementacion.repository');
 const blobStorage        = require('../../infrastructure/storage/blobClient');
-const { parsearEnteroPositivo, validarConJoi, usuarioActual } = require('../compartido/validacion');
+const { parsearEnteroPositivo, validarConJoi, usuarioActual, usuarioAuditoria } = require('../compartido/validacion');
 
 // ─── Esquemas de validación ───────────────────────────────────────────────────
 
@@ -45,7 +45,7 @@ async function agregar(req, res, next) {
     const versionId = parsearEnteroPositivo(req.params.versionId, 'versionId');
     const datos     = validarConJoi(schemaAgregar, req.body ?? {});
     const evidencia = await usecases.agregarEvidencia(
-      evidenciaRepo, implementacionRepo, blobStorage, tiendaId, versionId, datos, usuarioActual(req),
+      evidenciaRepo, implementacionRepo, blobStorage, tiendaId, versionId, datos, usuarioAuditoria(req),
     );
     res.status(201).json(evidencia);
   } catch (err) {

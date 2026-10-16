@@ -118,6 +118,7 @@ async function sembrarFixtures({ sufijo, usuario }) {
       blob_path:       `fixtures/${sufijo}/otro-usuario.png`,
       blob_url:        `fixture://${sufijo}/otro-usuario.png`,
       subido_por:      USUARIO_OTRO,
+      subido_por_nombre: 'FIXTURE OTRO USUARIO',
     }).returning('id');
 
     return {

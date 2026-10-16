@@ -26,6 +26,7 @@ const {
   construirContentDisposition,
   generarBlobPath,
 } = require('./adjunto.entity');
+const { normalizarAutor } = require('../compartido/autor');
 
 // ─── Helpers privados ────────────────────────────────────────────────────────
 
@@ -158,10 +159,11 @@ async function solicitarSubidaReemplazo(adjuntoRepo, versionRepo, blobStorage, i
  * @param {object} blobStorage
  * @param {number} versionId
  * @param {{ nombre_original, tipo_mime, blob_path }} datos
- * @param {string} [userId]
+ * @param {{ numero: string, nombre: string }} autor  usuario del token (nunca del body)
  * @returns {Promise<object>}
  */
-async function agregarAdjunto(adjuntoRepo, versionRepo, blobStorage, versionId, datos, userId) {
+async function agregarAdjunto(adjuntoRepo, versionRepo, blobStorage, versionId, datos, autor) {
+  const { subido_por, subido_por_nombre } = normalizarAutor(autor);
   await buscarVersionOFallar(versionRepo, versionId);
   const blob = await verificarBlobSubido(adjuntoRepo, blobStorage, versionId, datos);
 
@@ -173,7 +175,8 @@ async function agregarAdjunto(adjuntoRepo, versionRepo, blobStorage, versionId, 
     blob_container:        blobStorage.container,
     blob_path:             datos.blob_path,
     blob_url:              blob.url,
-    subido_por:            userId ?? 'sistema',
+    subido_por,
+    subido_por_nombre,
   });
 
   return adjuntoRepo.buscarPorId(id);
@@ -187,10 +190,11 @@ async function agregarAdjunto(adjuntoRepo, versionRepo, blobStorage, versionId, 
  * @param {object} blobStorage
  * @param {number} id
  * @param {{ nombre_original, tipo_mime, blob_path }} datos
- * @param {string} [userId]
+ * @param {{ numero: string, nombre: string }} autor  quien reemplaza (sobrescribe al autor anterior)
  * @returns {Promise<object>}
  */
-async function reemplazarAdjunto(adjuntoRepo, versionRepo, blobStorage, id, datos, userId) {
+async function reemplazarAdjunto(adjuntoRepo, versionRepo, blobStorage, id, datos, autor) {
+  const { subido_por, subido_por_nombre } = normalizarAutor(autor);
   const adjunto = await buscarAdjuntoOFallar(adjuntoRepo, id);
   await buscarVersionOFallar(versionRepo, adjunto.versionId);
   const blob = await verificarBlobSubido(adjuntoRepo, blobStorage, adjunto.versionId, datos);
@@ -202,7 +206,8 @@ async function reemplazarAdjunto(adjuntoRepo, versionRepo, blobStorage, id, dato
     blob_container:  blobStorage.container,
     blob_path:       datos.blob_path,
     blob_url:        blob.url,
-    subido_por:      userId ?? 'sistema',
+    subido_por,
+    subido_por_nombre,
   });
 
   await blobStorage.eliminar({ container: adjunto.blobContainer, blobPath: adjunto.blobPath });

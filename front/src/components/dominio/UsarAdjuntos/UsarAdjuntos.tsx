@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { adjuntosService } from '../../../services/adjuntos.service';
 import { descargarAdjuntoComoArchivo } from '../../../utils/adjuntoArchivo';
+import { formatearAutor } from '../../../utils/autorCarga';
 import { cumpleAccept, formatearPeso } from '../../../utils/archivos';
 import { formatearFecha } from '../../../utils/formatters';
 import { mensajeDeError } from '../../../utils/errors';
@@ -84,6 +85,7 @@ export function UsarAdjuntos({ versionId, accept, maxBytes, onSeleccionar, disab
               {compatibles.map((a) => {
                 const excede = maxBytes !== undefined && a.tamanoBytes > maxBytes;
                 const descargando = descargandoId === a.id;
+                const detalle = `${formatearPeso(a.tamanoBytes)} · ${formatearFecha(a.createdAt)} · ${formatearAutor(a.subidoPor, a.subidoPorNombre)}`;
                 return (
                   <li key={a.id}>
                     <button
@@ -94,9 +96,7 @@ export function UsarAdjuntos({ versionId, accept, maxBytes, onSeleccionar, disab
                       title={excede ? `Supera el máximo de ${formatearPeso(maxBytes!)}` : undefined}
                     >
                       <span className="usar-adjuntos__nombre">{a.nombreOriginal}</span>
-                      <span className="usar-adjuntos__detalle">
-                        {formatearPeso(a.tamanoBytes)} · {formatearFecha(a.createdAt)} · {a.subidoPor}
-                      </span>
+                      <span className="usar-adjuntos__detalle" title={detalle}>{detalle}</span>
                       <span className="usar-adjuntos__accion">
                         {descargando ? 'Descargando…' : excede ? 'Muy pesado' : elegidoId === a.id ? 'En uso' : 'Usar'}
                       </span>

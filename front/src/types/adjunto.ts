@@ -19,6 +19,8 @@ export interface Adjunto {
    * `abrirAdjunto` (utils/adjuntoArchivo.ts), que pide una URL SAS de lectura. */
   blobUrl: string;
   subidoPor: string;
+  /** Nombre de quien subió (o reemplazó) el archivo; null en los adjuntos anteriores a este dato. */
+  subidoPorNombre: string | null;
   createdAt: string;
 }
 

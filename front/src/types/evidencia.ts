@@ -7,6 +7,8 @@ export interface Evidencia {
   tipo_mime: EvidenciaTipoMime;
   tamano_bytes: number;
   subido_por: string;
+  /** Nombre de quien la subió (CAO) al cargarla; null en las fotos anteriores a este dato. */
+  subido_por_nombre: string | null;
   created_at: string;
   /** Solo quien la subió puede quitarla. */
   puedeEliminar: boolean;

@@ -23,6 +23,7 @@ function mapEvidencia(row) {
     blobPath:       row.blob_path,
     blobUrl:        row.blob_url,
     subidoPor:      row.subido_por,
+    subidoPorNombre: row.subido_por_nombre,
     createdAt:      row.created_at,
   };
 }

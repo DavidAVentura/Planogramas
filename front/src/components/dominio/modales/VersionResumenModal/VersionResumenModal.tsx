@@ -8,6 +8,7 @@ import { abrirAdjunto } from '../../../../utils/adjuntoArchivo';
 import { useToast } from '../../../../context/ToastContext';
 import { mensajeDeError } from '../../../../utils/errors';
 import { SIGLA_TIPO_TIENDA, TIPO_TIENDA_META } from '../../../../constants/tiendas';
+import { formatearAutor } from '../../../../utils/autorCarga';
 import { formatearFecha, subcategoriaSinCodigo, tooltipPlanograma } from '../../../../utils/formatters';
 import type { VarianteChip } from '../../../../domain/estructura/asignaciones';
 import type { TiendaMatriz } from '../../../../types/asignacion';
@@ -197,19 +198,22 @@ export function VersionResumenModal({ versionId, tienda, puedeAbrirLienzo, onClo
             {!cargandoAdjuntos && adjuntos.length === 0 && <span className="version-resumen__vacio">Esta versión no tiene adjuntos.</span>}
             {adjuntos.length > 0 && (
               <ul className="version-resumen__adjuntos">
-                {adjuntos.map((a) => (
+                {adjuntos.map((a) => {
+                  const detalle = `${tamano(a.tamanoBytes)} · ${formatearAutor(a.subidoPor, a.subidoPorNombre)}`;
+                  return (
                   <li key={a.id}>
                     <span className={`version-resumen__ext${a.tipoMime === 'application/pdf' ? ' version-resumen__ext--pdf' : ''}`}>{extension(a.tipoMime)}</span>
                     <span className="version-resumen__adjunto">
                       <strong>{a.nombreOriginal}</strong>
-                      <span>{tamano(a.tamanoBytes)} · {a.subidoPor}</span>
+                      <span className="version-resumen__detalle" title={detalle}>{detalle}</span>
                     </span>
                     <span className="version-resumen__fecha">{formatearFecha(a.createdAt)}</span>
                     <button type="button" className="version-resumen__descargar" aria-label={`Descargar ${a.nombreOriginal}`} title="Descargar" onClick={() => descargar(a)}>
                       ↓
                     </button>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             )}
           </section>

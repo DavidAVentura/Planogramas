@@ -5,6 +5,7 @@ import { VisorImagenes, type ImagenVisor } from '../../../ui/VisorImagenes/Visor
 import { useEvidenciasDeVersion } from '../../../../hooks/useEvidencias';
 import { useImagenCacheada } from '../../../../hooks/useImagenCacheada';
 import { evidenciasService } from '../../../../services/evidencias.service';
+import { formatearAutor } from '../../../../utils/autorCarga';
 import { formatearFechaHora, textoConteo, tooltipPlanograma } from '../../../../utils/formatters';
 import type { PlanogramaMatriz, TiendaMatriz, VersionMatriz } from '../../../../types/asignacion';
 import type { Evidencia } from '../../../../types/evidencia';
@@ -24,6 +25,7 @@ interface FotoMontaje extends ImagenVisor {
 
 function aFoto(evidencia: Evidencia, gondola: string): FotoMontaje {
   const fecha = formatearFechaHora(evidencia.created_at);
+  const autor = formatearAutor(evidencia.subido_por, evidencia.subido_por_nombre);
   return {
     evidencia,
     gondola,
@@ -31,7 +33,7 @@ function aFoto(evidencia: Evidencia, gondola: string): FotoMontaje {
     alt: `Foto de ${gondola}, ${fecha}`,
     pie: (
       <>
-        <strong>{gondola}</strong> · {fecha} · {evidencia.subido_por}
+        <strong>{gondola}</strong> · {fecha} · {autor}
       </>
     ),
     descargar: () => evidenciasService.descargar(evidencia.id),
@@ -40,6 +42,7 @@ function aFoto(evidencia: Evidencia, gondola: string): FotoMontaje {
 
 function Miniatura({ foto, onAbrir }: { foto: FotoMontaje; onAbrir: () => void }) {
   const { url, error } = useImagenCacheada(foto.clave, foto.descargar);
+  const autor = formatearAutor(foto.evidencia.subido_por, foto.evidencia.subido_por_nombre);
   return (
     <figure className="montaje-foto">
       <button type="button" className="montaje-foto__imagen" onClick={onAbrir} title="Ver en pantalla completa" aria-label={`Ver ${foto.alt}`}>
@@ -47,7 +50,7 @@ function Miniatura({ foto, onAbrir }: { foto: FotoMontaje; onAbrir: () => void }
       </button>
       <figcaption className="montaje-foto__pie">
         <span>{formatearFechaHora(foto.evidencia.created_at)}</span>
-        <span className="montaje-foto__autor">{foto.evidencia.subido_por}</span>
+        <span className="montaje-foto__autor" title={autor}>{autor}</span>
       </figcaption>
     </figure>
   );

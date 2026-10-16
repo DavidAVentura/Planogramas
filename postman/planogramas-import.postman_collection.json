@@ -21253,6 +21253,7 @@
                       "const g1 = body.gondolas.find((g) => g.id === Number(pm.collectionVariables.get('gondolaIdEvidencias')));",
                       "const g2 = body.gondolas.find((g) => g.id === Number(pm.collectionVariables.get('gondolaIdEvidenciasSinFotos')));",
                       "pm.test('la góndola 1 trae la foto del setup, eliminable por quien la subió', () => { const e = g1.evidencias.find((x) => x.id === Number(pm.collectionVariables.get('evidenciaIdListado'))); pm.expect(e).to.be.an('object'); pm.expect(e.tipo_mime).to.eql('image/png'); pm.expect(e.tamano_bytes).to.eql(70); pm.expect(e.puedeEliminar).to.eql(true); pm.expect(e.subido_por).to.be.a('string'); });",
+                      "pm.test('cada evidencia trae subido_por_nombre (null o texto de hasta 150) y no expone el correo', () => { body.gondolas.forEach((g) => g.evidencias.forEach((x) => { pm.expect(x).to.have.property('subido_por_nombre'); if (x.subido_por_nombre !== null) { pm.expect(x.subido_por_nombre).to.be.a('string'); pm.expect(x.subido_por_nombre.length).to.be.at.most(150); } pm.expect(x).to.not.have.property('correo'); })); });",
                       "pm.test('la góndola 2 aparece sin fotos', () => pm.expect(g2.evidencias).to.eql([]));"
                     ]
                   }
@@ -21397,7 +21398,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"gondola_id\": \"{{gondolaIdEvidencias}}\",\n  \"nombre_original\": \"gondola 1 postman.png\",\n  \"tipo_mime\": \"image/png\",\n  \"archivo_base64\": \"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==\"\n}",
+                  "raw": "{\n  \"gondola_id\": \"{{gondolaIdEvidencias}}\",\n  \"nombre_original\": \"gondola 1 postman.png\",\n  \"tipo_mime\": \"image/png\",\n  \"subido_por\": \"999\",\n  \"subido_por_nombre\": \"FALSO\",\n  \"archivo_base64\": \"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -21414,6 +21415,7 @@
                       "pm.test('Status 201', () => pm.response.to.have.status(201));",
                       "const e = pm.response.json();",
                       "pm.test('Evidencia creada para la góndola, eliminable por quien la subió', () => { pm.expect(e.id).to.be.a('number'); pm.expect(e.gondolaId).to.eql(Number(pm.collectionVariables.get('gondolaIdEvidencias'))); pm.expect(e.nombre_original).to.eql('gondola 1 postman.png'); pm.expect(e.tipo_mime).to.eql('image/png'); pm.expect(e.tamano_bytes).to.eql(70); pm.expect(e.subido_por).to.be.a('string'); pm.expect(e.created_at).to.be.a('string'); pm.expect(e.puedeEliminar).to.eql(true); });",
+                      "pm.test('El autor sale del token: el body no puede fijar subido_por ni subido_por_nombre', () => { pm.expect(e.subido_por).to.not.eql('999'); pm.expect(e.subido_por_nombre).to.not.eql('FALSO'); pm.expect(e).to.have.property('subido_por_nombre'); pm.expect(e).to.not.have.property('correo'); });",
                       "pm.collectionVariables.set('evidenciaId', e.id);"
                     ]
                   }

@@ -31,7 +31,7 @@ module.exports = {
 
   /**
    * Crea un adjunto nuevo.
-   * @param {{ planograma_version_id, nombre_original, tipo_mime, tamano_bytes, blob_container, blob_path, blob_url, subido_por }} adjunto
+   * @param {{ planograma_version_id, nombre_original, tipo_mime, tamano_bytes, blob_container, blob_path, blob_url, subido_por, subido_por_nombre }} adjunto
    * @returns {Promise<number>} id del adjunto creado
    */
   crear: async (_adjunto) => { throw new Error('No implementado'); },
@@ -39,7 +39,7 @@ module.exports = {
   /**
    * Actualiza los campos de archivo de un adjunto existente (reemplazo).
    * @param {number} id
-   * @param {{ nombre_original, tipo_mime, tamano_bytes, blob_container, blob_path, blob_url, subido_por }} campos
+   * @param {{ nombre_original, tipo_mime, tamano_bytes, blob_container, blob_path, blob_url, subido_por, subido_por_nombre }} campos
    * @returns {Promise<void>}
    */
   actualizarArchivo: async (_id, _campos) => { throw new Error('No implementado'); },

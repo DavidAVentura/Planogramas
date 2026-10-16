@@ -12,7 +12,7 @@ const { MIME_TYPES_PERMITIDOS, MODOS_DESCARGA } = require('../../domain/adjunto/
 const adjuntoRepo = require('../../infrastructure/repositories/adjunto.repository');
 const versionRepo = require('../../infrastructure/repositories/version.repository');
 const blobStorage = require('../../infrastructure/storage/blobClient');
-const { usuarioActual } = require('../compartido/validacion');
+const { usuarioAuditoria } = require('../compartido/validacion');
 
 // ─── Esquemas de validación ───────────────────────────────────────────────────
 
@@ -92,7 +92,7 @@ async function agregar(req, res, next) {
   try {
     const versionId = parsearId(req.params.id);
     const datos     = validarBody(schemaConfirmar, req.body);
-    const adjunto   = await usecases.agregarAdjunto(adjuntoRepo, versionRepo, blobStorage, versionId, datos, usuarioActual(req));
+    const adjunto   = await usecases.agregarAdjunto(adjuntoRepo, versionRepo, blobStorage, versionId, datos, usuarioAuditoria(req));
     res.status(201).json(adjunto);
   } catch (err) {
     next(err);
@@ -103,7 +103,7 @@ async function reemplazar(req, res, next) {
   try {
     const id      = parsearId(req.params.id);
     const datos   = validarBody(schemaConfirmar, req.body);
-    const adjunto = await usecases.reemplazarAdjunto(adjuntoRepo, versionRepo, blobStorage, id, datos, usuarioActual(req));
+    const adjunto = await usecases.reemplazarAdjunto(adjuntoRepo, versionRepo, blobStorage, id, datos, usuarioAuditoria(req));
     res.json(adjunto);
   } catch (err) {
     next(err);

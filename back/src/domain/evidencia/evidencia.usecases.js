@@ -17,6 +17,7 @@ const {
   puedeEliminar,
 } = require('./evidencia.entity');
 const { decodificarBase64 } = require('../compartido/archivo');
+const { normalizarAutor } = require('../compartido/autor');
 const {
   obtenerTiendaActivaOFallar,
   obtenerVersionesAsignadasOFallar,
@@ -43,6 +44,7 @@ function formatearEvidencia(evidencia, usuario) {
     tipo_mime:       evidencia.tipoMime,
     tamano_bytes:    evidencia.tamanoBytes,
     subido_por:      evidencia.subidoPor,
+    subido_por_nombre: evidencia.subidoPorNombre ?? null,
     created_at:      evidencia.createdAt,
     puedeEliminar:   puedeEliminar(evidencia, usuario),
   };
@@ -91,10 +93,12 @@ async function listarEvidencias(evidenciaRepo, implementacionRepo, tiendaId, ver
  * @param {number} tiendaId
  * @param {number} versionId
  * @param {{ gondola_id, nombre_original, tipo_mime, archivo_base64 }} datos
- * @param {string} usuario
+ * @param {{ numero: string, nombre: string }} autor  usuario del token (nunca del body)
  * @returns {Promise<object>}
  */
-async function agregarEvidencia(evidenciaRepo, implementacionRepo, blobStorage, tiendaId, versionId, datos, usuario) {
+async function agregarEvidencia(evidenciaRepo, implementacionRepo, blobStorage, tiendaId, versionId, datos, autor) {
+  // Antes de validar y de subir el blob: sin autor válido no se escribe nada.
+  const { subido_por, subido_por_nombre } = normalizarAutor(autor);
   const tienda = await validarTiendaYVersion(implementacionRepo, tiendaId, versionId);
 
   if (!await evidenciaRepo.gondolaPerteneceAVersion(datos.gondola_id, versionId)) {
@@ -122,7 +126,8 @@ async function agregarEvidencia(evidenciaRepo, implementacionRepo, blobStorage, 
       blob_container:        container,
       blob_path:             blobPath,
       blob_url:              url,
-      subido_por:            usuario,
+      subido_por,
+      subido_por_nombre,
     });
   } catch (err) {
     await blobStorage.eliminar({ container, blobPath }).catch(() => {});
@@ -130,7 +135,7 @@ async function agregarEvidencia(evidenciaRepo, implementacionRepo, blobStorage, 
   }
 
   const evidencia = await evidenciaRepo.buscarPorId(id);
-  return { id: evidencia.id, gondolaId: evidencia.gondolaId, ...formatearEvidencia(evidencia, usuario) };
+  return { id: evidencia.id, gondolaId: evidencia.gondolaId, ...formatearEvidencia(evidencia, subido_por) };
 }
 
 /**

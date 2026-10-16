@@ -43,7 +43,7 @@ module.exports = {
 
   /**
    * Crea una evidencia.
-   * @param {{ planograma_version_id, tienda_id, gondola_id, nombre_original, tipo_mime, tamano_bytes, blob_container, blob_path, blob_url, subido_por }} evidencia
+   * @param {{ planograma_version_id, tienda_id, gondola_id, nombre_original, tipo_mime, tamano_bytes, blob_container, blob_path, blob_url, subido_por, subido_por_nombre }} evidencia
    * @returns {Promise<number>} id creado
    */
   crear: async (_evidencia) => { throw new Error('No implementado'); },
