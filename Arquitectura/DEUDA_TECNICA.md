@@ -82,6 +82,8 @@ aquí en la etapa de cierre.
 | DT-66 | El módulo 17 (evidencias) no tiene casos de uso en `CASOS_DE_USO.md` (los contratos citan CU-07-03, que no existe) | Baja | docs | 2026-10-16 · plan `2026-10-16-evidencia-usuario-carga` | Abierta |
 | DT-67 | El nombre del autor de una carga puede salir de los claims del JWT si CAO no manda `username` | Baja | back | 2026-10-16 · plan `2026-10-16-evidencia-usuario-carga` | Abierta |
 | DT-68 | Menores sin corregir de la revisión de calidad del autor de la carga: pruebas faltantes en `adjunto.test.js`, `formatearAutor` duplicado en el montaje, `title` que tapa el aviso "Supera el máximo", `tipoTitulo` con guiones y apóstrofos e indentación de `VersionResumenModal` | Baja | back · front | 2026-10-16 · revisión de calidad (M-01, M-02, M-03, M-05, M-06) del plan `2026-10-16-evidencia-usuario-carga` | Abierta |
+| DT-69 | Script de un solo uso `back/scripts/migracion-dev-prod/` en el repo y desplegado al App Service PROD: retirarlo cuando PROD esté estable | Baja | back | 2026-10-16 · plan `2026-10-16-migracion-datos-dev-prod` | Abierta |
+| DT-70 | Menores sin corregir de la revisión del script de migración DEV → PROD (filtro por esquema `dbo`, PK vacía en el hash, validación de la URL del blob, mensajes duplicados, identity antes/después si la transacción lanza excepción) | Baja | back | 2026-10-16 · revisiones de calidad y seguridad del plan `2026-10-16-migracion-datos-dev-prod` | Abierta |
 
 ## Detalle
 
@@ -413,3 +415,12 @@ Referencias a `05_revision_calidad.md` del plan `2026-10-16-evidencia-usuario-ca
 - **M-03**: en `UsarAdjuntos` el `title` del detalle tapa el aviso "Supera el máximo": `title={excede ? undefined : detalle}`.
 - **M-05**: `tipoTitulo` no capitaliza tras guion ni apóstrofo (`María-josé`, `O'neill`).
 - **M-06**: `VersionResumenModal.tsx` (líneas 205-215) con la indentación anterior al cambio.
+
+### DT-69 — Retirar el script de migración DEV → PROD
+`back/scripts/migracion-dev-prod/` se escribió para la carga inicial de PROD (2026-10-16). Vive en `back/`, así que el
+workflow lo despliega al App Service PROD aunque nunca se ejecute ahí. Cuando PROD esté estable, borrar la carpeta, sus
+pruebas, el script `migrar:dev-a-prod` de `package.json` y el apartado de `DESPLIEGUE_AZURE.md`.
+
+### DT-70 — Menores de la revisión del script de migración
+Detalle en `05_revision_calidad.md` (M-1 a M-4 y M-7) y `05_revision_seguridad.md` (M-02 y siguientes) del plan
+`2026-10-16-migracion-datos-dev-prod`. Ninguno afecta los datos copiados; se resuelven juntos con DT-69 al retirar el script.
