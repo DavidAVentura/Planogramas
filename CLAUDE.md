@@ -178,7 +178,7 @@ versión, 21 consolidado de tiendas; sin Postman todavía: 13 adjuntos y agente-
 | Ambiente | BD | Última migración aplicada | Pendientes | Verificado |
 |----------|----|---------------------------|------------|------------|
 | DEV | `OTB` | `018_autor_nombre_evidencia_adjunto.js` | Ninguna | 2026-10-16 (migrate + rollback + migrate en OTB; `sys.columns`: `nvarchar(150) NULL` en `EvidenciaImplementacion` y `Adjunto`) |
-| PROD | `db-planogramas` | `017_indices_consolidado.js` | `018_autor_nombre_evidencia_adjunto.js` | 2026-10-16 (`npm run migrate:prod`, ejecutado por el usuario) |
+| PROD | `db-planogramas` | `018_autor_nombre_evidencia_adjunto.js` | Ninguna | 2026-10-16 (`npm run migrate:prod`; luego carga de datos de DEV con `migrar:dev-a-prod`, verificada con `--verificar`) |
 
 > **Mantener esta tabla al día.** Cada vez que se cree una migración nueva o se aplique
 > (`npm run migrate`) en un ambiente, actualizar la fila correspondiente con la última migración
