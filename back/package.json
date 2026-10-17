@@ -11,6 +11,7 @@
     "migrate:status": "knex migrate:status",
     "migrate:prod": "knex --knexfile knexfile.prod.js migrate:latest",
     "migrate:prod:status": "knex --knexfile knexfile.prod.js migrate:status",
+    "migrar:dev-a-prod": "node scripts/migracion-dev-prod/index.js",
     "test": "node --test"
   },
   "keywords": [],
