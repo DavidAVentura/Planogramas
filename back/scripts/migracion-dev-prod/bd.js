@@ -112,9 +112,13 @@ async function ultimosIdentity(conexion) {
   const filas = await conexion.raw(`
     SELECT t.name AS tabla, CAST(ic.last_value AS bigint) AS ultimo
     FROM sys.identity_columns ic
-    JOIN sys.tables t ON t.object_id = ic.object_id`);
+    JOIN sys.tables t ON t.object_id = ic.object_id
+    WHERE SCHEMA_NAME(t.schema_id) = 'dbo'`);
+  // OTB tiene tablas ajenas a la app (msg, Ventas…): solo cuentan las de la migración.
   const res = {};
-  for (const f of filas) res[f.tabla] = f.ultimo === null ? null : Number(f.ultimo);
+  for (const f of filas.filter((x) => ORDEN_TABLAS.includes(x.tabla))) {
+    res[f.tabla] = f.ultimo === null ? null : Number(f.ultimo);
+  }
   return res;
 }
 
@@ -177,16 +181,14 @@ async function insertarTabla(trxProd, { tabla, columnas, filas, identity, autorr
   const sinReferencia = autorreferencia
     ? filas.map((f) => ({ ...f, [autorreferencia]: null }))
     : filas;
-  if (identity) await trxProd.raw(`SET IDENTITY_INSERT ${q(tabla)} ON`);
-  try {
-    const lote = tamanoLote(columnas.length);
-    for (let i = 0; i < sinReferencia.length; i += lote) {
-      await trxProd(tabla).insert(sinReferencia.slice(i, i + lote));
-    }
-  } finally {
-    if (identity) {
-      try { await trxProd.raw(`SET IDENTITY_INSERT ${q(tabla)} OFF`); } catch { /* la transacción ya falló */ }
-    }
+  const lote = tamanoLote(columnas.length);
+  for (let i = 0; i < sinReferencia.length; i += lote) {
+    const insert = trxProd(tabla).insert(sinReferencia.slice(i, i + lote));
+    if (!identity) { await insert; continue; }
+    // knex manda cada consulta por sp_executesql y un SET hecho ahí se revierte al terminar esa llamada:
+    // el ON, el INSERT y el OFF tienen que ir en el mismo lote.
+    const { sql, bindings } = insert.toSQL();
+    await trxProd.raw(`SET IDENTITY_INSERT ${q(tabla)} ON; ${sql}; SET IDENTITY_INSERT ${q(tabla)} OFF;`, bindings);
   }
   if (autorreferencia) {
     for (const fila of filas.filter((f) => f[autorreferencia] !== null && f[autorreferencia] !== undefined)) {
