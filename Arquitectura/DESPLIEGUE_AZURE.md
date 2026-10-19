@@ -107,6 +107,49 @@ npm run migrate:prod          # aplica las pendientes en PROD
 Antes de aplicar, confirmar que el destino impreso es `db-planogramas` y que las pendientes son las
 esperadas. Después, actualizar la fila de PROD en la tabla de migraciones de `CLAUDE.md`.
 
+### Migración de datos DEV → PROD (2026-10-16)
+
+Deja `db-planogramas` idéntica a `OTB` en las 17 tablas de la app (mismos IDs) y copia los blobs
+referenciados de `adjuntos-dev` a `adjuntos` (misma cuenta `planogramasstorage`). Es un script de un
+solo uso en `back/scripts/migracion-dev-prod/` (retirarlo cuando PROD esté estable, DT-69). Corre desde
+`back/` con `conexion.prod.json` (login de administración) y el `.env` local (DEV y Storage). Lee DEV
+completo, cierra su conexión y escribe en PROD en **una sola transacción**: commit solo si conteos,
+hashes por tabla, `IDENT_CURRENT`, FKs y URLs de blobs cuadran. Nunca imprime credenciales.
+
+| Modo | Comando (desde `back/`) | Efecto |
+|---|---|---|
+| Simulacro (default) | `npm run migrar:dev-a-prod` | Todo el proceso y **ROLLBACK** siempre. |
+| Solo blobs | `npm run migrar:dev-a-prod -- --solo-blobs --ejecutar --confirmar=db-planogramas` | Copia blobs (idempotente) y verifica destino; no abre transacción. |
+| Ejecución real | `npm run migrar:dev-a-prod -- --ejecutar --confirmar=db-planogramas [--forzar-vaciado]` | Blobs, luego carga y **COMMIT** si todo cuadra. |
+| Verificar | `npm run migrar:dev-a-prod -- --verificar` | Solo lectura: compara DEV y PROD. |
+
+Salida `0` si terminó y cuadra; `1` en cualquier otro caso. Sin `--forzar-vaciado` el script aborta si
+PROD tiene algo más que los fixtures (Tienda id 1 `T004`, Accesorio id 1 `G-12-FIXTURE`). Los
+valores de identity no son transaccionales: tras el simulacro, PROD puede quedar con el identity en
+los valores de DEV; el informe muestra `IDENT PROD antes/después`. Ctrl+C solo marca la interrupción:
+el script se detiene en el siguiente punto seguro y revierte; si cayó durante el COMMIT, ejecutar
+`--verificar`.
+
+Checklist (solo tras aprobación del usuario):
+
+1. **O1** Portal: `planogramas-api-prod` con `NODE_ENV=production`, sin `PRUEBAS_HABILITADAS=true`,
+   `AZURE_STORAGE_CONTAINER_ADJUNTOS=adjuntos` en `planogramasstorage`. `conexion.prod.json` con el
+   login de administración. Confirmar que nadie edita DEV durante la ventana.
+2. **O2** `npm run migrate:prod` (aplica `018`) y `npm run migrate:prod:status`: sin pendientes.
+3. **O3** Confirmar en el portal el punto de restauración (PITR) de `db-planogramas` **y de `OTB`**,
+   anotar la hora UTC y detener el App Service `planogramas-api-prod`.
+4. **O4** `--solo-blobs --ejecutar --confirmar=db-planogramas`: 91 blobs copiados o ya idénticos, 0 faltantes.
+5. **O5** Simulacro: esquema idéntico, solo se borran fixtures, hashes iguales, FKs confiables, `ROLLBACK`.
+6. **O6** Ejecución real: `COMMIT` y salida 0. Si falla, no reintentar a ciegas; si el commit es dudoso, O7.
+7. **O7** `--verificar` ("Todas las tablas cuadran"), iniciar el App Service y probar en PROD un
+   planograma, un adjunto y una evidencia. Actualizar la tabla de migraciones de `CLAUDE.md` (PROD → `018`).
+
+Vuelta atrás: restaurar `db-planogramas` con PITR a la hora anotada (crea una BD nueva: renombrarla o
+cambiar la cadena de conexión del App Service), o volver a correr con `--forzar-vaciado`. Los blobs
+de `adjuntos-dev` no se tocan.
+
+Puntos de restauración (UTC): `db-planogramas` ____ · `OTB` ____
+
 ## 5. Verificar el despliegue
 
 - Ejecuciones: https://github.com/DavidAVentura/Planogramas/actions
