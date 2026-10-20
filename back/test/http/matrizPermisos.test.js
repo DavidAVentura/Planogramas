@@ -91,6 +91,7 @@ const PROHIBIDAS_TIENDA = [
   ['POST', '/voz/tts'], ['PATCH', '/posiciones/1/asignar-sku'], ['POST', '/accesorios'],
   ['GET', '/planogramas'], ['GET', '/versiones/1'], ['GET', '/versiones/1/estructura'],
   ['GET', '/asignaciones'], ['GET', '/implementacion/versiones'], ['GET', '/catalog/productos'],
+  ['GET', '/implementacion/productos'], ['POST', '/implementacion/productos/exportar'],
   ['GET', '/catalog/productos/123'], ['GET', '/jerarquia/areas'], ['GET', '/posiciones/por-sku'],
 ];
 const PASA_TIENDA = [
@@ -133,6 +134,11 @@ test('matriz de permisos por HTTP', async (t) => {
 
     await verificar('analista', 'GET', '/versiones/abc', 'pasa');
     await verificar('tienda', 'GET', '/versiones/abc', 403);
+    // Exportación por planograma: el cuerpo de la matriz ({}) es inválido y aun así gana el 403; sin sesión, 401.
+    await verificar('analista', 'POST', '/implementacion/productos/exportar', 'pasa'); // llega a la validación: 400
+    await verificar('soloPLA009', 'POST', '/implementacion/productos/exportar', 403);
+    await verificar('noexiste', 'POST', '/implementacion/productos/exportar', 401);
+    await verificar('noexiste', 'GET', '/implementacion/productos?versionIds=1', 401);
     await verificar('sinIdentidad', 'POST', '/tiendas/1/versiones/1/evidencias', 401);
     await verificar('sinIdentidad', 'GET', '/auth/sesion', 401);
   } finally {
@@ -146,4 +152,14 @@ test('matriz de permisos por HTTP', async (t) => {
   assert.ok(registros.length >= prohibidos);
   assert.ok(registros.every((r) => r.startsWith('[autorizacion] 403') && !/Bearer|Authorization/i.test(r)));
   assert.ok(registros.every((r) => !Object.keys(USUARIOS).some((token) => r.includes(`usuario=${token}`))));
+});
+
+test('exportación por planograma: cuerpo > 512 kb → 413 con la forma de error estándar', async () => {
+  const cuerpo = JSON.stringify({ versionIds: [1], formato: 'LISTA', posicionIds: Array.from({ length: 90000 }, (_, i) => i + 1) });
+  const res = await fetch(`${base}/implementacion/productos/exportar`, {
+    method: 'POST', headers: { Authorization: 'Bearer analista', 'Content-Type': 'application/json' }, body: cuerpo,
+  });
+  assert.equal(res.status, 413);
+  const json = await res.json();
+  assert.ok(json.error.code && json.error.message);
 });

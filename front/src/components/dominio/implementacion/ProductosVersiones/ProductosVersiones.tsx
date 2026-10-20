@@ -12,6 +12,7 @@ import { ImplementableBadge } from '../ImplementableBadge/ImplementableBadge';
 import { BotonArchivos, BotonEvidencia } from '../AccionesVersion/AccionesVersion';
 import { EmptyState } from '../../../ui/EmptyState/EmptyState';
 import { Button } from '../../../ui/Button/Button';
+import { BotonFiltros } from '../../../ui/BotonFiltros/BotonFiltros';
 import { ESTADO_META } from '../../EstadoBadge/EstadoBadge';
 import { useToast } from '../../../../context/ToastContext';
 import { ESTADO_VERSION_IMPLEMENTACION_META } from '../../../../constants/implementacion';
@@ -45,6 +46,7 @@ import type {
 import './ProductosVersiones.css';
 
 const ID_PANEL_COLUMNAS = 'panel-columnas-productos';
+const ID_FILTROS = 'filtros-productos-versiones';
 
 function metaEstado(estado: string) {
   return ESTADO_VERSION_IMPLEMENTACION_META[estado as EstadoVersionImplementacion] ?? ESTADO_META[estado] ?? { label: estado, color: 'var(--fg-2)' };
@@ -117,8 +119,18 @@ interface ProductosVersionesProps {
   requiereSeleccion: boolean;
   ruta: { etiqueta: string; a?: string }[];
   titulo: string;
-  /** Controles propios de la vista en la cabecera (ej. el selector de tienda de Por versión). */
-  controles?: ReactNode;
+  /**
+   * Filtros propios de la vista (ej. Tienda y jerarquía de Por versión). Si se pasa, la barra usa el
+   * patrón del Consolidado: fila de acciones y filtros en una fila horizontal que se colapsa con
+   * `BotonFiltros`. Sin esto (Implementador) la barra no cambia.
+   */
+  filtrosExtra?: ReactNode;
+  /** Cuántos de `filtrosExtra` están aplicados (suma al contador de `BotonFiltros` y a "Limpiar"). */
+  filtrosExtraActivos?: number;
+  /** "Limpiar filtros" también restablece `filtrosExtra`. */
+  onLimpiarFiltrosExtra?: () => void;
+  /** Acciones propias junto a Columnas (ej. Descargar de Por versión). */
+  accionesExtra?: ReactNode;
   textosSelector: TextosSeleccionVersiones;
   /** Texto del selector sin versiones elegidas. */
   textoSinSeleccion: string;
@@ -128,6 +140,12 @@ interface ProductosVersionesProps {
   onAlternarExtendida: () => void;
   /** Al cerrar la evidencia se recargan sus conteos. */
   onEvidenciaCerrada: () => void;
+  /**
+   * Opcional: avisa qué filas quedan visibles tras la búsqueda y los filtros por columna (ids de
+   * posición) y si hay alguno activo. Por planograma lo usa para que la descarga lleve lo que se ve;
+   * el Implementador no lo pasa y su vista no cambia.
+   */
+  onFilasFiltradas?: (estado: { posicionIds: number[]; hayFiltrosCliente: boolean }) => void;
 }
 
 /**
@@ -145,13 +163,17 @@ export function ProductosVersiones({
   requiereSeleccion,
   ruta,
   titulo,
-  controles,
+  filtrosExtra,
+  filtrosExtraActivos = 0,
+  onLimpiarFiltrosExtra,
+  accionesExtra,
   textosSelector,
   textoSinSeleccion,
   vacio,
   extendida,
   onAlternarExtendida,
   onEvidenciaCerrada,
+  onFilasFiltradas,
 }: ProductosVersionesProps) {
   const { prefs, actualizar } = usePreferenciasColumnas();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -159,6 +181,7 @@ export function ProductosVersiones({
   const [filtros, setFiltros] = useState<FiltrosColumna>({});
   const [panelAbierto, setPanelAbierto] = useState(false);
   const [modal, setModal] = useState<ModalAbierto>(null);
+  const [filtrosVisibles, setFiltrosVisibles] = useState(true);
 
   const idsEnUrl = useMemo(() => parsearIdsVersiones(searchParams.get('versiones')), [searchParams]);
 
@@ -204,15 +227,24 @@ export function ProductosVersiones({
 
   // En Por versión la selección de versiones no es un filtro que se limpie: es lo que se consulta.
   const hayFiltros =
+    filtrosExtraActivos > 0 ||
     busqueda.trim() !== '' ||
     (!requiereSeleccion && idsEnUrl.length > 0) ||
     Object.values(filtros).some((v) => v?.trim());
+  // Busqueda o filtros de columna activos (sin contar la selección de versiones ni la jerarquía).
+  const hayFiltrosCliente = busqueda.trim() !== '' || Object.values(filtros).some((v) => v?.trim());
+
+  useEffect(() => {
+    onFilasFiltradas?.({ posicionIds: filas.map((f) => f.posicionId), hayFiltrosCliente });
+  }, [filas, hayFiltrosCliente, onFilasFiltradas]);
+
   const inventarioDisponible = productos?.inventarioDisponible ?? true;
   const faltaSeleccion = requiereSeleccion && idsEnUrl.length === 0;
 
   function limpiarFiltros() {
     setBusqueda('');
     setFiltros({});
+    onLimpiarFiltrosExtra?.();
     if (!requiereSeleccion) cambiarVersiones([]);
   }
 
@@ -272,6 +304,88 @@ export function ProductosVersiones({
         ? `${seleccionadas[0].codigo} · ${seleccionadas[0].nombre}`
         : seleccionadas.map((v) => v.codigo).join(', ');
 
+  // Con `filtrosExtra` la barra sigue el patrón del Consolidado (acciones + filtros colapsables).
+  const colapsable = filtrosExtra !== undefined;
+  const filtrosActivos =
+    (busqueda.trim() !== '' ? 1 : 0) + (idsEnUrl.length > 0 ? 1 : 0) + filtrosExtraActivos;
+
+  const campoBusqueda = (
+    <label className="productos-versiones__campo productos-versiones__campo--busqueda">
+      <span>Buscar</span>
+      <input
+        type="search"
+        placeholder="SKU, nombre o marca"
+        value={busqueda}
+        onChange={(e) => setBusqueda(e.target.value)}
+      />
+    </label>
+  );
+
+  const campoVersion = (
+    <div className="productos-versiones__campo productos-versiones__campo--version">
+      <span id="etiqueta-version-productos">Planograma versión</span>
+      <button
+        type="button"
+        className={`productos-versiones__selector${seleccionadas.length ? ' productos-versiones__selector--activo' : ''}`}
+        aria-labelledby="etiqueta-version-productos"
+        aria-describedby="valor-version-productos"
+        aria-haspopup="dialog"
+        onClick={abrirSelector}
+      >
+        <span id="valor-version-productos" className="productos-versiones__selector-texto" title={textoSeleccion}>
+          {textoSeleccion}
+        </span>
+        {seleccionadas.length > 1 && (
+          <span className="productos-versiones__selector-conteo">{seleccionadas.length}</span>
+        )}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M4 6h16M7 12h10M10 18h4" />
+        </svg>
+      </button>
+    </div>
+  );
+
+  const botonLimpiar = hayFiltros && (
+    <button type="button" className="productos-versiones__enlace productos-versiones__limpiar" onClick={limpiarFiltros}>
+      Limpiar filtros
+    </button>
+  );
+
+  const botonColumnas = (
+    <button
+      type="button"
+      className="productos-versiones__boton"
+      aria-expanded={panelAbierto}
+      aria-controls={ID_PANEL_COLUMNAS}
+      onClick={() => setPanelAbierto((abierto) => !abierto)}
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M4 4h16v16H4z" />
+        <path d="M9.5 4v16M14.5 4v16" />
+      </svg>
+      Columnas
+      <span className="productos-versiones__boton-conteo">
+        {visibles.length} de {CLAVES_COLUMNA.length}
+      </span>
+    </button>
+  );
+
+  const panelColumnas = panelAbierto && (
+      <PanelColumnas
+      etiqueta={(clave) => columnaProducto(clave).etiqueta}
+      id={ID_PANEL_COLUMNAS}
+      prefs={prefs}
+      onAlternar={alternarColumna}
+      onMover={(clave, delta) => actualizar((p) => ({ ...p, orden: moverColumna(p.orden, clave, delta) }))}
+      onSoltar={(desde, hacia) => actualizar((p) => ({ ...p, orden: soltarColumna(p.orden, desde, hacia) }))}
+      onMostrarTodas={() => actualizar((p) => ({ ...p, ocultas: [] }))}
+      onRestablecer={() =>
+        actualizar((p) => ({ ...p, orden: PREFERENCIAS_INICIALES.orden, ocultas: PREFERENCIAS_INICIALES.ocultas }))
+      }
+      onCerrar={cerrarPanel}
+    />
+  );
+
   return (
     <>
       {!extendida && (
@@ -311,7 +425,6 @@ export function ProductosVersiones({
             </div>
           </div>
           <div className="productos-versiones__lado">
-            {controles}
             <span className="productos-versiones__nota">
               {tienda ? `Inventario en tienda ${tienda.nombre} · solo lectura` : 'Sin tienda elegida: el inventario se muestra como “—”'}
               {tienda && productos?.inventarioActualizadoEn && ` · actualizado ${textoHaceTiempo(productos.inventarioActualizadoEn)}`}
@@ -340,79 +453,38 @@ export function ProductosVersiones({
       {extendida && botonExtender}
 
       {!extendida && (
-        <div className="productos-versiones__barra">
-          <label className="productos-versiones__campo productos-versiones__campo--busqueda">
-            <span>Buscar</span>
-            <input
-              type="search"
-              placeholder="SKU, nombre o marca"
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-            />
-          </label>
-  
-          <div className="productos-versiones__campo productos-versiones__campo--version">
-            <span id="etiqueta-version-productos">Planograma versión</span>
-            <button
-              type="button"
-              className={`productos-versiones__selector${seleccionadas.length ? ' productos-versiones__selector--activo' : ''}`}
-              aria-labelledby="etiqueta-version-productos"
-              aria-describedby="valor-version-productos"
-              aria-haspopup="dialog"
-              onClick={abrirSelector}
-            >
-              <span id="valor-version-productos" className="productos-versiones__selector-texto" title={textoSeleccion}>
-                {textoSeleccion}
-              </span>
-              {seleccionadas.length > 1 && (
-                <span className="productos-versiones__selector-conteo">{seleccionadas.length}</span>
-              )}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M4 6h16M7 12h10M10 18h4" />
-              </svg>
-            </button>
-          </div>
-  
-          {hayFiltros && (
-            <button type="button" className="productos-versiones__enlace productos-versiones__limpiar" onClick={limpiarFiltros}>
-              Limpiar filtros
-            </button>
+        <div className={`productos-versiones__barra${colapsable ? ' productos-versiones__barra--colapsable' : ''}`}>
+          {colapsable ? (
+            <>
+              <div className="productos-versiones__acciones">
+                {botonColumnas}
+                {accionesExtra}
+                <BotonFiltros
+                  controla={ID_FILTROS}
+                  abierto={filtrosVisibles}
+                  activos={filtrosActivos}
+                  onClick={() => setFiltrosVisibles((v) => !v)}
+                />
+                {botonExtender}
+              </div>
+              {/* Se oculta en vez de desmontarse: la jerarquía conserva las opciones ya cargadas. */}
+              <div id={ID_FILTROS} className="productos-versiones__filtros" hidden={!filtrosVisibles}>
+                {campoBusqueda}
+                {campoVersion}
+                {filtrosExtra}
+                {botonLimpiar}
+              </div>
+            </>
+          ) : (
+            <>
+              {campoBusqueda}
+              {campoVersion}
+              {botonLimpiar}
+              {botonColumnas}
+              {botonExtender}
+            </>
           )}
-  
-          <button
-            type="button"
-            className="productos-versiones__boton"
-            aria-expanded={panelAbierto}
-            aria-controls={ID_PANEL_COLUMNAS}
-            onClick={() => setPanelAbierto((abierto) => !abierto)}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M4 4h16v16H4z" />
-              <path d="M9.5 4v16M14.5 4v16" />
-            </svg>
-            Columnas
-            <span className="productos-versiones__boton-conteo">
-              {visibles.length} de {CLAVES_COLUMNA.length}
-            </span>
-          </button>
-  
-          {botonExtender}
-  
-          {panelAbierto && (
-            <PanelColumnas
-              etiqueta={(clave) => columnaProducto(clave).etiqueta}
-              id={ID_PANEL_COLUMNAS}
-              prefs={prefs}
-              onAlternar={alternarColumna}
-              onMover={(clave, delta) => actualizar((p) => ({ ...p, orden: moverColumna(p.orden, clave, delta) }))}
-              onSoltar={(desde, hacia) => actualizar((p) => ({ ...p, orden: soltarColumna(p.orden, desde, hacia) }))}
-              onMostrarTodas={() => actualizar((p) => ({ ...p, ocultas: [] }))}
-              onRestablecer={() =>
-                actualizar((p) => ({ ...p, orden: PREFERENCIAS_INICIALES.orden, ocultas: PREFERENCIAS_INICIALES.ocultas }))
-              }
-              onCerrar={cerrarPanel}
-            />
-          )}
+          {panelColumnas}
         </div>
       )}
 

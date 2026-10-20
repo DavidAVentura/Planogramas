@@ -1,6 +1,6 @@
 /**
  * rateLimit.js
- * Limitadores de peticiones por IP (voz) y por usuario (consolidado). Responden con la forma estándar { error: { code, message } }.
+ * Limitadores de peticiones por IP (voz) y por usuario (consolidado y productos por planograma). Responden con la forma estándar { error: { code, message } }.
  */
 
 const { rateLimit } = require('express-rate-limit');
@@ -56,4 +56,15 @@ const consolidadoLimiter = crearLimiterPorUsuario({
   windowMs: 60 * 1000, limit: 60, mensaje: 'Demasiadas solicitudes, intenta de nuevo en unos segundos',
 });
 
-module.exports = { vozLimiter, exportacionLimiter, consolidadoLimiter, crearLimiterPorUsuario };
+// Productos por planograma (módulo 16, vista Por versión): la descarga tiene su propia instancia
+// (5/min por usuario, cupo aparte del consolidado) y el listado recalcula posiciones y ganchos (60/min).
+const exportacionPorVersionLimiter = crearLimiterPorUsuario({
+  windowMs: 60 * 1000, limit: 5, mensaje: 'Demasiadas descargas, espera un minuto e inténtalo de nuevo',
+});
+const productosPorVersionLimiter = crearLimiterPorUsuario({
+  windowMs: 60 * 1000, limit: 60, mensaje: 'Demasiadas solicitudes, intenta de nuevo en unos segundos',
+});
+
+module.exports = {
+  vozLimiter, exportacionLimiter, consolidadoLimiter, exportacionPorVersionLimiter, productosPorVersionLimiter, crearLimiterPorUsuario,
+};

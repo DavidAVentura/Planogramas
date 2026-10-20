@@ -173,3 +173,16 @@ export interface TiendaImplementador {
   codigo: string;
   nombre: string;
 }
+
+/** Formato de la descarga de Productos por planograma: una fila por SKU–versión–modo, o un pivote por versión. */
+export type FormatoDescargaPorVersion = 'LISTA' | 'PIVOTE';
+
+/** Cuerpo de POST /implementacion/productos/exportar — ver Arquitectura/Contratos/16_implementacion/. */
+export interface CuerpoExportacionPorVersion {
+  versionIds: number[];
+  formato: FormatoDescargaPorVersion;
+  area?: string;
+  departamento?: string;
+  /** Solo con búsqueda o filtros de columna activos: las posiciones de las filas que se ven. */
+  posicionIds?: number[];
+}

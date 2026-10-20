@@ -56,6 +56,9 @@ function unirDistintos(valores, separador) {
   return utiles.length ? utiles.join(separador) : null;
 }
 
+/** `true` si hay más de un valor distinto (los nulos cuentan como un valor) — mismo criterio que `valorComun`/`textoComun`. */
+const hayVariacion = (valores, convertir = (v) => v) => new Set(valores.map((v) => (v === null || v === undefined ? null : convertir(v)))).size > 1;
+
 /** Fila agregada (versión–SKU–modo): reglas del módulo 19 aplicadas a las ubicaciones del grupo. */
 function construirFila(version, modo, items, accesoriosPorPosicion) {
   const posiciones = items.map((r) => r.posicion);
@@ -78,6 +81,8 @@ function construirFila(version, modo, items, accesoriosPorPosicion) {
     planogramaId:     version.planogramaId,
     planogramaNombre: version.planogramaNombre,
     estadoVersion:    version.estado,
+    tipoVersion:      version.tipo ?? null,
+    esEspecial:       Boolean(version.esEspecial),
     modo,
     ubicaciones: items.map((r) => ({
       posicionId: r.posicion.id,
@@ -100,6 +105,14 @@ function construirFila(version, modo, items, accesoriosPorPosicion) {
     maxVaria:         max.varia,
     perfil:           textoComun(posiciones.map((p) => p.perfil)),
     decision:         textoComun(posiciones.map((p) => p.decision)),
+    // Qué cantidades difieren entre las posiciones del grupo (el Pivote escribe `Varía`, nunca el primer valor).
+    variaciones: {
+      cantidadApilable: hayVariacion(posiciones.map((p) => p.cantidadApilable), Number),
+      capacidadFacing:  hayVariacion(posiciones.map((p) => p.capacidadFacing), Number),
+      minEstetico:      hayVariacion(posiciones.map((p) => p.minEstetico), Number),
+      perfil:           hayVariacion(posiciones.map((p) => p.perfil)),
+      decision:         hayVariacion(posiciones.map((p) => p.decision)),
+    },
     observaciones:    unirDistintos(posiciones.map((p) => p.observaciones), SEPARADOR_OBSERVACIONES),
     montaje: {
       colganteExterno: posiciones.some((p) => Boolean(p.crossExterno)),
@@ -114,10 +127,16 @@ function construirFila(version, modo, items, accesoriosPorPosicion) {
  * Agrupa la base por versión, recorre cada una una sola vez (`recorrerVersion`) y devuelve sus
  * filas agregadas por SKU y modo. Descarta sin lanzar las posiciones huérfanas (sin nivel o
  * góndola cargados), las que no tienen SKU y las de modo PENDIENTE (estas sí participan en la
- * numeración de ganchos de `recorrerVersion`). Solo versiones montables.
+ * numeración de ganchos de `recorrerVersion`). Por defecto solo versiones montables.
+ *
+ * Opciones (la numeración de ganchos siempre se calcula con la versión completa; el filtro se aplica
+ * DESPUÉS de recorrerla y ANTES de agrupar, así las columnas agregadas solo ven lo que pasó):
+ *  - `estados`: estados de versión a incluir (default `ESTADOS_MONTABLES`: el consolidado no cambia).
+ *  - `skus`: `Set<string>` de SKU permitidos (jerarquía CATI) o `null` = sin filtro.
+ *  - `posicionIds`: `Set<number>` de posiciones permitidas o `null` = sin filtro. Ids ajenos se ignoran.
  * @returns {Map<number, Array<{ sku: string, fila: object }>>}
  */
-function construirFilasPorVersion(base) {
+function construirFilasPorVersion(base, { estados = ESTADOS_MONTABLES, skus = null, posicionIds = null } = {}) {
   const gondolasPorVersion = agruparPor(base.gondolas, (g) => g.versionId);
   const gondolaPorId = new Map(base.gondolas.map((g) => [g.id, g]));
   const nivelPorId = new Map(base.niveles.map((n) => [n.id, n]));
@@ -140,7 +159,7 @@ function construirFilasPorVersion(base) {
 
   const resultado = new Map();
   base.versiones.forEach((version) => {
-    if (!ESTADOS_MONTABLES.includes(version.estado)) return;
+    if (!estados.includes(version.estado)) return;
     const gondolas = gondolasPorVersion.get(version.versionId) ?? [];
     const recorrido = recorrerVersion({
       gondolas,
@@ -153,6 +172,8 @@ function construirFilasPorVersion(base) {
     recorrido.forEach((r) => {
       const { sku, modo } = r.posicion;
       if (!sku || modo === MODO_PENDIENTE || !Object.hasOwn(ORDEN_MODO, modo)) return;
+      if (skus && !skus.has(String(sku))) return;
+      if (posicionIds && !posicionIds.has(r.posicion.id)) return;
       const clave = `${sku}|${modo}`;
       if (!porClave.has(clave)) porClave.set(clave, { sku: String(sku), modo, items: [] });
       porClave.get(clave).items.push(r);
@@ -198,7 +219,9 @@ function expandirPorTienda(filasPorVersion, base) {
         });
       }
       const grupo = grupos.get(clave);
-      (fila.modo === 'PLANOGRAMA' ? grupo.planograma : grupo.otras).push(fila);
+      // Los campos del Pivote (tipo, especial, variaciones) no forman parte de la respuesta del consolidado.
+      const { tipoVersion, esEspecial, variaciones, ...filaConsolidado } = fila;
+      (fila.modo === 'PLANOGRAMA' ? grupo.planograma : grupo.otras).push(filaConsolidado);
     });
   });
 
@@ -407,6 +430,7 @@ function construirHojas(grupos, formato, hojas, columnas) {
 
 module.exports = {
   MODOS,
+  ORDEN_MODO,
   FORMATOS,
   normalizarTexto,
   construirFilasPorVersion,

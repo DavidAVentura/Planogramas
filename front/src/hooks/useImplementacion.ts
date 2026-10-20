@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { implementacionService } from '../services/implementacion.service';
+import { implementacionService, type JerarquiaPorVersion } from '../services/implementacion.service';
 import { ApiError } from '../services/httpClient';
 import { useToast } from '../context/ToastContext';
 import { useTiendaImplementador } from '../context/TiendaImplementadorContext';
@@ -123,13 +123,17 @@ export function useVersionesPorVersion(incluir: number[]) {
   return { versiones, cargando: versiones === null };
 }
 
-/** Filas de Por versión. Sin versiones no se consulta (la vista pide elegir al menos una). */
-export function useProductosPorVersion(versionIds: number[], tiendaId: number | null) {
+/**
+ * Filas de Por versión. Sin versiones no se consulta (la vista pide elegir al menos una). La
+ * jerarquía (Área › Departamento) es parte de la consulta: al cambiarla se vuelve a pedir.
+ */
+export function useProductosPorVersion(versionIds: number[], tiendaId: number | null, jerarquia: JerarquiaPorVersion = {}) {
   const [productos, setProductos] = useState<ProductosPorVersion | null>(null);
   const [cargando, setCargando] = useState(false);
   const [recargas, setRecargas] = useState(0);
   const { mostrarToast } = useToast();
   const clave = versionIds.join(',');
+  const { area, departamento } = jerarquia;
 
   useEffect(() => {
     if (!clave) {
@@ -140,7 +144,7 @@ export function useProductosPorVersion(versionIds: number[], tiendaId: number | 
     let vigente = true;
     setCargando(true);
     implementacionService
-      .productosPorVersion(clave.split(',').map(Number), tiendaId)
+      .productosPorVersion(clave.split(',').map(Number), tiendaId, { area, departamento })
       .then((r) => vigente && setProductos(r))
       .catch((err) => {
         if (!vigente) return;
@@ -151,7 +155,7 @@ export function useProductosPorVersion(versionIds: number[], tiendaId: number | 
     return () => {
       vigente = false;
     };
-  }, [clave, tiendaId, recargas, mostrarToast]);
+  }, [clave, tiendaId, area, departamento, recargas, mostrarToast]);
 
   const recargar = useCallback(() => setRecargas((n) => n + 1), []);
 

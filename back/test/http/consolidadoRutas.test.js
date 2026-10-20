@@ -11,7 +11,7 @@ const router = require('../../src/infrastructure/http/routes/consolidado.routes'
 const errorHandler = require('../../src/infrastructure/http/middlewares/errorHandler');
 const { requiereAnalista } = require('../../src/infrastructure/http/middlewares/autorizacion');
 const { crearControllerConsolidado } = require('../../src/application/consolidado/consolidado.controller');
-const { crearSemaforo } = require('../../src/application/consolidado/semaforo');
+const { crearSemaforo } = require('../../src/application/compartido/semaforo');
 
 const rango = (hasta) => Array.from({ length: hasta }, (_, i) => `PLA${String(i + 1).padStart(3, '0')}`);
 const analista = Object.freeze({ numeroEmpleado: '1', permisos: Object.freeze(rango(10)) });

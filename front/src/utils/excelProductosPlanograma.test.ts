@@ -3,6 +3,7 @@ import {
   accesoriosDeCeldas, agruparAccesorios, bloqueoDeLectura, erroresDeCatalogo, ganchosCelda, interpretarHojaProductos,
   letraColumna, siglaBloque, siglasEnNombre,
 } from './excelProductosPlanograma';
+import { ENCABEZADOS_COMUNES_PIVOTE, encabezadosBloque } from '../domain/implementacion/descargaPorVersion';
 
 const ENCABEZADO = ['SKU', 'Facings_TG', 'Nombre_accesorio_TG', 'Tamano_accesorio_TG', 'TG1', 'TG2'];
 type Celda = string | number | null;
@@ -301,5 +302,76 @@ describe('siglasEnNombre y Planograma_<S>', () => {
     const r = leer(`${'A'.repeat(45)} TG`);
     expect(r.errores[0].motivo).toBe(`El nombre «${'A'.repeat(40)}…» no corresponde al bloque TM`);
     expect(r.errores[0].esperado).toBe(`Un nombre de planograma de tienda mediana (TM), p. ej. «${'A'.repeat(40)}…»`);
+  });
+});
+
+// Reimportación del Pivote por versión (descarga de Productos por planograma): el libro que genera el
+// back tiene una fila de grupo y los encabezados del Excel de categorías.
+describe('reimportación del Pivote por versión', () => {
+  const nGanchosTG = 2;
+  const encabezados: string[] = [
+    ...ENCABEZADOS_COMUNES_PIVOTE,
+    ...encabezadosBloque('TG', nGanchosTG),
+    ...encabezadosBloque('TM', 0),
+    ...encabezadosBloque('TE', 0),
+  ];
+  const filaGrupos: Celda[] = encabezados.map((_, i) => (i === 6 ? 'TG' : i === 6 + 13 + nGanchosTG ? 'TM' : null));
+  const bloqueVacio = (n: number): Celda[] => Array.from({ length: n }, () => null);
+  const indice = (encabezado: string) => encabezados.indexOf(encabezado);
+
+  /** Una fila del Pivote: SKU, modo y bloque TG con valores; TM y TE vacíos. */
+  function fila(sku: string, estado: string, extra: Record<string, Celda> = {}): Celda[] {
+    const celdas: Celda[] = [sku, 'Llanta', 'Ferretería', estado, 'Planograma', null, ...bloqueVacio(encabezados.length - 6)];
+    const valores: Record<string, Celda> = {
+      Planograma_TG: 'FERRETERIA TG-1', Facings_TG: 3, Cantidad_x_facing_TG: 2, Cantidad_facing_vertical_TG: 1, Min_estetico_TG: 2,
+      Capacidad_maxima_TG: 12, Nombre_accesorio_TG: 'GAN // ARO', Tamano_accesorio_TG: '22" // 12"', Perfil_redondeo_TG: 'MRP',
+      Min_final_TG: 4, Max_final_TG: 9, Decision_final_TG: 'ACTIVO', Observaciones_TG: 'ok', TG1: 7, TG2: '54E', ...extra,
+    };
+    Object.entries(valores).forEach(([clave, valor]) => { celdas[indice(clave)] = valor; });
+    return celdas;
+  }
+
+  const leerTG = (...filas: Celda[][]) => interpretarHojaProductos([filaGrupos, encabezados, ...filas], 'GRANDE');
+
+  it('lee solo el bloque TG de la versión, sin errores, ignorando las columnas comunes del Pivote', () => {
+    const r = leerTG(fila('S1', 'Publicada'));
+    expect(r.errores).toEqual([]);
+    expect(r.bloque).toBe('TG');
+    expect(r.bloquesEnArchivo).toEqual(['TG', 'TM', 'TE']);
+    expect(r.productos).toHaveLength(1);
+    expect(r.productos[0]).toMatchObject({
+      sku: 'S1', descripcion: 'Llanta', facings_horizontal: 3, unidades_por_facing: 2, cantidad_apilable: 1, min_estetico: 2,
+      capacidad_maxima: 12, min_final: 4, max_final: 9, perfil_redondeo: 'MRP', modo: 'PLANOGRAMA', decision: 'ACTIVO', observaciones: 'ok',
+    });
+    expect(r.productos[0].ganchos).toEqual([7, '54E']);
+    expect(r.productos[0].accesorios).toEqual([
+      { codigo: 'GAN', tamano_pulgadas: 22 },
+      { codigo: 'ARO', tamano_pulgadas: 12 },
+    ]);
+    expect(r.planogramas).toEqual(['FERRETERIA TG-1']);
+  });
+
+  it('la fila de grupo no se confunde con el encabezado', () => {
+    expect(leerTG(fila('S1', 'Publicada')).columnasFaltantes).toEqual([]);
+  });
+
+  it('"Varía" en una cantidad es error bloqueante en su columna (falla segura)', () => {
+    const r = leerTG(fila('S1', 'Publicada', { Min_final_TG: 'Varía' }));
+    expect(r.productos).toEqual([]);
+    expect(r.errores).toHaveLength(1);
+    expect(r.errores[0]).toMatchObject({ fila: 3, columna: 'Min_final_TG' });
+  });
+
+  it('un SKU repetido (publicada y piloto) conserva el orden del archivo: la primera es la publicada', () => {
+    const r = leerTG(fila('S1', 'Publicada', { Facings_TG: 3 }), fila('S1', 'Piloto', { Facings_TG: 5 }));
+    expect(r.errores).toEqual([]);
+    // El lector entrega ambas filas en orden; el importador del servidor se queda con la primera y reporta el repetido.
+    expect(r.productos.map((p) => p.facings_horizontal)).toEqual([3, 5]);
+  });
+
+  it('un SKU que solo está en otros tamaños (bloque TG vacío) no se importa', () => {
+    const r = leerTG(fila('S1', 'Publicada', { Planograma_TG: null, Facings_TG: null, TG1: null, TG2: null, Min_final_TG: null, Max_final_TG: null }));
+    expect(r.productos).toEqual([]);
+    expect(r.errores).toEqual([]);
   });
 });

@@ -16,14 +16,17 @@ interface CadenaJerarquiaProps {
   /** Segundo argumento: nombres de los niveles elegidos, de Área hacia abajo (para chips y resúmenes). */
   onChange: (jerarquia: FiltroJerarquia, nombres: string[]) => void;
   deshabilitado?: boolean;
+  /** Cuántos niveles se muestran, de Área hacia abajo (por defecto los 5; Por planograma usa 2). */
+  niveles?: number;
 }
 
 /**
  * Cadena Área › Departamento › Familia › Categoría › Subcategoría de CATI: cada nivel se habilita
  * al elegir el de arriba. Las opciones de cada nivel se cargan al elegir el anterior y viven en el
  * estado del componente: para reiniciarlas (ej. "Limpiar filtros") el padre cambia su `key`.
+ * Con `niveles` menor a 5 solo se muestran, cargan y devuelven los primeros niveles.
  */
-export function CadenaJerarquia({ jerarquia, onChange, deshabilitado = false }: CadenaJerarquiaProps) {
+export function CadenaJerarquia({ jerarquia, onChange, deshabilitado = false, niveles = NIVELES_JERARQUIA.length }: CadenaJerarquiaProps) {
   const { areas, departamentos, cargandoDepartamentos, cargarDepartamentos } = useJerarquia();
   const exploracion = useJerarquiaExploracion();
 
@@ -49,19 +52,21 @@ export function CadenaJerarquia({ jerarquia, onChange, deshabilitado = false }: 
     exploracion.cargarSubcategorias,
   ];
 
+  const visibles = NIVELES_JERARQUIA.slice(0, niveles);
+
   // Elegir un nivel limpia los de abajo, que podrían no pertenecer al nuevo padre.
   function elegirNivel(indice: number, id: string) {
     const nueva = { ...jerarquia };
-    NIVELES_JERARQUIA.forEach(({ campo }, i) => {
+    visibles.forEach(({ campo }, i) => {
       if (i === indice) nueva[campo] = id;
       if (i > indice) nueva[campo] = '';
     });
-    const nombres = NIVELES_JERARQUIA.flatMap(({ campo }, i) => {
+    const nombres = visibles.flatMap(({ campo }, i) => {
       const elegido = nueva[campo];
       return elegido ? [opcionesPorNivel[i].find((item) => item.id === elegido)?.name ?? elegido] : [];
     });
     onChange(nueva, nombres);
-    cargadores.forEach((cargar, i) => {
+    cargadores.slice(0, visibles.length - 1).forEach((cargar, i) => {
       if (i === indice) cargar(id);
       else if (i > indice) cargar('');
     });
@@ -72,8 +77,8 @@ export function CadenaJerarquia({ jerarquia, onChange, deshabilitado = false }: 
       <span className="cadena-jerarquia__titulo" aria-hidden="true">
         Jerarquía
       </span>
-      {NIVELES_JERARQUIA.map((nivel, i) => {
-        const padreSinElegir = i > 0 && !jerarquia[NIVELES_JERARQUIA[i - 1].campo];
+      {visibles.map((nivel, i) => {
+        const padreSinElegir = i > 0 && !jerarquia[visibles[i - 1].campo];
         const cargando = cargandoPorNivel[i];
         return (
           <span key={nivel.campo} className="cadena-jerarquia__nivel">

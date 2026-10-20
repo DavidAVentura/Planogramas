@@ -8,6 +8,7 @@ import { DescargarConsolidadoModal, type OpcionesDescarga } from '../../componen
 import { BotonFiltros } from '../../components/ui/BotonFiltros/BotonFiltros';
 import { Button } from '../../components/ui/Button/Button';
 import { EmptyState } from '../../components/ui/EmptyState/EmptyState';
+import { IconoDescarga } from '../../components/ui/IconoDescarga/IconoDescarga';
 import { Paginacion } from '../../components/ui/Paginacion/Paginacion';
 import { useToast } from '../../context/ToastContext';
 import { useConsolidado } from '../../hooks/useConsolidado';
@@ -74,14 +75,6 @@ function useConRetardo<T>(valor: T, retardo: number): T {
 
 /** Filas de planograma que se ven en la página (el grupo sin planograma cuenta como una). */
 const filasPrincipales = (grupos: GrupoConsolidado[]) => grupos.reduce((s, g) => s + Math.max(g.planograma.length, 1), 0);
-
-function IconoDescarga() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 4v12M7 11l5 5 5-5M5 20h14" />
-    </svg>
-  );
-}
 
 /**
  * Consolidado Tiendas (Mantenimiento, solo lectura): todas las combinaciones SKU–tienda–versión de

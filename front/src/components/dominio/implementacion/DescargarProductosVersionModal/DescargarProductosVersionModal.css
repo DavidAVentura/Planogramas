@@ -1,0 +1,104 @@
+.descargar-productos-version__formatos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.descargar-productos-version__tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.descargar-productos-version__tarjeta--elegida {
+  border-color: var(--cemaco-indigo);
+  background: var(--cemaco-indigo-50);
+}
+
+.descargar-productos-version__opcion {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+
+  input { margin-top: 4px; }
+}
+
+.descargar-productos-version__texto {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.descargar-productos-version__titulo {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--fg-1);
+}
+
+.descargar-productos-version__descripcion {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--fg-2);
+}
+
+.descargar-productos-version__resumen {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--ink-50);
+  font-size: 13px;
+  color: var(--fg-2);
+
+  p { margin: 0; }
+}
+
+.descargar-productos-version__aviso {
+  margin: 12px 0 0;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--warning-bg);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--warning);
+}
+
+.descargar-productos-version__error {
+  margin: 12px 0 0;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--danger-bg);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.descargar-productos-version__generando {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.descargar-productos-version__spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentcolor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: descargar-productos-version-giro 0.8s linear infinite;
+}
+
+@keyframes descargar-productos-version-giro {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .descargar-productos-version__spinner { animation-duration: 2.4s; }
+}

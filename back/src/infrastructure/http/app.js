@@ -28,6 +28,8 @@ app.use(cors({ origin: env.CORS_ORIGIN }));
 // extractorPdfPlanograma.controller.js): esa ruta se parsea antes con su propio límite y el
 // parser general la deja pasar porque el body ya viene leído.
 app.use('/api/v1/agente-extractor/pdf-planograma', express.json({ limit: '21mb' }));
+// La descarga de productos por planograma recibe hasta 30 000 ids de posición: cuerpo propio de 512 kb.
+app.use('/api/v1/implementacion/productos/exportar', express.json({ limit: '512kb' }));
 app.use(express.json({ limit: '8mb' }));
 
 // ─── Rutas ────────────────────────────────────────────────────────────────────

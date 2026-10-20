@@ -14,7 +14,7 @@ const catiClient = require('../../infrastructure/cati/catiClient');
 const { escribirLibroXlsx } = require('../../infrastructure/exportacion/libroXlsx');
 const env = require('../../config/env');
 const { validarQueryEstricta } = require('../compartido/validacion');
-const { crearSemaforo } = require('./semaforo');
+const { semaforoExportacion } = require('../compartido/semaforo');
 const { schemaListado, schemaFiltros, schemaExportar, verificarColumnas } = require('./consolidado.schemas');
 
 const CONTENT_TYPE_XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
@@ -95,12 +95,12 @@ function crearControllerConsolidado({ repo, catalogo, escribirLibro, semaforo, m
   return { listar, filtros, exportar };
 }
 
-// Un solo proceso, una sola exportación a la vez (la generación bloquea el event loop).
+// Semáforo único del proceso, compartido con la exportación de productos por planograma.
 const controllerPorDefecto = crearControllerConsolidado({
   repo: consolidadoRepo,
   catalogo: catiClient,
   escribirLibro: escribirLibroXlsx,
-  semaforo: crearSemaforo(1),
+  semaforo: semaforoExportacion,
   maximoFilas: env.consolidado.exportacionMaxFilas,
 });
 

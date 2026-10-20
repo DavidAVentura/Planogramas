@@ -20716,6 +20716,274 @@
               "response": []
             },
             {
+              "name": "200 o 503 - Con área (CATI): total === data.length; 503 sin datos sin filtrar si CATI no responde",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos?versionIds={{versionIdImplementacion}}&area={{jerarquiaAreaIdExistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos"
+                  ],
+                  "query": [
+                    {
+                      "key": "versionIds",
+                      "value": "{{versionIdImplementacion}}"
+                    },
+                    {
+                      "key": "area",
+                      "value": "{{jerarquiaAreaIdExistente}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 o 503', () => pm.expect([200, 503]).to.include(pm.response.code));",
+                      "const body = pm.response.json();",
+                      "if (pm.response.code === 200) { pm.test('total === data.length con la jerarquía aplicada', () => { pm.expect(body.total).to.eql(body.data.length); pm.expect(body.versiones.length).to.eql(1); pm.expect(body.versiones[0].totalProductos).to.eql(1); }); }",
+                      "else { pm.test('503 sin datos parciales', () => { pm.expect(body.error).to.be.an('object'); pm.expect(body).to.not.have.property('data'); }); }"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 o 503 - Con área y departamento (CATI)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos?versionIds={{versionIdImplementacion}}&area={{jerarquiaAreaIdExistente}}&departamento={{jerarquiaDepartamentoIdExistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos"
+                  ],
+                  "query": [
+                    {
+                      "key": "versionIds",
+                      "value": "{{versionIdImplementacion}}"
+                    },
+                    {
+                      "key": "area",
+                      "value": "{{jerarquiaAreaIdExistente}}"
+                    },
+                    {
+                      "key": "departamento",
+                      "value": "{{jerarquiaDepartamentoIdExistente}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 o 503', () => pm.expect([200, 503]).to.include(pm.response.code));",
+                      "const body = pm.response.json();",
+                      "if (pm.response.code === 200) { pm.test('total === data.length', () => pm.expect(body.total).to.eql(body.data.length)); }",
+                      "else { pm.test('503 sin datos parciales', () => pm.expect(body).to.not.have.property('data')); }"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - area vacía (area=)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos?versionIds={{versionIdImplementacion}}&area=",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos"
+                  ],
+                  "query": [
+                    {
+                      "key": "versionIds",
+                      "value": "{{versionIdImplementacion}}"
+                    },
+                    {
+                      "key": "area",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+                      "pm.test('mensaje del error', () => pm.expect(pm.response.json().error.message).to.be.a('string'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - departamento sin area",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos?versionIds={{versionIdImplementacion}}&departamento={{jerarquiaDepartamentoIdExistente}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos"
+                  ],
+                  "query": [
+                    {
+                      "key": "versionIds",
+                      "value": "{{versionIdImplementacion}}"
+                    },
+                    {
+                      "key": "departamento",
+                      "value": "{{jerarquiaDepartamentoIdExistente}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+                      "pm.test('mensaje del error', () => pm.expect(pm.response.json().error.message).to.be.a('string'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - area con caracteres no permitidos",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos?versionIds={{versionIdImplementacion}}&area=A%20B",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos"
+                  ],
+                  "query": [
+                    {
+                      "key": "versionIds",
+                      "value": "{{versionIdImplementacion}}"
+                    },
+                    {
+                      "key": "area",
+                      "value": "A%20B"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+                      "pm.test('mensaje del error', () => pm.expect(pm.response.json().error.message).to.be.a('string'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - area repetida (arreglo)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos?versionIds={{versionIdImplementacion}}&area=A1&area=A2",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos"
+                  ],
+                  "query": [
+                    {
+                      "key": "versionIds",
+                      "value": "{{versionIdImplementacion}}"
+                    },
+                    {
+                      "key": "area",
+                      "value": "A1"
+                    },
+                    {
+                      "key": "area",
+                      "value": "A2"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+                      "pm.test('mensaje del error', () => pm.expect(pm.response.json().error.message).to.be.a('string'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
               "name": "404 - versionId no existe",
               "request": {
                 "method": "GET",
@@ -20790,6 +21058,1122 @@
                     "exec": [
                       "pm.test('Status 404', () => pm.response.to.have.status(404));",
                       "pm.test('Error NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "401 - Sin header Authorization",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos?versionIds={{versionIdImplementacion}}",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos"
+                  ],
+                  "query": [
+                    {
+                      "key": "versionIds",
+                      "value": "{{versionIdImplementacion}}"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));",
+                      "pm.test('error.code UNAUTHORIZED', () => pm.expect(pm.response.json().error.code).to.eql('UNAUTHORIZED'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Descargar productos por versión (POST /implementacion/productos/exportar)",
+          "item": [
+            {
+              "name": "200 - LISTA de la versión en piloto",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"versionIds\": [\n    {{versionIdImplementacion}}\n  ],\n  \"formato\": \"LISTA\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type de .xlsx', () => pm.expect(pm.response.headers.get('Content-Type')).to.eql('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'));",
+                      "pm.test('Content-Disposition con el nombre del archivo', () => pm.expect(pm.response.headers.get('Content-Disposition')).to.match(/^attachment; filename=\"productos-por-planograma-lista-\\d{8}\\.xlsx\"$/));",
+                      "pm.test('Cache-Control no-store y Content-Length', () => { pm.expect(pm.response.headers.get('Cache-Control')).to.eql('no-store'); pm.expect(Number(pm.response.headers.get('Content-Length'))).to.be.above(0); });",
+                      "pm.test('El cuerpo es un zip (.xlsx)', () => { const s = pm.response.stream; pm.expect(s[0]).to.eql(0x50); pm.expect(s[1]).to.eql(0x4b); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - PIVOTE de la versión en piloto (GRANDE normal)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"versionIds\": [\n    {{versionIdImplementacion}}\n  ],\n  \"formato\": \"PIVOTE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type de .xlsx', () => pm.expect(pm.response.headers.get('Content-Type')).to.eql('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'));",
+                      "pm.test('Content-Disposition con el nombre del archivo', () => pm.expect(pm.response.headers.get('Content-Disposition')).to.match(/^attachment; filename=\"productos-por-planograma-pivote-\\d{8}\\.xlsx\"$/));",
+                      "pm.test('Cache-Control no-store y Content-Length', () => { pm.expect(pm.response.headers.get('Cache-Control')).to.eql('no-store'); pm.expect(Number(pm.response.headers.get('Content-Length'))).to.be.above(0); });",
+                      "pm.test('El cuerpo es un zip (.xlsx)', () => { const s = pm.response.stream; pm.expect(s[0]).to.eql(0x50); pm.expect(s[1]).to.eql(0x4b); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - PIVOTE con dos versiones de distinto tipo (GRANDE piloto + MEDIANA borrador)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"versionIds\": [\n    {{versionIdImplementacion}},\n    {{versionIdImplementacionNoAsignada}}\n  ],\n  \"formato\": \"PIVOTE\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type de .xlsx', () => pm.expect(pm.response.headers.get('Content-Type')).to.eql('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'));",
+                      "pm.test('Content-Disposition con el nombre del archivo', () => pm.expect(pm.response.headers.get('Content-Disposition')).to.match(/^attachment; filename=\"productos-por-planograma-pivote-\\d{8}\\.xlsx\"$/));",
+                      "pm.test('Cache-Control no-store y Content-Length', () => { pm.expect(pm.response.headers.get('Cache-Control')).to.eql('no-store'); pm.expect(Number(pm.response.headers.get('Content-Length'))).to.be.above(0); });",
+                      "pm.test('El cuerpo es un zip (.xlsx)', () => { const s = pm.response.stream; pm.expect(s[0]).to.eql(0x50); pm.expect(s[1]).to.eql(0x4b); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - LISTA de una versión en borrador (cualquier estado)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"versionIds\": [\n    {{versionIdImplementacionNoAsignada}}\n  ],\n  \"formato\": \"LISTA\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type de .xlsx', () => pm.expect(pm.response.headers.get('Content-Type')).to.eql('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'));",
+                      "pm.test('Content-Disposition con el nombre del archivo', () => pm.expect(pm.response.headers.get('Content-Disposition')).to.match(/^attachment; filename=\"productos-por-planograma-lista-\\d{8}\\.xlsx\"$/));",
+                      "pm.test('Cache-Control no-store y Content-Length', () => { pm.expect(pm.response.headers.get('Cache-Control')).to.eql('no-store'); pm.expect(Number(pm.response.headers.get('Content-Length'))).to.be.above(0); });",
+                      "pm.test('El cuerpo es un zip (.xlsx)', () => { const s = pm.response.stream; pm.expect(s[0]).to.eql(0x50); pm.expect(s[1]).to.eql(0x4b); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - LISTA con posicionIds de otra versión: se descartan y el libro sale con 0 filas",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"versionIds\": [\n    {{versionIdImplementacion}}\n  ],\n  \"formato\": \"LISTA\",\n  \"posicionIds\": [\n    999999999\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type de .xlsx', () => pm.expect(pm.response.headers.get('Content-Type')).to.eql('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'));",
+                      "pm.test('Content-Disposition con el nombre del archivo', () => pm.expect(pm.response.headers.get('Content-Disposition')).to.match(/^attachment; filename=\"productos-por-planograma-lista-\\d{8}\\.xlsx\"$/));",
+                      "pm.test('Cache-Control no-store y Content-Length', () => { pm.expect(pm.response.headers.get('Cache-Control')).to.eql('no-store'); pm.expect(Number(pm.response.headers.get('Content-Length'))).to.be.above(0); });",
+                      "pm.test('El cuerpo es un zip (.xlsx)', () => { const s = pm.response.stream; pm.expect(s[0]).to.eql(0x50); pm.expect(s[1]).to.eql(0x4b); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 - LISTA con posicionIds vacío (filtro de tabla sin resultados)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"versionIds\": [\n    {{versionIdImplementacion}}\n  ],\n  \"formato\": \"LISTA\",\n  \"posicionIds\": []\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Content-Type de .xlsx', () => pm.expect(pm.response.headers.get('Content-Type')).to.eql('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'));",
+                      "pm.test('Content-Disposition con el nombre del archivo', () => pm.expect(pm.response.headers.get('Content-Disposition')).to.match(/^attachment; filename=\"productos-por-planograma-lista-\\d{8}\\.xlsx\"$/));",
+                      "pm.test('Cache-Control no-store y Content-Length', () => { pm.expect(pm.response.headers.get('Cache-Control')).to.eql('no-store'); pm.expect(Number(pm.response.headers.get('Content-Length'))).to.be.above(0); });",
+                      "pm.test('El cuerpo es un zip (.xlsx)', () => { const s = pm.response.stream; pm.expect(s[0]).to.eql(0x50); pm.expect(s[1]).to.eql(0x4b); });"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "200 o 503 - LISTA con área (CATI): 503 si CATI no responde",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"versionIds\": [\n    {{versionIdImplementacion}}\n  ],\n  \"formato\": \"LISTA\",\n  \"area\": \"{{jerarquiaAreaIdExistente}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 200 o 503', () => pm.expect([200, 503]).to.include(pm.response.code));",
+                      "if (pm.response.code === 200) { pm.test('Content-Type de .xlsx', () => pm.expect(pm.response.headers.get('Content-Type')).to.eql('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')); }",
+                      "else { pm.test('503 en JSON, sin archivo', () => { pm.expect(pm.response.headers.get('Content-Disposition')).to.eql(null); pm.expect(pm.response.json().error).to.be.an('object'); }); }"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Cuerpo vacío",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+                      "pm.test('mensaje del error', () => pm.expect(pm.response.json().error.message).to.be.a('string'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Clave desconocida (foo)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"versionIds\": [\n    {{versionIdImplementacion}}\n  ],\n  \"formato\": \"LISTA\",\n  \"foo\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+                      "pm.test('mensaje del error', () => pm.expect(pm.response.json().error.message).to.be.a('string'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - tiendaId no se acepta en la descarga",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"versionIds\": [\n    {{versionIdImplementacion}}\n  ],\n  \"formato\": \"LISTA\",\n  \"tiendaId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+                      "pm.test('mensaje del error', () => pm.expect(pm.response.json().error.message).to.be.a('string'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - formato fuera de la lista (CSV)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"versionIds\": [\n    {{versionIdImplementacion}}\n  ],\n  \"formato\": \"CSV\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+                      "pm.test('mensaje del error', () => pm.expect(pm.response.json().error.message).to.be.a('string'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - Sin formato",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"versionIds\": [\n    {{versionIdImplementacion}}\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+                      "pm.test('mensaje del error', () => pm.expect(pm.response.json().error.message).to.be.a('string'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - versionIds vacío",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"versionIds\": [],\n  \"formato\": \"LISTA\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+                      "pm.test('mensaje del error', () => pm.expect(pm.response.json().error.message).to.be.a('string'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - versionIds repetidos",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"versionIds\": [\n    {{versionIdImplementacion}},\n    {{versionIdImplementacion}}\n  ],\n  \"formato\": \"LISTA\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+                      "pm.test('mensaje del error', () => pm.expect(pm.response.json().error.message).to.be.a('string'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - versionIds con un elemento no numérico",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{ \"versionIds\": [\"abc\"], \"formato\": \"LISTA\" }",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+                      "pm.test('mensaje del error', () => pm.expect(pm.response.json().error.message).to.be.a('string'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - versionIds con 51 elementos",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"versionIds\":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51],\"formato\":\"LISTA\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+                      "pm.test('mensaje del error', () => pm.expect(pm.response.json().error.message).to.be.a('string'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - departamento sin area",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"versionIds\": [\n    {{versionIdImplementacion}}\n  ],\n  \"formato\": \"LISTA\",\n  \"departamento\": \"{{jerarquiaDepartamentoIdExistente}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+                      "pm.test('mensaje del error', () => pm.expect(pm.response.json().error.message).to.be.a('string'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - area con caracteres no permitidos",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"versionIds\": [\n    {{versionIdImplementacion}}\n  ],\n  \"formato\": \"LISTA\",\n  \"area\": \"a'b\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+                      "pm.test('mensaje del error', () => pm.expect(pm.response.json().error.message).to.be.a('string'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - posicionIds con un elemento negativo",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"versionIds\": [\n    {{versionIdImplementacion}}\n  ],\n  \"formato\": \"LISTA\",\n  \"posicionIds\": [\n    -1\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+                      "pm.test('mensaje del error', () => pm.expect(pm.response.json().error.message).to.be.a('string'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "400 - posicionIds repetidos",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"versionIds\": [\n    {{versionIdImplementacion}}\n  ],\n  \"formato\": \"LISTA\",\n  \"posicionIds\": [\n    5,\n    5\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                      "pm.test('Error VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));",
+                      "pm.test('mensaje del error', () => pm.expect(pm.response.json().error.message).to.be.a('string'));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "404 - versionId no existe: details.versionIds",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"versionIds\": [\n    {{versionIdImplementacion}},\n    999999999\n  ],\n  \"formato\": \"LISTA\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                      "pm.test('Error NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));",
+                      "pm.test('details.versionIds con el id faltante', () => pm.expect(pm.response.json().error.details.versionIds).to.eql([999999999]));"
+                    ]
+                  }
+                }
+              ],
+              "response": []
+            },
+            {
+              "name": "401 - Sin header Authorization",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{HOST}}/api/v1/implementacion/productos/exportar",
+                  "host": [
+                    "{{HOST}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "implementacion",
+                    "productos",
+                    "exportar"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"versionIds\": [\n    {{versionIdImplementacion}}\n  ],\n  \"formato\": \"LISTA\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status 401', () => pm.response.to.have.status(401));",
+                      "pm.test('error.code UNAUTHORIZED', () => pm.expect(pm.response.json().error.code).to.eql('UNAUTHORIZED'));"
                     ]
                   }
                 }

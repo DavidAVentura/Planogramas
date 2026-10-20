@@ -44,9 +44,9 @@ const pipeline = (base) => E.contarPlanogramasPorGrupo(E.expandirPorTienda(E.con
 const grupoDe = (grupos, sku, tiendaId = 1) => grupos.find((g) => g.sku === sku && g.tienda.id === tiendaId);
 
 const CLAVES_FILA = [
-  'versionId', 'codigoVersion', 'planogramaId', 'planogramaNombre', 'estadoVersion', 'modo', 'ubicaciones', 'accesorios',
+  'versionId', 'codigoVersion', 'planogramaId', 'planogramaNombre', 'estadoVersion', 'tipoVersion', 'esEspecial', 'modo', 'ubicaciones', 'accesorios',
   'facings', 'cantidadApilable', 'capacidadFacing', 'capacidadMaxima', 'minEstetico', 'minFinal', 'maxFinal',
-  'minVaria', 'maxVaria', 'perfil', 'decision', 'observaciones', 'montaje',
+  'minVaria', 'maxVaria', 'perfil', 'decision', 'variaciones', 'observaciones', 'montaje',
 ];
 
 describe('construirFilasPorVersion', () => {
@@ -131,6 +131,67 @@ describe('construirFilasPorVersion', () => {
     const { fila } = E.construirFilasPorVersion(base).get(1)[0];
     assert.equal(fila.perfil, null);
     assert.equal(fila.decision, 'ACTIVO');
+  });
+});
+
+describe('construirFilasPorVersion con opciones (productos por planograma)', () => {
+  const TODOS = ['borrador', 'en_desarrollo', 'piloto', 'publicado'];
+
+  it('sin opciones: solo piloto y publicado (el consolidado no cambia)', () => {
+    const base = baseMinima({
+      versiones: [version(1, 'A', 'borrador'), version(2, 'B', 'en_desarrollo'), version(3, 'C', 'piloto'), version(4, 'D', 'publicado')],
+      gondolas: [], niveles: [], posiciones: [],
+    });
+    assert.deepEqual([...E.construirFilasPorVersion(base).keys()], [3, 4]);
+    assert.deepEqual([...E.construirFilasPorVersion(base, { estados: TODOS }).keys()], [1, 2, 3, 4]);
+  });
+
+  // Tres posiciones del mismo SKU y modo en la versión 1; la del medio es la 2.ª en orden físico.
+  const baseTres = () => baseMinima({
+    posiciones: [
+      posicion(1, 1, 'S1', { facings: 1 }),
+      posicion(2, 1, 'S1', { facings: 2, cantidadApilable: 4 }),
+      posicion(3, 1, 'S1', { facings: 4 }),
+    ],
+  });
+
+  it('regla D3: solo cuentan las posiciones que pasaron; los ganchos conservan la numeración de la versión completa', () => {
+    const filas = E.construirFilasPorVersion(baseTres(), { posicionIds: new Set([2, 3]) }).get(1);
+    assert.equal(filas.length, 1);
+    const { fila } = filas[0];
+    assert.equal(fila.ubicaciones.length, 2);
+    assert.equal(fila.facings, 6);
+    // posición 1 usa el gancho 1; la 2 empieza en el 2 (no se renumera al filtrar)
+    assert.deepEqual(fila.ubicaciones.map((u) => u.ganchos), [[2, 3], [4, 5, 6, 7]]);
+    assert.equal(fila.variaciones.cantidadApilable, true);
+  });
+
+  it('posicionIds vacío → sin filas; ids ajenos a la versión se descartan sin error', () => {
+    assert.deepEqual(E.construirFilasPorVersion(baseTres(), { posicionIds: new Set() }).get(1), []);
+    const filas = E.construirFilasPorVersion(baseTres(), { posicionIds: new Set([1, 999, 12345]) }).get(1);
+    assert.equal(filas[0].fila.ubicaciones.length, 1);
+  });
+
+  it('skus que excluye el SKU → sin fila; incluido → fila', () => {
+    assert.deepEqual(E.construirFilasPorVersion(baseTres(), { skus: new Set(['S2']) }).get(1), []);
+    assert.equal(E.construirFilasPorVersion(baseTres(), { skus: new Set(['S1']) }).get(1).length, 1);
+  });
+
+  it('agrega tipo y especial de la versión; variaciones en falso cuando todo coincide', () => {
+    const base = baseMinima({
+      versiones: [{ ...version(1, 'AAA-TG'), tipo: 'GRANDE', esEspecial: true }, version(2, 'BBB-TG')],
+      posiciones: [posicion(1, 1, 'S1'), posicion(2, 1, 'S1')],
+    });
+    const { fila } = E.construirFilasPorVersion(base).get(1)[0];
+    assert.equal(fila.tipoVersion, 'GRANDE');
+    assert.equal(fila.esEspecial, true);
+    assert.deepEqual(fila.variaciones, { cantidadApilable: false, capacidadFacing: false, minEstetico: false, perfil: false, decision: false });
+    assert.equal(E.construirFilasPorVersion(base).get(2).length, 0);
+  });
+
+  it('un nulo junto a un valor cuenta como variación', () => {
+    const base = baseMinima({ posiciones: [posicion(1, 1, 'S1', { minEstetico: null }), posicion(2, 1, 'S1', { minEstetico: 3 })] });
+    assert.equal(E.construirFilasPorVersion(base).get(1)[0].fila.variaciones.minEstetico, true);
   });
 });
 

@@ -2,7 +2,7 @@
  * consolidado.repository.js  (infraestructura)
  * Implementación concreta del contrato del dominio usando Knex + SQL Server.
  *
- * `cargarBase` hace 7 consultas con columnas explícitas, todas acotadas por la misma subconsulta
+ * `cargarBase` hace 7 consultas con columnas explícitas (5 en `baseVersiones.js`), todas acotadas por la misma subconsulta
  * de versiones montables (publicado/piloto asignadas a una tienda activa): nunca listas de ids de
  * versión ni de posición, para no pasar el límite de 2100 parámetros. Solo `tiendaIds` (≤ 200)
  * viaja como parámetro. Se cargan TODAS las posiciones de esas versiones (también las sin SKU y las
@@ -11,22 +11,18 @@
 
 const db = require('../db/connection');
 const { ESTADOS_MONTABLES } = require('../../domain/asignacion/asignacion.entity');
-const { mapearGondola, mapearSeccion, mapearNivel, mapearPosicionBase } = require('./mapeadoresVersion');
+const { cargarEstructura } = require('./baseVersiones');
 
 const TABLA_VERSION_TIENDA = 'VersionTienda';
 const TABLA_VERSION        = 'PlanogramaVersion';
 const TABLA_PLANOGRAMA     = 'Planograma';
 const TABLA_TIENDA         = 'Tienda';
 const TABLA_GONDOLA        = 'Gondola';
-const TABLA_SECCION        = 'Seccion';
 const TABLA_NIVEL          = 'Nivel';
 const TABLA_POSICION       = 'Posicion';
-const TABLA_PRODUCTO       = 'Producto';
 
 const ESTADO_TIENDA_ACTIVA = 'activo';
 const MODO_PENDIENTE       = 'PENDIENTE';
-
-const numero = (v) => (v === null || v === undefined ? null : Number(v));
 
 /** Subconsulta: ids de las versiones montables asignadas a tiendas activas (opcional: a `tiendaIds`). */
 function versionesMontables(tiendaIds = []) {
@@ -45,7 +41,7 @@ function versionesMontables(tiendaIds = []) {
 async function cargarBase({ tiendaIds = [] } = {}) {
   const montables = () => versionesMontables(tiendaIds);
 
-  const [versiones, asignaciones, gondolas, secciones, niveles, posiciones, accesorios] = await Promise.all([
+  const [versiones, asignaciones, estructura] = await Promise.all([
     db(TABLA_VERSION)
       .join(TABLA_PLANOGRAMA, `${TABLA_VERSION}.planograma_id`, `${TABLA_PLANOGRAMA}.id`)
       .whereIn(`${TABLA_VERSION}.id`, montables())
@@ -72,63 +68,7 @@ async function cargarBase({ tiendaIds = [] } = {}) {
         `${TABLA_TIENDA}.marca as tiendaMarca`,
       ),
 
-    db(TABLA_GONDOLA)
-      .whereIn('planograma_version_id', montables())
-      .select('id', 'planograma_version_id', 'nombre', 'orden', 'ancho_cm', 'alto_cm', 'por_ubicar'),
-
-    db(TABLA_SECCION)
-      .join(TABLA_GONDOLA, `${TABLA_SECCION}.gondola_id`, `${TABLA_GONDOLA}.id`)
-      .whereIn(`${TABLA_GONDOLA}.planograma_version_id`, montables())
-      .select(
-        `${TABLA_SECCION}.id`, `${TABLA_SECCION}.gondola_id`, `${TABLA_SECCION}.padre_id`,
-        `${TABLA_SECCION}.es_division`, `${TABLA_SECCION}.direccion`, `${TABLA_SECCION}.orden`, `${TABLA_SECCION}.tam_cm`,
-      ),
-
-    db(TABLA_NIVEL)
-      .join(TABLA_GONDOLA, `${TABLA_NIVEL}.gondola_id`, `${TABLA_GONDOLA}.id`)
-      .whereIn(`${TABLA_GONDOLA}.planograma_version_id`, montables())
-      .select(`${TABLA_NIVEL}.id`, `${TABLA_NIVEL}.gondola_id`, `${TABLA_NIVEL}.seccion_id`, `${TABLA_NIVEL}.orden`),
-
-    db(TABLA_POSICION)
-      .join(TABLA_NIVEL, `${TABLA_POSICION}.nivel_id`, `${TABLA_NIVEL}.id`)
-      .join(TABLA_GONDOLA, `${TABLA_NIVEL}.gondola_id`, `${TABLA_GONDOLA}.id`)
-      .leftJoin(`${TABLA_PRODUCTO} as producto`, `${TABLA_POSICION}.sku`, 'producto.sku')
-      .leftJoin(`${TABLA_PRODUCTO} as sustituto`, 'producto.sku_sustituto', 'sustituto.sku')
-      .whereIn(`${TABLA_GONDOLA}.planograma_version_id`, montables())
-      .select(
-        `${TABLA_POSICION}.id`,
-        `${TABLA_POSICION}.nivel_id`,
-        `${TABLA_POSICION}.orden_horizontal`,
-        `${TABLA_POSICION}.sku`,
-        `${TABLA_POSICION}.facings_horizontal`,
-        `${TABLA_POSICION}.cantidad_apilable`,
-        `${TABLA_POSICION}.unidades_por_facing`,
-        `${TABLA_POSICION}.capacidad_maxima`,
-        `${TABLA_POSICION}.min_estetico`,
-        `${TABLA_POSICION}.min_final`,
-        `${TABLA_POSICION}.max_final`,
-        `${TABLA_POSICION}.perfil_redondeo`,
-        `${TABLA_POSICION}.modo`,
-        `${TABLA_POSICION}.decision`,
-        `${TABLA_POSICION}.observaciones`,
-        `${TABLA_POSICION}.cross_externo`,
-        `${TABLA_POSICION}.montar_en_display`,
-        `${TABLA_POSICION}.desborda_gondola`,
-        `${TABLA_POSICION}.nota_desborde`,
-        `${TABLA_POSICION}.ganchos`,
-        'producto.nombre as nombre',
-        'producto.marca as marca',
-        'producto.sku_sustituto as sku_sustituto',
-        'sustituto.nombre as sustituto_nombre',
-      ),
-
-    db('PosicionAccesorio')
-      .join('Accesorio', 'PosicionAccesorio.accesorio_id', 'Accesorio.id')
-      .join(TABLA_POSICION, 'PosicionAccesorio.posicion_id', `${TABLA_POSICION}.id`)
-      .join(TABLA_NIVEL, `${TABLA_POSICION}.nivel_id`, `${TABLA_NIVEL}.id`)
-      .join(TABLA_GONDOLA, `${TABLA_NIVEL}.gondola_id`, `${TABLA_GONDOLA}.id`)
-      .whereIn(`${TABLA_GONDOLA}.planograma_version_id`, montables())
-      .select('PosicionAccesorio.posicion_id', 'PosicionAccesorio.orden', 'Accesorio.codigo', 'PosicionAccesorio.tamano_pulgadas'),
+    cargarEstructura(montables),
   ]);
 
   const tiendas = new Map();
@@ -138,47 +78,13 @@ async function cargarBase({ tiendaIds = [] } = {}) {
     }
   });
 
-  const productos = new Map();
-  posiciones.forEach((p) => {
-    if (p.sku === null || p.sku === undefined || productos.has(String(p.sku))) return;
-    productos.set(String(p.sku), {
-      sku: String(p.sku), nombre: p.nombre ?? null, marca: p.marca ?? null,
-      skuSustituto: p.sku_sustituto ?? null, nombreSustituto: p.sustituto_nombre ?? null,
-    });
-  });
-
   return {
     versiones: versiones.map((v) => ({
       versionId: v.versionId, codigo: v.codigo, estado: v.estado, planogramaId: v.planogramaId, planogramaNombre: v.planogramaNombre,
     })),
     asignaciones: asignaciones.map((a) => ({ versionId: a.versionId, tiendaId: a.tiendaId })),
     tiendas: [...tiendas.values()],
-    gondolas: gondolas.map((g) => ({ ...mapearGondola(g), versionId: g.planograma_version_id })),
-    secciones: secciones.map(mapearSeccion),
-    niveles: niveles.map(mapearNivel),
-    posiciones: posiciones.map((p) => ({
-      ...mapearPosicionBase(p),
-      sku:              p.sku === null || p.sku === undefined ? null : String(p.sku),
-      facings:          numero(p.facings_horizontal),
-      capacidadMaxima:  numero(p.capacidad_maxima),
-      minFinal:         numero(p.min_final),
-      maxFinal:         numero(p.max_final),
-      modo:             p.modo,
-      cantidadApilable: numero(p.cantidad_apilable),
-      capacidadFacing:  numero(p.unidades_por_facing),
-      minEstetico:      numero(p.min_estetico),
-      perfil:           p.perfil_redondeo ?? null,
-      decision:         p.decision ?? null,
-      observaciones:    p.observaciones ?? null,
-      crossExterno:     Boolean(p.cross_externo),
-      montarEnDisplay:  Boolean(p.montar_en_display),
-      desbordaGondola:  Boolean(p.desborda_gondola),
-      notaDesborde:     p.nota_desborde ?? null,
-    })),
-    accesorios: accesorios.map((a) => ({
-      posicionId: a.posicion_id, orden: a.orden, codigo: a.codigo, tamanoPulgadas: numero(a.tamano_pulgadas),
-    })),
-    productos: [...productos.values()],
+    ...estructura,
   };
 }
 

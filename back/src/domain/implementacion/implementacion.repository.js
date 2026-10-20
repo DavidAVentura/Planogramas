@@ -78,4 +78,20 @@ module.exports = {
    * @returns {Promise<object[]>}
    */
   listarPosicionesConProducto: async (_versionIds) => { throw new Error('No implementado'); },
+
+  /**
+   * Estructura completa de las versiones para la exportación de productos por planograma: TODAS las
+   * posiciones (también sin SKU y PENDIENTE: la numeración de ganchos las necesita). Reutiliza la
+   * carga del consolidado (`baseVersiones.js`); `productos` trae además `area` y `departamento`
+   * (copiados de CATI al registrar el SKU, `Producto.categoria_nivel1/2`). ≤ 50 ids de versión.
+   * @param {number[]} versionIds
+   * @returns {Promise<{
+   *   gondolas:   Array<{ id, versionId, nombre, orden, anchoCm, altoCm, porUbicar }>,
+   *   secciones:  object[], niveles: object[],
+   *   posiciones: object[],   // misma forma que en `consolidado.repository.cargarBase`
+   *   accesorios: Array<{ posicionId, orden, codigo, tamanoPulgadas }>,
+   *   productos:  Array<{ sku, nombre, marca, area, departamento, skuSustituto, nombreSustituto }>,
+   * }>}
+   */
+  cargarBaseVersiones: async (_versionIds) => { throw new Error('No implementado'); },
 };

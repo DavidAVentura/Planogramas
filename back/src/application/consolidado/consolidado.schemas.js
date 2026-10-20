@@ -12,6 +12,7 @@ const Joi = require('joi');
 const { MODOS, FORMATOS } = require('../../domain/consolidado/consolidado.entity');
 const { CLAVES_COLUMNAS_CONSOLIDADO, columnasInvalidas } = require('../../domain/consolidado/columnas');
 const { errorValidacion } = require('../compartido/validacion');
+const { listaEnteros, nivelJerarquia } = require('../compartido/esquemasComunes');
 
 const ESTADOS_FILTRO = Object.freeze(['publicado', 'piloto']);
 const ORDENES = Object.freeze(['sku', 'producto', 'tienda', 'version']);
@@ -19,28 +20,6 @@ const TAMANOS_PAGINA = Object.freeze([25, 50, 100, 200]);
 const MAX_COLUMNAS = CLAVES_COLUMNAS_CONSOLIDADO.length;
 const MAX_CARACTERES_COLUMNAS = 600;
 const MAX_CARACTERES_CLAVE_ECO = 40;
-
-const PATRON_LISTA_ENTEROS = /^[1-9]\d*(,[1-9]\d*)*$/;
-const PATRON_JERARQUIA = /^[A-Za-z0-9_-]{1,20}$/;
-
-/** csv de enteros positivos seguros, únicos y con tope → number[]. */
-function listaEnteros(maxCaracteres, maxElementos) {
-  return Joi.string()
-    .max(maxCaracteres)
-    .pattern(PATRON_LISTA_ENTEROS)
-    .messages({
-      'string.pattern.base': '{{#label}} debe ser una lista de enteros positivos separados por coma',
-      'string.max': '{{#label}} excede la longitud máxima permitida',
-    })
-    .custom((valor, helpers) => {
-      if (!PATRON_LISTA_ENTEROS.test(valor)) return valor; // ya lo reporta `pattern`
-      const numeros = valor.split(',').map(Number);
-      if (!numeros.every(Number.isSafeInteger)) return helpers.message('{{#label}} contiene un entero fuera de rango');
-      if (new Set(numeros).size !== numeros.length) return helpers.message('{{#label}} contiene valores repetidos');
-      if (numeros.length > maxElementos) return helpers.message(`{{#label}} admite como máximo ${maxElementos} elementos`);
-      return numeros;
-    });
-}
 
 /** csv de valores de una lista permitida, únicos, entre `min` y `max` elementos → string[]. */
 function listaEnum(valores, min, max) {
@@ -68,10 +47,6 @@ function listaColumnas() {
       return partes;
     });
 }
-
-const nivelJerarquia = () => Joi.string()
-  .pattern(PATRON_JERARQUIA)
-  .messages({ 'string.pattern.base': '{{#label}} debe ser un código de 1 a 20 caracteres (letras, números, guion o guion bajo)' });
 
 /** Filtros comunes del listado y de la exportación. */
 const filtrosComunes = {

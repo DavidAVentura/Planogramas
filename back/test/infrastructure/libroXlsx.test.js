@@ -66,3 +66,47 @@ describe('escribirLibroXlsx', () => {
     assert.equal((leer('xl/worksheets/sheet2.xml').match(/<row /g) ?? []).length, 1);
   });
 });
+
+describe('escribirLibroXlsx con grupos, anchos y congelado', () => {
+  const hojaConGrupos = {
+    nombre: 'Pivote',
+    grupos: [{ titulo: 'TG', desde: 1, hasta: 2 }, { titulo: '=HYPERLINK("http://x","clic")\u0007', desde: 3, hasta: 3 }],
+    encabezados: ['SKU', 'A_TG', 'B_TG', 'A_TM'],
+    filas: [[texto('1'), numero(2), numero(3), texto('x')]],
+    anchos: [14, 12, 12, 20],
+    congelarFilas: 2,
+    congelarColumnas: 1,
+  };
+
+  it('construirHoja: fila 1 con el título en `desde` con columnSpan y el resto vacío; congelado y anchos', () => {
+    const { construirHoja } = require('../../src/infrastructure/exportacion/libroXlsx');
+    const hoja = construirHoja(hojaConGrupos);
+    const [grupos, encabezados] = hoja.data;
+    assert.equal(grupos[0], null);
+    assert.equal(grupos[1].value, 'TG');
+    assert.equal(grupos[1].columnSpan, 2);
+    assert.equal(grupos[2], null);
+    assert.equal(grupos[3].type, String); // una fórmula como título sigue siendo texto
+    assert.equal(grupos[3].value, '=HYPERLINK("http://x","clic")'); // y sin caracteres de control
+    assert.equal(encabezados[0].value, 'SKU');
+    assert.deepEqual(hoja.columns, [{ width: 14 }, { width: 12 }, { width: 12 }, { width: 20 }]);
+    assert.equal(hoja.stickyRowsCount, 2);
+    assert.equal(hoja.stickyColumnsCount, 1);
+  });
+
+  it('una hoja sin los campos nuevos se escribe como antes (sin columns ni sticky)', () => {
+    const { construirHoja } = require('../../src/infrastructure/exportacion/libroXlsx');
+    const hoja = construirHoja({ nombre: 'H', encabezados: ['E'], filas: [] });
+    assert.deepEqual(Object.keys(hoja), ['sheet', 'data']);
+    assert.equal(hoja.data.length, 1);
+  });
+
+  it('el archivo generado combina el grupo y no contiene fórmulas', async () => {
+    const { leer, hojas } = await abrir([hojaConGrupos]);
+    const xml = leer(hojas[0]);
+    assert.ok(/<mergeCell ref="B1:C1"\s*\/>/.test(xml));
+    assert.ok(!/<f[ >]/.test(xml));
+    assert.ok(/<pane /.test(xml));
+    assert.ok(!leer('xl/sharedStrings.xml').includes('\u0007'));
+  });
+});
