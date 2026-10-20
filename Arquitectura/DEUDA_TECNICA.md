@@ -84,6 +84,16 @@ aquí en la etapa de cierre.
 | DT-68 | Menores sin corregir de la revisión de calidad del autor de la carga: pruebas faltantes en `adjunto.test.js`, `formatearAutor` duplicado en el montaje, `title` que tapa el aviso "Supera el máximo", `tipoTitulo` con guiones y apóstrofos e indentación de `VersionResumenModal` | Baja | back · front | 2026-10-16 · revisión de calidad (M-01, M-02, M-03, M-05, M-06) del plan `2026-10-16-evidencia-usuario-carga` | Abierta |
 | DT-69 | Script de un solo uso `back/scripts/migracion-dev-prod/` en el repo y desplegado al App Service PROD: retirarlo cuando PROD esté estable | Baja | back | 2026-10-16 · plan `2026-10-16-migracion-datos-dev-prod` | Abierta |
 | DT-70 | Menores sin corregir de la revisión del script de migración DEV → PROD (filtro por esquema `dbo`, PK vacía en el hash, validación de la URL del blob, mensajes duplicados, identity antes/después si la transacción lanza excepción) | Baja | back | 2026-10-16 · revisiones de calidad y seguridad del plan `2026-10-16-migracion-datos-dev-prod` | Abierta |
+| DT-71 | `catiClient.js` guarda su caché en un `Map` sin tope ni limpieza (mitigado: solo se consultan códigos de jerarquía existentes) | Media | back | 2026-10-19 · plan `2026-10-19-productos-planograma-filtros-descarga` | Abierta |
+| DT-72 | `ganchosPorPosicion` del listado Por versión carga cada versión en serie (`skuRepo.cargarVersion` × hasta 50) | Baja | back | 2026-10-19 · plan `2026-10-19-productos-planograma-filtros-descarga` | Abierta |
+| DT-73 | `accesoriosDePosiciones(posicionIds)` pasa ids de posición como parámetros SQL y con muchas versiones puede rozar el límite de 2 100 | Baja | back | 2026-10-19 · plan `2026-10-19-productos-planograma-filtros-descarga` | Abierta |
+| DT-74 | Área y Departamento del archivo de descarga salen de `Producto.categoria_nivel1/2` (dato registrado) y pueden diferir del filtro CATI en vivo | Baja | back | 2026-10-19 · plan `2026-10-19-productos-planograma-filtros-descarga` | Abierta |
+| DT-75 | El importador de categorías no avisa cuando el archivo trae varias filas del mismo SKU con estados distintos (gana la primera) | Baja | back | 2026-10-19 · plan `2026-10-19-productos-planograma-filtros-descarga` | Abierta |
+| DT-76 | `errorHandler` responde el 413 de `express.json` con `code: 'ERROR'` genérico; falta un código propio (`PAYLOAD_TOO_LARGE`) | Baja | back | 2026-10-19 · `04_implementacion.md` del plan `2026-10-19-productos-planograma-filtros-descarga` | Abierta |
+| DT-77 | Sin prueba cruzada del literal de encabezados del Pivote entre `columnasExportacion.js` (back) y `descargaPorVersion.ts` (front) | Baja | back · front | 2026-10-19 · `04_implementacion.md` del plan `2026-10-19-productos-planograma-filtros-descarga` | Abierta |
+| DT-78 | Postman sin escenario 422 `PIVOTE_NO_APLICABLE`: falta un Setup con dos versiones del mismo planograma, tipo y estado | Baja | docs | 2026-10-19 · `04_implementacion.md` del plan `2026-10-19-productos-planograma-filtros-descarga` | Abierta |
+| DT-79 | Filtro de jerarquía CATI (Área › Departamento) oculto en Productos por planograma (`MOSTRAR_FILTRO_JERARQUIA = false`): reactivarlo o eliminar el código muerto | Baja | front · back | 2026-10-19 · ronda 3 de `04_implementacion.md` del plan `2026-10-19-productos-planograma-filtros-descarga` | Abierta |
+| DT-80 | La vista extendida de Productos por planograma no tiene el modo compacto con chips (`ResumenFiltrosCompacto`): la barra completa se oculta | Baja | front | 2026-10-19 · ronda 2 de `04_implementacion.md` del plan `2026-10-19-productos-planograma-filtros-descarga` | Abierta |
 
 ## Detalle
 
@@ -424,3 +434,50 @@ pruebas, el script `migrar:dev-a-prod` de `package.json` y el apartado de `DESPL
 ### DT-70 — Menores de la revisión del script de migración
 Detalle en `05_revision_calidad.md` (M-1 a M-4 y M-7) y `05_revision_seguridad.md` (M-02 y siguientes) del plan
 `2026-10-16-migracion-datos-dev-prod`. Ninguno afecta los datos copiados; se resuelven juntos con DT-69 al retirar el script.
+
+### DT-71 — Caché de CATI sin tope
+`back/src/infrastructure/cati/catiClient.js` guarda las respuestas en un `Map` sin tamaño máximo ni limpieza de entradas
+vencidas. Con el filtro de jerarquía de Productos por planograma el riesgo es bajo (solo se consultan códigos que existen
+en los catálogos), pero conviene un LRU con tope.
+
+### DT-72 — `ganchosPorPosicion` en serie
+El listado Por versión (`GET /implementacion/productos`) carga cada versión con `skuRepo.cargarVersion` en serie (hasta 50).
+Migrar a `cargarBaseVersiones` + `recorrerVersion`, que ya usa la exportación.
+
+### DT-73 — `accesoriosDePosiciones` con muchos ids
+`accesoriosDePosiciones(posicionIds)` envía ids de posición como parámetros; con muchas versiones puede acercarse al límite
+de 2 100 parámetros de SQL Server. Filtrar por versión (subconsulta o `whereIn` de versiones) como hace `baseVersiones.js`.
+
+### DT-74 — Área y Departamento por SKU desde el dato registrado
+La hoja `Lista` toma Área y Departamento de `Producto.categoria_nivel1/2` (copiados de CATI al registrar el SKU, decisión D6)
+para no consultar CATI por SKU. Si CATI reclasifica un producto, el archivo puede diferir del filtro en vivo. Resolver con
+una sincronización periódica de categorías o consultando CATI por lote.
+
+### DT-75 — Importador de categorías con SKU repetido de estados distintos
+El Pivote de Productos por planograma puede traer un SKU en varias filas (publicado y piloto del mismo planograma). Al
+reimportarlo gana la primera fila y las demás se reportan como repetidas, pero el importador no avisa que son estados
+distintos. Agregar el aviso.
+
+### DT-76 — Código del 413
+El error de `express.json` (cuerpo mayor a 512 kb en la exportación) no trae `code`, así que `errorHandler` responde
+`{ error: { code: 'ERROR' } }`. Definir `PAYLOAD_TOO_LARGE` para todo el API.
+
+### DT-77 — Literal de encabezados del Pivote duplicado
+Los encabezados del Pivote viven en `back/src/domain/implementacion/columnasExportacion.js` y en
+`front/src/domain/implementacion/descargaPorVersion.ts`; cada lado se prueba por separado y nada falla si uno cambia. Agregar
+una prueba cruzada o un fixture compartido.
+
+### DT-78 — Postman sin 422 `PIVOTE_NO_APLICABLE`
+El Setup de la carpeta `16 - Implementación` solo tiene una versión GRANDE y una MEDIANA del mismo planograma. Falta crear dos
+versiones del mismo planograma, tipo y estado para cubrir el 422 (hoy cubierto por pruebas de dominio y HTTP).
+
+### DT-79 — Filtro de jerarquía CATI oculto
+Por pedido del usuario (ronda 3), `front/src/pages/ProductosPorVersion/ProductosPorVersion.tsx` define
+`MOSTRAR_FILTRO_JERARQUIA = false` y no renderiza `CadenaJerarquia`; el listado y la descarga no envían `area`/`departamento`.
+El soporte sigue completo en back (validación, CATI, 503) y front (servicio, hooks, `CadenaJerarquia.niveles`). Decidir:
+reactivar (cambiar la constante) o eliminar el código muerto (constante, estado y textos de jerarquía en la página,
+`area`/`departamento` del listado y de la exportación; las columnas Área/Departamento de la Lista se mantienen).
+
+### DT-80 — Vista extendida sin resumen compacto de filtros
+En Productos por planograma la barra de filtros se oculta en vista extendida; el Consolidado muestra `ResumenFiltrosCompacto`
+con chips. Replicarlo en `ProductosVersiones` cuando se use `filtrosExtra`.

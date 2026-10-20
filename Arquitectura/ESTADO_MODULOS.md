@@ -104,7 +104,7 @@ El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
   (README con la tubería completa). Postman: carpeta `21 - Consolidado tiendas` (reutiliza los fixtures de
   `16 - Implementación`, corre después). Reglas no obvias:
   - **Sin tabla nueva ni paginación SQL**: `cargarBase` (`infrastructure/repositories/consolidado.repository.js`)
-    hace 7 consultas filtradas por la subconsulta `versionesMontables` (publicado/piloto con tienda activa),
+    hace 7 consultas (las 5 de estructura viven en `repositories/baseVersiones.js` → `cargarEstructura`, compartido con el módulo 16) filtradas por la subconsulta `versionesMontables` (publicado/piloto con tienda activa),
     nunca listas de ids (límite de 2100 parámetros); el resto es dominio puro en
     `domain/consolidado/consolidado.entity.js`. La 017 solo agrega índices.
   - **Reusa el módulo 19**: `recorrerVersion` (sección, nivel, ganchos) y `valorComun` de `skuVersion.entity.js`, y
@@ -123,7 +123,7 @@ El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
     controller validan con el mismo esquema estricto (`validarQueryEstricta`, sin `stripUnknown`; `validarConJoi`
     no se usa aquí, DT-46).
   - **Exportación**: tope `CONSOLIDADO_EXPORTACION_MAX_FILAS` (def. 100 000, máx. 200 000) → `422` antes de construir
-    celdas; semáforo de 1 por proceso (`application/consolidado/semaforo.js`) → `503 EXPORTACION_EN_CURSO`. El libro
+    celdas; semáforo de 1 por proceso (`application/compartido/semaforo.js` → `semaforoExportacion`, compartido con la exportación de Productos por planograma) → `503 EXPORTACION_EN_CURSO`. El libro
     se genera completo antes de las cabeceras. `write-excel-file@4.1.1` solo se importa en
     `infrastructure/exportacion/libroXlsx.js` (celdas de texto siempre `String`, nunca fórmula).
   - **CATI**: con jerarquía se resuelve antes de cargar la base (falla → `503` sin datos parciales);
@@ -133,6 +133,34 @@ El orden de desarrollo sigue `Arquitectura/ENDPOINTS.md` y las carpetas de
     `hooks/useConsolidado.ts` y `useFiltrosConsolidado.ts`. Comparte con Por planograma `PanelColumnas<K>`,
     `domain/columnas/preferenciasColumnas.ts`, `modales/SeleccionVersionesModal` y `productos/CadenaJerarquia` (DT-52).
     Preferencias de columnas en `localStorage` (`planogramas.consolidado.columnas`).
+- **Implementado end-to-end: `implementacion` (16) — Productos por planograma del analista** (ruta `/por-version`,
+  plan `2026-10-19-productos-planograma-filtros-descarga`; contratos en `Contratos/16_implementacion/`, CU-10-05 y
+  CU-10-06; Postman: carpeta `16 - Implementación`). Reglas no obvias:
+  - **Descarga `.xlsx`** (`POST /implementacion/productos/exportar`): Lista (SKU–versión–modo) y Pivote por versión
+    (bloques TG/TM/TE con encabezados del Excel de categorías). Dominio puro en
+    `domain/implementacion/exportacionPorVersion.entity.js` y `columnasExportacion.js` (`validarPivote`: especiales de tienda
+    excluidas, sin tipo o duplicadas → `422 PIVOTE_NO_APLICABLE`); la hoja `Versiones` va siempre.
+  - **Reusa el consolidado**: `construirFilasPorVersion(base, { estados, skus, posicionIds })` en
+    `domain/consolidado/consolidado.entity.js` (sin opciones = solo montables, el consolidado no cambia; recorre la versión
+    completa antes de filtrar para no alterar la numeración de ganchos; la fila añade `tipoVersion`, `esEspecial` y
+    `variaciones`, que `expandirPorTienda` quita para no cambiar `GET /consolidado`); `baseVersiones.js` →
+    `cargarEstructura(versionIds|subconsulta)`; `application/compartido/semaforo.js` (un solo semáforo para todas las
+    exportaciones) y `application/compartido/esquemasComunes.js` (`PATRON_JERARQUIA`, `listaEnteros`, `nivelJerarquia`);
+    `domain/compartido/erroresExportacion.js`. No duplicarlos.
+  - **`posicionIds` solo acota**: el front envía los ids de las filas visibles tras búsqueda y filtros de columna (solo si hay
+    alguno activo); el servidor calcula su universo (`versionIds` ∩ jerarquía) e intersecta; los ids nunca van a SQL.
+  - **Jerarquía Área › Departamento**: soportada en back (listado y exportación, validada contra CATI, 503 sin datos sin
+    filtrar) y en front (`CadenaJerarquia niveles={2}`, servicio y hooks), pero **oculta en pantalla**
+    (`MOSTRAR_FILTRO_JERARQUIA = false` en `ProductosPorVersion.tsx`; DT-79). Área/Departamento por SKU en la Lista salen de
+    `Producto.categoria_nivel1/2` (DT-74). En el listado con jerarquía el inventario se consulta con los SKU de todas las
+    posiciones (el resumen `versiones[]` no se filtra).
+  - **Orden de capas**: `GET /productos`: `requiereAnalista` → limitador 60/min → controller; `POST /productos/exportar`:
+    `requiereAnalista` → `validarCuerpo` → limitador 5/min → controller (cuerpo hasta 512 kb, parser montado en `app.js`).
+  - **Front**: `ProductosVersiones` (compartido con el Implementador) gana props opcionales `filtrosExtra`,
+    `filtrosExtraActivos`, `onLimpiarFiltrosExtra`, `accionesExtra` y `onFilasFiltradas`; con `filtrosExtra` los filtros van
+    en una barra colapsable con `ui/BotonFiltros` (patrón del Consolidado) y sin ellas el render del Implementador no cambia.
+    `DescargarProductosVersionModal`, `domain/implementacion/descargaPorVersion.ts` (con pruebas), `ui/IconoDescarga`
+    (compartido con el Consolidado). En vista extendida la barra de filtros se oculta sin chips compactos (DT-80).
 - **Implementado, sin carpeta Postman todavía**: `adjuntos` (13, CRUD sobre Azure Blob) y
   `agente-extractor`.
 - **Autor de la carga (adjuntos 13 y evidencias 17, 2026-10-16, migración 018)**: ambas tablas guardan
