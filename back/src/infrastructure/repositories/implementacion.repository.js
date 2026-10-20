@@ -5,6 +5,7 @@
 
 const db = require('../db/connection');
 const { ESTADOS_VERSION_IMPLEMENTACION } = require('../../domain/implementacion/implementacion.entity');
+const { cargarEstructura } = require('./baseVersiones');
 
 const TABLA_TIENDA         = 'Tienda';
 const TABLA_VERSION_TIENDA = 'VersionTienda';
@@ -280,6 +281,16 @@ async function accesoriosDePosiciones(posicionIds) {
   return porPosicion;
 }
 
+// ─── cargarBaseVersiones ─────────────────────────────────────────────────────
+
+/** Estructura completa de las versiones (5 consultas por `whereIn` sobre ≤ 50 ids). Ver `baseVersiones.js`. */
+async function cargarBaseVersiones(versionIds) {
+  if (versionIds.length === 0) {
+    return { gondolas: [], secciones: [], niveles: [], posiciones: [], accesorios: [], productos: [] };
+  }
+  return cargarEstructura(versionIds);
+}
+
 // ─── Exportación ─────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -291,4 +302,5 @@ module.exports = {
   contarAdjuntosPorVersion,
   listarGondolasConEvidencias,
   listarPosicionesConProducto,
+  cargarBaseVersiones,
 };

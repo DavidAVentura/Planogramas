@@ -114,8 +114,11 @@ back/
         │   └── accesorios.controller.js
         ├── tiendas/
         │   └── tiendas.controller.js
-        └── jerarquia/
-            └── jerarquia.controller.js    # Proxy a CATI
+        ├── jerarquia/
+        │   └── jerarquia.controller.js    # Proxy a CATI
+        └── compartido/                    # Piezas de la capa application usadas por varios módulos
+            ├── semaforo.js                # crearSemaforo + semaforoExportacion (uno por proceso, todas las exportaciones .xlsx)
+            └── esquemasComunes.js         # PATRON_JERARQUIA, listaEnteros, nivelJerarquia (fragmentos Joi)
 ```
 
 ## Flujo de una request

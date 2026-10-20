@@ -10,6 +10,13 @@
  */
 
 const { recorrerVersion } = require('../skuVersion/skuVersion.entity');
+const { nivelJerarquiaMasEspecifico } = require('../producto/producto.entity');
+const { construirFilasPorVersion } = require('../consolidado/consolidado.entity');
+const { errorExportacionDemasiadoGrande, errorExportacionEnCurso } = require('../compartido/erroresExportacion');
+const {
+  validarPivote, construirHojaLista, construirHojaPivote, construirHojaVersiones, contarFilas, nombreArchivo,
+} = require('./exportacionPorVersion.entity');
+const { ESTADOS_EXPORTABLES } = require('./columnasExportacion');
 
 const {
   UMBRAL_IMPLEMENTABLE,
@@ -161,11 +168,14 @@ async function ganchosPorPosicion(skuRepo, versionIds) {
  * Filas de la tabla de productos (una por posición con sku) de las versiones, con sus ganchos y el
  * inventario del SKU en la tienda (`null` si no hay tienda o el inventario no está disponible).
  * `consultar(skus)` resuelve el inventario con los SKUs de las filas. Compartido por la vista del Implementador y la vista Por versión del Analista.
+ * `skusPermitidos` (opcional, `Set<string>`): descarta las filas de otros SKU DESPUÉS de consultar el
+ * inventario, para que el resumen por versión (que no se filtra) siga viendo el inventario completo.
  */
-async function armarFilasProductos(repo, skuRepo, versionIds, consultar) {
-  const filas    = versionIds.length > 0 ? await repo.listarPosicionesConProducto(versionIds) : [];
-  const consulta = await consultar([...new Set(filas.map((f) => f.sku))]);
+async function armarFilasProductos(repo, skuRepo, versionIds, consultar, skusPermitidos = null) {
+  const todas    = versionIds.length > 0 ? await repo.listarPosicionesConProducto(versionIds) : [];
+  const consulta = await consultar([...new Set(todas.map((f) => f.sku))]);
   const ganchos  = await ganchosPorPosicion(skuRepo, versionIds);
+  const filas    = skusPermitidos ? todas.filter((f) => skusPermitidos.has(f.sku)) : todas;
 
   const data = filas.map((f) => {
     const unidades = consulta.inventario ? unidadesEnTienda(consulta.inventario, f.sku) : null;
@@ -237,6 +247,42 @@ async function listarVersionesPorVersion(repo, incluirIds = []) {
   };
 }
 
+// ─── Jerarquía CATI (Área › Departamento) ────────────────────────────────────
+
+function errorJerarquiaInvalida(mensaje) {
+  const err = new Error(mensaje);
+  err.status = 400;
+  err.code   = 'VALIDATION_ERROR';
+  return err;
+}
+
+/**
+ * SKU de la jerarquía pedida (solo Área y Departamento) o `null` si no hay jerarquía (entonces no se
+ * llama a CATI). `departamento` exige `area`; ambos deben existir en los catálogos de CATI y el
+ * departamento pertenecer al área. Se usa el nivel más específico. Si CATI falla, el error se
+ * propaga (503): nunca se devuelven datos sin filtrar. Las llamadas a CATI (áreas, departamentos
+ * del área y SKU del nivel) no dependen del número de SKU.
+ * @param {{ obtenerAreas, obtenerDepartamentos, listarSkusPorJerarquia }} catalogo
+ * @param {{ area?: string, departamento?: string }} jerarquia
+ * @returns {Promise<Set<string>|null>}
+ */
+async function resolverJerarquia(catalogo, { area, departamento } = {}) {
+  if (!area && !departamento) return null;
+  if (!area) throw errorJerarquiaInvalida('departamento requiere area');
+
+  const areas = await catalogo.obtenerAreas();
+  if (!areas.some((a) => String(a.id) === area)) throw errorJerarquiaInvalida('El área no existe');
+  if (departamento) {
+    const departamentos = await catalogo.obtenerDepartamentos(area);
+    if (!departamentos.some((d) => String(d.id) === departamento)) {
+      throw errorJerarquiaInvalida('El departamento no existe o no pertenece al área');
+    }
+  }
+
+  const { nivel, id } = nivelJerarquiaMasEspecifico({ area, departamento });
+  return new Set((await catalogo.listarSkusPorJerarquia(nivel, id)).map(String));
+}
+
 /**
  * Productos de la vista Por versión (Analista): una fila por posición de las versiones pedidas,
  * de cualquier estado y sin validar a qué tiendas están asignadas. La tienda es opcional y solo
@@ -244,17 +290,23 @@ async function listarVersionesPorVersion(repo, incluirIds = []) {
  * la tienda y si la tienda la monta (`montadaEnTienda`).
  * @param {object} repo
  * @param {{ obtenerInventarioTienda: Function }} inventarioPort
- * @param {{ versionIds: number[], tiendaId?: number }} filtro
+ * Con `area`/`departamento` (CATI, validados antes) `data` y `total` quedan acotados a esos SKU;
+ * `versiones[]` (el resumen) sigue siendo el de la versión completa.
+ * @param {{ versionIds: number[], tiendaId?: number, area?: string, departamento?: string }} filtro
  * @param {{ cargarVersion: Function }} [skuRepo]
+ * @param {{ obtenerAreas, obtenerDepartamentos, listarSkusPorJerarquia }} [catalogo]  requerido si hay jerarquía
  * @returns {Promise<object>}
  */
-async function obtenerProductosPorVersion(repo, inventarioPort, { versionIds, tiendaId }, skuRepo) {
+async function obtenerProductosPorVersion(repo, inventarioPort, { versionIds, tiendaId, area, departamento }, skuRepo, catalogo) {
   const tienda    = tiendaId ? await obtenerTiendaActivaOFallar(repo, tiendaId) : null;
   const versiones = await repo.listarVersiones({ estados: [], incluirIds: versionIds });
 
   const encontradas = new Set(versiones.map((v) => v.versionId));
   const faltantes   = versionIds.filter((id) => !encontradas.has(id));
   if (faltantes.length > 0) throw errorVersionNoEncontrada(faltantes);
+
+  // Jerarquía ANTES de leer posiciones: si CATI falla (503) no se devuelven datos sin filtrar.
+  const skusJerarquia = await resolverJerarquia(catalogo, { area, departamento });
 
   const [skusFilas, adjuntosPorVersion, tiendasPorVersion, gondolas] = await Promise.all([
     repo.listarSkusActivosPorVersion(versionIds),
@@ -270,6 +322,7 @@ async function obtenerProductosPorVersion(repo, inventarioPort, { versionIds, ti
   const { data, consulta } = await armarFilasProductos(
     repo, skuRepo, versionIds,
     (skus) => (tienda ? consultarInventario(inventarioPort, tienda.codigo, skus) : Promise.resolve(sinInventario)),
+    skusJerarquia,
   );
 
   const resumenVersiones = versiones.map((v) => {
@@ -295,6 +348,63 @@ async function obtenerProductosPorVersion(repo, inventarioPort, { versionIds, ti
   };
 }
 
+// ─── Descarga de productos por planograma (CU-10-06) ─────────────────────────
+
+/** Forma de `base.versiones` que espera `construirFilasPorVersion`. */
+const versionParaBase = (v) => ({
+  versionId: v.versionId, codigo: v.codigo, estado: v.estado, tipo: v.tipo, esEspecial: v.esEspecial,
+  planogramaId: v.planogramaId, planogramaNombre: v.nombre,
+});
+
+/**
+ * Genera el .xlsx de productos por planograma (Lista o Pivote por versión). Orden: versiones (404) →
+ * validación del Pivote (422) → jerarquía CATI (400/503) → semáforo (503) → base → filas → tope (422)
+ * → libro. El semáforo se toma DESPUÉS de CATI (que puede tardar) y se libera siempre.
+ *
+ * El universo lo calcula el servidor (`versionIds` ∩ jerarquía); `posicionIds` solo lo acota: ids de
+ * posiciones ajenas al universo se descartan sin error. Regla D3: una fila agregada entra si al
+ * menos una de sus posiciones pasó y sus columnas solo suman las que pasaron.
+ * @param {{ repo, catalogo, escribirLibro: Function, semaforo, maximoFilas: number, ahora?: () => Date }} deps
+ * @param {{ versionIds: number[], formato: 'LISTA'|'PIVOTE', area?: string, departamento?: string, posicionIds?: number[] }} peticion
+ * @returns {Promise<{ buffer: Buffer, filas: number, nombre: string }>}
+ */
+async function exportarProductosPorVersion(
+  { repo, catalogo, escribirLibro, semaforo, maximoFilas, ahora = () => new Date() },
+  { versionIds, formato, area, departamento, posicionIds },
+) {
+  const versiones   = await repo.listarVersiones({ estados: [], incluirIds: versionIds });
+  const encontradas = new Set(versiones.map((v) => v.versionId));
+  const faltantes   = versionIds.filter((id) => !encontradas.has(id));
+  if (faltantes.length > 0) throw errorVersionNoEncontrada(faltantes);
+
+  const elegidas = versiones.map(versionParaBase);
+  const { incluidas, excluidas } = formato === 'PIVOTE'
+    ? validarPivote(elegidas)
+    : { incluidas: elegidas, excluidas: [] };
+
+  const skus = await resolverJerarquia(catalogo, { area, departamento });
+
+  if (!semaforo.intentarTomar()) throw errorExportacionEnCurso();
+  try {
+    const base = await repo.cargarBaseVersiones(incluidas.map((v) => v.versionId));
+    const filasPorVersion = construirFilasPorVersion(
+      { ...base, versiones: incluidas },
+      { estados: ESTADOS_EXPORTABLES, skus, posicionIds: posicionIds ? new Set(posicionIds) : null },
+    );
+
+    const filas = contarFilas(formato, filasPorVersion, incluidas);
+    if (filas > maximoFilas) throw errorExportacionDemasiadoGrande(filas, maximoFilas);
+
+    const principal = formato === 'PIVOTE'
+      ? construirHojaPivote(filasPorVersion, incluidas, base.productos)
+      : construirHojaLista(filasPorVersion, base.productos);
+    const buffer = await escribirLibro([principal, construirHojaVersiones(elegidas, excluidas)]);
+    return { buffer, filas, nombre: nombreArchivo(formato, ahora()) };
+  } finally {
+    semaforo.liberar();
+  }
+}
+
 module.exports = {
   obtenerTiendaActivaOFallar,
   obtenerVersionesAsignadasOFallar,
@@ -302,4 +412,6 @@ module.exports = {
   obtenerProductosImplementacion,
   listarVersionesPorVersion,
   obtenerProductosPorVersion,
+  resolverJerarquia,
+  exportarProductosPorVersion,
 };

@@ -6,7 +6,9 @@ const { describe, it, after } = require('node:test');
 const assert                  = require('node:assert/strict');
 const express                 = require('express');
 
-const { exportacionLimiter, consolidadoLimiter } = require('../../src/infrastructure/http/middlewares/rateLimit');
+const {
+  exportacionLimiter, consolidadoLimiter, exportacionPorVersionLimiter, productosPorVersionLimiter,
+} = require('../../src/infrastructure/http/middlewares/rateLimit');
 
 function crearApp() {
   const app = express();
@@ -18,6 +20,8 @@ function crearApp() {
   // Comparte el limitador de exportación (clave por usuario) con un handler lento.
   app.get('/lenta', exportacionLimiter, (_req, res) => setTimeout(() => res.json({ ok: true }), 300));
   app.get('/listar', consolidadoLimiter, (_req, res) => res.json({ ok: true }));
+  app.get('/por-version/exportar', exportacionPorVersionLimiter, (_req, res) => res.json({ ok: true }));
+  app.get('/por-version/listar', productosPorVersionLimiter, (_req, res) => res.json({ ok: true }));
   return app;
 }
 
@@ -41,6 +45,19 @@ describe('limitadores por usuario', () => {
     for (let i = 0; i < 60; i += 1) assert.equal((await pedir('/listar', 'C')).status, 200);
     assert.equal((await pedir('/listar', 'C')).status, 429);
     assert.equal((await pedir('/listar', 'D')).status, 200);
+  });
+
+  it('productos por planograma: la descarga (5/min) y el listado (60/min) tienen su propio cupo por usuario', async () => {
+    for (let i = 0; i < 5; i += 1) assert.equal((await pedir('/por-version/exportar', 'G')).status, 200);
+    assert.equal((await pedir('/por-version/exportar', 'G')).status, 429);
+    // cupo aparte del consolidado y del listado
+    assert.equal((await pedir('/exportar', 'G')).status, 200);
+    assert.equal((await pedir('/por-version/listar', 'G')).status, 200);
+    assert.equal((await pedir('/por-version/exportar', 'H')).status, 200);
+
+    for (let i = 0; i < 60; i += 1) assert.equal((await pedir('/por-version/listar', 'I')).status, 200);
+    assert.equal((await pedir('/por-version/listar', 'I')).status, 429);
+    assert.equal((await pedir('/por-version/listar', 'J')).status, 200);
   });
 
   it('las peticiones inválidas (400, validadas antes del limitador) no gastan cupo', async () => {

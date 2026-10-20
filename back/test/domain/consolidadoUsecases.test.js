@@ -6,7 +6,7 @@ const { describe, it } = require('node:test');
 const assert           = require('node:assert/strict');
 
 const { listarConsolidado, obtenerFiltros, exportarConsolidado } = require('../../src/domain/consolidado/consolidado.usecases');
-const { crearSemaforo } = require('../../src/application/consolidado/semaforo');
+const { crearSemaforo } = require('../../src/application/compartido/semaforo');
 
 function posicion(id, nivelId, sku, extra = {}) {
   return {

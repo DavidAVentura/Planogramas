@@ -231,6 +231,20 @@ Qué versión de cada planograma monta cada tienda. Regla: **una tienda monta un
 
 ---
 
+## 16. Implementación (consulta de productos)
+
+Consultas del módulo `implementacion`: la vista Mi tienda del implementador y la vista Productos → Por planograma del analista. Contratos en `Contratos/16_implementacion/`. La vista del analista no tiene filtro por tienda del usuario (DT-10).
+
+| Método | Ruta | Actor | Permiso | CU | Descripción |
+|--------|------|-------|---------|----|-------------|
+| `GET` | `/tiendas/{tiendaId}/implementacion` | Implementador | I | CU-07-01 | Resumen de implementación de la tienda (Mi tienda). |
+| `GET` | `/tiendas/{tiendaId}/implementacion/productos` | Implementador | PRODUCTOS_TIENDA | CU-07-01, CU-07-02 | Una fila por posición con SKU de la tienda, con inventario. |
+| `GET` | `/implementacion/versiones` | Analista | A | CU-10-05 | Versiones elegibles para la vista Por planograma. |
+| `GET` | `/implementacion/productos` | Analista | A | CU-10-05 | Una fila por posición con SKU para las `versionIds` (1–50); `tiendaId` opcional (agrega inventario); `area`/`departamento` opcionales (jerarquía CATI; `departamento` exige `area`; código inexistente → `400`; CATI caído → `503`) que acotan `data` y `total` (`versiones[]` queda completo). Limitador 60/min por usuario. |
+| `POST` | `/implementacion/productos/exportar` | Analista | A | CU-10-06 | Descarga `.xlsx` con cuerpo JSON (`versionIds`, `formato` `LISTA`|`PIVOTE`; opcionales `area`, `departamento`, `posicionIds`; hasta 512 kb). `posicionIds` solo acota: el servidor calcula su universo. `422 PIVOTE_NO_APLICABLE` / `EXPORTACION_DEMASIADO_GRANDE`; `503 EXPORTACION_EN_CURSO` (semáforo compartido con el consolidado); limitador 5/min por usuario. |
+
+---
+
 ## 18. Secciones de góndola
 
 Parte una góndola en columnas o franjas (anidables), cada una con sus propios niveles (tabla `Seccion`, migración 012). Aditivo: una góndola sin secciones se comporta igual que antes. Las escrituras exigen versión editable y responden con la estructura completa actualizada. Contratos en `Contratos/18_secciones/`.

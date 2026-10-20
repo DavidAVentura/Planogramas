@@ -197,6 +197,49 @@
   font-weight: 600;
 }
 
+/* Barra colapsable (Por versión), mismo patrón que el Consolidado: acciones arriba y filtros en fila. */
+.productos-versiones__barra--colapsable {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.productos-versiones__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-height: 40px;
+}
+
+.productos-versiones__filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+
+  &[hidden] { display: none; }
+
+  /* Etiquetas solo para lectores de pantalla y controles de 38px, como ConsolidadoFiltros. */
+  .productos-versiones__campo { gap: 0; }
+
+  .productos-versiones__campo > span:first-child {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .productos-versiones__campo input,
+  .productos-versiones__selector { height: 38px; }
+}
+
 .productos-versiones__selector-texto {
   flex: 1;
   min-width: 0;

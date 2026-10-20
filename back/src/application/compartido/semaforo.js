@@ -18,4 +18,8 @@ function crearSemaforo(maximo) {
   };
 }
 
-module.exports = { crearSemaforo };
+// Un solo proceso, una sola exportación .xlsx a la vez (consolidado y productos por planograma
+// comparten el mismo semáforo: la generación bloquea el event loop).
+const semaforoExportacion = crearSemaforo(1);
+
+module.exports = { crearSemaforo, semaforoExportacion };
